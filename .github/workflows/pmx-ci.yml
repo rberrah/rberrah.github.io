@@ -137,6 +137,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Materialize MIPD browser snapshot from immutable source
+        run: npm run mipd:materialize
       - name: Test PMx laboratories and model imports
         run: npm run test:labs && npm run test:mlxtran
 
@@ -161,6 +163,8 @@ jobs:
           git -C "$source_dir" checkout --detach FETCH_HEAD
           test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
           echo "MIPD_ENGINE_DIR=$source_dir" >> "$GITHUB_ENV"
+      - name: Materialize MIPD browser snapshot from immutable source
+        run: npm run mipd:materialize
       - name: Verify PMx consumer against standalone engine and model library
         shell: bash
         run: |
@@ -251,6 +255,8 @@ jobs:
         run: Rscript -e 'cat("R version:", as.character(getRversion()), "\nPmetrics version:", as.character(packageVersion("Pmetrics")), "\n")'
       - name: Install Node dependencies
         run: npm ci
+      - name: Materialize MIPD browser snapshot from immutable source
+        run: npm run mipd:materialize
       - name: Compile and simulate native Pmetrics structures
         run: npm run test:pmetrics-native
       - name: Test Pmetrics TDM backend
