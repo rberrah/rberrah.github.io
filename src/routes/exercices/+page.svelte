@@ -3,7 +3,7 @@
   import { exercises } from '#lib/content/exercises.js';
   import { guidedActivities } from '#lib/content/guidedActivities.js';
   import { page } from '$app/state';
-  import { onMount } from 'svelte';
+  import { afterNavigate } from '$app/navigation';
   import { resolve } from '$app/paths';
   const base = resolve('/').replace(/\/$/, '');
   import chapters from '#lib/content/loadChapters.js';
@@ -40,17 +40,22 @@
     .filter((g) => g.items.length || g.activities.length || g.syntheses.length || g.quizCount);
   let selectedTrack = '';
   let selectedKind = 'guided';
-  let mounted = false;
-  onMount(() => { mounted = true; });
   /** @type {string | null | undefined} */
   let lastQuery;
   /** @type {string | null | undefined} */
   let lastKindQuery;
-  $: if (mounted && lastQuery !== page.url.searchParams.get('track')) { lastQuery = page.url.searchParams.get('track'); if (lastQuery) selectedTrack = lastQuery; }
-  $: if (mounted && lastKindQuery !== page.url.searchParams.get('kind')) {
-    lastKindQuery = page.url.searchParams.get('kind');
-    if (['guided', 'synthesis', 'calculations', 'quiz'].includes(lastKindQuery ?? '')) selectedKind = lastKindQuery;
-  }
+  afterNavigate(() => {
+    const trackQuery = page.url.searchParams.get('track');
+    if (lastQuery !== trackQuery) {
+      lastQuery = trackQuery;
+      if (trackQuery) selectedTrack = trackQuery;
+    }
+    const kindQuery = page.url.searchParams.get('kind');
+    if (lastKindQuery !== kindQuery) {
+      lastKindQuery = kindQuery;
+      if (['guided', 'synthesis', 'calculations', 'quiz'].includes(kindQuery ?? '')) selectedKind = kindQuery;
+    }
+  });
   $: if (!groups.some((group) => group.id === selectedTrack)) selectedTrack = groups[0]?.id ?? '';
   $: activeGroup = groups.find((group) => group.id === selectedTrack);
   $: if (activeGroup && selectedKind === 'calculations' && !activeGroup.items.length) selectedKind = 'guided';
