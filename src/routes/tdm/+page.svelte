@@ -15,6 +15,7 @@
     cleanupLab = openLaboratoryTdm(tdmEngineUrl, $language ?? 'fr', laboratory, (state, detail) => { labStatus = state; labError = detail ?? ''; });
   }
   import { tdmModels, tdmModelStats } from '#lib/content/tdmModels.js';
+  import sourceReview from '#lib/content/tdmSourceReview.generated.json';
   import { ui } from '#lib/i18n/translations.js';
   import { language } from '#lib/stores/language.js';
   import { tdmEngineUrl } from '#lib/tdm/engine.js';
@@ -37,21 +38,19 @@
     modelType: $language === 'en' ? model.modelTypeEn : model.modelType,
     administrationCategories: $language === 'en' ? model.administrationCategoriesEn : model.administrationCategories,
     implementationStatusLabel: $language === 'en' ? model.implementationStatusLabelEn : model.implementationStatusLabel,
-    analysisEligibilityLabel: $language === 'en' ? model.analysisEligibilityLabelEn : model.analysisEligibilityLabel,
-    note: $language === 'en' ? model.noteEn : model.note
-  });
-  // Source-review snapshot: MIPD-Engine/models/source-review.json, 2026-10-16.
-  // "not verified" describes scientific fidelity, not the DOI's registration.
-  const sourceNotVerified = new Set([
-    'amiodarone_pollak_ddi', 'cobicistat_mathias_ddi',
-    'diltiazem_hermann_ddi', 'everolimus_moes_ddi',
-    'fluconazole_debruyne_ddi', 'isavuconazole_groll_ddi',
-    'rifampicine_loos_ddi', 'sirolimus_djebli_ddi',
-    'rifampicine_chang', 'rifampicine_marsot'
-  ]);
+    analysisEligibilityLabel: $language === 'en' ? model.analysisEligibilityLabelEn : model.analysisEligibi  // Immutable scientific source-fidelity verdicts imported from the exact
+  // released MIPD Engine commit pinned by integration/mipd-release.json.
+  // This label does NOT describe ML performance or clinical validation.
+  const sourceReviews = new Map(sourceReview.reviewed.map((item) => [item.id, item]));
   /** @param {any} model */
-  const modelFidelity = (model) => sourceNotVerified.has(model.id)
-    ? 'not verified'
+  const modelFidelity = (model) => {
+    const review = sourceReviews.get(model.id);
+    if (!review || review.fullTextReviewed !== true || review.result === 'SOURCE_AMBIGUITY_DOCUMENTED') return 'not verified';
+    if (review.result === 'ARTICLE_ALIGNED') return 'aligned';
+    if (review.result === 'DOCUMENTED_ADAPTATION_CONFIRMED') return 'adapted';
+    return 'not verified';
+  };
+'
     : model.implementationStatus === 'ARTICLE' ? 'aligned' : 'adapted';
   /** @param {any} model */
   const adaptationText = (model) => {
