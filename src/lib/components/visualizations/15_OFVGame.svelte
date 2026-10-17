@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   const comparisons = [
     { baseFr: 'Modèle de base', baseEn: 'Base model', richFr: '+ poids sur CL', richEn: '+ weight on CL', delta: 5.0, df: 1 },

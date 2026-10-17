@@ -1,9 +1,9 @@
 // Plan du site, prérendu au build : pages fixes + un chapitre = une URL.
 // La liste des chapitres est DÉRIVÉE du chargeur existant — ajouter un fichier
 // Markdown suffit, il n'y a rien à tenir à jour ici.
-import chapters from '$lib/content/loadChapters';
-import { tracks } from '$lib/content/tracks';
-import { SITE_BASE, SITE_ORIGIN } from '$lib/site';
+import chapters from '#lib/content/loadChapters.js';
+import { tracks } from '#lib/content/tracks.js';
+import { SITE_BASE, SITE_ORIGIN } from '#lib/site.js';
 
 export const prerender = true;
 

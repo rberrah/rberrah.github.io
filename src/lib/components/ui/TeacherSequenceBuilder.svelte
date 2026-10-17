@@ -1,9 +1,10 @@
 <script>
   // @ts-nocheck
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { ArrowDown, ArrowUp, Copy, GraduationCap } from '@lucide/svelte';
-  import { language } from '$lib/stores/language';
-  import { labByChapter, labNames } from '$lib/learning/labLinks';
+  import { language } from '#lib/stores/language.js';
+  import { labByChapter, labNames } from '#lib/learning/labLinks.js';
 
   export let group;
   let sequence = [];

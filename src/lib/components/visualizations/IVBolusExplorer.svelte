@@ -2,7 +2,7 @@
   // One-compartment IV bolus explorer.
   // C(t) = (Dose / V) * exp(-(CL/V) * t)
   import { scaleLinear, scaleLog } from 'd3-scale';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   export let dose = 100; // mg
   export let v = 30; // L

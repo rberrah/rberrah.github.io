@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
   import { Play, Pause, RotateCcw } from '@lucide/svelte';
-  import { language } from '$lib/stores/language';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
+  import { language } from '#lib/stores/language.js';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
   import CovariatePlot from './CovariatePlot.svelte';
   import ScientificText from './ui/ScientificText.svelte';
-  import { lessonDefaults, lessonDomain, lessonTypical, lessonData, validLesson, symbolicStudyRange } from '$lib/covariates/lessons';
+  import { lessonDefaults, lessonDomain, lessonTypical, lessonData, validLesson, symbolicStudyRange } from '#lib/covariates/lessons.js';
 
   let { lesson, initialSettings = {}, initialValue, onchange }: { lesson: string; initialSettings?: Partial<ReturnType<typeof lessonDefaults>>; initialValue?: number; onchange?: (state: { settings: ReturnType<typeof lessonDefaults>; value: number; valid: boolean }) => void } = $props();
   let p = $state(untrack(() => ({ ...lessonDefaults(), ...initialSettings })));

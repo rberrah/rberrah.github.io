@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   const stages = [
     { name: 'Thresholding', fr: 'Élimine les variables de faible importance', en: 'Removes low-importance variables', color: '#2563eb' },
     { name: 'Interpretation', fr: 'Sélectionne un ensemble pertinent pour interpréter', en: 'Selects a relevant set for interpretation', color: '#f97316' },

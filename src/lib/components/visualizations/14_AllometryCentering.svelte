@@ -1,10 +1,10 @@
 <script>
   import { scaleLinear } from 'd3-scale';
-  import ChartFrame from '$lib/charts/ChartFrame.svelte';
-  import Axis from '$lib/charts/Axis.svelte';
-  import Slider from '$lib/components/ui/Slider.svelte';
-  import { paddedDomain } from '$lib/charts/domain';
-  import { language } from '$lib/stores/language';
+  import ChartFrame from '#lib/charts/ChartFrame.svelte';
+  import Axis from '#lib/charts/Axis.svelte';
+  import Slider from '#lib/components/ui/Slider.svelte';
+  import { paddedDomain } from '#lib/charts/domain.js';
+  import { language } from '#lib/stores/language.js';
 
   const clStd = 6; // CL population (L/h) à 70 kg
   const wtStd = 70;

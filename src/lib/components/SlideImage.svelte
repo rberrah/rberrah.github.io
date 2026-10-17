@@ -1,8 +1,9 @@
 <script>
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import catalog from '../../content/slides/slide_catalog.json';
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
 
   export let n;
   export let alt = 'Slide PPTX';

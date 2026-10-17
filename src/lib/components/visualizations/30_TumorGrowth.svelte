@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { simulateTumorGrowth } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { simulateTumorGrowth } from '#lib/science/visualizationMath.js';
   // Modèle d'inhibition de la croissance tumorale (TGI) de type Claret.
   //   dTS/dt = KG·TS  −  K·exposition·exp(−λ·t)·TS
   //   • KG           : croissance tumorale exponentielle (sans traitement)

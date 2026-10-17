@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   const steps = ['S (Simulation)', 'SA (Approximation)', 'M (Maximisation)'];
   let idx = 0;
   const next = () => (idx = (idx + 1) % steps.length);

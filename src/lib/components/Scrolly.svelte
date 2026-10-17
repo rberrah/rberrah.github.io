@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   /** @type {{id:string, title?:string, content?:string}[]} */
   export let steps = [];

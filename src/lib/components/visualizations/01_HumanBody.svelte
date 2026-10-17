@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   const zones = [
     { id: 'gut', fr: 'Absorption', en: 'Absorption', cx: 100, cy: 170, r: 28 },
     { id: 'blood', fr: 'Distribution', en: 'Distribution', cx: 100, cy: 110, r: 30 },

@@ -1,22 +1,23 @@
 <script>
-  import { base } from '$app/paths';
-  import { browser } from '$app/environment';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { browser } from '$app/env';
   import { onMount, onDestroy, tick } from 'svelte';
-  import { page } from '$app/stores';
-  import chapters from '$lib/content/loadChapters';
+  import { page } from '$app/state';
+  import chapters from '#lib/content/loadChapters.js';
   import { afterNavigate } from '$app/navigation';
-  import { countPage } from '$lib/analytics';
-  import Quiz from '$lib/components/ui/Quiz.svelte';
-  import ChapterFooter from '$lib/components/ui/ChapterFooter.svelte';
-  import AuthorSignature from '$lib/components/ui/AuthorSignature.svelte';
-  import CiteBlock from '$lib/components/ui/CiteBlock.svelte';
-  import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
-  import { exercisesForChapter } from '$lib/content/exercises';
-  import { activitiesForChapter, synthesisForTrack } from '$lib/content/guidedActivities';
-  import { markLearning } from '$lib/stores/learning';
-  import { describeViz } from '$lib/content/vizDescriptions';
-  import { language } from '$lib/stores/language';
-  import { localizeChapter, ui } from '$lib/i18n/translations';
+  import { countPage } from '#lib/analytics.js';
+  import Quiz from '#lib/components/ui/Quiz.svelte';
+  import ChapterFooter from '#lib/components/ui/ChapterFooter.svelte';
+  import AuthorSignature from '#lib/components/ui/AuthorSignature.svelte';
+  import CiteBlock from '#lib/components/ui/CiteBlock.svelte';
+  import ExerciseBlock from '#lib/components/ui/ExerciseBlock.svelte';
+  import { exercisesForChapter } from '#lib/content/exercises.js';
+  import { activitiesForChapter, synthesisForTrack } from '#lib/content/guidedActivities.js';
+  import { markLearning } from '#lib/stores/learning.js';
+  import { describeViz } from '#lib/content/vizDescriptions.js';
+  import { language } from '#lib/stores/language.js';
+  import { localizeChapter, ui } from '#lib/i18n/translations.js';
   import {
     alternateUrl,
     AUTHOR,
@@ -25,24 +26,27 @@
     jsonLdScript,
     LICENSE_URL,
     SITE_URL
-  } from '$lib/site';
+  } from '#lib/site.js';
 
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
-  import SlideFigure from '$lib/components/visualizations/SlideFigure.svelte';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
+  import SlideFigure from '#lib/components/visualizations/SlideFigure.svelte';
 
   // Registre AUTOMATIQUE : tout composant déposé dans
   // src/lib/components/visualizations/ est utilisable via viz="..." sans éditer
   // ce fichier. Voir src/lib/content/vizRegistry.js.
-  import vizLoaders, { availableVizKeys, loadViz } from '$lib/content/vizRegistry';
+  import vizLoaders, { availableVizKeys, loadViz } from '#lib/content/vizRegistry.js';
 
   export let data;
-  $: slug = $page.params.slug;
+  let slug = page.params.slug;
+  let canonical = canonicalUrl(page.url.pathname);
   $: chapter = data?.chapter ?? null;
   afterNavigate(() => {
-    if ($page.route.id !== '/chapitres/[slug]') return;
-    const known = $page.status === 200 && chapters.find(c => c.slug === $page.params.slug);
+    slug = page.params.slug;
+    canonical = canonicalUrl(page.url.pathname);
+    if (page.route.id !== '/chapitres/[slug]') return;
+    const known = page.status === 200 && chapters.find(c => c.slug === page.params.slug);
     if (known) markLearning('chapters', known.slug, 'seen');
     countPage(known ? `/pharmacometrie/chapitres/${known.slug}/` : null);
   });
@@ -143,7 +147,6 @@
 
   // --- Citabilité et référencement ---------------------------------------------------
   // URL canonique absolue de ce chapitre, issue de l'origine publique du build.
-  $: canonical = canonicalUrl($page.url.pathname);
   // Une alternance anglaise ne s'annonce que si la traduction existe réellement :
   // sinon la page anglaise servirait le texte français, et l'annonce serait fausse.
   $: hasEnglish = Boolean(chapters.find((c) => c.slug === slug)?.translations?.en);
@@ -171,7 +174,7 @@
           url: SITE_URL
         },
         // La mise à jour éditoriale est distincte de la relecture scientifique.
-        ...((displayChapter?.updated_on || displayChapter?.reviewed_on) ? { dateModified: displayChapter.updated_on || displayChapter.reviewed_on } : {})
+        ...(displayChapter?.updated_on || displayChapter?.reviewed_on ? { dateModified: displayChapter.updated_on || displayChapter.reviewed_on } : {})
       })
     : '';
 

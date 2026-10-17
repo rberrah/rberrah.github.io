@@ -2,8 +2,8 @@
   // @ts-nocheck - canvas interactions share the tested geometry in particles.js.
   import { onMount, createEventDispatcher } from 'svelte';
   import { Crosshair, LocateFixed, SkipForward, Pipette, Play, Pause } from '@lucide/svelte';
-  import { particleJourneys, particlePosition, particleVisit, sceneLayout } from '$lib/labs/particles.js';
-  import { schedule } from '$lib/labs/model.js';
+  import { particleJourneys, particlePosition, particleVisit, sceneLayout } from '#lib/labs/particles.js';
+  import { schedule } from '#lib/labs/model.js';
   export let lab;
   export let p;
   export let state;

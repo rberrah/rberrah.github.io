@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Cinétique virale sous traitement (modèle à cellules cibles simplifié, type Neumann-Perelson).
   //   dI/dt = −δ·I                         (perte des cellules infectées)
   //   dV/dt = (1−ε)·p·I − c·V              (production bloquée à (1−ε), clairance c)

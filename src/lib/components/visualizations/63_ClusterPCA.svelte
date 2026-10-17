@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Découvrir des sous-groupes : paramètres individuels (CL, V) de patients de 3 types de
   // cancer. Mode « Vrai type » (couleur = type) vs « Clusters » (k-means non supervisé).
   // Quand la clairance dépend du type de cancer, le clustering retrouve les groupes.

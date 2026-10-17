@@ -1,7 +1,8 @@
 <script>
-  import PopPKPlayground from '$lib/components/visualizations/21_PopPKPlayground.svelte';
-  import { language } from '$lib/stores/language';
-  import { base } from '$app/paths';
+  import PopPKPlayground from '#lib/components/visualizations/21_PopPKPlayground.svelte';
+  import { language } from '#lib/stores/language.js';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
 </script>
 
 <svelte:head>

@@ -2,9 +2,10 @@
   // Redirection : le chapitre « L'état d'équilibre » a été FUSIONNÉ dans
   // « Doses répétées et état d'équilibre » (doublon supprimé). On préserve
   // l'ancienne URL pour ne casser aucun lien enregistré.
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { onMount } from 'svelte';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   const target = `${base}/chapitres/doses-repetees`;
   onMount(() => { window.location.replace(target); });

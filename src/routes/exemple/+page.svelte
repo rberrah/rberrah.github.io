@@ -1,11 +1,12 @@
 <script>
-  import { base } from '$app/paths';
-  import WarfarinFit from '$lib/components/visualizations/60_WarfarinFit.svelte';
-  import ResidualError from '$lib/components/visualizations/61_ResidualError.svelte';
-  import VPC from '$lib/components/visualizations/17_VPCCrashTest.svelte';
-  import NPDE from '$lib/components/visualizations/52_NPDE.svelte';
-  import ModelSelection from '$lib/components/visualizations/59_ModelSelection.svelte';
-  import { language } from '$lib/stores/language';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import WarfarinFit from '#lib/components/visualizations/60_WarfarinFit.svelte';
+  import ResidualError from '#lib/components/visualizations/61_ResidualError.svelte';
+  import VPC from '#lib/components/visualizations/17_VPCCrashTest.svelte';
+  import NPDE from '#lib/components/visualizations/52_NPDE.svelte';
+  import ModelSelection from '#lib/components/visualizations/59_ModelSelection.svelte';
+  import { language } from '#lib/stores/language.js';
 
   const compare = [
     { id: 'r01', desc: '1 compartiment, sans Tlag', aic: 899.6, bic: 927.8, ll: -441.8, best: false },

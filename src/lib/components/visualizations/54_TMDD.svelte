@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Approximation Michaelis-Menten d'une élimination saturable liée à la cible.
   // Ce n'est pas un modèle TMDD mécanistique complet avec cible libre et complexes.
   //   dC/dt = −(CLlin/V)·C − (Vmax/V)·C/(Km + C)

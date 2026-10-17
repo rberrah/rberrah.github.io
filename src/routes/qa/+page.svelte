@@ -1,12 +1,12 @@
 <script>
-  import PK1C from '$lib/components/visualizations/09_PK1C.svelte';
-  import ADEChooser from '$lib/components/visualizations/11_ADEChooser.svelte';
-  import VariabilitySandbox from '$lib/components/visualizations/12_VariabilitySandbox.svelte';
-  import AUCTrap from '$lib/components/visualizations/08_AUCTrap.svelte';
-  import VPCCrashTest from '$lib/components/visualizations/17_VPCCrashTest.svelte';
-  import BayesianShrinkage from '$lib/components/visualizations/18_BayesianShrinkage.svelte';
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import PK1C from '#lib/components/visualizations/09_PK1C.svelte';
+  import ADEChooser from '#lib/components/visualizations/11_ADEChooser.svelte';
+  import VariabilitySandbox from '#lib/components/visualizations/12_VariabilitySandbox.svelte';
+  import AUCTrap from '#lib/components/visualizations/08_AUCTrap.svelte';
+  import VPCCrashTest from '#lib/components/visualizations/17_VPCCrashTest.svelte';
+  import BayesianShrinkage from '#lib/components/visualizations/18_BayesianShrinkage.svelte';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
 
   $: copy = ui($language);
 </script>

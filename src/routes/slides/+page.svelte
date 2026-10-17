@@ -1,9 +1,10 @@
 <script>
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import catalog from '../../content/slides/slide_catalog.json';
-  import SlideImage from '$lib/components/SlideImage.svelte';
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import SlideImage from '#lib/components/SlideImage.svelte';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
 
   let query = '';
   $: copy = ui($language);

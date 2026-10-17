@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { simulateMyelosuppression } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { simulateMyelosuppression } from '#lib/science/visualizationMath.js';
   // Modèle de myélosuppression de Friberg (2002).
   //   Prol → Transit1 → Transit2 → Transit3 → Circ
   //   dProl = ktr·Prol·(1 − Edrug)·(Circ0/Circ)^γ − ktr·Prol

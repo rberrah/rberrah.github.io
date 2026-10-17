@@ -4,7 +4,7 @@
   //   Bateman : C(t) = (Dose/V)·Ka/(Ka−k)·(e^-k(t−Tlag) − e^-Ka(t−Tlag))
   //   Transit : dT1/dt=−ktr·T1 ; dTi/dt=ktr·T(i−1)−ktr·Ti ; dA/dt=ktr·Tn−k·A
   import { scaleLinear } from 'd3-scale';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   export let dose = 100; // mg
   export let ka = 1.0; // 1/h

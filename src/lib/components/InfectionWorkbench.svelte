@@ -1,10 +1,10 @@
 <script>
   import { onMount, onDestroy, flushSync } from 'svelte';
   import { ArrowRight, Download, Microscope, Activity, SlidersHorizontal } from '@lucide/svelte';
-  import { language } from '$lib/stores/language';
-  import { tdmEngineUrl } from '$lib/tdm/engine';
-  import { openWorkshop, workshopSpec, basicIvModel } from '$lib/tdm/workbenches';
-  import { readDraft, writeDraft } from '$lib/workshops/session.js';
+  import { language } from '#lib/stores/language.js';
+  import { tdmEngineUrl } from '#lib/tdm/engine.js';
+  import { openWorkshop, workshopSpec, basicIvModel } from '#lib/tdm/workbenches.js';
+  import { readDraft, writeDraft } from '#lib/workshops/session.js';
   import PkWorkshopModel from './PkWorkshopModel.svelte';
   import WorkshopFigures from './WorkshopFigures.svelte';
   import TransferContract from './TransferContract.svelte';

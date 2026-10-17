@@ -1,10 +1,11 @@
 <script>
   // @ts-nocheck
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { ArrowRight, ArrowUpRight, Activity } from '@lucide/svelte';
-  import benchmark from '$lib/content/mlBenchmark.generated.json';
-  import { language } from '$lib/stores/language';
-  import { tdmEngineUrl } from '$lib/tdm/engine';
+  import benchmark from '#lib/content/mlBenchmark.generated.json';
+  import { language } from '#lib/stores/language.js';
+  import { tdmEngineUrl } from '#lib/tdm/engine.js';
 
   let design = $state('c0PlusOneHourPostInfusion');
   let query = $state('');

@@ -1,7 +1,7 @@
 <script>
-  import { referenceGroups, refIdentifier } from '$lib/content/references';
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import { referenceGroups, refIdentifier } from '#lib/content/references.js';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
 
   $: copy = ui($language);
   $: isEn = $language === 'en';

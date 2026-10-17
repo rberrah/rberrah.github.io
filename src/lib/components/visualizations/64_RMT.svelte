@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Random Matrix Theory : spectre des valeurs propres d'une matrice de corrélation de
   // paramètres individuels. Sous l'hypothèse « pur bruit », les valeurs propres suivent la
   // loi de Marchenko-Pastur, bornée par λ± = (1 ± √(p/n))². Une valeur au-dessus

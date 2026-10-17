@@ -1,9 +1,9 @@
 <script>
-  import { labHandoff } from '$lib/labs/handoff.js';
-  import { language } from '$lib/stores/language';
+  import { labHandoff } from '#lib/labs/handoff.js';
+  import { language } from '#lib/stores/language.js';
   import { ArrowRight, X } from '@lucide/svelte';
   /** @type {string} */ export let destination;
-  /** @type {(spec: ReturnType<typeof import('$lib/labs/model.js').laboratorySpec>) => void} */ export let apply;
+  /** @type {(spec: ReturnType<typeof import('#lib/labs/model.js').laboratorySpec>) => void} */ export let apply;
   export let note = '';
   let applied = false;
   let error = '';

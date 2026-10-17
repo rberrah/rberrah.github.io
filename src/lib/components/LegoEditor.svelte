@@ -5,20 +5,21 @@
   // Sortie : diagramme éditable + EDO générées + nlmixr2/mrgsolve/MLXTRAN/NONMEM + simulation (RK4).
   import { onMount, onDestroy, tick } from 'svelte';
   import { goto } from '$app/navigation';
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { ArrowRight, Play, Plus } from '@lucide/svelte';
-  import { readDraft, writeDraft, takeDraft, isPkDiagram, pkKinds } from '$lib/workshops/session.js';
-  import { language } from '$lib/stores/language';
-  import LabTransfer from '$lib/components/LabTransfer.svelte';
-  import { legoSpec } from '$lib/labs/model.js';
-  import { ui } from '$lib/i18n/translations';
-  import { tdmEngineUrl } from '$lib/tdm/engine';
-  import { advancedDefaults, advancedFields, advancedDerivative, interactionFactor, advancedExpressions, advancedGraphValid } from '$lib/lego/advanced.js';
-  import { ddiMechanisms } from '$lib/tdm/workbenches.js';
-  import { parseModelCode } from '$lib/lego/mlxtran.js';
-  import { exportPmetrics } from '$lib/lego/pmetrics.js';
-  import { legoSimulationConfig } from '$lib/sim/lego.js';
-  import { attachTransferContract, makeTransferContract } from '$lib/transfers/contract.js';
+  import { readDraft, writeDraft, takeDraft, isPkDiagram, pkKinds } from '#lib/workshops/session.js';
+  import { language } from '#lib/stores/language.js';
+  import LabTransfer from '#lib/components/LabTransfer.svelte';
+  import { legoSpec } from '#lib/labs/model.js';
+  import { ui } from '#lib/i18n/translations.js';
+  import { tdmEngineUrl } from '#lib/tdm/engine.js';
+  import { advancedDefaults, advancedFields, advancedDerivative, interactionFactor, advancedExpressions, advancedGraphValid } from '#lib/lego/advanced.js';
+  import { ddiMechanisms } from '#lib/tdm/workbenches.js';
+  import { parseModelCode } from '#lib/lego/mlxtran.js';
+  import { exportPmetrics } from '#lib/lego/pmetrics.js';
+  import { legoSimulationConfig } from '#lib/sim/lego.js';
+  import { attachTransferContract, makeTransferContract } from '#lib/transfers/contract.js';
   import TransferContract from './TransferContract.svelte';
   $: copy = ui($language);
   /** @type {'pk' | 'advanced' | 'translator'} */

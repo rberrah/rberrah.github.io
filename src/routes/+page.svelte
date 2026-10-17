@@ -1,11 +1,12 @@
 <script>
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, GraduationCap, ArrowRight } from '@lucide/svelte';
-  import chapters from '$lib/content/loadChapters';
-  import { beginnerTrack, tracks, chaptersByTrack } from '$lib/content/tracks';
-  import { language } from '$lib/stores/language';
-  import { localizeChapter, localizeTrack, ui } from '$lib/i18n/translations';
-  import { AUTHOR, COURSE_NAME, jsonLdScript, LICENSE_URL, SITE_URL } from '$lib/site';
+  import chapters from '#lib/content/loadChapters.js';
+  import { beginnerTrack, tracks, chaptersByTrack } from '#lib/content/tracks.js';
+  import { language } from '#lib/stores/language.js';
+  import { localizeChapter, localizeTrack, ui } from '#lib/i18n/translations.js';
+  import { AUTHOR, COURSE_NAME, jsonLdScript, LICENSE_URL, SITE_URL } from '#lib/site.js';
 
   const grouped = chaptersByTrack(chapters);
   const coreCount = grouped.core.length;

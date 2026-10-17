@@ -1,9 +1,9 @@
 <script>
-  import ChartFrame from '$lib/charts/ChartFrame.svelte';
-  import Axis from '$lib/charts/Axis.svelte';
+  import ChartFrame from '#lib/charts/ChartFrame.svelte';
+  import Axis from '#lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
-  import { paddedDomain } from '$lib/charts/domain';
-  import { language } from '$lib/stores/language';
+  import { paddedDomain } from '#lib/charts/domain.js';
+  import { language } from '#lib/stores/language.js';
 
   const base = [
     { t: 0, c: 0 },
@@ -14,7 +14,7 @@
     { t: 12, c: 5.4 }
   ];
 
-  import { makeRng } from '$lib/sim/random';
+  import { makeRng } from '#lib/sim/random.js';
 
   let mode = 'none';
 

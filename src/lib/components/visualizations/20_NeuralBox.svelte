@@ -1,8 +1,8 @@
 <script>
-  import ChartFrame from '$lib/charts/ChartFrame.svelte';
-  import Axis from '$lib/charts/Axis.svelte';
+  import ChartFrame from '#lib/charts/ChartFrame.svelte';
+  import Axis from '#lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   const times = Array.from({ length: 101 }, (_, i) => i * 0.2); // 0..20 h
   const baseline = times.map((t) => 10 * Math.exp(-0.35 * t)); // ODE pure

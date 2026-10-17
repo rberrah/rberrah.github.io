@@ -1,6 +1,7 @@
 <script>
-  import { base } from '$app/paths';
-  import { language } from '$lib/stores/language';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { language } from '#lib/stores/language.js';
   import { BookOpen, FlaskConical } from '@lucide/svelte';
   import LaboratoryCard from './LaboratoryCard.svelte';
 

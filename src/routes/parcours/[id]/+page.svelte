@@ -1,48 +1,74 @@
 <script>
   // @ts-nocheck
-  import { base } from '$app/paths';
-  import { page } from '$app/stores';
-  import { onMount } from 'svelte';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { page } from '$app/state';
   import { goto, afterNavigate } from '$app/navigation';
   import { ArrowRight, BookOpen, FlaskConical, ListChecks } from '@lucide/svelte';
-  import chapters from '$lib/content/loadChapters';
-  import { exercisesForChapter } from '$lib/content/exercises';
-  import { activitiesForChapter } from '$lib/content/guidedActivities';
-  import { covariateObjectives } from '$lib/content/covariateActivities';
-  import { language } from '$lib/stores/language';
-  import { learning, loadLearning } from '$lib/stores/learning';
-  import { localizeChapter, localizeTrack } from '$lib/i18n/translations';
-  import { chaptersForTrack } from '$lib/content/tracks';
-  import { countPage } from '$lib/analytics';
-  import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
-  import LearningProgress from '$lib/components/ui/LearningProgress.svelte';
-  import Quiz from '$lib/components/ui/Quiz.svelte';
+  import chapters from '#lib/content/loadChapters.js';
+  import { exercisesForChapter } from '#lib/content/exercises.js';
+  import { activitiesForChapter } from '#lib/content/guidedActivities.js';
+  import { covariateObjectives } from '#lib/content/covariateActivities.js';
+  import { language } from '#lib/stores/language.js';
+  import { learning, loadLearning } from '#lib/stores/learning.js';
+  import { localizeChapter, localizeTrack } from '#lib/i18n/translations.js';
+  import { chaptersForTrack } from '#lib/content/tracks.js';
+  import { countPage } from '#lib/analytics.js';
+  import ExerciseBlock from '#lib/components/ui/ExerciseBlock.svelte';
+  import LearningProgress from '#lib/components/ui/LearningProgress.svelte';
+  import Quiz from '#lib/components/ui/Quiz.svelte';
   export let data;
-  let mounted = false;
-  onMount(() => { mounted = true; });
   const t = (fr, en) => $language === 'en' ? en : fr;
-  const localized = value => localizeChapter(value, $language).chapter;
+  const localized = (value) => localizeChapter(value, $language).chapter;
   $: track = data.track;
   $: title = localizeTrack(track, $language);
   $: list = chaptersForTrack(track, chapters);
   $: beginner = track.id === 'start';
   $: pilot = track.id === 'covariates';
-  $: trackActivities = list.flatMap(chapter => activitiesForChapter(chapter.slug, track.id));
-  $: finalCase = beginner ? trackActivities.find(activity => activity.id === 'synthesis-start') : null;
-  $: chapterQuery = mounted ? $page.url.searchParams.get('chapter') : null;
-  $: selected = list.find(chapter => chapter.slug === chapterQuery) ?? list[0];
+  $: trackActivities = list.flatMap((chapter) => activitiesForChapter(chapter.slug, track.id));
+
+  $: finalCase = beginner
+    ? trackActivities.find((activity) => activity.id === 'synthesis-start')
+    : null;
+
+  let chapterQuery = null;
+  $: selected = list.find((chapter) => chapter.slug === chapterQuery) ?? list[0];
   $: activities = selected ? activitiesForChapter(selected.slug, track.id) : [];
   $: exercises = selected ? exercisesForChapter(selected.slug) : [];
   $: practiceCount = list.reduce((sum, chapter) => sum + activitiesForChapter(chapter.slug, track.id).length + exercisesForChapter(chapter.slug).length, 0);
-  $: seenCount = list.filter(chapter => $learning.chapters[chapter.slug] === 'seen').length;
-  $: passedCount = trackActivities.filter(activity => $learning.activities[activity.id] === 'passed').length;
-  $: externalPrereqs = [...new Set(list.flatMap(chapter => chapter.prerequisites ?? []))].filter(slug => !list.some(chapter => chapter.slug === slug)).map(slug => chapters.find(chapter => chapter.slug === slug)).filter(Boolean);
-  $: firstUnread = list.find(chapter => !$learning.chapters[chapter.slug]) ?? list[0];
-  $: remainingActivity = trackActivities.find(activity => !['passed', 'reviewed'].includes($learning.activities[activity.id]));
-  $: resume = seenCount === list.length && remainingActivity ? `${base}/parcours/${track.id}/?lang=${$language}&chapter=${remainingActivity.chapter}#activity-${remainingActivity.id}` : `${base}/chapitres/${firstUnread?.slug}/?lang=${$language}`;
-  const statusText = id => ({ attempted: t('Tenté', 'Attempted'), reviewed: t('Corrigé consulté', 'Solution reviewed'), passed: t('Réussi (étapes objectives)', 'Passed (objective steps)') }[$learning.activities[id]] ?? t('À commencer', 'Not started'));
-  afterNavigate(() => { loadLearning(); if ($page.route.id === '/parcours/[id]' && $page.status === 200) countPage(`/pharmacometrie/parcours/${data.track.id}/`); });
-  function choose(slug) { goto(`${base}/parcours/${track.id}/?lang=${$language}&chapter=${slug}#practice`, { keepFocus: true }); }
+  $: seenCount = list.filter((chapter) => $learning.chapters[chapter.slug] === 'seen').length;
+  $: passedCount = trackActivities.filter((activity) => $learning.activities[activity.id] === 'passed').length;
+
+  $: externalPrereqs = [
+    ...new Set(list.flatMap((chapter) => chapter.prerequisites ?? []))
+  ].filter((slug) => !list.some((chapter) => chapter.slug === slug)).map((slug) => chapters.find((chapter) => chapter.slug === slug)).filter(Boolean);
+
+  $: firstUnread = list.find((chapter) => !$learning.chapters[chapter.slug]) ?? list[0];
+  $: remainingActivity = trackActivities.find((activity) => !['passed', 'reviewed'].includes($learning.activities[activity.id]));
+
+  $: resume = seenCount === list.length && remainingActivity
+    ? `${base}/parcours/${track.id}/?lang=${$language}&chapter=${remainingActivity.chapter}#activity-${remainingActivity.id}`
+    : `${base}/chapitres/${firstUnread?.slug}/?lang=${$language}`;
+
+  const statusText = (id) => ({
+    attempted: t('Tenté', 'Attempted'),
+    reviewed: t('Corrigé consulté', 'Solution reviewed'),
+    passed: t('Réussi (étapes objectives)', 'Passed (objective steps)')
+  })[$learning.activities[id]] ?? t('À commencer', 'Not started');
+
+  afterNavigate(({ shallow }) => {
+    chapterQuery = page.url.searchParams.get('chapter');
+    if (shallow) return;
+
+    loadLearning();
+
+    if (page.route.id === '/parcours/[id]' && page.status === 200) countPage(`/pharmacometrie/parcours/${data.track.id}/`);
+  });
+
+  function choose(slug) {
+    goto(`${base}/parcours/${track.id}/?lang=${$language}&chapter=${slug}#practice`, { reset: false });
+  }
+
   let baselineResult = null;
   let finalResult = null;
   const diagnosticBefore = {
@@ -98,16 +124,53 @@
     <p class="eyebrow">{t('Avant de commencer', 'Before you start')}</p>
     <h2>{t('Six prédictions, sans note', 'Six predictions, no grade')}</h2>
     <p>{t("Répondez avec votre intuition. Le diagnostic final testera les mêmes concepts avec d'autres situations.", 'Answer from intuition. The final diagnostic tests the same concepts with different situations.')}</p>
-    <Quiz title={t('Point de départ', 'Starting point')} questions={diagnosticBefore[$language]} onComplete={result => baselineResult = result}/>
+
+    <Quiz
+      title={t('Point de départ', 'Starting point')}
+      questions={diagnosticBefore[$language]}
+      onComplete={(result) => baselineResult = result}
+    />
   </section>
 {/if}
 
-{#if pilot}<section class="goals"><h2>{t('Objectifs du parcours', 'Track objectives')}</h2><ul>{#each covariateObjectives as objective}<li>{objective[$language]}</li>{/each}</ul><p>{t('Parcours intermédiaire. Les durées sont indicatives ; les activités peuvent être reprises sans limite.', 'Intermediate track. Times are approximate; activities can be repeated without limit.')}</p></section>{/if}
-{#if externalPrereqs.length}<section class="prerequisites"><h2>{t('Prérequis', 'Prerequisites')}</h2>{#each externalPrereqs as chapter}<a href={`${base}/chapitres/${chapter.slug}/?lang=${$language}`}>{localized(chapter).title}</a>{/each}</section>{/if}
-<LearningProgress/>
+{#if pilot}
+  <section class="goals">
+    <h2>{t('Objectifs du parcours', 'Track objectives')}</h2>
 
-<section class="curriculum" aria-labelledby="curriculum-title">
-  <h2 id="curriculum-title">{beginner ? t('Votre chemin en douze étapes', 'Your twelve-step path') : t('Cours et activités', 'Lessons and activities')}</h2>
+    <ul>
+      {#each covariateObjectives as objective}
+        <li>{objective[$language]}</li>
+      {/each}
+    </ul>
+
+    <p>{t('Parcours intermédiaire. Les durées sont indicatives ; les activités peuvent être reprises sans limite.', 'Intermediate track. Times are approximate; activities can be repeated without limit.')}</p>
+  </section>
+{/if}
+
+{#if externalPrereqs.length}
+  <section class="prerequisites">
+    <h2>{t('Prérequis', 'Prerequisites')}</h2>
+
+    {#each externalPrereqs as chapter}
+      <a
+        href={`${base}/chapitres/${chapter.slug}/?lang=${$language}`}
+      >{localized(chapter).title}</a>
+    {/each}
+  </section>
+{/if}
+
+<LearningProgress />
+
+<section
+  class="curriculum"
+  aria-labelledby="curriculum-title"
+>
+  <h2 id="curriculum-title">
+    {beginner
+      ? t('Votre chemin en douze étapes', 'Your twelve-step path')
+      : t('Cours et activités', 'Lessons and activities')}
+  </h2>
+
   <ol>
     {#each list as chapter, i}
       {@const cases = activitiesForChapter(chapter.slug, track.id)}
@@ -124,7 +187,13 @@
   <section class="final-case" data-testid="starter-final-case">
     <p class="eyebrow">{t('Évaluation finale', 'Final assessment')}</p>
     <h2>{t('Les mêmes concepts, dans de nouvelles situations', 'The same concepts in new situations')}</h2>
-    <Quiz title={t('Point d’arrivée', 'End point')} questions={diagnosticAfter[$language]} onComplete={result => finalResult = result}/>
+
+    <Quiz
+      title={t('Point d’arrivée', 'End point')}
+      questions={diagnosticAfter[$language]}
+      onComplete={(result) => finalResult = result}
+    />
+
     {#if baselineResult && finalResult}
       <p class="comparison" role="status" aria-live="polite">{t(`Au départ : ${baselineResult.score}/6 concepts correctement anticipés. Après le parcours : ${finalResult.score}/6.`, `At the start: ${baselineResult.score}/6 concepts anticipated correctly. After the track: ${finalResult.score}/6.`)}</p>
     {/if}
@@ -137,14 +206,38 @@
 
 <section id="practice" class="practice">
   <h2>{t('Mise en pratique', 'Practice')}</h2>
-  <label>{t('Chapitre', 'Chapter')}<select value={selected?.slug} on:change={e => choose(e.currentTarget.value)} data-testid="practice-chapter">{#each list as chapter}<option value={chapter.slug}>{localized(chapter).title}</option>{/each}</select></label>
+
+  <label>
+    {t('Chapitre', 'Chapter')}
+
+    <select
+      value={selected?.slug}
+      on:change={(e) => choose(e.currentTarget.value)}
+      data-testid="practice-chapter"
+    >
+      {#each list as chapter}
+        <option value={chapter.slug}>{localized(chapter).title}</option>
+      {/each}
+    </select>
+  </label>
+
   {#each list as chapter (chapter.slug)}
     <div hidden={selected?.slug !== chapter.slug}><ExerciseBlock items={exercisesForChapter(chapter.slug)} activities={activitiesForChapter(chapter.slug, track.id)}/></div>
   {/each}
   {#if !activities.length && !exercises.length}<p>{t('Les questions de vérification se trouvent dans le chapitre.', 'Review questions are available in the chapter.')}</p><a href={`${base}/chapitres/${selected?.slug}/?lang=${$language}`}>{t('Ouvrir le chapitre', 'Open the chapter')}</a>{/if}
 </section>
 
-{#if pilot}<section class="links"><h2>{t('Concepts associés', 'Related concepts')}</h2>{#each ['ETA', 'OMEGA', 'Covariable', 'Shrinkage'] as term}<a href={`${base}/glossaire/?lang=${$language}&q=${encodeURIComponent(term)}`}>{term}</a>{/each}</section>{/if}
+{#if pilot}
+  <section class="links">
+    <h2>{t('Concepts associés', 'Related concepts')}</h2>
+
+    {#each ['ETA', 'OMEGA', 'Covariable', 'Shrinkage'] as term}
+      <a
+        href={`${base}/glossaire/?lang=${$language}&q=${encodeURIComponent(term)}`}
+      >{term}</a>
+    {/each}
+  </section>
+{/if}
 
 <style>
   .track-head, section, :global(.learning-options) { max-width: 920px; } h1 { font-size: 2rem; margin: 8px 0 12px; } .lede { font-size: 1.05rem; color: var(--text-secondary); line-height: 1.65; } h2 { font-size: 1.25rem; margin-top: 0; } h3 { font-size: 1rem; margin: 0 0 6px; }

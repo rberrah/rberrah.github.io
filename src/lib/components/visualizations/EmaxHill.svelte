@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { emaxEffect } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { emaxEffect } from '#lib/science/visualizationMath.js';
   // Explorateur Emax / sigmoïde de Hill (chapitre PK/PD).
   //   E(C) = E0 + Emax · C^h / (EC50^h + C^h)
   // EC50 = concentration donnant la moitié de l'effet ; h (Hill) = raideur.

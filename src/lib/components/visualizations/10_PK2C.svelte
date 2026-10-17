@@ -3,8 +3,8 @@
   // terminale hybride (β, lente). Vue semi-log pour révéler les deux pentes ;
   // courbe 1-compartiment en référence (même CL, même V central).
   import { scaleLinear, scaleLog } from 'd3-scale';
-  import { concTwoComp, concMono } from '$lib/utils/math';
-  import { language } from '$lib/stores/language';
+  import { concTwoComp, concMono } from '#lib/utils/math.js';
+  import { language } from '#lib/stores/language.js';
 
   let dose = 150;
   let cl = 6;   // L/h

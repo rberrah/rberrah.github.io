@@ -2,8 +2,8 @@
   // NCA : aire sous la courbe (AUC) par la méthode des trapèzes.
   // On échantillonne une vraie courbe orale ; l'AUC des trapèzes dépend de la
   // densité de prélèvements. Extrapolation de la queue : + Clast / λz.
-  import { aucTrap } from '$lib/utils/math';
-  import { language } from '$lib/stores/language';
+  import { aucTrap } from '#lib/utils/math.js';
+  import { language } from '#lib/stores/language.js';
 
   // Vraie courbe (Bateman orale) : C(t) = A·(e^-ke·t − e^-ka·t)
   const A = 12, ke = 0.25, ka = 1.1;

@@ -3,8 +3,8 @@
   // Pied de chapitre : sources vérifiables (pool fermé de references.js), date de
   // dernière révision, statut de relecture, signalement d'erreur pré-rempli.
   // Bilingue (FR/EN) via le store de langue.
-  import { resolveSources, refIdentifier } from '$lib/content/references';
-  import { language } from '$lib/stores/language';
+  import { resolveSources, refIdentifier } from '#lib/content/references.js';
+  import { language } from '#lib/stores/language.js';
 
   /** @type {any} */
   export let chapter = null;

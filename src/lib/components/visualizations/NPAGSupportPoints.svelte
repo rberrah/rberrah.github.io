@@ -1,10 +1,10 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   import {
     summarizeSupportPoints,
     supportPointMeanCurve,
     updateSupportPointWeights
-  } from '$lib/science/visualizationMath.js';
+  } from '#lib/science/visualizationMath.js';
 
   const populations = {
     unimodal: [

@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { repeatedBolusConcentration, repeatedBolusSummary } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { repeatedBolusConcentration, repeatedBolusSummary } from '#lib/science/visualizationMath.js';
   // Doses répétées : superposition de bolus IV toutes les τ heures.
   //   C(t) = Σ (Dose/V)·e^(-ke·(t-nτ))   pour nτ ≤ t,  ke = CL/V
   // Illustre l'accumulation vers l'état d'équilibre (Css) et l'effet de τ.

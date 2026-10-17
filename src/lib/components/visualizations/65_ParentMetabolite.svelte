@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { parentMetaboliteConcentrations } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { parentMetaboliteConcentrations } from '#lib/science/visualizationMath.js';
   // Modèle parent → métabolite (échelle semi-log).
   //   dApar/dt = −k·Apar          (parent, dose IV)
   //   dAmet/dt = fm·k·Apar − km·Amet   (formation depuis le parent, élimination km)

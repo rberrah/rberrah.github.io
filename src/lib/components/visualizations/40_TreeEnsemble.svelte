@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Ensembles d'arbres sur une régression 1D : arbre unique, forêt aléatoire, boosting.
   // Illustre pourquoi un ARBRE fait des marches, pourquoi une FORÊT lisse en moyennant,
   // et pourquoi le BOOSTING affine séquentiellement en corrigeant les résidus.

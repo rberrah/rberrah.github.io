@@ -1,9 +1,10 @@
 <script>
   // @ts-nocheck
-  import { base } from '$app/paths';
-  import { SITE_ORIGIN } from '$lib/site';
-  import { language } from '$lib/stores/language';
-  import { crossDomainLessons, calculateSignatureExposure } from '$lib/cross-domains/omics-pkpd-lessons.js';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { SITE_ORIGIN } from '#lib/site.js';
+  import { language } from '#lib/stores/language.js';
+  import { crossDomainLessons, calculateSignatureExposure } from '#lib/cross-domains/omics-pkpd-lessons.js';
   import { BookOpen, ArrowRight, FlaskConical, ShieldCheck } from '@lucide/svelte';
 
   let signature = 0;

@@ -1,10 +1,11 @@
 <script>
   import { untrack } from 'svelte';
-  import { base } from '$app/paths';
-  import { tdmModels } from '$lib/content/tdmModels';
-  import { language } from '$lib/stores/language';
-  import { mrgsolveParameterChoices } from '$lib/lego/mlxtran';
-  import { writeDraft } from '$lib/workshops/session.js';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { tdmModels } from '#lib/content/tdmModels.js';
+  import { language } from '#lib/stores/language.js';
+  import { mrgsolveParameterChoices } from '#lib/lego/mlxtran.js';
+  import { writeDraft } from '#lib/workshops/session.js';
   let { model = $bindable(), regimen = $bindable({dose:100, interval:24, infusion:0}), side, showRegimen = true, units = false, onparameters = (/** @type {{name: string, value: number}[]} */ _values) => {} } = $props();
   let code = $state('');
   let error = $state('');

@@ -1,8 +1,8 @@
 <script>
   import { onMount } from 'svelte';
-  import { language } from '$lib/stores/language';
-  import { isOptedOut, setOptOut } from '$lib/analytics';
-  import { SITE_ORIGIN } from '$lib/site';
+  import { language } from '#lib/stores/language.js';
+  import { isOptedOut, setOptOut } from '#lib/analytics.js';
+  import { SITE_ORIGIN } from '#lib/site.js';
   let optedOut = $state(true);
   let ready = $state(false);
   let storageError = $state(false);

@@ -1,7 +1,7 @@
 <script>
   import { scaleLinear } from 'd3-scale';
-  import { language } from '$lib/stores/language';
-  import { vizText } from '$lib/i18n/visualizations';
+  import { language } from '#lib/stores/language.js';
+  import { vizText } from '#lib/i18n/visualizations.js';
   export let scale = scaleLinear();
   export let orient = 'bottom'; // bottom or left
   export let length = 300;

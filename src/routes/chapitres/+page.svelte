@@ -1,9 +1,10 @@
 <script>
-  import { base } from '$app/paths';
-  import chapters from '$lib/content/loadChapters';
-  import { beginnerTrack, tracks, chaptersByTrack, trackById } from '$lib/content/tracks';
-  import { language } from '$lib/stores/language';
-  import { localizeChapter, localizeTrack, ui } from '$lib/i18n/translations';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import chapters from '#lib/content/loadChapters.js';
+  import { beginnerTrack, tracks, chaptersByTrack, trackById } from '#lib/content/tracks.js';
+  import { language } from '#lib/stores/language.js';
+  import { localizeChapter, localizeTrack, ui } from '#lib/i18n/translations.js';
 
   const grouped = chaptersByTrack(chapters);
   $: copy = ui($language);

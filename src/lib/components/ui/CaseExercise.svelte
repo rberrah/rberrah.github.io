@@ -1,20 +1,21 @@
 <script>
   // @ts-nocheck
   import { onMount, tick } from 'svelte';
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { afterNavigate } from '$app/navigation';
   import { ArrowLeft, ArrowRight, Check, RotateCcw, Lightbulb, Eye, BookOpen, FlaskConical } from '@lucide/svelte';
-  import { language } from '$lib/stores/language';
-  import { learning, markLearning, loadLearning } from '$lib/stores/learning';
-  import { assess, activityStatus, emptyStep } from '$lib/learning/assessment';
-  import { displayUnit } from '$lib/learning/activityContent';
-  import { resolveSources } from '$lib/content/references';
-  import { defaults, covariateCurves } from '$lib/covariates/models';
+  import { language } from '#lib/stores/language.js';
+  import { learning, markLearning, loadLearning } from '#lib/stores/learning.js';
+  import { assess, activityStatus, emptyStep } from '#lib/learning/assessment.js';
+  import { displayUnit } from '#lib/learning/activityContent.js';
+  import { resolveSources } from '#lib/content/references.js';
+  import { defaults, covariateCurves } from '#lib/covariates/models.js';
   import CovariateLesson from '../CovariateLesson.svelte';
   import CovariatePlot from '../CovariatePlot.svelte';
   import ScientificText from './ScientificText.svelte';
   import ActivityExperiment from './ActivityExperiment.svelte';
-  import { labByChapter, labNames } from '$lib/learning/labLinks';
+  import { labByChapter, labNames } from '#lib/learning/labLinks.js';
 
   export let activity;
   const text = value => value?.[$language] ?? value?.fr ?? '';

@@ -1,7 +1,8 @@
 <script>
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import catalog from '../../../content/slides/slide_catalog.json';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   /**
    * @typedef {{ id:string, slide:number, file:string, title?:string, purpose?:string }} SlideEntry
