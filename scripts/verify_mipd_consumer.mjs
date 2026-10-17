@@ -27,7 +27,10 @@ assert.equal(runtime.pmetrics?.version, source.pmetricsVersion, 'Standalone Pmet
 const deploySource = readFileSync(path.join(engineRoot, 'scripts', 'deploy_shiny.R'), 'utf8');
 assert.ok(deploySource.includes(`appId = "${source.shinyappsAppId}"`), 'Standalone Shinyapps appId changed');
 assert.ok(deploySource.includes('appName = "MIPD_Engine"'), 'Standalone public app name changed');
-assert.ok(deploySource.includes('Sys.setenv(ALLOW_CUSTOM_MODELS = "false")') === !source.productionCustomModels,
+const customModelsDisabled = /Sys\.setenv\([^)]*ALLOW_CUSTOM_MODELS\s*=\s*"false"/s.test(deploySource);
+assert.equal(customModelsDisabled, !source.productionCustomModels,
   'Standalone production custom-model safety policy changed');
+assert.ok(/Sys\.setenv\([^)]*ENABLE_PMETRICS\s*=\s*"false"/s.test(deploySource),
+  'Standalone public deployment must keep Pmetrics disabled on the current Shinyapps runtime');
 
 console.log(`MIPD consumer contract PASS: ${source.sha}, ${catalog.models.length} models, R ${runtime.rVersion}, Pmetrics ${runtime.pmetrics.version}.`);
