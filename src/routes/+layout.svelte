@@ -59,7 +59,7 @@
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
-    { key: 'connections', label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines', icon: Library, keys: ['cross-domains', 'multiomics', 'omics2pk'] },
+    { key: 'connections', label: $language === 'en' ? 'Other disciplines' : 'Autres disciplines', icon: Library, keys: ['cross-domains', 'multiomics', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['search', 'glossary', 'references', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
