@@ -14,15 +14,9 @@ PMx must not reintroduce executable mirrors or scientific test suites owned by t
 
 ## Main-branch policy
 
-The intended GitHub rule for `main` is:
+The importable repository ruleset is versioned at `.github/rulesets/main-protection.json`. It targets the default branch, requires a pull request, zero approving reviews while the repository has a single maintainer, resolved review threads, an up-to-date branch, and the five actual PMx check contexts: `build`, `scientific-js`, `scientific-r`, `scientific-pmetrics` and `mipd-consumer`. It also blocks force pushes and branch deletion. CODEOWNERS review can be enabled later when independent collaborators are available.
 
-1. require a pull request before merge;
-2. require the `PMx qualification` workflow to succeed;
-3. require the branch to be up to date before merge;
-4. require CODEOWNERS review when collaborators are added;
-5. block force pushes and branch deletion.
-
-The repository-level connector used for maintenance cannot change branch-protection settings. Until the GitHub rule is enabled in repository settings, the deploy workflow remains fail-closed: Pages only publishes an artifact from a successful `PMx qualification` run.
+The repository-level connector used for maintenance cannot change branch-protection settings. Until the JSON ruleset is imported and activated in repository settings, the deploy workflow remains fail-closed: Pages only publishes an artifact from a successful `PMx qualification` push run.
 
 ## Pull-request rules
 
