@@ -9,6 +9,32 @@ test('la page d\'accueil charge', async ({ page }) => {
   await expect(page.getByTestId('logo-link')).toBeVisible();
 });
 
+test('le Beginner Track est visible dès l’accueil en français et en anglais', async ({ page }) => {
+  for (const lang of ['fr', 'en']) {
+    await page.setViewportSize({ width: lang === 'fr' ? 1280 : 390, height: 844 });
+    await page.goto(`/?lang=${lang}`);
+    const featured = page.getByTestId('beginner-track-feature');
+    await expect(featured).toBeVisible();
+    await expect(featured).toContainText(lang === 'en' ? '12 guided chapters' : '12 chapitres guidés');
+    const entry = featured.getByTestId('beginner-track-open');
+    await expect(entry).toHaveAttribute('href', new RegExp(`/parcours/start/\\?lang=${lang}// @ts-nocheck — nécessite `npm install -D @playwright/test` (hors typecheck de l'app).
+// Smoke e2e : le site charge, navigue, recherche, ouvre un chapitre avec sa viz et
+// ses exercices, la page « Pour aller plus loin » liste des liens externes.
+import { test, expect } from '@playwright/test';
+
+test('la page d\'accueil charge', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('site-header')).toBeVisible();
+  await expect(page.getByTestId('logo-link')).toBeVisible();
+});
+
+));
+    await entry.click();
+    await expect(page.getByTestId('starter-diagnostic')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  }
+});
+
 test('la liste des chapitres et la recherche fonctionnent', async ({ page }) => {
   await page.goto('/chapitres');
   const cards = page.getByTestId('chapter-card');

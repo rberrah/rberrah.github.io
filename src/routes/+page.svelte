@@ -61,6 +61,24 @@
   <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>
 </section>
 
+<!-- A dedicated entry point for first-time learners, separate from the advanced track catalog. -->
+<section class="beginner-feature" data-testid="beginner-track-feature" aria-labelledby="beginner-track-title">
+  <div class="beginner-feature-body">
+    <p class="eyebrow">{$language === 'en' ? 'START HERE · BEGINNER TRACK' : 'COMMENCER ICI · BEGINNER TRACK'}</p>
+    <h2 id="beginner-track-title">{localizeTrack(beginnerTrack, $language).title}</h2>
+    <p class="beginner-feature-description">{localizeTrack(beginnerTrack, $language).tagline}</p>
+    <div class="beginner-feature-details">
+      <span><BookOpen size={17} aria-hidden="true" /> {beginnerTrack.chapterSlugs.length} {$language === 'en' ? 'guided chapters' : 'chapitres guidés'}</span>
+      <span><FlaskConical size={17} aria-hidden="true" /> {$language === 'en' ? 'Interactive activities' : 'Activités interactives'}</span>
+      <span><GraduationCap size={17} aria-hidden="true" /> {$language === 'en' ? 'Before / after self-assessment' : 'Autoévaluation avant / après'}</span>
+    </div>
+  </div>
+  <a class="btn btn-primary beginner-feature-link" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="beginner-track-open">
+    {$language === 'en' ? 'Explore the Beginner Track' : 'Découvrir le Beginner Track'}
+    <ArrowRight size={18} aria-hidden="true" />
+  </a>
+</section>
+
 <section class="objectives" aria-labelledby="objectives-title">
   <h2 id="objectives-title">{$language === 'en' ? 'What is your objective?' : 'Quel est votre objectif ?'}</h2>
   <div>{#each goals as goal}<a href={`${base}${goal.href}`}><svelte:component this={goal.icon} size={21}/><span>{$language === 'en' ? goal.en : goal.fr}</span><ArrowRight size={17}/></a>{/each}</div>
@@ -137,6 +155,32 @@
 </section>
 
 <style>
+  .beginner-feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-8);
+    margin: 0 0 var(--space-10);
+    padding: var(--space-8);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--accent-pk);
+    border-radius: 12px;
+  }
+  .beginner-feature-body { min-width: 0; }
+  .beginner-feature h2 { margin: 0 0 var(--space-2); font-size: var(--text-2xl); letter-spacing: -0.025em; }
+  .beginner-feature-description { margin: 0; max-width: 65ch; color: var(--text-secondary); }
+  .beginner-feature-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-5);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+  .beginner-feature-details span { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .beginner-feature-details :global(svg) { flex-shrink: 0; color: var(--accent-pk); }
+  .beginner-feature-link { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; }
   .objectives { padding: 24px 0; border-block: 1px solid var(--border-strong); margin-bottom: 24px; }
   .objectives h2 { font-size: 22px; letter-spacing: 0; }
   .objectives > div { display: grid; grid-template-columns: repeat(auto-fit,minmax(205px,1fr)); gap: 12px 24px; }
@@ -202,6 +246,8 @@
   .arrow { color: var(--text-muted); font-size: var(--text-lg); transition: transform 0.2s ease; }
   .chap:hover .arrow { transform: translateX(4px); color: var(--accent-pk); }
   @media (max-width: 760px) {
+    .beginner-feature { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); gap: var(--space-5); }
+    .beginner-feature-link { justify-self: start; white-space: normal; }
     h1 { font-size: var(--text-3xl); }
     .resource-band { align-items: flex-start; flex-direction: column; }
   }
