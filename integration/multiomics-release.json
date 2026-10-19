@@ -17,5 +17,13 @@
     "Research v1 freeze gate",
     "MultiOmics survival native-R qualification",
     "MultiOmics 1.1 release integrity"
-  ]
+  ],
+  "workflowEvidence": {
+    "MultiOmics survival native-R qualification": {
+      "sha": "06092018b6dd387cd3ee3c8d3f9399cb1c785286",
+      "event": "pull_request",
+      "tree": "797ba90d1d234518a1363d349885dec94b64aa29",
+      "rationale": "The survival workflow is path-filtered on pull requests for the 1.1 release manifest but not on push. This PR head has the exact same Git tree as the pinned squash release commit."
+    }
+  }
 }
