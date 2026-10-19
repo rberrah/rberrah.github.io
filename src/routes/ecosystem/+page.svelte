@@ -54,7 +54,7 @@
   </header>
 
   <figure class="graphical-abstract">
-    <img src={asset('/ecosystem-graphical-abstract.svg')} alt={t(
+    <img src={asset('ecosystem-graphical-abstract.svg')} alt={t(
       'Schéma de l’écosystème : PMx Explain pour apprendre, MultiOmics pour analyser et Omics2PK pour intégrer les données moléculaires à la recherche pharmacocinétique.',
       'Ecosystem diagram: PMx Explain for learning, MultiOmics for analysis and Omics2PK for integrating molecular data into pharmacokinetic research.'
     )} />
