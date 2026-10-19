@@ -4,7 +4,7 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
   for (const route of [
     '/', '/pharmacometrie/', '/multiomics/',
     '/multiomics/tool/', '/multiomics/learn/',
-    '/multiomics/disciplines/', '/multiomics/resources/'
+    '/multiomics/ecosystem/', '/multiomics/disciplines/', '/multiomics/resources/'
   ]) {
     const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
     expect(response?.status(), 'HTTP 200: ' + route).toBe(200);
@@ -14,8 +14,8 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
   await expect(page.getByTestId('multiomics-quick-demo')).toBeVisible();
   await page.goto('/multiomics/resources/');
   await expect(page.getByRole('heading', { name: /Retrouver les méthodes|Find methods/i })).toBeVisible();
-  await page.goto('/multiomics/disciplines/');
-  await expect(page.getByRole('heading', { name: /MultiOmics ne s’arrête pas|MultiOmics does not stop/i })).toBeVisible();
+  await page.goto('/multiomics/ecosystem/');
+  await expect(page.getByTestId('ecosystem-page')).toBeVisible();
 });
 
 test('Canonical /multiomics/ SvelteKit mount hydrates and computes from synthetic demo', async ({ page }) => {
@@ -92,7 +92,7 @@ test('Canonical MultiOmics navbar is ACTUALLY PMx dropdown UI with mO logo', asy
   for(const [id,en,fr] of [
     ['learn','Learn','Apprendre'],
     ['analyze','Analyze','Analyser'],
-    ['disciplines','Other disciplines','Autres disciplines'],
+    ['disciplines','Ecosystem','Écosystème'],
     ['resources','Resources','Ressources']
   ]) {
     const menu=header.getByTestId('goal-'+id);
@@ -112,8 +112,9 @@ test('Canonical MultiOmics navbar is ACTUALLY PMx dropdown UI with mO logo', asy
   await expect(header.getByTestId('goal-resources')).not.toHaveAttribute('open','');
   await expect(header.getByTestId('goal-resources').locator('summary')).toBeFocused();
 
-  await page.goto('/multiomics/disciplines/');
-  await expect(page.getByRole('link', { name: /Ouvrir PMx Explain|Open PMx Explain/ })).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/');
+  await expect(header.getByTestId('nav-disciplines')).toHaveAttribute('href','/multiomics/ecosystem/');
+  await page.goto('/multiomics/ecosystem/');
+  await expect(page.getByRole('link', { name: /Voir l’écosystème|Open ecosystem/ })).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/ecosystem/');
   await page.goto('/multiomics/resources/');
   await expect(page.getByRole('link', { name: /Retour au site|Back to main site/ })).toHaveAttribute('href','https://rberrah.github.io/');
   await page.goto('/multiomics/glossary/');
