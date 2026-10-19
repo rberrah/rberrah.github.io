@@ -1,7 +1,7 @@
 {
   "schema": "omics2pk-site-source.v1",
   "repository": "rberrah/Omics2PK",
-  "sha": "5a9e404fcbd58a6ce1ce378c1d78432d152cb4da",
+  "sha": "c0a14c240dcf7ef9540fb1139ec56e49c1ead797",
   "publicUrl": "https://rberrah.github.io/Omics2PK/",
   "requiredWorkflows": [
     "Offline contract tests",
