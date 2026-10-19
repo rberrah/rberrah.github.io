@@ -3,6 +3,7 @@
   import { language } from '#lib/stores/language.js';
 
   const base = resolve('/').replace(/\/$/, '');
+  /** @param {string} fr @param {string} en */
   const t = (fr,en) => $language === 'en' ? en : fr;
 
   const multiomics = 'https://rberrah.github.io/multiomics/';
