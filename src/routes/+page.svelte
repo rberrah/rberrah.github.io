@@ -17,7 +17,7 @@
     { icon: Blocks, fr: 'Construire un modèle', en: 'Build a model', href: '/pk/' },
     { icon: ChartNoAxesCombined, fr: 'Analyser une exposition', en: 'Analyze an exposure', href: '/tdm/' },
     { icon: GraduationCap, fr: 'Préparer un cours', en: 'Prepare a lesson', href: '/laboratoires/?lab=distribution&teacher=1&hide=1' },
-    { icon: BookOpen, fr: 'Relier omiques et PK/PD', en: 'Connect omics with PK/PD', href: '/domaines/' }
+    { icon: BookOpen, fr: 'Explorer l’écosystème', en: 'Explore the ecosystem', href: '/ecosystem/' }
   ];
 
   // Le seul JSON-LD `Course` du site : il décrit le cours ENTIER. Chaque chapitre se
