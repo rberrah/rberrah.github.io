@@ -1,7 +1,7 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "b02cc48e006abf5fd0200e9e2cf376af4cfae526",
+  "sha": "21e547ff275f35304ada304b7ada1ef95cbd4aa0",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
@@ -13,6 +13,9 @@
     "Frozen R reference — calibration and negative-control qualification",
     "MultiOmics fixed-URL integration artifact",
     "Omics2PK consumer contract - native MultiOmics synthetic ZIP",
-    "Independent external GEO GSE22871 source qualification"
+    "Independent external GEO GSE22871 source qualification",
+    "Research v1 freeze gate",
+    "MultiOmics survival native-R qualification",
+    "MultiOmics 1.1 release integrity"
   ]
 }
