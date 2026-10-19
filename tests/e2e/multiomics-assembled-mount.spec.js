@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ page }) => {
   for (const route of [
     '/', '/pharmacometrie/', '/multiomics/',
-    '/multiomics/tool/', '/multiomics/learn/',
+    '/multiomics/tool/', '/multiomics/learn/', '/multiomics/ecosystem/',
     '/multiomics/disciplines/', '/multiomics/resources/'
   ]) {
     const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
