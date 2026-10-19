@@ -1,12 +1,14 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "b02cc48e006abf5fd0200e9e2cf376af4cfae526",
+  "sha": "f9f454ef8a617de0ab7bcc01345418828b4f6b14",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
   "requiredWorkflows": [
     "MultiOmics standalone software qualification",
+    "Research v1 freeze gate",
+    "MultiOmics 1.1 release integrity",
     "Public Airway native-R replay and R Markdown",
     "Multi-omics real public Nutrimouse DIABLO biological validation",
     "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit",
