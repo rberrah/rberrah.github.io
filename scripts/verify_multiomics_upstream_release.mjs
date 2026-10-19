@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 const source = JSON.parse(await readFile('integration/multiomics-release.json', 'utf8'));
 const requiredNames = [
   "MultiOmics standalone software qualification",
+  "Research v1 freeze gate",
+  "MultiOmics 1.1 release integrity",
   "Public Airway native-R replay and R Markdown",
   "Multi-omics real public Nutrimouse DIABLO biological validation",
   "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit",
