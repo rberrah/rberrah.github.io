@@ -92,7 +92,7 @@ test('Canonical MultiOmics navbar is ACTUALLY PMx dropdown UI with mO logo', asy
   for(const [id,en,fr] of [
     ['learn','Learn','Apprendre'],
     ['analyze','Analyze','Analyser'],
-    ['disciplines','Other disciplines','Autres disciplines'],
+    ['disciplines','Ecosystem','Écosystème'],
     ['resources','Resources','Ressources']
   ]) {
     const menu=header.getByTestId('goal-'+id);
