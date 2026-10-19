@@ -2,6 +2,16 @@
 import { readFile } from 'node:fs/promises';
 
 const source = JSON.parse(await readFile('integration/multiomics-release.json', 'utf8'));
+const multiomicsDir = process.env.MULTIOMICS_DIR;
+if (!multiomicsDir) throw new Error('MULTIOMICS_DIR is required to verify the pinned ecosystem artifact');
+const [pmxEcosystem, multiomicsEcosystem] = await Promise.all([
+  readFile('static/ecosystem-graphical-abstract.svg'),
+  readFile(multiomicsDir + '/static/multiomics/ecosystem-graphical-abstract.svg')
+]);
+if (!pmxEcosystem.equals(multiomicsEcosystem)) {
+  throw new Error('Release blocked: PMx and pinned MultiOmics ecosystem graphical abstracts differ');
+}
+console.log('PASS shared PMx/MultiOmics ecosystem graphical abstract');
 const requiredNames = [
   "MultiOmics standalone software qualification",
   "Public Airway native-R replay and R Markdown",
