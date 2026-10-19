@@ -14,7 +14,7 @@ test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async 
   await expect(page.getByTestId('nav-multiomics')).toHaveAttribute('href', 'https://rberrah.github.io/multiomics/');
   await expect(page.getByTestId('nav-omics2pk')).toHaveAttribute('href', 'https://rberrah.github.io/Omics2PK/');
 
-  await page.getByTestId('language-toggle').getByRole('button', { name: 'FR' }).click();
+  await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
   await expect(ecosystem.locator('summary')).toContainText('Écosystème');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Apprendre, analyser, puis intégrer');
 });
