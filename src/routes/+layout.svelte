@@ -45,7 +45,8 @@
     { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée' },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
-    { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics to PK/PD' : 'Des omiques à la PK/PD' },
+    { href: '/ecosystem', key: 'ecosystem', label: $language === 'en' ? 'Ecosystem overview' : 'Vue d’ensemble de l’écosystème' },
+    { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics → PK/PD lessons' : 'Cours Omics → PK/PD' },
     { href: 'https://rberrah.github.io/multiomics/', key: 'multiomics', label: 'MultiOmics ↗', external: true },
     { href: 'https://rberrah.github.io/Omics2PK/', key: 'omics2pk', label: 'Omics2PK ↗', external: true },
     { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
@@ -59,7 +60,7 @@
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
-    { key: 'connections', label: $language === 'en' ? 'Other disciplines' : 'Autres disciplines', icon: Library, keys: ['cross-domains', 'multiomics', 'omics2pk'] },
+    { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'cross-domains', 'multiomics', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['search', 'glossary', 'references', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
