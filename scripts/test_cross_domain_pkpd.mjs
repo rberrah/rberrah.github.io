@@ -79,5 +79,6 @@ assert.ok(route.includes('data-testid="cross-domain-auc"'));
 assert.ok(route.includes('role="status"'));
 assert.ok(route.includes('Sources & further reading'));
 assert.ok(nav.includes("key: 'cross-domains'"));
-assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Autres disciplines'"));
+assert.ok(nav.includes("label: $language === 'en' ? 'Ecosystem' : 'Écosystème'"));
+assert.ok(nav.includes("key: 'ecosystem'"));
 console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');
