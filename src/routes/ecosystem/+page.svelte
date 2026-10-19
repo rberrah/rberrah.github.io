@@ -1,8 +1,11 @@
 <script>
-  import { asset } from '$app/paths';
+  import { asset, resolve } from '$app/paths';
   import { language } from '#lib/stores/language.js';
   /** @param {string} fr @param {string} en */
   const t=(fr,en)=>$language==='en'?en:fr;
+
+  const pmxHome=resolve('/');
+  const omicsLessons=resolve('/domaines');
 
   const tools=[
     {
@@ -11,8 +14,7 @@
       name:'PMx Explain',
       descriptionFr:'Comprendre la PK/PD, la PopPK, les covariables, le MIPD et les principes qui permettent d’interpréter correctement un signal biologique.',
       descriptionEn:'Understand PK/PD, PopPK, covariates, MIPD and the principles needed to interpret a biological signal correctly.',
-      href:'/pharmacometrie/',
-      internal:false
+      href:pmxHome
     },
     {
       roleFr:'Analyser',
@@ -20,8 +22,7 @@
       name:'MultiOmics',
       descriptionFr:'Contrôler la qualité, analyser une ou plusieurs couches omiques et produire des résultats, signatures et exports traçables.',
       descriptionEn:'Quality-control and analyze one or more omics layers, producing traceable results, signatures and exports.',
-      href:'https://rberrah.github.io/multiomics/',
-      internal:false
+      href:'https://rberrah.github.io/multiomics/'
     },
     {
       roleFr:'Intégrer',
@@ -29,8 +30,7 @@
       name:'Omics2PK',
       descriptionFr:'Tester si des états moléculaires individuels apportent une information PK au-delà des données cliniques et pharmacogénétiques, avec validation hors-échantillon.',
       descriptionEn:'Test whether individual molecular states add PK information beyond clinical and pharmacogenetic data using held-out validation.',
-      href:'https://rberrah.github.io/Omics2PK/',
-      internal:false
+      href:'https://rberrah.github.io/Omics2PK/'
     }
   ];
 </script>
@@ -108,7 +108,7 @@
         'The detailed cross-disciplinary course remains available separately to learn how a molecular signal becomes a testable pharmacometric hypothesis.'
       )}</p>
     </div>
-    <a class="btn btn-primary" href="/pharmacometrie/domaines/">{t('Ouvrir les cours','Open the lessons')} →</a>
+    <a class="btn btn-primary" href={omicsLessons}>{t('Ouvrir les cours','Open the lessons')} →</a>
   </section>
 
   <p class="boundary" role="note">{t(
