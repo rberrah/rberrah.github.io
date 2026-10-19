@@ -18,7 +18,7 @@ if (source.schema !== 'omics2pk-site-source.v1' ||
 }
 
 const pmxLayout = await readFile('src/routes/+layout.svelte', 'utf8');
-assert.ok(pmxLayout.includes(source.publicUrl), 'PMx Other Disciplines link differs from Omics2PK release contract');
+assert.ok(pmxLayout.includes(source.publicUrl), 'PMx Ecosystem link differs from Omics2PK release contract');
 const mountedMultiomicsTest = await readFile('tests/e2e/multiomics-assembled-mount.spec.js', 'utf8');
 assert.ok(mountedMultiomicsTest.includes(source.publicUrl), 'Mounted MultiOmics Omics2PK navigation contract differs from PMx release contract');
 
