@@ -28,6 +28,8 @@ const FIXED_PAGES = [
   '/pharmacodynamie/',
   '/playground/',
   '/glossaire/',
+  '/ecosystem/',
+  '/domaines/',
   '/references/',
   '/a-propos/',
   '/confidentialite/'
