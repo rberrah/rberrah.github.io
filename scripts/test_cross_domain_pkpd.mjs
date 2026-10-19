@@ -72,6 +72,7 @@ for(const lesson of crossDomainLessons){
   }
 }
 const route=fs.readFileSync('src/routes/domaines/+page.svelte','utf8');
+const ecosystem=fs.readFileSync('src/routes/ecosystem/+page.svelte','utf8');
 const nav=fs.readFileSync('src/routes/+layout.svelte','utf8');
 assert.ok(route.includes('SITE_ORIGIN')&&route.includes('/multiomics/tool/'));
 assert.ok(route.includes('educationalOnly')===false);
@@ -79,5 +80,8 @@ assert.ok(route.includes('data-testid="cross-domain-auc"'));
 assert.ok(route.includes('role="status"'));
 assert.ok(route.includes('Sources & further reading'));
 assert.ok(nav.includes("key: 'cross-domains'"));
-assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Autres disciplines'"));
+assert.ok(nav.includes("key: 'ecosystem'"));
+assert.ok(nav.includes("label: $language === 'en' ? 'Ecosystem' : 'Écosystème'"));
+assert.ok(ecosystem.includes('PMx Explain')&&ecosystem.includes('MultiOmics')&&ecosystem.includes('Omics2PK'));
+assert.ok(ecosystem.includes('ecosystem-graphical-abstract.svg'));
 console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');
