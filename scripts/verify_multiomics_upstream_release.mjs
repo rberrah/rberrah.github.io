@@ -10,7 +10,10 @@ const requiredNames = [
   "Frozen R reference — calibration and negative-control qualification",
   "MultiOmics fixed-URL integration artifact",
   "Omics2PK consumer contract - native MultiOmics synthetic ZIP",
-  "Independent external GEO GSE22871 source qualification"
+  "Independent external GEO GSE22871 source qualification",
+  "Research v1 freeze gate",
+  "MultiOmics survival native-R qualification",
+  "MultiOmics 1.1 release integrity"
 ];
 if (source.schema !== 'multiomics-site-source.v1' ||
     source.repository !== 'rberrah/MultiOmics' ||
