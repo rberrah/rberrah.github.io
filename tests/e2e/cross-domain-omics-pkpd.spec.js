@@ -46,13 +46,19 @@ test('Cross-domain navigation is discoverable and accessible from main menu',asy
  const menu=page.getByTestId('goal-connections');
  await expect(menu).toBeVisible();
  await menu.locator('summary').click();
+ await expect(menu.locator('summary')).toContainText(/Écosystème|Ecosystem/);
+ await expect(menu.getByTestId('nav-ecosystem'))
+   .toHaveAttribute('href',/\/ecosystem\/?$/);
  await expect(menu.getByTestId('nav-cross-domains'))
    .toHaveAttribute('href',/\/domaines\/?$/);
  await expect(menu.getByTestId('nav-multiomics'))
    .toHaveAttribute('href','https://rberrah.github.io/multiomics/');
  await expect(menu.getByTestId('nav-omics2pk'))
    .toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
- await menu.getByTestId('nav-cross-domains').click();
+ await menu.getByTestId('nav-ecosystem').click();
+ await expect(page.getByTestId('ecosystem-page')).toBeVisible();
+ await expect(page.getByRole('heading',{name:/Apprendre\. Analyser\. Intégrer\.|Learn\. Analyze\. Integrate\./})).toBeVisible();
+ await page.goto('/domaines/?lang=fr');
  await expect(page.getByTestId('cross-domain-courses')).toBeVisible();
 });
 
