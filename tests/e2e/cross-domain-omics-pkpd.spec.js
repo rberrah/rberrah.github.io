@@ -41,19 +41,20 @@ for(const width of [1280,390])for(const lang of ['fr','en']){
  });
 }
 
-test('Cross-domain navigation is discoverable and accessible from main menu',async({page})=>{
+test('Ecosystem navigation exposes overview, lessons and companion tools',async({page})=>{
  await page.goto('/?lang=fr');
  const menu=page.getByTestId('goal-connections');
  await expect(menu).toBeVisible();
+ await expect(menu.locator('summary')).toContainText(/Écosystème|Ecosystem/);
  await menu.locator('summary').click();
- await expect(menu.getByTestId('nav-cross-domains'))
-   .toHaveAttribute('href',/\/domaines\/?$/);
- await expect(menu.getByTestId('nav-multiomics'))
-   .toHaveAttribute('href','https://rberrah.github.io/multiomics/');
- await expect(menu.getByTestId('nav-omics2pk'))
-   .toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
- await menu.getByTestId('nav-cross-domains').click();
- await expect(page.getByTestId('cross-domain-courses')).toBeVisible();
+ await expect(menu.getByTestId('nav-ecosystem')).toHaveAttribute('href',/\/ecosystem\/?$/);
+ await expect(menu.getByTestId('nav-cross-domains')).toHaveAttribute('href',/\/domaines\/?$/);
+ await expect(menu.getByTestId('nav-multiomics')).toHaveAttribute('href','https://rberrah.github.io/multiomics/');
+ await expect(menu.getByTestId('nav-omics2pk')).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
+ await menu.getByTestId('nav-ecosystem').click();
+ await expect(page.getByTestId('ecosystem-page')).toBeVisible();
+ await expect(page.getByRole('heading',{name:/Apprendre\. Analyser\. Intégrer\.|Learn\. Analyze\. Integrate\./})).toBeVisible();
+ await expect(page.locator('img[src*="ecosystem-graphical-abstract.svg"]')).toBeVisible();
 });
 
 test('Misconceptions about causality and time are corrected, not claimed as clinical proof',async({page})=>{
