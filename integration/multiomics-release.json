@@ -1,7 +1,7 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "0534e682579cb47ed98f8829850ef74cb2da2d78",
+  "sha": "d0998994b2f9c23fc2b1618d282936fd6ce6a948",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
@@ -24,26 +24,52 @@
       "event": "push",
       "scope": "allowlisted_diff",
       "allowedChangedFiles": [
+        ".github/workflows/standalone-ci.yml",
+        "scripts/build_pmx_compat_overlay.mjs",
+        "scripts/build_short_url_overlay.mjs",
+        "scripts/package_portable_web.mjs",
+        "scripts/test_pmx_compat_overlay.mjs",
+        "scripts/test_portable_web.mjs",
+        "scripts/test_short_url_overlay.mjs",
+        "scripts/test_standalone_migration.mjs",
+        "src/routes/+layout.svelte",
+        "src/routes/multiomics/demo/+page.svelte",
+        "src/routes/multiomics/resources/+page.svelte",
         "src/routes/multiomics/tool/+page.svelte",
         "tests/e2e/multiomics-beginner-clarity.spec.js",
         "tests/e2e/multiomics-contrast.spec.js",
+        "tests/e2e/multiomics-methods-learning.spec.js",
         "tests/e2e/multiomics-provenance.spec.js",
-        "tests/e2e/multiomics-scientific-summary-safety.spec.js"
+        "tests/e2e/multiomics-scientific-summary-safety.spec.js",
+        "tests/e2e/multiomics-shell.spec.js"
       ],
-      "rationale": "The survival backend and numerical-reference sources are unchanged. The pinned release differs only by the allowlisted results-presentation component and browser E2E tests, while standalone UI qualification runs on the release SHA."
+      "rationale": "The survival backend and numerical-reference sources are unchanged. The pinned release differs only by browser result presentation, navigation, a guided educational route, packaging/overlay contracts, standalone UI qualification and browser E2E tests."
     },
     "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit": {
       "sha": "37f06a3343af05a3fcc40bad181b0ac70f507fa1",
       "event": "push",
       "scope": "allowlisted_diff",
       "allowedChangedFiles": [
+        ".github/workflows/standalone-ci.yml",
+        "scripts/build_pmx_compat_overlay.mjs",
+        "scripts/build_short_url_overlay.mjs",
+        "scripts/package_portable_web.mjs",
+        "scripts/test_pmx_compat_overlay.mjs",
+        "scripts/test_portable_web.mjs",
+        "scripts/test_short_url_overlay.mjs",
+        "scripts/test_standalone_migration.mjs",
+        "src/routes/+layout.svelte",
+        "src/routes/multiomics/demo/+page.svelte",
+        "src/routes/multiomics/resources/+page.svelte",
         "src/routes/multiomics/tool/+page.svelte",
         "tests/e2e/multiomics-beginner-clarity.spec.js",
         "tests/e2e/multiomics-contrast.spec.js",
+        "tests/e2e/multiomics-methods-learning.spec.js",
         "tests/e2e/multiomics-provenance.spec.js",
-        "tests/e2e/multiomics-scientific-summary-safety.spec.js"
+        "tests/e2e/multiomics-scientific-summary-safety.spec.js",
+        "tests/e2e/multiomics-shell.spec.js"
       ],
-      "rationale": "The MOFA2 engine, environment locks, public-data inputs and audit scripts are unchanged. The pinned release differs only by the allowlisted results-presentation component and browser E2E tests, while standalone UI qualification runs on the release SHA."
+      "rationale": "The MOFA2 engine, environment locks, public-data inputs and scientific audit scripts are unchanged. The pinned release differs only by browser result presentation, navigation, a guided educational route, packaging/overlay contracts, standalone UI qualification and browser E2E tests."
     }
   }
 }
