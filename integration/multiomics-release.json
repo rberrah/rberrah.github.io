@@ -1,7 +1,7 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "65831eea36364311f01d707b98bd09c93a860a45",
+  "sha": "9d1f67e41c97ebd28c6f946dc41463f6fd4864ec",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
@@ -17,5 +17,21 @@
     "Research v1 freeze gate",
     "MultiOmics survival native-R qualification",
     "MultiOmics 1.1 release integrity"
-  ]
+  ],
+  "workflowEvidence": {
+    "Multi-omics real public Nutrimouse MOFA2 factor and experimental-effect audit": {
+      "sha": "65831eea36364311f01d707b98bd09c93a860a45",
+      "event": "push",
+      "scope": "allowlisted_diff",
+      "allowedChangedFiles": [
+        "scripts/test_multiomics_visualizations.mjs",
+        "src/lib/components/FocusedMetabolicNetwork.svelte",
+        "src/lib/multiomics/metabolic-network.js",
+        "src/routes/multiomics/demo/+page.svelte",
+        "tests/e2e/multiomics-methods-learning.spec.js",
+        "tests/e2e/multiomics-visualizations.spec.js"
+      ],
+      "rationale": "The MOFA2 engine, public Nutrimouse inputs, Basilisk environment locks and audit scripts are unchanged. The release differs only by guided interpretation, focused-network visualization coverage/audit logic, and their tests; GitHub compare is restricted to this exact allowlist."
+    }
+  }
 }
