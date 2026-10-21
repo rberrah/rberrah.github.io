@@ -45,7 +45,9 @@ test('Cross-domain navigation is discoverable and accessible from main menu',asy
  await page.goto('/?lang=fr');
  const menu=page.getByTestId('goal-connections');
  await expect(menu).toBeVisible();
+ await expect(menu.locator('summary')).toContainText('Écosystème');
  await menu.locator('summary').click();
+ await expect(menu.getByTestId('nav-ecosystem')).toHaveAttribute('href',/\/ecosystem\/?$/);
  await expect(menu.getByTestId('nav-cross-domains'))
    .toHaveAttribute('href',/\/domaines\/?$/);
  await expect(menu.getByTestId('nav-multiomics'))

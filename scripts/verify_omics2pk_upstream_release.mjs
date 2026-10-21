@@ -18,7 +18,7 @@ if (source.schema !== 'omics2pk-site-source.v1' ||
 }
 
 const pmxLayout = await readFile('src/routes/+layout.svelte', 'utf8');
-assert.ok(pmxLayout.includes(source.publicUrl), 'PMx Other Disciplines link differs from Omics2PK release contract');
+assert.ok(pmxLayout.includes(source.publicUrl), 'PMx Ecosystem link differs from Omics2PK release contract');
 const mountedMultiomicsTest = await readFile('tests/e2e/multiomics-assembled-mount.spec.js', 'utf8');
 assert.ok(mountedMultiomicsTest.includes(source.publicUrl), 'Mounted MultiOmics Omics2PK navigation contract differs from PMx release contract');
 
@@ -30,6 +30,27 @@ const headers = {
   'X-GitHub-Api-Version': '2022-11-28'
 };
 if (process.env.GITHUB_TOKEN) headers.Authorization = 'Bearer ' + process.env.GITHUB_TOKEN;
+
+const artworkResponse = await fetch(
+  'https://api.github.com/repos/rberrah/Omics2PK/contents/site/assets/ecosystem-graphical-abstract.svg?ref=' +
+    encodeURIComponent(source.sha),
+  { headers }
+);
+if (!artworkResponse.ok) {
+  throw new Error('Cannot verify Omics2PK ecosystem graphical abstract: HTTP ' + artworkResponse.status);
+}
+const artwork = await artworkResponse.json();
+if (artwork?.encoding !== 'base64' || typeof artwork?.content !== 'string') {
+  throw new Error('Unexpected Omics2PK ecosystem graphical-abstract payload');
+}
+const [pmxEcosystem, omics2pkEcosystem] = [
+  await readFile('static/ecosystem-graphical-abstract.svg'),
+  Buffer.from(artwork.content.replace(/\\n/g, ''), 'base64')
+];
+if (!pmxEcosystem.equals(omics2pkEcosystem)) {
+  throw new Error('Release blocked: PMx and pinned Omics2PK ecosystem graphical abstracts differ');
+}
+console.log('PASS shared PMx/Omics2PK ecosystem graphical abstract');
 const response = await fetch(url, { headers });
 if (!response.ok) throw new Error('Cannot verify independent Omics2PK workflows: HTTP ' + response.status);
 const data = await response.json();

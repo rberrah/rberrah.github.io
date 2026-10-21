@@ -12,7 +12,7 @@ assert.equal(manifest.source, 'rberrah/MultiOmics');
 assert.equal(manifest.basePath, '');
 assert.equal(manifest.deployment, 'NOT_DEPLOYED_BY_SOURCE_REPOSITORY');
 assert.deepEqual(manifest.directories, ['multiomics', '_multiomics_app']);
-assert.deepEqual(manifest.routes, ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/disciplines/', '/multiomics/resources/']);
+assert.deepEqual(manifest.routes, ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/ecosystem/', '/multiomics/disciplines/', '/multiomics/resources/']);
 assert(Array.isArray(manifest.files) && manifest.files.length > 15);
 
 const payloadRoot = path.join(sourceRoot, 'site');
@@ -36,7 +36,7 @@ for (const entry of manifest.files) {
   assert.equal(createHash('sha256').update(bytes).digest('hex'), entry.sha256,
     'payload SHA-256 differs: ' + entry.path);
 }
-for (const required of ['multiomics/index.html','multiomics/tool/index.html','multiomics/learn/index.html','multiomics/disciplines/index.html','multiomics/resources/index.html','multiomics/glossary/index.html','multiomics/references/index.html']) {
+for (const required of ['multiomics/index.html','multiomics/tool/index.html','multiomics/learn/index.html','multiomics/ecosystem/index.html','multiomics/disciplines/index.html','multiomics/resources/index.html','multiomics/glossary/index.html','multiomics/references/index.html']) {
   assert(sourcePaths.has(required), 'critical direct route absent: ' + required);
 }
 assert([...sourcePaths].some(p => p.startsWith('_multiomics_app/')),

@@ -24,6 +24,7 @@ test.beforeAll(async ({}, workerInfo) => {
     'multiomics',
     'multiomics/tool',
     'multiomics/learn',
+    'multiomics/ecosystem',
     'multiomics/disciplines',
     'multiomics/resources',
     'multiomics/glossary',

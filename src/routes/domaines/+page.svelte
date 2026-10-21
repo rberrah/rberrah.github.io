@@ -24,14 +24,14 @@
 </script>
 
 <svelte:head>
-  <title>{t('Liens avec les autres domaines — Omics vers PK/PD | PMx Explain','Connections with other disciplines — Omics to PK/PD | PMx Explain')}</title>
+  <title>{t('Des omiques à la PK/PD | PMx Explain','From omics to PK/PD | PMx Explain')}</title>
   <meta name="description" content={t('Cours bilingues gratuits pour relier transcriptomique, protéomique et métabolomique aux modèles PK/PD, PopPK, PBPK et QSP.','Free bilingual lessons connecting transcriptomics, proteomics and metabolomics with PK/PD, PopPK, PBPK and QSP models.')} />
 </svelte:head>
 
 <div class="cross-domain" data-testid="cross-domain-courses">
   <header class="introduction">
-    <p class="eyebrow">{t('PARCOURS INTERDISCIPLINAIRE','CROSS-DISCIPLINARY LEARNING')}</p>
-    <h1>{t('Liens avec les autres domaines','Connections with other disciplines')}</h1>
+    <p class="eyebrow">{t('PARCOURS DE L’ÉCOSYSTÈME','ECOSYSTEM LEARNING PATH')}</p>
+    <h1>{t('Des omiques à la PK/PD','From omics to PK/PD')}</h1>
     <p class="lead">{t(
       'Comment transformer des mesures génétiques, transcriptomiques, protéomiques ou métabolomiques en hypothèses pharmacologiques testables ? Quatre cours progressifs relient les omiques à la pharmacocinétique, la pharmacodynamie et aux modèles mécanistiques.',
       'How can genetic, transcriptomic, proteomic and metabolomic data become testable pharmacological hypotheses? Four progressive lessons connect omics to pharmacokinetics, pharmacodynamics and mechanistic models.'
