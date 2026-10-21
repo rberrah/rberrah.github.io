@@ -19,7 +19,7 @@
     "MultiOmics 1.1 release integrity"
   ],
   "workflowEvidence": {
-    "Multi-omics real public Nutrimouse MOFA2 factor and experimental-effect audit": {
+    "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit": {
       "sha": "65831eea36364311f01d707b98bd09c93a860a45",
       "event": "push",
       "scope": "allowlisted_diff",
