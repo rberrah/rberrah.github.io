@@ -1,7 +1,7 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "dc069ec832aded5d718ef0711a5814c13d5dfef0",
+  "sha": "0534e682579cb47ed98f8829850ef74cb2da2d78",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
@@ -20,10 +20,30 @@
   ],
   "workflowEvidence": {
     "MultiOmics survival native-R qualification": {
-      "sha": "0b665c2e4076971df6c794ae21cecba1bdf4b54b",
-      "event": "pull_request",
-      "tree": "1796027c5a43174a9b63348208b8ed1db4749abc",
-      "rationale": "The survival workflow is path-filtered on pull requests for the 1.1 release manifest but not on push. PR #93 head and the pinned 1.1.3 squash release commit have the exact same Git tree."
+      "sha": "37f06a3343af05a3fcc40bad181b0ac70f507fa1",
+      "event": "push",
+      "scope": "allowlisted_diff",
+      "allowedChangedFiles": [
+        "src/routes/multiomics/tool/+page.svelte",
+        "tests/e2e/multiomics-beginner-clarity.spec.js",
+        "tests/e2e/multiomics-contrast.spec.js",
+        "tests/e2e/multiomics-provenance.spec.js",
+        "tests/e2e/multiomics-scientific-summary-safety.spec.js"
+      ],
+      "rationale": "The survival backend and numerical-reference sources are unchanged. The pinned release differs only by the allowlisted results-presentation component and browser E2E tests, while standalone UI qualification runs on the release SHA."
+    },
+    "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit": {
+      "sha": "37f06a3343af05a3fcc40bad181b0ac70f507fa1",
+      "event": "push",
+      "scope": "allowlisted_diff",
+      "allowedChangedFiles": [
+        "src/routes/multiomics/tool/+page.svelte",
+        "tests/e2e/multiomics-beginner-clarity.spec.js",
+        "tests/e2e/multiomics-contrast.spec.js",
+        "tests/e2e/multiomics-provenance.spec.js",
+        "tests/e2e/multiomics-scientific-summary-safety.spec.js"
+      ],
+      "rationale": "The MOFA2 engine, environment locks, public-data inputs and audit scripts are unchanged. The pinned release differs only by the allowlisted results-presentation component and browser E2E tests, while standalone UI qualification runs on the release SHA."
     }
   }
 }

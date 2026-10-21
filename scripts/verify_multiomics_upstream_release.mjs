@@ -64,12 +64,42 @@ for (const name of requiredNames) {
   const evidenceEvent = evidence?.event || 'push';
 
   if (evidence) {
-    if (!/^[0-9a-f]{40}$/.test(evidenceSha) || !/^[0-9a-f]{40}$/.test(evidence.tree || '')) {
-      throw new Error('Invalid explicit workflow evidence for ' + name);
+    if (!/^[0-9a-f]{40}$/.test(evidenceSha)) {
+      throw new Error('Invalid explicit workflow evidence SHA for ' + name);
     }
-    const evidenceTree = await commitTree(evidenceSha);
-    if (evidenceTree !== releaseTree || evidence.tree !== releaseTree) {
-      throw new Error('Release blocked: explicit workflow evidence is not tree-identical for ' + name);
+    if (evidence.scope === 'allowlisted_diff') {
+      if (!Array.isArray(evidence.allowedChangedFiles) || evidence.allowedChangedFiles.length === 0 ||
+          evidence.allowedChangedFiles.some(file => typeof file !== 'string' || !file)) {
+        throw new Error('Invalid allowlisted workflow-evidence scope for ' + name);
+      }
+      const compareResponse = await fetch(
+        'https://api.github.com/repos/rberrah/MultiOmics/compare/' +
+          encodeURIComponent(evidenceSha) + '...' + encodeURIComponent(source.sha),
+        { headers: commitHeaders }
+      );
+      if (!compareResponse.ok) {
+        throw new Error('Cannot verify allowlisted MultiOmics evidence diff: HTTP ' + compareResponse.status);
+      }
+      const comparison = await compareResponse.json();
+      if (comparison.too_large || comparison.merge_base_commit?.sha !== evidenceSha ||
+          !Array.isArray(comparison.files)) {
+        throw new Error('Release blocked: incomplete or non-ancestral allowlisted evidence diff for ' + name);
+      }
+      const allowed = new Set(evidence.allowedChangedFiles);
+      const changed = comparison.files.map(file => file.filename);
+      if (changed.length === 0 || changed.some(file => !allowed.has(file))) {
+        throw new Error('Release blocked: non-allowlisted file changed since workflow evidence for ' + name +
+          ': ' + changed.filter(file => !allowed.has(file)).join(', '));
+      }
+      console.log('PASS allowlisted MultiOmics workflow evidence diff:', name, changed.join(', '));
+    } else {
+      if (!/^[0-9a-f]{40}$/.test(evidence.tree || '')) {
+        throw new Error('Invalid tree-identical workflow evidence for ' + name);
+      }
+      const evidenceTree = await commitTree(evidenceSha);
+      if (evidenceTree !== releaseTree || evidence.tree !== releaseTree) {
+        throw new Error('Release blocked: explicit workflow evidence is not tree-identical for ' + name);
+      }
     }
   }
 
