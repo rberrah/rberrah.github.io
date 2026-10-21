@@ -25,7 +25,11 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Exemple de sortie|Example output/i);
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Interprétation \/ utilité|Interpretation \/ utility/i);
   await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/n=4 par groupe|n=4 per group/i);
+  await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/4! = 24/);
   await expect(page.getByTestId('guided-demo-crossomics-small-n')).toContainText(/±1/);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/ρcontrol|ρ contrôle|control ρ/i);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Δρ/);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/n’est plus trié par \|Δρ\||not ranking by \|Δρ\|/i);
   await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/non calculé|not computed/i);
   await expect(page.getByTestId('guided-demo-live-visualizations')).toBeVisible();
   await page.locator('.figure-switcher button').nth(2).click();
