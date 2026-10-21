@@ -31,6 +31,19 @@
         "tests/e2e/multiomics-scientific-summary-safety.spec.js"
       ],
       "rationale": "The survival backend and numerical-reference sources are unchanged. The pinned release differs only by the allowlisted results-presentation component and browser E2E tests, while standalone UI qualification runs on the release SHA."
+    },
+    "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit": {
+      "sha": "37f06a3343af05a3fcc40bad181b0ac70f507fa1",
+      "event": "push",
+      "scope": "allowlisted_diff",
+      "allowedChangedFiles": [
+        "src/routes/multiomics/tool/+page.svelte",
+        "tests/e2e/multiomics-beginner-clarity.spec.js",
+        "tests/e2e/multiomics-contrast.spec.js",
+        "tests/e2e/multiomics-provenance.spec.js",
+        "tests/e2e/multiomics-scientific-summary-safety.spec.js"
+      ],
+      "rationale": "The MOFA2 engine, environment locks, public-data inputs and audit scripts are unchanged. The pinned release differs only by the allowlisted results-presentation component and browser E2E tests, while standalone UI qualification runs on the release SHA."
     }
   }
 }
