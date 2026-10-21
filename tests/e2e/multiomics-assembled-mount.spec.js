@@ -15,7 +15,11 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
   await page.goto('/multiomics/resources/');
   await expect(page.getByRole('heading', { name: /Retrouver les méthodes|Find methods/i })).toBeVisible();
   await page.goto('/multiomics/demo/');
-  await expect(page.getByRole('heading', { name: /Cas pratique.*traitement|Practical case.*treatment/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /MultiOmics.*questionnaire.*sorties exactes|MultiOmics.*questionnaire.*exact outputs/i })).toBeVisible();
+  await expect(page.getByTestId('guided-demo-questionnaire')).toContainText(/Mesures répétées|Repeated measures/i);
+  await expect(page.getByTestId('guided-demo-methods')).toContainText('lmerTest', { timeout: 40_000 });
+  await expect(page.getByTestId('guided-demo-exact-results')).toContainText('STAT1');
+  await expect(page.getByTestId('guided-demo-live-visualizations')).toBeVisible();
   await page.goto('/multiomics/ecosystem/');
   await expect(page.getByRole('heading', { name: /Analyser les omiques sans perdre le lien|Analyze omics without losing/i })).toBeVisible();
 });
