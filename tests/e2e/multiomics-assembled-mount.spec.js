@@ -128,7 +128,7 @@ test('Canonical MultiOmics navbar is ACTUALLY PMx dropdown UI with mO logo', asy
   await expect(mainSiteLink).toHaveAttribute('href','https://rberrah.github.io/');
   await expect(mainSiteLink).toHaveAttribute('data-sveltekit-reload','');
   await mainSiteLink.click();
-  await expect(page).toHaveURL('http://127.0.0.1:4183/');
+  await expect(page).toHaveURL('https://rberrah.github.io/');
   await expect(page.getByRole('heading',{name:/Racym Berrah/})).toBeVisible();
   await page.goto('/multiomics/glossary/');
   await expect(page.getByRole('heading',{name:/Glossaire des omiques|Omics glossary/})).toBeVisible();
