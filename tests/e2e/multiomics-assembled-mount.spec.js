@@ -19,7 +19,14 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
   await expect(page.getByTestId('guided-demo-exact-results')).toContainText('STAT1',{timeout:30000});
   await expect(page.getByTestId('guided-demo-methods')).toContainText('random-intercept-longitudinal-model');
   await expect(page.getByTestId('guided-demo-methods')).toContainText('lmerTest');
+  await expect(page.getByTestId('guided-demo-interpretation')).toContainText(/Lire le contraste|Read the contrast/i);
+  await expect(page.getByRole('heading',{name:/Interprétation scientifique du cas|Scientific interpretation of the case/i})).toBeVisible();
+  await expect(page.getByRole('heading',{name:/Interprétation clinique \/ translationnelle|Clinical \/ translational interpretation/i})).toBeVisible();
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Exemple de sortie|Example output/i);
+  await expect(page.getByTestId('guided-demo-crossomics-explainer')).toContainText(/Interprétation \/ utilité|Interpretation \/ utility/i);
   await expect(page.getByTestId('guided-demo-live-visualizations')).toBeVisible();
+  await page.locator('.figure-switcher button').nth(2).click();
+  await expect(page.getByTestId('multiomics-network-coverage')).toContainText(/variables métabolomiques appariées|metabolomics features mapped/i);
   await page.goto('/multiomics/ecosystem/');
   await expect(page.getByRole('heading', { name: /Analyser les omiques sans perdre le lien|Analyze omics without losing/i })).toBeVisible();
 });
