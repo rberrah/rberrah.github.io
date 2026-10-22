@@ -8,6 +8,7 @@ import sys
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 from urllib.parse import urlparse
 
 ORIGIN = "https://rberrah.github.io"
@@ -69,6 +70,93 @@ def get(url, label, ua=NORMAL_UA, kind=None):
     return body
 
 
+
+
+
+class LiveHtmlAudit(HTMLParser):
+    """Extract indexability basics from server-rendered HTML, without JS."""
+
+    def __init__(self):
+        super().__init__()
+        self.in_title = False
+        self.in_body = False
+        self.skip_depth = 0
+        self.title = ""
+        self.canonicals = []
+        self.robots = []
+        self.description = []
+        self.body_text = []
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == "title":
+            self.in_title = True
+        elif tag == "body":
+            self.in_body = True
+        elif tag in ("script", "style", "svg", "noscript"):
+            self.skip_depth += 1
+        elif tag == "meta":
+            name = attributes.get("name", "").lower()
+            if name in ("robots", "googlebot"):
+                self.robots.append(attributes.get("content", ""))
+            if name == "description":
+                self.description.append(attributes.get("content", ""))
+        elif tag == "link" and "canonical" in attributes.get("rel", "").lower():
+            self.canonicals.append(attributes.get("href", ""))
+        elif tag == "a" and attributes.get("href"):
+            self.links.append(attributes.get("href"))
+
+    def handle_endtag(self, tag):
+        if tag == "title":
+            self.in_title = False
+        elif tag == "body":
+            self.in_body = False
+        elif tag in ("script", "style", "svg", "noscript"):
+            self.skip_depth = max(0, self.skip_depth - 1)
+
+    def handle_data(self, data):
+        if self.in_title:
+            self.title += data
+        if self.in_body and not self.skip_depth:
+            self.body_text.append(data)
+
+
+def audit_html(path):
+    url = ORIGIN + path
+    req = urllib.request.Request(url, headers={"User-Agent": GOOGLEBOT_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as response:
+            status, final = response.status, response.geturl()
+            html = response.read(3_000_000).decode("utf-8", errors="replace")
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as error:
+        failures.append(f"HTML {path}: could not fetch ({error})")
+        return
+
+    page = LiveHtmlAudit()
+    page.feed(html)
+    text_length = len(" ".join(" ".join(page.body_text).split()))
+    internal_links = sum(1 for link in page.links if link.startswith("/") or link.startswith(ORIGIN))
+    print(
+        f"HTML [{path}] HTTP {status} -> {final}; "
+        f"title={page.title.strip()!r}; "
+        f"canonical={page.canonicals!r}; robots={page.robots!r}; "
+        f"meta_descriptions={len(page.description)}; "
+        f"server_body_text_chars={text_length}; internal_links={internal_links}",
+        flush=True,
+    )
+    if status != 200 or final != url:
+        failures.append(f"HTML {path}: HTTP {status} or redirect")
+    if not page.title.strip():
+        failures.append(f"HTML {path}: missing title")
+    if len(page.canonicals) != 1 or page.canonicals[0] != url:
+        failures.append(f"HTML {path}: missing or non-self canonical {page.canonicals}")
+    if any("noindex" in rule.lower() for rule in page.robots):
+        failures.append(f"HTML {path}: unexpected noindex")
+    if text_length < 180:
+        failures.append(f"HTML {path}: little/no text visible without JavaScript ({text_length} chars)")
+
+
 def main():
     get(ORIGIN + "/", "homepage")
     get(ORIGIN + "/robots.txt", "robots.txt", kind="robots")
@@ -83,6 +171,14 @@ def main():
         for child in index[1]:
             if child != ORIGIN + "/sitemap.xml":
                 get(child, "index child " + urlparse(child).path, kind="xml")
+    # Verify representative indexable pages as real HTML, not only sitemap XML.
+    for path in [
+        "/", "/tools/", "/publications/", "/pharmacometrie/",
+        "/pharmacometrie/chapitres/",
+        "/pharmacometrie/chapitres/clairance-volume-demi-vie/",
+        "/multiomics/", "/stats/", "/Omics2PK/",
+    ]:
+        audit_html(path)
     if failures:
         print("\nSITEMAP CHECK FAILED:\n- " + "\n- ".join(failures), flush=True)
         return 1
