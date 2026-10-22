@@ -15,7 +15,7 @@
   import LanguageToggle from '#lib/components/LanguageToggle.svelte';
   import { ui } from '#lib/i18n/translations.js';
   import { language } from '#lib/stores/language.js';
-  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '#lib/site.js';
+  import { alternateUrl, canonicalUrl, routePath, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '#lib/site.js';
   let { children } = $props();
 
   afterNavigate(({ shallow }) => {
@@ -87,6 +87,25 @@
   // URL canonique ABSOLUE, dérivée du seul chemin de route : aucune valeur lue dans le
   // navigateur, donc identique au prérendu et après hydratation.
   let canonical = $derived(canonicalUrl(page.url.pathname));
+  // Distinct titles for top-level indexable sections; chapter pages retain their
+  // specific titles from /chapitres/[slug]/+page.svelte.
+  const sectionTitles = {
+    '/': 'PMx Explain — Cours interactif de pharmacométrie et PK/PD',
+    '/chapitres/': 'Cours de pharmacométrie : chapitres et parcours — PMx Explain',
+    '/exemple/': 'Exemples de modèles PK/PD — PMx Explain',
+    '/exercices/': 'Exercices de pharmacométrie et PK/PD — PMx Explain',
+    '/tdm/': 'Suivi thérapeutique et MIPD — PMx Explain',
+    '/ml/': 'Machine learning et pharmacométrie — PMx Explain',
+    '/pk/': 'Modèles pharmacocinétiques — PMx Explain',
+    '/pd/': 'Modèles pharmacodynamiques — PMx Explain',
+    '/ddi/': 'Interactions médicamenteuses et PK — PMx Explain',
+    '/translator/': 'Traduction des modèles pharmacométriques — PMx Explain',
+    '/glossaire/': 'Glossaire de pharmacométrie — PMx Explain',
+    '/references/': 'Références scientifiques PK/PD — PMx Explain',
+    '/ecosystem/': 'Écosystème des outils PK/PD — PMx Explain',
+    '/domaines/': 'Des données omiques à la pharmacométrie — PMx Explain'
+  };
+  let sectionTitle = $derived(sectionTitles[routePath(page.url.pathname)] ?? 'PMx Explain');
   // Les alternances de langue des CHAPITRES sont posées par la route de chapitre, qui
   // seule sait si la traduction anglaise existe. Ici : toutes les autres pages, dont
   // l'interface est traduite intégralement.
@@ -109,7 +128,7 @@
 ></svelte:window>
 
 <svelte:head>
-  <title>PMx Explain</title>
+  <title>{sectionTitle}</title>
   <link rel="canonical" href={canonical} />
   {#if !isChapterRoute}
     <link rel="alternate" hreflang="fr" href={canonical} />
