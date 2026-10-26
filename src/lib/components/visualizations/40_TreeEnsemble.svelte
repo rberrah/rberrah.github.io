@@ -116,7 +116,9 @@
           {#each train as point, i (i)}
             <circle cx={px(point.x)} cy={py(point.y)} r="3" class="training-point" />
           {/each}
-          <polyline points={fittedLine} class="model-line" />
+          {#key mode + "-" + knob}
+            <polyline points={fittedLine} class="model-line" />
+          {/key}
           {#if showTest}
             {#each test as point, i (i)}
               <circle cx={px(point.x)} cy={py(point.y)} r="4" class="test-point" />
@@ -201,7 +203,11 @@
   .chart { display: block; width: 100%; height: auto; overflow: visible; }
   .gridline { stroke: var(--border-strong); stroke-width: .5; opacity: .35; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }
-  .model-line { stroke: var(--accent-ai); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .model-line { stroke: var(--accent-ai); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 900; animation: reveal-fit .65s ease-out both; }
+  .test-point { animation: reveal-dots .28s ease-out both; }
+  @keyframes reveal-fit { from { stroke-dashoffset: 900; } to { stroke-dashoffset: 0; } }
+  @keyframes reveal-dots { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .model-line, .test-point { animation: none; } }
   .true-line { stroke: var(--accent-pk); stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
   .training-point { fill: #2563eb; stroke: var(--bg-primary); stroke-width: .8; }
   .test-point { fill: #f59e0b; stroke: var(--text-primary); stroke-width: .7; }
