@@ -2,8 +2,8 @@
 
 Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
 
-- Relues : 64
-- En attente : 1
+- Relues : 63
+- En attente : 2
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signi
 | 30_TumorGrowth | reviewed | 2026-10-11 | author | hash current |
 | 31_JointSurvival | reviewed | 2026-10-11 | author | hash current |
 | 32_Myelosuppression | reviewed | 2026-10-12 | author | hash current |
-| 40_TreeEnsemble | reviewed | 2026-10-11 | author | hash current |
+| 40_TreeEnsemble | pending | 2026-10-11 | author | — |
 | 41_SVMMargin | reviewed | 2026-10-11 | author | hash current |
 | 42_VarImportance | reviewed | 2026-10-09 | author | hash current |
 | 43_Copula | reviewed | 2026-10-12 | author | hash current |
