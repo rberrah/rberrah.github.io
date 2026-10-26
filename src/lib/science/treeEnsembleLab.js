@@ -1,6 +1,7 @@
 // Predictive ensemble lab: fixed, reproducible, fully synthetic one-dimensional data.
 // No real patient data and no clinical validation. The holdout is never used to fit.
 
+/** @param {number} x */
 export const trueResponse = (x) => 6 * Math.sin(0.6 * x) + 0.35 * x + 6;
 
 /** @param {number} seed */
@@ -98,6 +99,7 @@ export function fitEnsembleLab(mode, complexity, train) {
   if (mode !== 'boost') throw new Error('Unknown ensemble mode');
   const rate = 0.3;
   const baseline = mean(train);
+  /** @type {any[]} */
   const trees = [];
   let current = train.map(() => baseline);
   for (let i = 0; i < n; i++) {
