@@ -6,6 +6,7 @@
   // reveal untouched holdout -> understand the limits. Synthetic data only.
   const { train, test } = makeEnsembleLabData();
   const grid = Array.from({ length: 141 }, (_, i) => i / 14);
+  /** @type {'tree'|'forest'|'boost'} */
   let mode = 'tree';
   let knob = 3;
   let showTest = false;
@@ -34,6 +35,7 @@
         ? 'With squared-error loss, each depth-2 tree fits current residuals (negative gradients); its contribution is scaled by a learning rate of 0.3. This is a simplified gradient boosting model, not XGBoost or CatBoost.'
         : 'Avec une perte quadratique, chaque arbre de profondeur 2 apprend les résidus courants (opposés du gradient). Son effet est pondéré par un taux d’apprentissage de 0,3. C’est un boosting simplifié, pas XGBoost ou CatBoost.');
 
+  /** @param {'tree'|'forest'|'boost'} next */
   function selectMode(next) {
     mode = next;
     knob = next === 'tree' ? 3 : 12;
