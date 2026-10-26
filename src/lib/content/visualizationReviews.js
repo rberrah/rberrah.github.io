@@ -243,7 +243,7 @@ export const visualizationReviews = {
     "reviewed_hash": "591beaf4260cd820b820ba164657b1af704e688922b7a0360d8d6f03fc993cdd"
   },
   "40_TreeEnsemble": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "4c72d059b742288bdf046c184baf6c53eef78d2be139bc6d8a3c6ad579786248"
