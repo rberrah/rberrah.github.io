@@ -1,152 +1,221 @@
 <script>
   import { language } from '#lib/stores/language.js';
-  // Ensembles d'arbres sur une régression 1D : arbre unique, forêt aléatoire, boosting.
-  // Illustre pourquoi un ARBRE fait des marches, pourquoi une FORÊT lisse en moyennant,
-  // et pourquoi le BOOSTING affine séquentiellement en corrigeant les résidus.
-  let mode = 'tree'; // 'tree' | 'forest' | 'boost'
-  let knob = 3; // profondeur (tree) | nb arbres (forest) | nb itérations (boost)
+  import { makeEnsembleLabData, trueResponse, fitEnsembleLab, ensembleRmse } from '#lib/science/treeEnsembleLab.js';
 
-  // ---- données synthétiques déterministes ----
-  /** @param {number} a @returns {() => number} */
-  function mulberry32(a) {
-    return function () {
-      a |= 0; a = (a + 0x6d2b79f5) | 0;
-      let t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-  const rnd = mulberry32(42);
-  const N = 44;
-  const trueF = (/** @type {number} */ x) => 6 * Math.sin(0.6 * x) + 0.35 * x + 6;
-  /** @type {{x:number,y:number}[]} */
-  const data = [];
-  for (let i = 0; i < N; i++) {
-    const x = (i / (N - 1)) * 10;
-    data.push({ x, y: trueF(x) + (rnd() - 0.5) * 4.5 });
-  }
-
-  // ---- arbre de régression CART 1D ----
-  /** @param {{x:number,y:number}[]} pts @returns {number} */
-  function mean(pts) { let s = 0; for (const p of pts) s += p.y; return pts.length ? s / pts.length : 0; }
-  /** @param {{x:number,y:number}[]} pts @returns {number} */
-  function sse(pts) { const m = mean(pts); let s = 0; for (const p of pts) s += (p.y - m) ** 2; return s; }
-  /** @param {{x:number,y:number}[]} pts @param {number} depth @returns {any} */
-  function buildTree(pts, depth) {
-    if (depth <= 0 || pts.length <= 3) return { leaf: true, val: mean(pts) };
-    const sorted = [...pts].sort((a, b) => a.x - b.x);
-    let best = /** @type {number|null} */ (null), bestErr = Infinity;
-    for (let i = 1; i < sorted.length; i++) {
-      const s = (sorted[i - 1].x + sorted[i].x) / 2;
-      const L = sorted.slice(0, i), R = sorted.slice(i);
-      const err = sse(L) + sse(R);
-      if (err < bestErr) { bestErr = err; best = s; }
-    }
-    if (best === null) return { leaf: true, val: mean(pts) };
-    const bs = best;
-    return { leaf: false, split: bs, L: buildTree(pts.filter((p) => p.x < bs), depth - 1), R: buildTree(pts.filter((p) => p.x >= bs), depth - 1) };
-  }
-  /** @param {any} node @param {number} x @returns {number} */
-  function predTree(node, x) { return node.leaf ? node.val : (x < node.split ? predTree(node.L, x) : predTree(node.R, x)); }
-  /** @param {() => number} r @param {{x:number,y:number}[]} pts @returns {{x:number,y:number}[]} */
-  function bootstrap(r, pts) { const out = []; for (let i = 0; i < pts.length; i++) out.push(pts[Math.floor(r() * pts.length)]); return out; }
-
-  const GRID = 140;
-  $: xs = Array.from({ length: GRID + 1 }, (_, i) => (i / GRID) * 10);
-
-  $: fit = (() => {
-    if (mode === 'tree') {
-      const tree = buildTree(data, knob);
-      return xs.map((x) => predTree(tree, x));
-    }
-    if (mode === 'forest') {
-      const r = mulberry32(7);
-      /** @type {any[]} */ const trees = [];
-      for (let b = 0; b < knob; b++) trees.push(buildTree(bootstrap(r, data), 3));
-      return xs.map((x) => trees.reduce((a, t) => a + predTree(t, x), 0) / knob);
-    }
-    // boosting : F0 = moyenne, puis on ajoute des petits arbres sur les résidus
-    const lr = 0.3, base = mean(data);
-    /** @type {any[]} */ const boosters = [];
-    let F = data.map(() => base);
-    for (let m = 0; m < knob; m++) {
-      const resid = data.map((p, i) => ({ x: p.x, y: p.y - F[i] }));
-      const t = buildTree(resid, 2);
-      boosters.push(t);
-      F = data.map((p, i) => F[i] + lr * predTree(t, p.x));
-    }
-    return xs.map((x) => base + boosters.reduce((a, t) => a + lr * predTree(t, x), 0));
-  })();
+  // Experimental pedagogy: manipulate the model -> inspect training fit ->
+  // reveal untouched holdout -> understand the limits. Synthetic data only.
+  const { train, test } = makeEnsembleLabData();
+  const grid = Array.from({ length: 141 }, (_, i) => i / 14);
+  let mode = 'tree';
+  let knob = 3;
+  let showTest = false;
+  let showWhy = false;
+  let tried = false;
 
   $: knobMax = mode === 'tree' ? 6 : 40;
-  $: knobLabel = mode === 'tree' ? ($language === 'en' ? 'Depth' : 'Profondeur') : mode === 'forest' ? ($language === 'en' ? 'Number of trees' : 'Nombre d’arbres') : ($language === 'en' ? 'Iterations' : 'Itérations');
-  /** @param {string} m */
-  function setMode(m) { mode = m; knob = m === 'tree' ? 3 : 20; }
+  $: knobLabel = mode === 'tree'
+    ? ($language === 'en' ? 'Tree depth' : 'Profondeur de l’arbre')
+    : mode === 'forest'
+      ? ($language === 'en' ? 'Bootstrap trees' : 'Arbres bootstrap')
+      : ($language === 'en' ? 'Boosting rounds' : 'Itérations de boosting');
+  $: model = fitEnsembleLab(mode, Number(knob), train);
+  $: predictions = grid.map((x) => model.predict(x));
+  $: trainingError = ensembleRmse(model, train);
+  $: holdoutError = ensembleRmse(model, test);
+  $: explanation = mode === 'tree'
+    ? ($language === 'en'
+      ? 'CART splits the x axis to reduce squared error in the training sample. More depth creates smaller leaves and may learn noise.'
+      : 'CART découpe l’axe x pour réduire l’erreur quadratique sur l’échantillon d’apprentissage. Un arbre profond peut apprendre le bruit.')
+    : mode === 'forest'
+      ? ($language === 'en'
+        ? 'We average independently bootstrapped depth-3 trees. With only one input variable, this demonstrates bagging, not the full feature-sampling random forest algorithm.'
+        : 'On moyenne des arbres de profondeur 3 construits sur des échantillons bootstrap. Avec une seule variable, cette expérience illustre le bagging, pas une forêt aléatoire complète avec sous-échantillonnage des variables.')
+      : ($language === 'en'
+        ? 'With squared-error loss, each depth-2 tree fits current residuals (negative gradients); its contribution is scaled by a learning rate of 0.3. This is a simplified gradient boosting model, not XGBoost or CatBoost.'
+        : 'Avec une perte quadratique, chaque arbre de profondeur 2 apprend les résidus courants (opposés du gradient). Son effet est pondéré par un taux d’apprentissage de 0,3. C’est un boosting simplifié, pas XGBoost ou CatBoost.');
 
-  const W = 480, H = 300, mrg = { top: 16, right: 14, bottom: 40, left: 40 };
-  $: iW = W - mrg.left - mrg.right;
-  $: iH = H - mrg.top - mrg.bottom;
-  const yMin = 0, yMax = 20;
-  $: xt = (/** @type {number} */ x) => (x / 10) * iW;
-  $: yv = (/** @type {number} */ v) => iH - ((Math.max(yMin, Math.min(yMax, v)) - yMin) / (yMax - yMin)) * iH;
-  $: pathFit = fit.map((v, i) => `${i ? 'L' : 'M'}${xt(xs[i]).toFixed(1)},${yv(v).toFixed(1)}`).join(' ');
-  $: pathTrue = xs.map((x, i) => `${i ? 'L' : 'M'}${xt(x).toFixed(1)},${yv(trueF(x)).toFixed(1)}`).join(' ');
+  function selectMode(next) {
+    mode = next;
+    knob = next === 'tree' ? 3 : 12;
+    showTest = false;
+    showWhy = false;
+    tried = false;
+  }
+  function changeKnob() {
+    showTest = false;
+    tried = true;
+  }
+  function nextStep() {
+    knob = Math.min(knobMax, Number(knob) + 1);
+    changeKnob();
+  }
+  function reset() {
+    knob = mode === 'tree' ? 3 : 12;
+    showTest = false;
+    showWhy = false;
+    tried = false;
+  }
+
+  const width = 480, height = 305, margin = { top: 16, right: 12, bottom: 42, left: 39 };
+  const chartW = width - margin.left - margin.right;
+  const chartH = height - margin.top - margin.bottom;
+  /** @param {number} x */
+  const px = (x) => x / 10 * chartW;
+  /** @param {number} y */
+  const py = (y) => chartH - Math.max(0, Math.min(20, y)) / 20 * chartH;
+  /** @param {number[]} ys */
+  const polyline = (ys) => ys.map((y, i) => px(grid[i]).toFixed(1) + ',' + py(y).toFixed(1)).join(' ');
+  $: fittedLine = polyline(predictions);
+  const trueLine = polyline(grid.map(trueResponse));
 </script>
 
-<div class="wrap">
-  <div class="controls">
-    <div class="modes">
-      <button class:on={mode === 'tree'} on:click={() => setMode('tree')}>{$language === 'en' ? 'Tree' : 'Arbre'}</button>
-      <button class:on={mode === 'forest'} on:click={() => setMode('forest')}>{$language === 'en' ? 'Forest' : 'Forêt'}</button>
-      <button class:on={mode === 'boost'} on:click={() => setMode('boost')}>Boosting</button>
+<div class="lab">
+  <div class="introduction">
+    <strong>{$language === 'en' ? '1. Experiment' : '1. Expérimenter'}</strong>
+    <p>{$language === 'en'
+      ? 'Select a method, move its slider, and observe how its fitted curve changes.'
+      : 'Choisissez une méthode, déplacez le curseur et observez comment la courbe ajustée change.'}</p>
+  </div>
+
+  <div class="layout">
+    <div class="controls">
+      <div class="modes" role="group" aria-label={$language === 'en' ? 'Model family' : 'Famille de modèles'}>
+        <button type="button" class:on={mode === 'tree'} aria-pressed={mode === 'tree'} on:click={() => selectMode('tree')}>{$language === 'en' ? 'Tree' : 'Arbre'}</button>
+        <button type="button" class:on={mode === 'forest'} aria-pressed={mode === 'forest'} on:click={() => selectMode('forest')}>{$language === 'en' ? 'Bagging' : 'Bagging'}</button>
+        <button type="button" class:on={mode === 'boost'} aria-pressed={mode === 'boost'} on:click={() => selectMode('boost')}>Boosting</button>
+      </div>
+      <label class="range">
+        <span>{knobLabel}</span><strong>{knob}</strong>
+        <input type="range" min="1" max={knobMax} step="1" bind:value={knob} on:input={changeKnob} />
+      </label>
+      <div class="small-actions">
+        <button type="button" on:click={nextStep} disabled={Number(knob) >= knobMax}>{$language === 'en' ? 'Next step +1' : 'Étape suivante +1'}</button>
+        <button type="button" on:click={reset}>{$language === 'en' ? 'Reset' : 'Réinitialiser'}</button>
+      </div>
+      <div class="measurements" aria-live="polite" aria-atomic="true">
+        <strong>{$language === 'en' ? 'Training RMSE' : 'RMSE apprentissage'}</strong>
+        <span class="score">{trainingError.toFixed(2)}</span>
+        <strong>{$language === 'en' ? 'Holdout RMSE' : 'RMSE test interne'}</strong>
+        <span class="score">{showTest ? holdoutError.toFixed(2) : '—'}</span>
+      </div>
     </div>
-    <label class="s"><span>{knobLabel}</span><strong>{knob}</strong><input type="range" min="1" max={knobMax} step="1" bind:value={knob} /></label>
-    <div class="readout">
-      {#if mode === 'tree'}<p>{$language === 'en' ? 'A single tree is a step function. Greater depth adds steps but can fit noise (overfitting).' : 'Un seul arbre : fonction en marches. Plus profond = plus de marches, mais on colle au bruit (surajustement).'}</p>
-      {:else if mode === 'forest'}<p>{$language === 'en' ? 'This one-feature bagging illustration averages bootstrap trees and can reduce variance. No held-out set is used here, so generalization is not measured.' : "Cette illustration de bagging à une variable moyenne des arbres bootstrap et peut réduire la variance. Aucun jeu test n’est utilisé ici : la généralisation n’est pas mesurée."}</p>
-      {:else}<p>{$language === 'en' ? 'Boosting uses each small tree to correct the previous residuals. The fit improves one iteration at a time.' : "Boosting : chaque petit arbre corrige les résidus du précédent. L'ajustement s'affine itération après itération."}</p>{/if}
+
+    <div class="chart-area">
+      <svg viewBox="0 0 480 305" class="chart" role="img" aria-label={$language === 'en' ? 'Training points, fitted model and optional held-out test points' : 'Points d’apprentissage, modèle ajusté et points test éventuellement révélés'}>
+        <g transform="translate(39,16)">
+          {#each [0,5,10,15,20] as y}
+            <line x1="0" x2={chartW} y1={py(y)} y2={py(y)} class="gridline" />
+            <text x="-8" y={py(y) + 4} class="tick" text-anchor="end">{y}</text>
+          {/each}
+          {#each [0,2,4,6,8,10] as x}
+            <text x={px(x)} y={chartH + 16} class="tick" text-anchor="middle">{x}</text>
+          {/each}
+          <line x1="0" x2="0" y1="0" y2={chartH} class="axis" />
+          <line x1="0" x2={chartW} y1={chartH} y2={chartH} class="axis" />
+          <polyline points={trueLine} class="true-line" />
+          {#each train as point, i (i)}
+            <circle cx={px(point.x)} cy={py(point.y)} r="3" class="training-point" />
+          {/each}
+          <polyline points={fittedLine} class="model-line" />
+          {#if showTest}
+            {#each test as point, i (i)}
+              <circle cx={px(point.x)} cy={py(point.y)} r="4" class="test-point" />
+            {/each}
+          {/if}
+          <text x={chartW / 2} y={chartH + 34} text-anchor="middle" class="axis-label">x</text>
+          <text transform="translate(-30,123) rotate(-90)" text-anchor="middle" class="axis-label">y</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i class="train-dot"></i>{$language === 'en' ? 'Train' : 'Apprentissage'}</span>
+        {#if showTest}<span><i class="test-dot"></i>{$language === 'en' ? 'Holdout' : 'Test interne'}</span>{/if}
+        <span><i class="model-line-key"></i>{$language === 'en' ? 'Prediction' : 'Prédiction'}</span>
+        <span><i class="true-line-key"></i>{$language === 'en' ? 'Synthetic truth' : 'Vérité simulée'}</span>
+      </div>
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Tree ensemble fit' : "Ajustement d'un ensemble d'arbres"}>
-    <g transform={`translate(${mrg.left},${mrg.top})`}>
-      <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
-      <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
-      <path d={pathTrue} class="truth" />
-      {#each data as p}<circle cx={xt(p.x)} cy={yv(p.y)} r="3" class="pt" />{/each}
-      <path d={pathFit} class="fit" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Variable x</text>
-      <text transform={`translate(-30,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Response y' : 'Réponse y'}</text>
-      <g class="legend" transform="translate(6,2)">
-        <rect x="0" y="0" width="12" height="3" class="fit" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Model' : 'Modèle'}</text>
-        <rect x="0" y="14" width="12" height="3" class="truth" /><text x="18" y="18" class="leg">{$language === 'en' ? 'True function' : 'Vraie fonction'}</text>
-      </g>
-    </g>
-  </svg>
+  <div class="next">
+    <div class="step">
+      <strong>{$language === 'en' ? '2. Observe: does it generalize?' : '2. Observer : le modèle généralise-t-il ?'}</strong>
+      <p>{$language === 'en'
+        ? 'The blue dots were used to learn. The orange dots are a separate simulated set, never used for fitting. Choose your complexity before revealing them.'
+        : 'Les points bleus servent à apprendre. Les points orange proviennent d’un autre échantillon simulé, jamais utilisé pour ajuster. Choisissez la complexité avant de les révéler.'}</p>
+      <button type="button" class="reveal" on:click={() => (showTest = !showTest)}>
+        {showTest
+          ? ($language === 'en' ? 'Hide holdout' : 'Masquer le test')
+          : ($language === 'en' ? 'Reveal holdout and test error' : 'Révéler le test et son erreur')}
+      </button>
+      {#if showTest}
+        <p class="caution">{$language === 'en'
+          ? 'This is a synthetic internal holdout, not external or clinical validation. Repeatedly tuning after looking at this score would bias evaluation.'
+          : 'Il s’agit d’un test interne synthétique, pas d’une validation externe ou clinique. Régler plusieurs fois le modèle après avoir consulté ce score biaiserait l’évaluation.'}</p>
+      {:else if tried}
+        <p class="hint">{$language === 'en' ? 'Now compare the training score with unseen points.' : 'Comparez maintenant le score d’apprentissage à des points encore inconnus.'}</p>
+      {/if}
+    </div>
+    <div class="step">
+      <strong>{$language === 'en' ? '3. Understand why' : '3. Comprendre pourquoi'}</strong>
+      <button type="button" class="why" aria-expanded={showWhy} on:click={() => (showWhy = !showWhy)}>
+        {showWhy
+          ? ($language === 'en' ? 'Hide explanation' : 'Masquer l’explication')
+          : ($language === 'en' ? 'Explain this method' : 'Expliquer cette méthode')}
+      </button>
+      {#if showWhy}
+        <p>{explanation}</p>
+        <p class="caution">{$language === 'en'
+          ? 'A smaller training error is not by itself evidence of better predictions in new patients.'
+          : 'Une erreur plus faible sur l’apprentissage ne prouve pas que les prédictions seront meilleures chez de nouveaux patients.'}</p>
+      {/if}
+    </div>
+  </div>
+  <p class="footnote">{$language === 'en'
+    ? 'Illustration only: deterministic 1D simulated data, no PK units or patient records. Same distribution for train and internal holdout.'
+    : 'Illustration uniquement : données 1D simulées et reproductibles, sans unité PK ni dossier patient. Même distribution pour apprentissage et test interne.'}</p>
 </div>
 
 <style>
-  .wrap { display: grid; gap: var(--space-4); }
-  @media (min-width: 720px) { .wrap { grid-template-columns: 210px 1fr; align-items: center; } }
-  /* Le panneau de chapitre fait ~610 px meme sur grand ecran : on interroge le CONTENEUR,
-     pas la fenetre, sinon les controles ecrasent la figure. */
-  @container (max-width: 700px) { .wrap { grid-template-columns: 1fr; align-items: stretch; } }
-  .controls { display: grid; gap: var(--space-2); }
-  .modes { display: flex; gap: var(--space-2); }
-  .modes button, .s { font-family: var(--font-mono); }
-  .modes button { flex: 1; font-size: var(--text-xs); padding: 4px 4px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
-  .modes button.on { background: var(--accent-ai); color: var(--bg-tertiary); border-color: var(--accent-ai); }
-  .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-size: var(--text-sm); }
-  .s span { color: var(--text-secondary); }
-  .s strong { color: var(--accent-ai); }
-  .s input { grid-column: 1 / -1; }
-  .readout { padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
-  .readout p { margin: 0; color: var(--text-secondary); line-height: 1.5; }
-  .chart { width: 100%; height: auto; }
+  .lab { display: grid; gap: var(--space-3); font-size: var(--text-sm); }
+  p { margin: 0; line-height: 1.5; }
+  .introduction, .step { display: grid; gap: var(--space-2); }
+  .introduction strong, .step strong { color: var(--text-primary); }
+  .layout { display: grid; gap: var(--space-3); align-items: start; }
+  @media (min-width: 700px) { .layout { grid-template-columns: minmax(0, 200px) minmax(0,1fr); } }
+  @container (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+  .controls { display: grid; gap: var(--space-3); min-width: 0; }
+  .modes { display: flex; flex-wrap: wrap; gap: 4px; }
+  button { font: inherit; border: 1px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-primary); border-radius: var(--radius); padding: 7px 9px; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent-ai); outline-offset: 2px; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .modes button { flex: 1; min-width: 55px; padding: 6px 5px; font-size: var(--text-xs); }
+  .modes button.on { background: var(--accent-ai); border-color: var(--accent-ai); color: var(--bg-primary); font-weight: 700; }
+  .range { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: var(--text-xs); }
+  .range input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent-ai); }
+  .range strong, .score { font-variant-numeric: tabular-nums; }
+  .small-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+  .small-actions button { font-size: var(--text-xs); flex: 1; }
+  .measurements { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; border-radius: var(--radius); padding: var(--space-3); background: var(--bg-secondary); font-size: var(--text-xs); }
+  .measurements strong { font-weight: 500; }
+  .score { font-weight: 700; color: var(--accent-ai); }
+  .chart-area { min-width: 0; }
+  .chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .gridline { stroke: var(--border-strong); stroke-width: .5; opacity: .35; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }
-  .pt { fill: var(--text-muted); opacity: 0.7; }
-  .fit { fill: none; stroke: var(--accent-ai); stroke-width: 2.6; }
-  .truth { fill: none; stroke: var(--accent-pk); stroke-width: 1.4; stroke-dasharray: 4 4; opacity: 0.8; }
-  .lbl { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 12px; text-anchor: middle; }
-  .leg { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .model-line { stroke: var(--accent-ai); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .true-line { stroke: var(--accent-pk); stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
+  .training-point { fill: #2563eb; stroke: var(--bg-primary); stroke-width: .8; }
+  .test-point { fill: #f59e0b; stroke: var(--text-primary); stroke-width: .7; }
+  .axis-label, .tick { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 13px; font-size: var(--text-xs); color: var(--text-secondary); }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend i { width: 11px; height: 11px; display: inline-block; border-radius: 50%; }
+  .train-dot { background: #2563eb; }
+  .test-dot { background: #f59e0b; }
+  .legend .model-line-key, .legend .true-line-key { border-radius: 0; height: 3px; width: 15px; background: var(--accent-ai); }
+  .legend .true-line-key { background: var(--accent-pk); }
+  .next { display: grid; gap: var(--space-3); }
+  .step { padding: var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius); }
+  .step button { justify-self: start; }
+  .reveal { border-color: var(--accent-ai); }
+  .hint, .caution, .footnote { color: var(--text-secondary); font-size: var(--text-xs); }
 </style>
