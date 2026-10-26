@@ -114,8 +114,8 @@ export const visualizationDescriptions = {
     en: "A reduced Friberg model with three transit compartments, bounded linear effect and imposed mono-exponential PK. Displayed ANC thresholds are illustrative markers, not CTCAE grading or a clinical recommendation."
   },
   '40_TreeEnsemble': {
-    fr: "Régression 1D synthétique : CART, bagging d'arbres bootstrap ou boosting à faible profondeur. La courbe vraie est connue ici ; sans jeu test, la figure ne mesure pas la généralisation.",
-    en: "Synthetic 1D regression using CART, bootstrap-tree bagging or shallow boosting. The true curve is known here; without a test set, the figure does not measure generalization."
+    fr: "Expérience sur 44 observations synthétiques d’apprentissage et 16 observations synthétiques de test interne : CART 1D, bagging bootstrap (sans tirage aléatoire de variables) ou boosting sur les résidus. Le test reste hors de l’ajustement ; RMSE affichées uniquement pour illustrer l’écart apprentissage/test, sans validation clinique ni externe.",
+    en: "Experiment using 44 synthetic training observations and 16 synthetic internal holdout observations: 1D CART, bootstrap bagging (without feature subsampling), or residual-based boosting. The holdout never enters fitting; RMSE illustrates train/test differences, not clinical or external validation."
   },
   '41_SVMMargin': {
     fr: "SVM linéaire soft-margin réellement ajusté par descente de gradient sur deux classes synthétiques. C règle le compromis régularisation-erreurs ; les points dont la marge fonctionnelle est ≤1 sont signalés comme vecteurs de support approximatifs.",
