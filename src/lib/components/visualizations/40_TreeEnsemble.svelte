@@ -112,7 +112,9 @@
           {/each}
           <line x1="0" x2="0" y1="0" y2={chartH} class="axis" />
           <line x1="0" x2={chartW} y1={chartH} y2={chartH} class="axis" />
-          <polyline points={trueLine} class="true-line" />
+          {#if showTest}
+            <polyline points={trueLine} class="true-line" />
+          {/if}
           {#each train as point, i (i)}
             <circle cx={px(point.x)} cy={py(point.y)} r="3" class="training-point" />
           {/each}
@@ -132,7 +134,7 @@
         <span><i class="train-dot"></i>{$language === 'en' ? 'Train' : 'Apprentissage'}</span>
         {#if showTest}<span><i class="test-dot"></i>{$language === 'en' ? 'Holdout' : 'Test interne'}</span>{/if}
         <span><i class="model-line-key"></i>{$language === 'en' ? 'Prediction' : 'Prédiction'}</span>
-        <span><i class="true-line-key"></i>{$language === 'en' ? 'Synthetic truth' : 'Vérité simulée'}</span>
+        {#if showTest}<span><i class="true-line-key"></i>{$language === 'en' ? 'Synthetic truth' : 'Vérité simulée'}</span>{/if}
       </div>
     </div>
   </div>
