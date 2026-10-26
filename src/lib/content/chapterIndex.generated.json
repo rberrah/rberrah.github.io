@@ -3967,7 +3967,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "1fa18f7ff8b34af16a3be8d2bc0eca80c9d40059396dc40807c14bfa1f1f519c",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -4032,7 +4032,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "da8c27eb5fa65786e277fde06e81dc22e11bb6aaafa948cab7a3b94dba6ae8da",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -4095,7 +4095,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "be6a274de7921f51b5849335a81c423aca670eee2d7da6ada37b796880103142",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -4165,7 +4165,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "f14d4ab6f8e0e49bcde23bdf2f3ada2a7c6528a5530b04279c815534707b3e1f",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -4238,7 +4238,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "5fc6c182d82d091ae9c7bb1533696a0b7c2bb2aa60524ba67bec742cbe3c4700",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -4309,7 +4309,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "6003f34a1b25cf8ac3217eb34b132b29bd8c4a405632474fdd7b466c9fcfa232",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {

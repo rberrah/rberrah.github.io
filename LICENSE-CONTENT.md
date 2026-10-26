@@ -1,6 +1,6 @@
 # Contenus originaux : CC BY-NC-SA 4.0
 
-Le portail pédagogique comprend **95 chapitres en français, 95 chapitres en anglais, 65 visualisations** ; ce décompte documente le périmètre courant et ne modifie aucune condition de licence.
+Le portail pédagogique comprend **95 chapitres en français, 95 chapitres en anglais, 66 visualisations** ; ce décompte documente le périmètre courant et ne modifie aucune condition de licence.
 
 Les cours, textes, figures, schémas, exercices et autres œuvres originaux de **Racym Berrah** inclus dans la présente version de **PMx Explain**, dans la mesure où il détient les droits nécessaires, sont placés sous la licence standard **Creative Commons Attribution - Pas d'Utilisation Commerciale - Partage dans les Mêmes Conditions 4.0 International** (**CC BY-NC-SA 4.0**).
 

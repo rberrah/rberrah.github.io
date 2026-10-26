@@ -15,6 +15,7 @@ glossary: ["XGBoost","MAP-BE","TDM"]
 sources: ["woillard-ml-tacrolimus","woillard-ml-simulation","hughes-keizer","minichmayr-mipd","berrah-residual"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "da8c27eb5fa65786e277fde06e81dc22e11bb6aaafa948cab7a3b94dba6ae8da"
 quiz:
   - prompt: "The main contribution of ML to TDM is to..."
@@ -53,16 +54,18 @@ Two families compare (and combine):
 **Ref (Limoges team) —** Woillard J.-B. et al., *Clin Pharmacol Ther* 2021 (ML estimation of tacrolimus AUC); Labriffe M. et al. (ML for immunosuppressant TDM); Destere A. et al., *Clin Pharmacokinet* 2022 (hybrid PopPK + ML, iohexol clearance); Sayadi H. et al. (role of ML models for optimised TDM); Berrah R. et al., *Ther Drug Monit* (residual error as a hidden lever in MIPD).
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="BayesUpdate" -->
+<!-- step:title="Worked example" -->
 For **tacrolimus** (transplantation), estimating AUC₀₋₂₄ from 2–3 samples is crucial. ML models reach accuracy comparable to — or better than — classic Bayesian estimators, provided a **rich training database**.
 
 The **hybrid** approach (Destere et al.) combines the best of both: PopPK structure + ML correction.
 <!-- /step -->
 
-<!-- step:title="Common pitfall" -->
+<!-- step:title="Common pitfall" viz="46_ValidationSplit" -->
 A good internal score does not make a good clinical tool.
 
 **Pitfall —** ML **extrapolates poorly** outside its training domain (new population, new schedule, extreme values). Without **external validation** or displayed uncertainty, performance on training data guarantees nothing at the bedside.
+
+In the experiment, compare a random split of **rows**, a split by **patient**, and an **external center**. With repeated visits, randomly distributing rows leaves the same individual on both sides and makes evaluation overly optimistic.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

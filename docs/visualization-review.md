@@ -1,9 +1,9 @@
 # Registre de relecture des visualisations
 
-Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
+Ce registre couvre les 66 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
 
 - Relues : 63
-- En attente : 2
+- En attente : 3
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
@@ -35,6 +35,7 @@ Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signi
 | 43_Copula | reviewed | 2026-10-12 | author | hash current |
 | 44_Survival | reviewed | 2026-10-10 | author | hash current |
 | 45_ViralKinetics | reviewed | 2026-10-10 | author | hash current |
+| 46_ValidationSplit | pending | — | — | — |
 | 50_GOFPlots | reviewed | 2026-10-11 | author | hash current |
 | 51_Bootstrap | reviewed | 2026-10-10 | author | hash current |
 | 52_NPDE | reviewed | 2026-10-10 | author | hash current |

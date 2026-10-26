@@ -15,6 +15,7 @@ glossary: ["White / black / grey box","XGBoost"]
 sources: ["breiman-rf","efron-bootstrap","hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "f14d4ab6f8e0e49bcde23bdf2f3ada2a7c6528a5530b04279c815534707b3e1f"
 quiz:
   - prompt: "A single decision tree produces a function that is..."
@@ -46,10 +47,10 @@ They are the building blocks of most "classic" ML methods useful for TDM.
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 A **tree** asks successive questions ("CrCl < 60?") and splits the space into zones where the response is assumed constant: hence a **step** prediction.
 
-A deep tree fits the noise (overfitting). The **forest** idea: build many slightly different trees and **average** them — the result smooths and generalises better. Try the "Tree" then "Forest" modes.
+A deep tree fits the noise (overfitting). The **forest** idea: build many slightly different trees and **average** them — the result smooths and generalises better. Try the "Tree" then "Forest" modes, then move the profile to predict beyond the learned range.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="40_TreeEnsemble" -->
+<!-- step:title="The formula, unpacked" -->
 At each node a tree picks the split that **reduces impurity** the most. For regression, we minimise the residual variance:
 
 $$ \text{split}^\star = \arg\min_{s}\ \big[\,SSE(\text{left}) + SSE(\text{right})\,\big] $$
@@ -61,7 +62,7 @@ $$ \hat y(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x) $$
 **Ref —** Breiman L., *Random Forests*, Machine Learning 2001. Visual explanations: **MLU-Explain** (Amazon Machine Learning University), https://mlu-explain.github.io — see "Decision Trees" and "Random Forest".
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="40_TreeEnsemble" -->
+<!-- step:title="Worked example" -->
 To estimate the **AUC** of an immunosuppressant from 2–3 concentrations and covariates, a random forest captures interactions (e.g. genotype × dose) that a linear regression would miss.
 
 It also provides a **variable importance** (next chapter, VSURF), useful to know *which* covariates matter.

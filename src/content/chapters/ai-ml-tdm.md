@@ -15,6 +15,7 @@ slides: []
 sources: ["woillard-ml-tacrolimus", "woillard-ml-simulation", "hughes-keizer", "minichmayr-mipd", "berrah-residual"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "1fa18f7ff8b34af16a3be8d2bc0eca80c9d40059396dc40807c14bfa1f1f519c"
 quiz:
   - prompt: "L'apport principal du ML pour le TDM est de..."
@@ -55,18 +56,20 @@ Réf. (équipe de Limoges) : Woillard J.-B. et al., *Clin Pharmacol Ther* 2021 (
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="BayesUpdate" -->
+<!-- step:title="Exemple concret" -->
 Pour le **tacrolimus** (greffe), estimer l'AUC₀₋₂₄ à partir de 2–3 prélèvements est crucial. Les modèles de ML atteignent une précision comparable — voire meilleure — que les estimateurs bayésiens classiques, à condition d'une **base d'apprentissage riche**.
 
 L'approche **hybride** (Destere et al.) combine le meilleur des deux : structure PopPK + correction ML.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" -->
+<!-- step:title="Piège fréquent" viz="46_ValidationSplit" -->
 Un bon score interne ne fait pas un bon outil clinique.
 
 :::pitfall
 Le ML **extrapole mal** hors du domaine d'apprentissage (nouvelle population, nouveau schéma, valeurs extrêmes). Sans **validation externe** ni incertitude affichée, la performance sur les données d'entraînement ne garantit rien au lit du patient.
 :::
+
+Dans l'expérience, comparez une séparation aléatoire des **lignes**, une séparation par **patient** et un **centre externe**. Avec plusieurs visites par patient, répartir les lignes au hasard laisse le même individu des deux côtés et produit une évaluation trop optimiste.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->

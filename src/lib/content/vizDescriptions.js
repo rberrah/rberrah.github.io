@@ -121,6 +121,10 @@ export const visualizationDescriptions = {
     fr: "SVM linéaire soft-margin réellement ajusté par descente de gradient sur deux classes synthétiques. C règle le compromis régularisation-erreurs ; les points dont la marge fonctionnelle est ≤1 sont signalés comme vecteurs de support approximatifs.",
     en: "A linear soft-margin SVM fitted by gradient descent to two synthetic classes. C controls the regularization-error trade-off; points with functional margin ≤1 are marked as approximate support vectors."
   },
+  '46_ValidationSplit': {
+    fr: "Expérience de validation sur 24 patients synthétiques avec deux visites et trois centres construits. Un modèle 1-plus-proche-voisin identique est évalué après séparation par lignes, patients ou centre ; l'exemple illustre la dépendance intra-patient et le décalage de domaine, sans constituer une validation clinique.",
+    en: "Validation experiment using 24 synthetic patients with two visits and three constructed centers. The same 1-nearest-neighbour model is evaluated after splitting rows, patients or centers; the example illustrates within-patient dependence and domain shift, not clinical validation."
+  },
   '42_VarImportance': {
     fr: "Importance des variables d'une forêt, avec un seuil de sélection (esprit VSURF). Déplacez le seuil : trop bas garde du bruit, trop haut perd des variables utiles.",
     en: "A forest's variable importance, with a selection threshold (VSURF spirit). Move the threshold: too low keeps noise, too high drops useful variables."

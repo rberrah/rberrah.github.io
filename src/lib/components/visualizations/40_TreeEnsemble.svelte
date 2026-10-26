@@ -5,13 +5,15 @@
   // Experimental pedagogy: manipulate the model -> inspect training fit ->
   // reveal untouched holdout -> understand the limits. Synthetic data only.
   const { train, test } = makeEnsembleLabData();
-  const grid = Array.from({ length: 141 }, (_, i) => i / 14);
+  const xMin = -2, xMax = 12;
+  const grid = Array.from({ length: 197 }, (_, i) => xMin + i / 14);
   /** @type {'tree'|'forest'|'boost'} */
   let mode = 'tree';
   let knob = 3;
   let showTest = false;
   let showWhy = false;
   let tried = false;
+  let queryX = 5;
 
   $: knobMax = mode === 'tree' ? 6 : 40;
   $: knobLabel = mode === 'tree'
@@ -23,6 +25,8 @@
   $: predictions = grid.map((x) => model.predict(x));
   $: trainingError = ensembleRmse(model, train);
   $: holdoutError = ensembleRmse(model, test);
+  $: queryPrediction = model.predict(Number(queryX));
+  $: outsideDomain = Number(queryX) < 0 || Number(queryX) > 10;
   $: explanation = mode === 'tree'
     ? ($language === 'en'
       ? 'CART splits the x axis to reduce squared error in the training sample. More depth creates smaller leaves and may learn noise.'
@@ -56,13 +60,14 @@
     showTest = false;
     showWhy = false;
     tried = false;
+    queryX = 5;
   }
 
   const width = 480, height = 305, margin = { top: 16, right: 12, bottom: 42, left: 39 };
   const chartW = width - margin.left - margin.right;
   const chartH = height - margin.top - margin.bottom;
   /** @param {number} x */
-  const px = (x) => x / 10 * chartW;
+  const px = (x) => (x - xMin) / (xMax - xMin) * chartW;
   /** @param {number} y */
   const py = (y) => chartH - Math.max(0, Math.min(20, y)) / 20 * chartH;
   /** @param {number[]} ys */
@@ -90,6 +95,15 @@
         <span>{knobLabel}</span><strong>{knob}</strong>
         <input type="range" min="1" max={knobMax} step="1" bind:value={knob} on:input={changeKnob} />
       </label>
+      <label class="range query-range">
+        <span>{$language === 'en' ? 'Profile to predict: x' : 'Profil à prédire : x'}</span><strong>{Number(queryX).toFixed(1)}</strong>
+        <input type="range" min={xMin} max={xMax} step="0.1" bind:value={queryX} />
+      </label>
+      <p class:outside={outsideDomain} class="domain-status" aria-live="polite">
+        {outsideDomain
+          ? ($language === 'en' ? 'Outside the learned range [0, 10]: this is extrapolation.' : 'Hors de la plage apprise [0 ; 10] : il s’agit d’une extrapolation.')
+          : ($language === 'en' ? 'Inside the learned range [0, 10].' : 'Dans la plage apprise [0 ; 10].')}
+      </p>
       <div class="small-actions">
         <button type="button" on:click={nextStep} disabled={Number(knob) >= knobMax}>{$language === 'en' ? 'Next step +1' : 'Étape suivante +1'}</button>
         <button type="button" on:click={reset}>{$language === 'en' ? 'Reset' : 'Réinitialiser'}</button>
@@ -99,17 +113,20 @@
         <span class="score">{trainingError.toFixed(2)}</span>
         <strong>{$language === 'en' ? 'Holdout RMSE' : 'RMSE test interne'}</strong>
         <span class="score">{showTest ? holdoutError.toFixed(2) : '—'}</span>
+        <strong>{$language === 'en' ? 'Prediction at x' : 'Prédiction en x'}</strong>
+        <span class="score">{queryPrediction.toFixed(2)}</span>
       </div>
     </div>
 
     <div class="chart-area">
       <svg viewBox="0 0 480 305" class="chart" role="img" aria-label={$language === 'en' ? 'Training points, fitted model and optional held-out test points' : 'Points d’apprentissage, modèle ajusté et points test éventuellement révélés'}>
         <g transform="translate(39,16)">
+          <rect x={px(0)} y="0" width={px(10) - px(0)} height={chartH} class="training-domain" />
           {#each [0,5,10,15,20] as y}
             <line x1="0" x2={chartW} y1={py(y)} y2={py(y)} class="gridline" />
             <text x="-8" y={py(y) + 4} class="tick" text-anchor="end">{y}</text>
           {/each}
-          {#each [0,2,4,6,8,10] as x}
+          {#each [-2,0,2,4,6,8,10,12] as x}
             <text x={px(x)} y={chartH + 16} class="tick" text-anchor="middle">{x}</text>
           {/each}
           <line x1="0" x2="0" y1="0" y2={chartH} class="axis" />
@@ -123,6 +140,8 @@
           {#key mode + "-" + knob}
             <polyline points={fittedLine} class="model-line" />
           {/key}
+          <line x1={px(Number(queryX))} x2={px(Number(queryX))} y1={py(queryPrediction)} y2={chartH} class="query-guide" />
+          <circle cx={px(Number(queryX))} cy={py(queryPrediction)} r="5" class:outside-query={outsideDomain} class="query-point" />
           {#if showTest}
             {#each test as point, i (i)}
               <circle cx={px(point.x)} cy={py(point.y)} r="4" class="test-point" />
@@ -136,6 +155,7 @@
         <span><i class="train-dot"></i>{$language === 'en' ? 'Train' : 'Apprentissage'}</span>
         {#if showTest}<span><i class="test-dot"></i>{$language === 'en' ? 'Holdout' : 'Test interne'}</span>{/if}
         <span><i class="model-line-key"></i>{$language === 'en' ? 'Prediction' : 'Prédiction'}</span>
+        <span><i class="query-dot"></i>{$language === 'en' ? 'Profile to predict' : 'Profil à prédire'}</span>
         {#if showTest}<span><i class="true-line-key"></i>{$language === 'en' ? 'Synthetic truth' : 'Vérité simulée'}</span>{/if}
       </div>
     </div>
@@ -198,6 +218,9 @@
   .range { display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: var(--text-xs); }
   .range input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent-ai); }
   .range strong, .score { font-variant-numeric: tabular-nums; }
+  .query-range { padding-top: var(--space-2); border-top: 1px solid var(--border-subtle); }
+  .domain-status { margin-top: calc(-1 * var(--space-2)); color: var(--text-secondary); font-size: var(--text-xs); }
+  .domain-status.outside { color: #b45309; font-weight: 650; }
   .small-actions { display: flex; gap: 5px; flex-wrap: wrap; }
   .small-actions button { font-size: var(--text-xs); flex: 1; }
   .measurements { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; border-radius: var(--radius); padding: var(--space-3); background: var(--bg-secondary); font-size: var(--text-xs); }
@@ -206,6 +229,7 @@
   .chart-area { min-width: 0; }
   .chart { display: block; width: 100%; height: auto; overflow: visible; }
   .gridline { stroke: var(--border-strong); stroke-width: .5; opacity: .35; }
+  .training-domain { fill: color-mix(in srgb, var(--accent-ai) 6%, transparent); }
   .axis { stroke: var(--border-strong); stroke-width: 1; }
   .model-line { stroke: var(--accent-ai); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 900; animation: reveal-fit .65s ease-out both; }
   .test-point { animation: reveal-dots .28s ease-out both; }
@@ -215,12 +239,16 @@
   .true-line { stroke: var(--accent-pk); stroke-width: 1.5; stroke-dasharray: 5 5; fill: none; }
   .training-point { fill: #2563eb; stroke: var(--bg-primary); stroke-width: .8; }
   .test-point { fill: #f59e0b; stroke: var(--text-primary); stroke-width: .7; }
+  .query-guide { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  .query-point { fill: var(--accent-pd); stroke: var(--bg-primary); stroke-width: 1.4; }
+  .query-point.outside-query { stroke: #b45309; stroke-width: 2.5; }
   .axis-label, .tick { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; }
   .legend { display: flex; flex-wrap: wrap; gap: 6px 13px; font-size: var(--text-xs); color: var(--text-secondary); }
   .legend span { display: inline-flex; align-items: center; gap: 4px; }
   .legend i { width: 11px; height: 11px; display: inline-block; border-radius: 50%; }
   .train-dot { background: #2563eb; }
   .test-dot { background: #f59e0b; }
+  .query-dot { background: var(--accent-pd); }
   .legend .model-line-key, .legend .true-line-key { border-radius: 0; height: 3px; width: 15px; background: var(--accent-ai); }
   .legend .true-line-key { background: var(--accent-pk); }
   .next { display: grid; gap: var(--space-3); }

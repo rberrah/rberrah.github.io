@@ -15,6 +15,7 @@ glossary: ["XGBoost","White / black / grey box"]
 sources: ["friedman-gbm","chen-xgboost","prokhorenkova-catboost","woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "6003f34a1b25cf8ac3217eb34b132b29bd8c4a405632474fdd7b466c9fcfa232"
 quiz:
   - prompt: "The principle of gradient boosting is to..."
@@ -49,7 +50,7 @@ Where a forest **averages** independent trees, boosting adds them **sequentially
 Switch the module to "Boosting" mode and increase the iterations: the fit sharpens step by step, like a progressive focus.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="40_TreeEnsemble" -->
+<!-- step:title="The formula, unpacked" -->
 The **additive** model is built in stages. At iteration $m$:
 
 $$ F_m(x) = F_{m-1}(x) + \nu\, h_m(x) $$
@@ -63,7 +64,7 @@ $$ \mathcal{L} = \sum_i \ell(y_i,\hat y_i) + \sum_k \Omega(f_k),\qquad \Omega(f)
 **Ref —** Friedman J.H., *Greedy function approximation* (gradient boosting), Ann. Statist. 2001; Chen & Guestrin, *XGBoost*, KDD 2016; Prokhorenkova et al., *CatBoost*, NeurIPS 2018. Tree foundations: **MLU-Explain**, https://mlu-explain.github.io.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="40_TreeEnsemble" -->
+<!-- step:title="Worked example" -->
 To predict an **exposure** from covariates and sparse samples, a well-tuned XGBoost (shallow depth, small $\nu$, many trees) often reaches better accuracy than a Bayesian model — given a rich training database.
 
 CatBoost shines when covariates are **categorical** (centre, formulation, genotype coded as classes).

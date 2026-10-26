@@ -15,6 +15,7 @@ slides: []
 sources: ["breiman-rf", "efron-bootstrap", "hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "be6a274de7921f51b5849335a81c423aca670eee2d7da6ada37b796880103142"
 quiz:
   - prompt: "Un arbre de décision seul produit une fonction..."
@@ -46,10 +47,10 @@ Ce sont les briques de la plupart des méthodes de ML « classiques » utiles au
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Un **arbre** pose des questions successives (« ClCr < 60 ? ») et découpe l'espace en zones où la réponse est supposée constante : d'où une prédiction **en marches**.
 
-Un arbre profond colle au bruit (surajustement). L'idée de la **forêt** : construire beaucoup d'arbres un peu différents et **moyenner** — le résultat se lisse et généralise mieux. Testez les modes « Arbre » puis « Forêt ».
+Un arbre profond colle au bruit (surajustement). L'idée de la **forêt** : construire beaucoup d'arbres un peu différents et **moyenner** — le résultat se lisse et généralise mieux. Testez les modes « Arbre » puis « Forêt », puis déplacez le profil à prédire hors de la plage apprise.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="40_TreeEnsemble" -->
+<!-- step:title="La formule décortiquée" -->
 Un arbre choisit à chaque nœud le découpage qui **réduit le plus l'impureté**. En régression, on minimise la variance résiduelle :
 
 $$ \text{split}^\star = \arg\min_{s}\ \big[\,SSE(\text{gauche}) + SSE(\text{droite})\,\big] $$
@@ -63,7 +64,7 @@ Réf. : Breiman L., *Random Forests*, Machine Learning 2001. Explications visuel
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="40_TreeEnsemble" -->
+<!-- step:title="Exemple concret" -->
 Pour estimer l'**AUC** d'un immunosuppresseur à partir de 2–3 concentrations et de covariables, une forêt aléatoire capture des interactions (ex. génotype × dose) qu'une régression linéaire manquerait.
 
 Elle fournit aussi une **importance des variables** (chapitre suivant sur VSURF), utile pour savoir *quelles* covariables comptent.

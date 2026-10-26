@@ -15,6 +15,7 @@ slides: []
 sources: ["friedman-gbm", "chen-xgboost", "prokhorenkova-catboost", "woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "5fc6c182d82d091ae9c7bb1533696a0b7c2bb2aa60524ba67bec742cbe3c4700"
 quiz:
   - prompt: "Le principe du gradient boosting est de..."
@@ -49,7 +50,7 @@ Là où la forêt **moyenne** des arbres indépendants, le boosting les ajoute *
 Passez le module en mode « Boosting » et augmentez les itérations : l'ajustement s'affine pas à pas, comme une mise au point progressive.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="40_TreeEnsemble" -->
+<!-- step:title="La formule décortiquée" -->
 On construit le modèle **additif** par étapes. À l'itération $m$ :
 
 $$ F_m(x) = F_{m-1}(x) + \nu\, h_m(x) $$
@@ -65,7 +66,7 @@ Réf. : Friedman J.H., *Greedy function approximation* (gradient boosting), Ann.
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="40_TreeEnsemble" -->
+<!-- step:title="Exemple concret" -->
 Pour prédire une **exposition** à partir de covariables et de prélèvements épars, un XGBoost bien réglé (profondeur faible, $\nu$ petit, beaucoup d'arbres) atteint souvent une meilleure précision qu'un modèle bayésien — à condition d'une base d'apprentissage riche.
 
 CatBoost brille quand des covariables sont **catégorielles** (centre, formulation, génotype codé en classes).
