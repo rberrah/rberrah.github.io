@@ -15,6 +15,7 @@ glossary: ["GOF","Résidus (WRES/CWRES/IWRES/NPDE)","VPC","Binning"]
 sources: ["karlsson-holford-vpc","bergstrand-pcvpc","hooker-cwres","efron-bootstrap"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "eadfc60cf18f1862aa64a739044e2fc1fb3aeb20f6033f0abfa8e29fbcbdaaff"
 quiz:
   - prompt: "A VPC compares observed data with..."
@@ -56,7 +57,7 @@ $$ e_{ij} = y_{ij} - \hat{y}_{ij} $$
 
 Weighted residuals scale that gap to the expected variability.
 
-**Math —** a VPC goes further: let **many** simulated classes build from the same sheet, then check whether the simulated median and spread cover the observations, time-bin by time-bin.
+**Math —** a VPC goes further: simulate **many** datasets with the model and observed design, then compare observed percentiles with simulation intervals for those same percentiles in each time bin. Covering individual observations is not the main target of a standard VPC.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s46,s47" viz="17_VPCCrashTest" -->

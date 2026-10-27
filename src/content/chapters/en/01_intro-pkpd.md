@@ -15,6 +15,7 @@ glossary: ["PK","PD","ADME"]
 sources: ["rowland-tozer","holford-clearance","mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "9a9c95ab7b397b0a1cd15fde0f7e8c7db0b168c6cdff9d4fcd875d1b43868569"
 quiz:
   - prompt: "Pharmacokinetics (PK) mostly describes..."
@@ -73,7 +74,7 @@ This decay is **exponential**: like a geometric sequence, a fixed **percentage**
 - **clearance** $CL$ — a cleared flow, a speed relative to the volume;
 - the **elimination rate constant** $k_e = CL/V$ — a pure rate (per unit time).
 
-But the most **telling** measure of the decay is the **half-life** $t_{1/2}$: the time to eliminate half of the drug.
+But the most **telling** measure of the decay is the **half-life** $t_{1/2}$: the time required for the relevant amount or concentration to fall by half in this model.
 
 **Math —** volume sets the initial dilution; clearance sets how fast the drug is removed relative to that space. The ratio $CL/V = k_e$ drives the slope, and $t_{1/2} = \ln 2 / k_e = 0{,}693\,V/CL$.
 

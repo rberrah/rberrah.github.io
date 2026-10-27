@@ -45,7 +45,9 @@ test('a chapter with several laboratories returns to the same originating chapte
   const journey = page.getByTestId('concept-journey');
   await expect(journey.getByTestId('chapter-laboratory-link')).toHaveCount(2);
 
-  await journey.getByTestId('chapter-laboratory-link').first().click();
+  const firstLaboratory = journey.getByTestId('chapter-laboratory-link').first();
+  await expect(firstLaboratory).toHaveAttribute('href', /lang=en.*lab=parent-metabolite/);
+  await firstLaboratory.click();
   await expect(page).toHaveURL(/lab=parent-metabolite.*from=parent-metabolite/);
   await expect(page.getByTestId('lab-return-course')).toContainText('originating course');
   await expect(page.getByTestId('lab-related-exercises')).toHaveAttribute('href', /chapitres\/parent-metabolite\/.*chapter-exercises/);

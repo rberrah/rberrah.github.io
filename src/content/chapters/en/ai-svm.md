@@ -15,6 +15,7 @@ glossary: ["White / black / grey box"]
 sources: ["cortes-vapnik-svm","hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "391f360c7701cff8c032d6110d6dea37f5a4c8129ee2fa5533395ad5296af5b3"
 quiz:
   - prompt: "A linear SVM chooses the boundary that..."
@@ -38,15 +39,15 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-**SVMs** were long the go-to classifier, and remain useful when data are **few** but well structured (e.g. classifying responders / non-responders).
+**SVMs** are a classic classification family, sometimes useful in moderately sized datasets after scaling variables and tuning hyperparameters honestly (e.g. classifying responders / non-responders).
 
 Their geometric idea — the **maximal margin** — is elegant and illuminates many other methods.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="41_SVMMargin" -->
-Between two clouds of points, infinitely many lines separate the classes. Which to choose? The SVM takes the one leaving the **widest margin** on either side — the most robust.
+Between two separable clouds of points, several lines may work. The SVM selects the one that maximises the **margin** under its optimisation objective; this alone does not guarantee robustness in a new population.
 
-Only the **edge** points (the **support vectors**) matter: moving a point far from the boundary changes nothing. Adjust $C$ to widen or narrow the margin.
+Points **on the margin, inside it or misclassified** carry the solution: these are the **support vectors**. Moving a point sufficiently far from the margin generally does not change the boundary. Adjust $C$ and class overlap to observe the trade-off.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="41_SVMMargin" -->
@@ -58,7 +59,7 @@ In practice we allow slack (**soft** margin) via variables $\xi_i$ and a paramet
 
 $$ \min\ \tfrac{1}{2}\lVert w\rVert^2 + C\sum_i \xi_i $$
 
-Large $C$ → little tolerance (narrow margin); small $C$ → wide margin. The **kernel trick** replaces $x\cdot x'$ with $K(x,x')$ to separate classes **non-linearly** (RBF, polynomial kernels).
+Large $C$ → strong penalty for violations; small $C$ → stronger regularisation and more tolerance. The **kernel trick** replaces $x\cdot x'$ with $K(x,x')$ to construct a **non-linear** boundary (RBF, polynomial kernels), without guaranteeing good separation in future data.
 
 **Ref —** Cortes C. & Vapnik V., *Support-Vector Networks*, Machine Learning 1995. See also **MLU-Explain**, https://mlu-explain.github.io.
 <!-- /step -->

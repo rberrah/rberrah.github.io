@@ -1,8 +1,8 @@
 ---
 id: "ai-clustering"
 slug: "ai-clustering"
-title: "Sous-groupes cachés : clustering, PCA et RMT"
-description: "Découvrir des phénotypes dans les paramètres individuels — clustering (k-means/kNN), réduction de dimension (PCA) et tri signal/bruit (RMT)."
+title: "Clustering, PCA et structures candidates"
+description: "Explorer des structures candidates dans les paramètres individuels — clustering, réduction de dimension (PCA) et repère signal/bruit (RMT)."
 summary: "Explorer les paramètres individuels par groupe : clustering non supervisé, PCA pour visualiser, RMT pour séparer signal et bruit."
 track: "ai"
 order: 19
@@ -15,11 +15,12 @@ slides: []
 sources: ["pearson-1901-pca", "marchenko-pastur", "hotelling-1933", "hastie-esl", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "c39489299d5821a8f5e8607cde648a49215560618272eb193abc109ae4ef2bf7"
 quiz:
-  - prompt: "Regrouper les paramètres individuels (EBE) par type de cancer peut révéler..."
+  - prompt: "Regrouper les paramètres individuels (EBE) par type de cancer peut suggérer..."
     options:
-      - "qu'un paramètre (ex. la clairance) dépend du type de cancer → une covariable"
+      - "une association candidate à évaluer entre le paramètre et le type de cancer"
       - "que la variabilité résiduelle explique à elle seule les écarts observés"
       - "que le type de cancer doit devenir la variable réponse à prédire"
     correct: 0
@@ -38,7 +39,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Après avoir estimé un modèle de population, on obtient les **paramètres individuels** de chaque patient (les EBE : clairance, volume…). Ces paramètres sont une mine : parfois, un sous-groupe **non prévu** s'y cache — par exemple la **clairance qui dépend du type de cancer**.
+Après avoir estimé un modèle de population, on obtient des **estimations de paramètres individuels** (EBE : clairance, volume…). On peut y explorer une structure non prévue — par exemple une association entre clairance et type de cancer — mais les EBE sont des estimations dépendantes du modèle et du shrinkage, pas des paramètres vrais observés.
 
 Trois outils pour l'explorer : le **clustering** (regrouper sans étiquette), la **PCA** (analyse en composantes principales, pour visualiser en 2D), et la **RMT** (théorie des matrices aléatoires, pour repérer des composantes incompatibles avec un modèle de bruit simple).
 <!-- /step -->
@@ -46,7 +47,7 @@ Trois outils pour l'explorer : le **clustering** (regrouper sans étiquette), la
 <!-- step:title="Intuition" viz="63_ClusterPCA" -->
 Tracez les paramètres individuels et **colorez par type de cancer** : si les nuages se séparent, c'est qu'un paramètre varie selon le groupe.
 
-Un algorithme de **clustering** fait l'inverse : il regroupe les points **sans connaître** le type, à partir de leur seule position. Quand la séparation est nette, il peut **retrouver** les cancers — un argument pour une structure à confirmer, pas une preuve biologique à lui seul.
+Un algorithme de **clustering** regroupe les points **sans connaître** le type, à partir de leur position. Dans l'exemple synthétique, une séparation nette permet de retrouver les groupes construits. Cela montre le fonctionnement de l'algorithme, pas la découverte de cancers ou de phénotypes dans des données réelles.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="63_ClusterPCA" -->
@@ -59,7 +60,7 @@ où $\mu_c$ est le **centroïde** du cluster $c$. Le **kNN** (k plus proches voi
 :::howto
 **La métaphore de la salle de classe.** On place les élèves selon deux notes (maths, sport) ; sans regarder leur classe, on repère des **paquets** naturels. Le k-means dessine des frontières autour de ces paquets ; le kNN, lui, devine la classe d'un nouvel élève d'après ses **voisins immédiats**.
 
-**Côté maths.** Il faut **standardiser** les paramètres (CL ≈ 0,1 ; V ≈ 8 : échelles incomparables) avant de calculer des distances. Une simple **comparaison par groupe** (ANOVA, Kruskal-Wallis) confirme ensuite qu'un paramètre diffère bien entre types.
+**Côté maths.** Des paramètres d'unités différentes doivent généralement être **standardisés** avant une distance euclidienne (CL ≈ 0,1 ; V ≈ 8 ici). Une **comparaison par groupe** préspécifiée (ANOVA, Kruskal-Wallis) peut ensuite tester une association sous ses hypothèses ; elle ne confirme pas un mécanisme causal.
 :::
 <!-- /step -->
 
@@ -68,7 +69,7 @@ Avec **beaucoup** de paramètres (CL, V, Ka, Q, Tlag…), on ne peut pas tout tr
 
 $$ \text{PC}_1, \text{PC}_2 = \text{vecteurs propres de la covariance, par variance décroissante} $$
 
-On visualise alors les patients dans le plan (PC₁, PC₂) — souvent 2–3 composantes suffisent à capturer l'essentiel de la variance, et les sous-groupes y apparaissent.
+On peut alors visualiser les patients dans le plan (PC₁, PC₂). La part de variance conservée doit être affichée : deux composantes peuvent être insuffisantes, et un groupe absent de la projection peut exister dans une autre direction — ou l'inverse.
 
 :::note
 Réf. : Pearson (1901), Hotelling (1933) pour la PCA ; MacQueen (1967) pour le k-means.
@@ -90,23 +91,23 @@ $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="63_ClusterPCA" -->
-En oncologie, on modélise un médicament sur plusieurs cancers. En regroupant les **clairances individuelles**, on découvre trois nuages correspondant aux **types de tumeur** : la CL est plus basse dans l'un, plus haute dans l'autre.
+Dans le scénario synthétique affiché, trois types de tumeur construits ont des clairances moyennes différentes. Le k-means reçoit seulement CL et V ; en variant la séparation et la standardisation, on voit quand ses groupes ressemblent ou non aux étiquettes simulées.
 
-Conclusion pratique : le résultat peut motiver l’évaluation du **type de cancer comme covariable** sur la clairance. Le clustering génère une hypothèse ; l’OFV, la VPC, la stabilité, le shrinkage et une validation externe éventuelle apportent ensuite des éléments convergents, sans établir à eux seuls un mécanisme causal.
+Dans une analyse réelle, un résultat analogue pourrait motiver l’évaluation du **type de cancer comme covariable** sur la clairance. Le clustering génère une hypothèse ; la stabilité, les diagnostics du modèle, l'évaluation prédictive et une validation externe éventuelle apportent ensuite des éléments convergents, sans établir à eux seuls un mécanisme causal.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
 Un algorithme de clustering trouve **toujours** des clusters.
 
 :::pitfall
-Le k-means renverra $k$ groupes même dans du bruit pur — la structure n'est réelle que si elle **résiste** (RMT, validation, sens biologique). De plus, les EBE sont **rétrécis** (shrinkage) : un clustering sur des EBE peu informatifs invente des sous-groupes. Enfin, corrélation n'est pas causalité : un sous-groupe « découvert » doit être **confirmé** comme covariable dans le modèle, pas supposé.
+Le k-means renverra $k$ groupes même dans du bruit pur. Stabilité, validation et plausibilité biologique peuvent rendre une structure plus crédible, pas prouver qu'il s'agit d'un phénotype. De plus, les EBE sont **rétrécis** (shrinkage) : un clustering sur des EBE peu informatifs peut créer des sous-groupes apparents. Enfin, corrélation n'est pas causalité : un sous-groupe « découvert » doit être évalué indépendamment, pas supposé.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- Les paramètres individuels (EBE) peuvent révéler des sous-groupes non prévus (ex. CL selon le type de cancer).
-- Clustering (k-means) pour regrouper sans étiquette ; kNN pour classer ; toujours standardiser.
+- Les estimations individuelles (EBE) peuvent suggérer une structure non prévue (ex. CL selon le type de cancer).
+- Clustering (k-means) pour regrouper sans étiquette ; kNN pour classer ; standardiser lorsque l'échelle ne doit pas piloter la distance.
 - PCA : réduire la dimension en gardant les directions de plus grande variance, pour visualiser.
 - RMT : au-dessus de λ₊ = signal statistique possible sous les hypothèses du modèle nul, pas preuve biologique ; plus de patients stabilise le seuil.
-- Le clustering génère des hypothèses ; le modèle (covariable + OFV/VPC) les valide.
+- Le clustering génère des hypothèses ; un modèle de covariables et une évaluation indépendante peuvent les étayer, pas les transformer automatiquement en mécanismes.
 <!-- /step -->

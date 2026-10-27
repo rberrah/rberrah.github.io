@@ -22,7 +22,7 @@ function normaliseDate(value) {
 }
 
 function chapterMetadata(file, directory) {
-  const raw = readFileSync(path.join(directory, file), 'utf8');
+  const raw = readFileSync(path.join(directory, file), 'utf8').replace(/\r\n/g, '\n');
   const { data, content } = matter(raw);
   const stepCount = [...content.matchAll(/<!--\s*step:[^>]*-->/g)].length;
   return {

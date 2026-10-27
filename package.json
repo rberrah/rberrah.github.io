@@ -29,8 +29,8 @@
     "inventory:check": "node scripts/content_inventory.mjs --check",
     "smoke": "node scripts/smoke_test.mjs",
     "test": "npm run test:pmx",
-    "test:pmx": "node scripts/materialize_mipd_snapshot.mjs && node scripts/generate_chapter_index.mjs --check && node scripts/test_main_ruleset.mjs && node scripts/test_license_consistency.mjs && node scripts/test_cross_domain_pkpd.mjs && node scripts/validate_content.mjs && node scripts/test_review_hashes.mjs && node scripts/test_privacy_nonretention.mjs && node scripts/audit_tdm_metadata.mjs && node scripts/test_tdm_model_sync.mjs && node scripts/test_transfer_contracts.mjs && node scripts/validate_transfer_inventory.mjs && node scripts/generate_lego_compatibility.mjs --check && node scripts/generate_pedagogical_graph.mjs --check && node scripts/test_chapter_parity.mjs && node scripts/test_scientific_visualizations.mjs && node scripts/smoke_test.mjs && node scripts/test_covariates.mjs && node scripts/test_learning.mjs && node scripts/test_learning_content.mjs",
-    "test:science": "node scripts/test_scientific_visualizations.mjs",
+    "test:pmx": "node scripts/materialize_mipd_snapshot.mjs && node scripts/generate_chapter_index.mjs --check && node scripts/test_main_ruleset.mjs && node scripts/test_license_consistency.mjs && node scripts/test_cross_domain_pkpd.mjs && node scripts/validate_content.mjs && node scripts/test_review_hashes.mjs && node scripts/test_privacy_nonretention.mjs && node scripts/audit_tdm_metadata.mjs && node scripts/test_tdm_model_sync.mjs && node scripts/test_transfer_contracts.mjs && node scripts/validate_transfer_inventory.mjs && node scripts/generate_lego_compatibility.mjs --check && node scripts/generate_pedagogical_graph.mjs --check && node scripts/test_chapter_parity.mjs && node scripts/test_scientific_visualizations.mjs && node scripts/test_tree_ensemble_lab.mjs && node scripts/test_validation_split_lab.mjs && node scripts/test_token_attention_lab.mjs && node scripts/smoke_test.mjs && node scripts/test_covariates.mjs && node scripts/test_learning.mjs && node scripts/test_learning_content.mjs",
+    "test:science": "node scripts/test_scientific_visualizations.mjs && node scripts/test_tree_ensemble_lab.mjs && node scripts/test_validation_split_lab.mjs && node scripts/test_token_attention_lab.mjs",
     "test:e2e": "npm run test:e2e:pmx",
     "test:e2e:pmx": "playwright test --config playwright.pmx.config.js",
     "slides:index": "node scripts/generate_slide_index.mjs",
@@ -91,7 +91,7 @@
     "katex": "^0.19.0",
     "layercake": "^10.0.2",
     "markdown-it": "^15.0.2",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "imports": {
     "#lib": "./src/lib/index.js",

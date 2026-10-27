@@ -15,6 +15,7 @@ slides: []
 sources: ["cortes-vapnik-svm", "hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "be37232337d99501f4d356048f6f8959c8d08bbc5a60b67e4577ae1f041a28fc"
 quiz:
   - prompt: "Un SVM linéaire choisit la frontière qui..."
@@ -38,15 +39,15 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Les **SVM** ont longtemps été l'outil de classification de référence, et restent utiles quand les données sont **peu nombreuses** mais bien structurées (ex. classer répondeurs / non-répondeurs).
+Les **SVM** sont une famille classique de classification, parfois utile sur des jeux de taille modérée après mise à l'échelle des variables et réglage honnête des hyperparamètres (ex. classer répondeurs / non-répondeurs).
 
 Leur idée géométrique — la **marge maximale** — est élégante et éclaire beaucoup d'autres méthodes.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="41_SVMMargin" -->
-Entre deux nuages de points, une infinité de droites séparent les classes. Laquelle choisir ? Le SVM prend celle qui laisse la **plus grande marge** de part et d'autre — la plus robuste.
+Entre deux nuages de points séparables, plusieurs droites peuvent convenir. Le SVM choisit celle qui maximise la **marge** selon son objectif d'optimisation ; cela ne garantit pas à lui seul la robustesse sur une nouvelle population.
 
-Seuls les points **au bord** (les **vecteurs de support**) comptent : déplacer un point loin de la frontière ne change rien. Jouez sur $C$ pour élargir ou rétrécir la marge.
+Les points **sur la marge, à l'intérieur ou mal classés** portent la solution : ce sont les **vecteurs de support**. Déplacer un point suffisamment loin de la marge ne change généralement pas la frontière. Jouez sur $C$ et sur le chevauchement des groupes pour observer le compromis.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="41_SVMMargin" -->
@@ -58,7 +59,7 @@ En pratique on autorise des écarts (marge **souple**) via des variables $\xi_i$
 
 $$ \min\ \tfrac{1}{2}\lVert w\rVert^2 + C\sum_i \xi_i $$
 
-Grand $C$ → peu de tolérance (marge étroite) ; petit $C$ → marge large. Le **kernel trick** remplace $x\cdot x'$ par $K(x,x')$ pour séparer des classes **non linéairement** (noyau RBF, polynomial).
+Grand $C$ → forte pénalisation des violations ; petit $C$ → régularisation plus forte et davantage de tolérance. Le **kernel trick** remplace $x\cdot x'$ par $K(x,x')$ pour construire une frontière **non linéaire** (noyau RBF, polynomial), sans garantir que les classes futures seront bien séparées.
 
 :::note
 Réf. : Cortes C. & Vapnik V., *Support-Vector Networks*, Machine Learning 1995. Voir aussi les explications de **MLU-Explain**, https://mlu-explain.github.io.

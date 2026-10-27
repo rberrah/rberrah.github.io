@@ -18,8 +18,13 @@ const output = new URL('docs/content-inventory.md', root);
 const citation = readFileSync(new URL('CITATION.cff', root), 'utf8');
 const contentLicense = readFileSync(new URL('LICENSE-CONTENT.md', root), 'utf8');
 const portalHome = readFileSync(new URL('portal/index.html', root), 'utf8');
-const chapterFiles = readdirSync(chapterDir).filter(file => file.endsWith('.md') && !file.startsWith('_'));
-const englishFiles = readdirSync(englishDir).filter(file => file.endsWith('.md') && !file.startsWith('_'));
+const compareText = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+const chapterFiles = readdirSync(chapterDir)
+  .filter(file => file.endsWith('.md') && !file.startsWith('_'))
+  .sort(compareText);
+const englishFiles = readdirSync(englishDir)
+  .filter(file => file.endsWith('.md') && !file.startsWith('_'))
+  .sort(compareText);
 const chapters = chapterFiles.map(file => {
   const raw = readFileSync(new URL(file, chapterDir), 'utf8');
   return { file, raw, ...matter(raw).data };
@@ -28,7 +33,9 @@ const englishChapters = englishFiles.map(file => {
   const raw = readFileSync(new URL(file, englishDir), 'utf8');
   return { file, raw, ...matter(raw).data };
 });
-const visualizations = readdirSync(visualizationDir).filter(file => file.endsWith('.svelte'));
+const visualizations = readdirSync(visualizationDir)
+  .filter(file => file.endsWith('.svelte'))
+  .sort(compareText);
 const vizKeys = new Set(chapterFiles.flatMap(file => [...readFileSync(new URL(file, chapterDir), 'utf8').matchAll(/\bviz="([^"]+)"/g)].map(match => match[1])));
 const syntheses = guidedActivities.filter(activity => activity.kind === 'synthesis');
 const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis');
