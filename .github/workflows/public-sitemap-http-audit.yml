@@ -12,12 +12,15 @@ on:
 permissions:
   contents: read
 
+env:
+  PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
+
 jobs:
   check:
     name: Check live sitemap fetchability
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Check sitemap HTTP status, content types and XML
         run: python3 scripts/check_live_sitemaps.py

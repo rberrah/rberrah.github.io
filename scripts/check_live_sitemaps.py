@@ -4,6 +4,7 @@
 No third-party packages. Simulated Googlebot user-agent is only a diagnostic:
 it does NOT prove that Google's actual crawler IP can access a resource.
 """
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -11,14 +12,19 @@ import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 
-ORIGIN = "https://rberrah.github.io"
+ORIGIN = (os.environ.get("PUBLIC_SITE_ORIGIN") or "https://rberrah.github.io").rstrip("/")
 GOOGLEBOT_UA = "Googlebot/2.1 (+http://www.google.com/bot.html)"
 NORMAL_UA = "Mozilla/5.0 (compatible; SitemapAudit/1.0)"
 NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 failures = []
+warnings = []
 
 
-def get(url, label, ua=NORMAL_UA, kind=None):
+def report(label, message, required):
+    (failures if required else warnings).append(f"{label}: {message}")
+
+
+def get(url, label, ua=NORMAL_UA, kind=None, required=True):
     req = urllib.request.Request(
         url,
         headers={"User-Agent": ua, "Accept": "application/xml,text/xml,text/plain,*/*"},
@@ -30,36 +36,38 @@ def get(url, label, ua=NORMAL_UA, kind=None):
             ctype = response.headers.get("Content-Type", "<missing>")
             body = response.read(2_000_000)
     except urllib.error.HTTPError as error:
-        print(f"FAIL [{label}] HTTP {error.code} {url}", flush=True)
-        failures.append(f"{label}: HTTP {error.code}")
+        level = "FAIL" if required else "WARN"
+        print(f"{level} [{label}] HTTP {error.code} {url}", flush=True)
+        report(label, f"HTTP {error.code}", required)
         return None
     except (urllib.error.URLError, TimeoutError, OSError) as error:
-        print(f"FAIL [{label}] {url}: {error}", flush=True)
-        failures.append(f"{label}: connection error")
+        level = "FAIL" if required else "WARN"
+        print(f"{level} [{label}] {url}: {error}", flush=True)
+        report(label, "connection error", required)
         return None
 
     print(f"HTTP [{label}] {status} {url} -> {final} ({ctype}, {len(body)} bytes)", flush=True)
     if status != 200 or final != url:
-        failures.append(f"{label}: HTTP {status} or redirect to {final}")
+        report(label, f"HTTP {status} or redirect to {final}", required)
     if kind == "xml":
         if "html" in ctype.lower():
-            failures.append(f"{label}: HTML Content-Type rather than XML")
+            report(label, "HTML Content-Type rather than XML", required)
         try:
             root = ET.fromstring(body)
         except ET.ParseError as error:
-            failures.append(f"{label}: invalid XML ({error})")
+            report(label, f"invalid XML ({error})", required)
             return None
         node = root.tag.split("}")[-1]
         if node not in ("sitemapindex", "urlset"):
-            failures.append(f"{label}: unexpected XML root <{node}>")
+            report(label, f"unexpected XML root <{node}>", required)
             return None
         locations = [element.text.strip() for element in root.iter() if element.tag == NS + "loc" and element.text]
         print(f"XML [{label}] <{node}>; {len(locations)} <loc> values", flush=True)
         if not locations:
-            failures.append(f"{label}: empty sitemap")
+            report(label, "empty sitemap", required)
         for location in locations:
-            if urlparse(location).netloc != "rberrah.github.io":
-                failures.append(f"{label}: outside-site <loc>: {location}")
+            if urlparse(location).netloc != urlparse(ORIGIN).netloc:
+                report(label, f"outside-site <loc>: {location}", required)
         return node, locations
     if kind == "robots":
         data = body.decode("utf-8", errors="replace")
@@ -150,12 +158,7 @@ def audit_html(path):
     if not page.title.strip():
         failures.append(f"HTML {path}: missing title")
     if len(page.canonicals) != 1 or page.canonicals[0] != url:
-        # Standalone tools belong to independently published repositories:
-        # report missing metadata but don't fail the parent site CI.
-        if path in ("/multiomics/", "/Omics2PK/"):
-            print(f"WARN HTML {path}: canonical metadata needs fixing in its own repo", flush=True)
-        else:
-            failures.append(f"HTML {path}: missing or non-self canonical {page.canonicals}")
+        failures.append(f"HTML {path}: missing or non-self canonical {page.canonicals}")
     if any("noindex" in rule.lower() for rule in page.robots):
         failures.append(f"HTML {path}: unexpected noindex")
     if text_length < 180:
@@ -171,19 +174,32 @@ def main():
     get(ORIGIN + "/sitemap.xml", "portal/browser", kind="xml")
     get(ORIGIN + "/sitemap.xml", "portal/simulated-Googlebot", ua=GOOGLEBOT_UA, kind="xml")
     if index and index[0] == "sitemapindex":
-        # Check independently deployed children too: a successful deployment
-        # in this repo alone does not guarantee that those child files exist.
+        required_children = {
+            ORIGIN + "/sitemap.xml",
+            ORIGIN + "/pharmacometrie/sitemap.xml",
+        }
+        missing = required_children.difference(index[1])
+        if missing:
+            failures.append("index: missing PMx sitemap(s): " + ", ".join(sorted(missing)))
+        # Child applications have independent repositories and release cycles.
+        # Their availability is reported without blocking PMx Explain.
         for child in index[1]:
             if child != ORIGIN + "/sitemap.xml":
-                get(child, "index child " + urlparse(child).path, kind="xml")
+                get(
+                    child,
+                    "index child " + urlparse(child).path,
+                    kind="xml",
+                    required=child in required_children,
+                )
     # Verify representative indexable pages as real HTML, not only sitemap XML.
     for path in [
         "/", "/tools/", "/publications/", "/pharmacometrie/",
         "/pharmacometrie/chapitres/",
         "/pharmacometrie/chapitres/clairance-volume-demi-vie/",
-        "/multiomics/", "/stats/", "/Omics2PK/",
     ]:
         audit_html(path)
+    if warnings:
+        print("\nNON-BLOCKING INDEPENDENT APP WARNINGS:\n- " + "\n- ".join(warnings), flush=True)
     if failures:
         print("\nSITEMAP CHECK FAILED:\n- " + "\n- ".join(failures), flush=True)
         return 1
