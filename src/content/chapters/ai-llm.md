@@ -15,9 +15,10 @@ slides: []
 sources: ["vaswani-transformer", "brown-gpt3"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "ba858843e463128600650ec360a94f340559a4686db27ae3e7bfd5cfb6126917"
 quiz:
-  - prompt: "Un LLM est, à la base, entraîné à..."
+  - prompt: "Un LLM auto-régressif est, à la base, entraîné à..."
     options:
       - "prédire le prochain token à partir des précédents"
       - "rechercher la réponse exacte dans une base de connaissances"
@@ -43,14 +44,14 @@ Les **LLM** (ChatGPT, Claude…) transforment l'accès à l'information et l'aid
 Comprendre leur mécanique évite deux écueils symétriques : la magie et le rejet.
 <!-- /step -->
 
-<!-- step:title="Intuition" -->
-Un LLM est un **prédicteur du mot suivant** entraîné sur d'immenses corpus. À partir d'un contexte, il estime la distribution du **token** suivant, en tire un, puis recommence — c'est **auto-régressif**.
+<!-- step:title="Intuition" viz="47_TokenAttention" -->
+Un LLM auto-régressif est un **prédicteur du token suivant** entraîné sur de grands corpus. À partir d'un contexte, il estime une distribution sur le prochain token, en sélectionne un selon la stratégie de décodage, puis recommence.
 
 De cette tâche simple, répétée à très grande échelle, émergent des capacités utiles de résumé, de code et parfois de raisonnement apparent — à évaluer par des tests externes plutôt qu'à supposer.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" -->
-Le cœur du **Transformer** est l'**attention** : chaque token pondère les autres selon leur pertinence.
+Une brique centrale du **Transformer** est l'**attention** : chaque position construit une combinaison pondérée d'autres positions autorisées par le masque du modèle.
 
 $$ \text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V $$
 
@@ -68,7 +69,7 @@ Réf. : Vaswani et al., *Attention Is All You Need*, NeurIPS 2017 (Transformer).
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
-Concrètement, un LLM peut **écrire un fichier de contrôle** NONMEM à partir d'une description, **expliquer** un message d'erreur, ou **résumer** un article de PK/PD.
+Concrètement, un LLM peut proposer un fichier de contrôle NONMEM à partir d'une description, **expliquer** un message d'erreur, ou **résumer** un article de PK/PD. Il faut ensuite compiler le code et vérifier le résumé contre la source.
 
 Bien utilisé, il accélère le travail ; mais chaque sortie doit être **vérifiée** — le modèle ne « sait » pas, il complète du texte plausible.
 <!-- /step -->

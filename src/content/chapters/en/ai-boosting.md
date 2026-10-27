@@ -2,7 +2,7 @@
 id: "ai-boosting"
 slug: "ai-boosting"
 title: "Gradient boosting: XGBoost and CatBoost"
-description: "Adding small trees that fix the previous one's errors: the models that win on tabular data."
+description: "Adding small trees that progressively correct errors: a powerful family for tabular data."
 summary: "Gradient boosting, XGBoost (regularised, second order) and CatBoost (ordered boosting, categories)."
 track: "ai"
 order: 15
@@ -15,6 +15,7 @@ glossary: ["XGBoost","White / black / grey box"]
 sources: ["friedman-gbm","chen-xgboost","prokhorenkova-catboost","woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "6003f34a1b25cf8ac3217eb34b132b29bd8c4a405632474fdd7b466c9fcfa232"
 quiz:
   - prompt: "The principle of gradient boosting is to..."
@@ -38,7 +39,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-On **tabular** data, **gradient boosting** methods (XGBoost, CatBoost, LightGBM) are often the top performers — the first reflex in competitions and increasingly used in pharmacometrics (AUC estimation, TDM).
+On **tabular** data, **gradient boosting** methods (XGBoost, CatBoost, LightGBM) are frequent predictive references. Performance nevertheless depends on the dataset, tuning, validation and comparator; they are not intrinsically superior to a pharmacometric model.
 
 They build on the trees of the previous chapter, but assembled differently.
 <!-- /step -->
@@ -49,7 +50,7 @@ Where a forest **averages** independent trees, boosting adds them **sequentially
 Switch the module to "Boosting" mode and increase the iterations: the fit sharpens step by step, like a progressive focus.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="40_TreeEnsemble" -->
+<!-- step:title="The formula, unpacked" -->
 The **additive** model is built in stages. At iteration $m$:
 
 $$ F_m(x) = F_{m-1}(x) + \nu\, h_m(x) $$
@@ -58,15 +59,15 @@ where $h_m$ fits the **negative gradient** of the loss (residuals for squared lo
 
 $$ \mathcal{L} = \sum_i \ell(y_i,\hat y_i) + \sum_k \Omega(f_k),\qquad \Omega(f)=\gamma T + \tfrac{1}{2}\lambda\lVert w\rVert^2 $$
 
-**CatBoost** adds *ordered boosting* (reduces leakage bias) and native handling of **categorical variables**.
+**CatBoost** adds *ordered boosting* and native handling of **categorical variables**, designed in part to limit bias from using the target when encoding them.
 
 **Ref —** Friedman J.H., *Greedy function approximation* (gradient boosting), Ann. Statist. 2001; Chen & Guestrin, *XGBoost*, KDD 2016; Prokhorenkova et al., *CatBoost*, NeurIPS 2018. Tree foundations: **MLU-Explain**, https://mlu-explain.github.io.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="40_TreeEnsemble" -->
-To predict an **exposure** from covariates and sparse samples, a well-tuned XGBoost (shallow depth, small $\nu$, many trees) often reaches better accuracy than a Bayesian model — given a rich training database.
+<!-- step:title="Worked example" -->
+To predict **exposure** from covariates and sparse samples, an XGBoost tuned within training data can be compared with a Bayesian estimator in independent patients. Either may outperform the other for a given design and population; no general hierarchy follows without that comparison.
 
-CatBoost shines when covariates are **categorical** (centre, formulation, genotype coded as classes).
+CatBoost is designed to handle **categorical** covariates directly (centre, formulation, genotype coded as classes), but a centre identifier may also learn an effect that does not transport.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

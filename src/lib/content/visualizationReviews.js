@@ -33,10 +33,10 @@ export const visualizationReviews = {
     "reviewed_hash": "99e82a88fde1872dac02cb529d9e9d6dc43f2053d4fc0db209034583d4f5886e"
   },
   "42_VarImportance": {
-    "status": "reviewed",
-    "reviewed_on": "2026-10-09",
-    "review_type": "author",
-    "reviewed_hash": "799f1a73090d213a7c42d147827b519dc3f864d579bbdc19901d631f00cb0a93"
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
   },
   "50_GOFPlots": {
     "status": "reviewed",
@@ -81,16 +81,16 @@ export const visualizationReviews = {
     "reviewed_hash": "b452887e62ddf94c9124ce4cac5f5393072d2493d2b7c979eb06866b4832a9c8"
   },
   "63_ClusterPCA": {
-    "status": "reviewed",
-    "reviewed_on": "2026-10-09",
-    "review_type": "author",
-    "reviewed_hash": "9e0e6d1651a4f74d37059c29687f88d442e2a888aa59fb9bf22025d32795e8e8"
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
   },
   "64_RMT": {
-    "status": "reviewed",
-    "reviewed_on": "2026-10-09",
-    "review_type": "author",
-    "reviewed_hash": "992af2f0442e2cf7b46f8e7ef49ff8eb2f9f0393787b398b354bd3483ca0064c"
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
   },
   "67_SAEMConvergence": {
     "status": "reviewed",
@@ -243,16 +243,28 @@ export const visualizationReviews = {
     "reviewed_hash": "591beaf4260cd820b820ba164657b1af704e688922b7a0360d8d6f03fc993cdd"
   },
   "40_TreeEnsemble": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "4c72d059b742288bdf046c184baf6c53eef78d2be139bc6d8a3c6ad579786248"
   },
   "41_SVMMargin": {
-    "status": "reviewed",
-    "reviewed_on": "2026-10-11",
-    "review_type": "author",
-    "reviewed_hash": "529f5145a4ac16f026a620b9e25aa7354e71ecfd0a5cf298e43f42b7ceaac7f2"
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
+  },
+  "46_ValidationSplit": {
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
+  },
+  "47_TokenAttention": {
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
   },
   "65_ParentMetabolite": {
     "status": "reviewed",
@@ -339,10 +351,10 @@ export const visualizationReviews = {
     "reviewed_hash": "68d68a2294326edd3891ff9f3082a463859467157e8189cad346435155b00932"
   },
   "20_NeuralBox": {
-    "status": "reviewed",
-    "reviewed_on": "2026-10-11",
-    "review_type": "author",
-    "reviewed_hash": "83f8c0d10c5560fc38998a2f6c7de6d4f86326c4514fbecd68ab5224ab076439"
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
   },
   "31_JointSurvival": {
     "status": "reviewed",

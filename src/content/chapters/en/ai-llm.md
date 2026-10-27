@@ -15,9 +15,10 @@ glossary: ["White / black / grey box"]
 sources: ["vaswani-transformer","brown-gpt3"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "cd8e4a541c13993245ac0e9797c3e7e976596a4903cc1b80e4d96ba65d819c4b"
 quiz:
-  - prompt: "An LLM is, at its core, trained to..."
+  - prompt: "An autoregressive LLM is, at its core, trained to..."
     options:
       - "predict the next token from the previous ones"
       - "look up the exact answer in an internal knowledge base"
@@ -43,14 +44,14 @@ quiz:
 Understanding their mechanics avoids two symmetric traps: magic and rejection.
 <!-- /step -->
 
-<!-- step:title="Intuition" -->
-An LLM is a **next-word predictor** trained on huge corpora. From a context, it estimates the distribution of the next **token**, samples one, then repeats — this is **auto-regressive**.
+<!-- step:title="Intuition" viz="47_TokenAttention" -->
+An autoregressive LLM is a **next-token predictor** trained on large corpora. From a context, it estimates a distribution over the next token, selects one according to the decoding strategy, then repeats.
 
 From this simple task, repeated at massive scale, emerge useful abilities for summarising, coding and sometimes apparent reasoning — to evaluate with external tests rather than assume.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" -->
-The core of the **Transformer** is **attention**: each token weights the others by their relevance.
+A central building block of the **Transformer** is **attention**: each position constructs a weighted combination of other positions allowed by the model's mask.
 
 $$ \text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V $$
 
@@ -64,7 +65,7 @@ $$ \mathcal{L} = -\sum_t \log p_\theta(x_t \mid x_{<t}) $$
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
-Concretely, an LLM can **write a control file** for NONMEM from a description, **explain** an error message, or **summarise** a PK/PD paper.
+Concretely, an LLM can propose a NONMEM control file from a description, **explain** an error message, or **summarise** a PK/PD paper. The code must then be compiled and the summary checked against the source.
 
 Used well, it speeds up the work; but every output must be **checked** — the model does not "know", it completes plausible text.
 <!-- /step -->

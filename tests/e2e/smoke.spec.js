@@ -93,6 +93,21 @@ test('le sélecteur de langue bascule en anglais', async ({ page }) => {
   await expect(page.locator('body')).toContainText(/Chapters|Track|Course/i);
 });
 
+test('les métadonnées des sections sont distinctes et bilingues', async ({ page }) => {
+  const canonical = 'https://rberrah.github.io/pharmacometrie/chapitres/';
+  for (const [lang, title] of [
+    ['fr', 'Cours de pharmacométrie : chapitres et parcours — PMx Explain'],
+    ['en', 'Pharmacometrics course: chapters and learning paths — PMx Explain']
+  ]) {
+    await page.goto(`/chapitres/?lang=${lang}`);
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
+    await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveAttribute('href', canonical);
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', `${canonical}?lang=en`);
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute('href', canonical);
+  }
+});
+
 test('la page interactions présente le module DDI', async ({ page }) => {
   await page.goto('/ddi');
   await expect(page.getByRole('heading', { name: 'Atelier DDI' })).toBeVisible();

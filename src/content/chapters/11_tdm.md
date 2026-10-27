@@ -16,6 +16,7 @@ sources: ["sheiner-forecasting", "minichmayr-mipd", "woillard-tacrolimus", "ryba
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "ad8b7ba728ba779bbb99490d7b5d0f93effa5a8caa7b9eb337f9186769ac4897"
 quiz:
   - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."
@@ -60,7 +61,7 @@ Un flux de TDM bayésien combine :
 $$ \text{modèle de population} + \text{historique des doses} + \text{heure du prélèvement} + \text{concentration mesurée} $$
 
 :::math
-La sortie est une estimation individuelle **mise à jour, avec son incertitude** — pas une vérité garantie. C'est le raisonnement du chapitre bayésien appliqué au lit du patient.
+La sortie minimale est une estimation individuelle **mise à jour** — pas une vérité garantie. Une incertitude peut être fournie si la méthode la calcule et si son interprétation est documentée ; un simple point MAP ne suffit pas à la quantifier.
 :::
 <!-- /step -->
 

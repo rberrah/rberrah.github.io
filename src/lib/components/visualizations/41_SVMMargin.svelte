@@ -5,6 +5,7 @@
   // à MARGE MAXIMALE, et les vecteurs de support (points dans la marge). Le paramètre C
   // arbitre marge large (soft, tolérante) vs marge étroite (hard, peu tolérante).
   let C = 1; // régularisation : grand C = marge étroite
+  let separation = 3.6;
 
   /** @param {number} a @returns {() => number} */
   function mulberry32(a) {
@@ -19,11 +20,16 @@
   function gauss(r) { return Math.sqrt(-2 * Math.log(r() + 1e-9)) * Math.cos(2 * Math.PI * r()); }
 
   const rnd = mulberry32(11);
-  const mPos = { x: 3.2, y: 6.8 }, mNeg = { x: 6.8, y: 3.2 }, sd = 1.05;
-  /** @type {{x:number,y:number,c:number}[]} */
-  const pts = [];
-  for (let i = 0; i < 18; i++) pts.push({ x: mPos.x + gauss(rnd) * sd, y: mPos.y + gauss(rnd) * sd, c: 1 });
-  for (let i = 0; i < 18; i++) pts.push({ x: mNeg.x + gauss(rnd) * sd, y: mNeg.y + gauss(rnd) * sd, c: -1 });
+  const sd = 1.05;
+  /** @type {{nx:number,ny:number,c:number}[]} */
+  const base = [];
+  for (let i = 0; i < 18; i++) base.push({ nx: gauss(rnd), ny: gauss(rnd), c: 1 });
+  for (let i = 0; i < 18; i++) base.push({ nx: gauss(rnd), ny: gauss(rnd), c: -1 });
+  $: pts = base.map((point) => ({
+    x: 5 - point.c * separation / 2 + point.nx * sd,
+    y: 5 + point.c * separation / 2 + point.ny * sd,
+    c: point.c
+  }));
 
   $: svm = fitLinearSvm(pts, C);
   $: support = pts.filter((p) => p.c * svm.score(p) <= 1.03);
@@ -44,14 +50,15 @@
   }
 </script>
 
-<div class="wrap">
+<div class="wrap" data-testid="svm-margin-lab">
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'Regularization C' : 'Régularisation C'}</span><strong>{C.toFixed(1)}</strong><input type="range" min="0.2" max="8" step="0.2" bind:value={C} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Class separation' : 'Séparation des classes'}</span><strong>{separation.toFixed(1)}</strong><input type="range" min="1" max="5" step="0.2" bind:value={separation} /></label>
     <div class="readout">
       <div><span>{$language === 'en' ? 'Training errors' : 'Erreurs d’apprentissage'}</span><strong>{errors}</strong></div>
       <div><span>{$language === 'en' ? 'Support vectors' : 'Vecteurs de support'}</span><strong>{support.length}</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}The SVM finds the boundary that <em>maximizes the margin</em>. Only points within the margin, the <em>support vectors</em>, define it. A small C gives a wide, tolerant margin.{:else}Le SVM cherche la frontière qui <em>maximise la marge</em>. Seuls les points de la marge (les <em>vecteurs de support</em>) la définissent. C petit → marge large et tolérante.{/if}</p>
+    <p class="hint">{#if $language === 'en'}Reduce class separation, then compare small and large C. Points on or inside the margin, including violations, are approximate <em>support vectors</em> here; training error is not future performance.{:else}Réduisez la séparation, puis comparez un C petit et un C grand. Les points sur ou dans la marge, violations comprises, sont ici des <em>vecteurs de support</em> approximatifs ; l’erreur d’apprentissage n’est pas la performance future.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Maximum-margin SVM boundary' : 'Frontière SVM à marge maximale'}>

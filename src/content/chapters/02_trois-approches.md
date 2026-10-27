@@ -15,11 +15,12 @@ slides: ["s23", "s34", "s45", "s56", "s73"]
 sources: ["yamaoka-moments", "sheiner-beal-estimation", "jones-rowland-yeo", "mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "84b6a44a867bb9dd8213be84ddd51f711437ba38d5b06b99a403752247036cc3"
 quiz:
   - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:
-      - "décrire l'exposition observée sans modèle"
+      - "décrire l'exposition observée sans modèle compartimental"
       - "simuler des patients non observés avec covariables"
       - "construire un modèle physiologique complet"
     correct: 0
@@ -88,15 +89,15 @@ C'est **la question pratique** qui décide de l'outil.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" slides="s45" -->
-N'utilisez pas la NCA comme si elle était prédictive.
+N'utilisez pas la NCA comme si elle constituait à elle seule un modèle prédictif de population.
 
 :::pitfall
-La NCA décrit parfaitement les profils observés, mais elle n'a ni effet aléatoire par patient, ni modèle de covariables, ni mécanisme pour simuler un schéma posologique inédit. Pour prédire, prenez un modèle conçu pour prédire.
+La NCA résume les profils observés sous des hypothèses d'interpolation et d'extrapolation terminale. Elle n'a, à elle seule, ni effets aléatoires de population ni modèle de covariables pour prédire de nouveaux patients ou un schéma inédit. Pour cet objectif, utilisez un modèle prédictif qualifié pour le scénario visé.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- La NCA décrit l'exposition observée (principe : **descriptif**).
+- La NCA décrit l'exposition observée sans imposer de modèle compartimental, mais avec des hypothèses de calcul.
 - La PopPK explique la variabilité de population et permet la simulation (principe : **empirique et statistique**).
 - La PBPK extrapole via la physiologie, mais dépend fortement des hypothèses (principe : **fondé sur la connaissance**).
 - Partez de la question, puis choisissez la méthode.

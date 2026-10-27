@@ -15,6 +15,7 @@ slides: ["s63", "s65", "s66", "s68", "s69", "s70", "s71"]
 sources: ["chen-neural-ode", "hughes-keizer", "woillard-ml-tacrolimus", "genuer-vsurf"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "a05ccf89b70e8a4aebb39e4f1ee1b575fb1b67cecbe8f8f8b3bb7fb70ef6309d"
 quiz:
   - prompt: "Un modèle grey-box combine..."
@@ -54,12 +55,12 @@ Le danger : laisser l'assistant inventer une règle qui ne marche que pour la cl
 <!-- step:title="Trois usages en pharmacométrie" slides="s66,s68,s69" viz="20_NeuralBox" -->
 Le cours distingue trois rôles concrets de l'IA :
 
-- **Sélection** (forêts aléatoires / VSURF) : trier des dizaines de covariables et repérer les vraiment influentes, au-delà du forward/backward manuel.
+- **Sélection** (forêts aléatoires / VSURF) : trier des covariables candidates selon leur information prédictive, sans confondre importance et mécanisme causal.
 - **Prédiction** (ex. XGBoost) : apprendre directement une relation — par exemple concentration → AUC — sans passer par une équation différentielle.
 - **Hybridation** (Neural ODE) : garder la structure mécaniste et ne confier au réseau que la partie inconnue.
 
 :::note
-Usage voisin : **clusteriser les EBE** pour découvrir des phénotypes (métaboliseurs lents/rapides) et générer des hypothèses cliniques.
+Usage voisin : **explorer des EBE par clustering** pour générer des hypothèses de sous-groupes. Le résultat dépend du shrinkage, des distances et du nombre de groupes imposé ; il ne démontre pas des phénotypes biologiques.
 :::
 <!-- /step -->
 
@@ -68,12 +69,12 @@ Une EDO mécaniste pourrait être :
 
 $$ \frac{dA}{dt} = f_{\mathrm{PK}}(A, \theta) $$
 
-Un modèle grey-box ou Neural ODE l'étend :
+Une formulation grey-box possible l'étend par une correction apprise :
 
 $$ \frac{dA}{dt} = f_{\mathrm{PK}}(A, \theta) + f_{\mathrm{NN}}(A, x) $$
 
 :::math
-$f_{\mathrm{PK}}$ reste la partie mécaniste (interprétable, avec unités) ; $f_{\mathrm{NN}}$ est une correction apprise. Elle doit être **contrainte, vérifiée et interprétée** avec prudence, pas laissée libre.
+$f_{\mathrm{PK}}$ reste la partie mécaniste (interprétable, avec unités) ; $f_{\mathrm{NN}}$ est ici une correction apprise de mêmes unités que $dA/dt$. D'autres architectures hybrides existent. La correction doit être **contrainte et évaluée** dans et hors du domaine d'apprentissage ; elle n'acquiert pas automatiquement une interprétation biologique.
 :::
 <!-- /step -->
 
@@ -99,7 +100,7 @@ Ne présentez jamais l'IA comme supérieure par défaut : sans validation extern
 - Trois usages : **sélection** (VSURF), **prédiction** (XGBoost), **hybridation** (Neural ODE).
 - Les modèles grey-box combinent mécanisme et flexibilité ; les Neural ODE gardent une vision de système dynamique.
 - Horizon : le **jumeau numérique** du patient (consortium DIGPHAT), fusion physiologie + IA.
-- Conclusion clinique : **l'IA n'est pas magique, elle est utile**. Le médecin décide ; l'algorithme réduit l'incertitude. Extrapolation, incertitude et interprétabilité restent essentielles.
+- Conclusion clinique : **l'IA n'est pas magique, elle peut être utile**. Un algorithme validé peut réduire l'erreur prédictive pour une tâche définie, mais il ne réduit ni ne quantifie automatiquement l'incertitude. Extrapolation, incertitude et interprétabilité restent essentielles.
 
 :::note
 **Pour aller plus loin.** Ce chapitre est la **porte d'entrée** du tronc commun. Le parcours **« IA en pharmacométrie »** est un **approfondissement avancé, orienté recherche** (arbres, boosting, SVM, clustering, sélection de variables, LLM). C'est un domaine en **évolution rapide** : il n'est pas requis pour maîtriser les fondamentaux, et son contenu vieillit plus vite que le reste du site.

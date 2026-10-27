@@ -586,7 +586,7 @@
     {
       "id": "chapter:ai-clustering",
       "type": "chapter",
-      "label": "Sous-groupes cachés : clustering, PCA et RMT",
+      "label": "Clustering, PCA et structures candidates",
       "track": "ai"
     },
     {
@@ -760,7 +760,7 @@
     {
       "id": "chapter:micro-macro",
       "type": "chapter",
-      "label": "Micro ou macro : deux écritures d'un même modèle",
+      "label": "Constantes de vitesse ou clairances et volumes",
       "track": "core"
     },
     {
@@ -1922,6 +1922,16 @@
       "label": "45_ViralKinetics"
     },
     {
+      "id": "visualization:46_ValidationSplit",
+      "type": "visualization",
+      "label": "46_ValidationSplit"
+    },
+    {
+      "id": "visualization:47_TokenAttention",
+      "type": "visualization",
+      "label": "47_TokenAttention"
+    },
+    {
       "id": "visualization:50_GOFPlots",
       "type": "visualization",
       "label": "50_GOFPlots"
@@ -2214,16 +2224,6 @@
       "type": "illustrates"
     },
     {
-      "from": "chapter:ai-boosting",
-      "to": "visualization:40_TreeEnsemble",
-      "type": "illustrates"
-    },
-    {
-      "from": "chapter:ai-boosting",
-      "to": "visualization:40_TreeEnsemble",
-      "type": "illustrates"
-    },
-    {
       "from": "chapter:ai-clustering",
       "to": "activity:practice-ai-clustering",
       "type": "practises"
@@ -2319,6 +2319,11 @@
       "type": "defines"
     },
     {
+      "from": "chapter:ai-llm",
+      "to": "visualization:47_TokenAttention",
+      "type": "illustrates"
+    },
+    {
       "from": "chapter:ai-ml-tdm",
       "to": "activity:practice-ai-ml-tdm",
       "type": "practises"
@@ -2345,7 +2350,7 @@
     },
     {
       "from": "chapter:ai-ml-tdm",
-      "to": "visualization:BayesUpdate",
+      "to": "visualization:46_ValidationSplit",
       "type": "illustrates"
     },
     {
@@ -2397,16 +2402,6 @@
       "from": "chapter:ai-trees",
       "to": "glossary:XGBoost",
       "type": "defines"
-    },
-    {
-      "from": "chapter:ai-trees",
-      "to": "visualization:40_TreeEnsemble",
-      "type": "illustrates"
-    },
-    {
-      "from": "chapter:ai-trees",
-      "to": "visualization:40_TreeEnsemble",
-      "type": "illustrates"
     },
     {
       "from": "chapter:ai-trees",
@@ -6728,8 +6723,6 @@
     "orphanChapters": [],
     "chaptersWithoutDefinition": [],
     "chaptersWithoutExercise": [],
-    "chaptersWithoutVisualization": [
-      "ai-llm"
-    ]
+    "chaptersWithoutVisualization": []
   }
 }

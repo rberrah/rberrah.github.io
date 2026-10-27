@@ -15,7 +15,7 @@
   import LanguageToggle from '#lib/components/LanguageToggle.svelte';
   import { ui } from '#lib/i18n/translations.js';
   import { language } from '#lib/stores/language.js';
-  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '#lib/site.js';
+  import { alternateUrl, canonicalUrl, routePath, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '#lib/site.js';
   let { children } = $props();
 
   afterNavigate(({ shallow }) => {
@@ -87,6 +87,26 @@
   // URL canonique ABSOLUE, dérivée du seul chemin de route : aucune valeur lue dans le
   // navigateur, donc identique au prérendu et après hydratation.
   let canonical = $derived(canonicalUrl(page.url.pathname));
+  // Distinct titles for top-level indexable sections; chapter pages retain their
+  // specific titles from /chapitres/[slug]/+page.svelte.
+  /** @type {Record<string, { fr: string, en: string }>} */
+  const sectionTitles = {
+    '/': { fr: 'PMx Explain — Cours interactif de pharmacométrie et PK/PD', en: 'PMx Explain — Interactive pharmacometrics and PK/PD course' },
+    '/chapitres/': { fr: 'Cours de pharmacométrie : chapitres et parcours — PMx Explain', en: 'Pharmacometrics course: chapters and learning paths — PMx Explain' },
+    '/exemple/': { fr: 'Exemples de modèles PK/PD — PMx Explain', en: 'PK/PD model examples — PMx Explain' },
+    '/exercices/': { fr: 'Exercices de pharmacométrie et PK/PD — PMx Explain', en: 'Pharmacometrics and PK/PD exercises — PMx Explain' },
+    '/tdm/': { fr: 'Suivi thérapeutique et MIPD — PMx Explain', en: 'Therapeutic drug monitoring and MIPD — PMx Explain' },
+    '/ml/': { fr: 'Machine learning et pharmacométrie — PMx Explain', en: 'Machine learning and pharmacometrics — PMx Explain' },
+    '/pk/': { fr: 'Modèles pharmacocinétiques — PMx Explain', en: 'Pharmacokinetic models — PMx Explain' },
+    '/pd/': { fr: 'Modèles pharmacodynamiques — PMx Explain', en: 'Pharmacodynamic models — PMx Explain' },
+    '/ddi/': { fr: 'Interactions médicamenteuses et PK — PMx Explain', en: 'Drug interactions and PK — PMx Explain' },
+    '/translator/': { fr: 'Traduction des modèles pharmacométriques — PMx Explain', en: 'Pharmacometrics model translation — PMx Explain' },
+    '/glossaire/': { fr: 'Glossaire de pharmacométrie — PMx Explain', en: 'Pharmacometrics glossary — PMx Explain' },
+    '/references/': { fr: 'Références scientifiques PK/PD — PMx Explain', en: 'Scientific PK/PD references — PMx Explain' },
+    '/ecosystem/': { fr: 'Écosystème des outils PK/PD — PMx Explain', en: 'PK/PD research ecosystem — PMx Explain' },
+    '/domaines/': { fr: 'Des données omiques à la pharmacométrie — PMx Explain', en: 'From omics data to pharmacometrics — PMx Explain' }
+  };
+  let sectionTitle = $derived(sectionTitles[routePath(page.url.pathname)]?.[$language === 'en' ? 'en' : 'fr'] ?? 'PMx Explain');
   // Les alternances de langue des CHAPITRES sont posées par la route de chapitre, qui
   // seule sait si la traduction anglaise existe. Ici : toutes les autres pages, dont
   // l'interface est traduite intégralement.
@@ -109,7 +129,7 @@
 ></svelte:window>
 
 <svelte:head>
-  <title>PMx Explain</title>
+  <title>{sectionTitle}</title>
   <link rel="canonical" href={canonical} />
   {#if !isChapterRoute}
     <link rel="alternate" hreflang="fr" href={canonical} />
