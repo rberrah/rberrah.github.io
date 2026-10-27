@@ -15,6 +15,7 @@ slides: ["s01", "s02"]
 sources: ["rowland-tozer", "holford-clearance", "mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "067df1eeeb8f582630e4830d66b244444ce89180730d43be784552335f3bbc84"
 quiz:
   - prompt: "La pharmacocinétique (PK) décrit surtout..."
@@ -81,7 +82,7 @@ Cette décroissance est **exponentielle** : à la manière d'une suite géométr
 - la **clairance** $CL$ — un débit épuré, une vitesse rapportée au volume ;
 - la **constante d'élimination** $k_e = CL/V$ — une vitesse pure (par unité de temps).
 
-Mais la mesure la plus **parlante** de cette décroissance reste la **demi-vie** $t_{1/2}$ : le temps qu'il faut pour éliminer la moitié du produit.
+Mais la mesure la plus **parlante** de cette décroissance reste la **demi-vie** $t_{1/2}$ : le temps nécessaire pour que la quantité ou la concentration considérée diminue de moitié dans ce modèle.
 
 :::math
 Le **volume** fixe la dilution initiale ; la **clairance** fixe la vitesse à laquelle le produit est retiré par rapport à cet espace. Le rapport $CL/V = k_e$ gouverne la pente, et $t_{1/2} = \ln 2 / k_e = 0{,}693\,V/CL$.

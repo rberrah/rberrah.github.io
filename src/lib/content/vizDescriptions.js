@@ -98,8 +98,8 @@ export const visualizationDescriptions = {
     en: "An educational one- to three-compartment PopPK simulator with log-normal ETAs and combined error. The IOV setting draws one effect for the single displayed occasion; it does not visually estimate within-subject IOV."
   },
   '20_NeuralBox': {
-    fr: "Compare conceptuellement modèle ODE, hybride ODE+NN et boîte noire sur des courbes entièrement construites. Aucun réseau n’est entraîné et la figure ne mesure ni ajustement hors échantillon ni généralisation.",
-    en: "Conceptually compares an ODE, a hybrid ODE+NN and a black box using entirely constructed curves. No network is trained, and the figure measures neither out-of-sample fit nor generalization."
+    fr: "Compare conceptuellement modèle ODE, hybride ODE+NN et boîte noire sur des courbes construites. Déplacez le temps d’examen dans puis hors du domaine illustré (0–12 h). Aucun réseau n’est entraîné et la figure ne mesure pas la généralisation.",
+    en: "Conceptually compares an ODE, a hybrid ODE+NN and a black box using constructed curves. Move the inspection time within and beyond the illustrated 0–12 h domain. No network is trained, and the figure does not measure generalization."
   },
   '30_TumorGrowth': {
     fr: "Modèle TGI réduit de type Claret, conditionnel à une exposition constante. Les repères −30 % depuis la référence et +20 % avec +5 mm depuis le nadir concernent les lésions cibles et ne constituent pas un RECIST complet.",
@@ -118,16 +118,20 @@ export const visualizationDescriptions = {
     en: "Experiment using 44 synthetic training observations and 16 synthetic internal holdout observations: 1D CART, bootstrap bagging (without feature subsampling), or residual-based boosting. The holdout never enters fitting; RMSE illustrates train/test differences, not clinical or external validation."
   },
   '41_SVMMargin': {
-    fr: "SVM linéaire soft-margin réellement ajusté par descente de gradient sur deux classes synthétiques. C règle le compromis régularisation-erreurs ; les points dont la marge fonctionnelle est ≤1 sont signalés comme vecteurs de support approximatifs.",
-    en: "A linear soft-margin SVM fitted by gradient descent to two synthetic classes. C controls the regularization-error trade-off; points with functional margin ≤1 are marked as approximate support vectors."
+    fr: "SVM linéaire soft-margin ajusté par descente de gradient sur deux classes synthétiques. Modifiez leur chevauchement et C ; les points de marge fonctionnelle ≤1 sont signalés comme vecteurs de support approximatifs.",
+    en: "A linear soft-margin SVM fitted by gradient descent to two synthetic classes. Change their overlap and C; points with functional margin ≤1 are marked as approximate support vectors."
   },
   '46_ValidationSplit': {
     fr: "Expérience de validation sur 24 patients synthétiques avec deux visites et trois centres construits. Un modèle 1-plus-proche-voisin identique est évalué après séparation par lignes, patients ou centre ; l'exemple illustre la dépendance intra-patient et le décalage de domaine, sans constituer une validation clinique.",
     en: "Validation experiment using 24 synthetic patients with two visits and three constructed centers. The same 1-nearest-neighbour model is evaluated after splitting rows, patients or centers; the example illustrates within-patient dependence and domain shift, not clinical validation."
   },
   '42_VarImportance': {
-    fr: "Importance des variables d'une forêt, avec un seuil de sélection (esprit VSURF). Déplacez le seuil : trop bas garde du bruit, trop haut perd des variables utiles.",
-    en: "A forest's variable importance, with a selection threshold (VSURF spirit). Move the threshold: too low keeps noise, too high drops useful variables."
+    fr: "Importances construites pour illustrer le seuillage et l’instabilité entre covariables corrélées. Aucun modèle n’est ajusté : répétez l’expérience et observez comment poids et proxy se partagent l’information.",
+    en: "Constructed importances illustrate thresholding and instability between correlated covariates. No model is fitted: repeat the experiment and observe how weight and its proxy share information."
+  },
+  '47_TokenAttention': {
+    fr: "Poids d’attention construits pour une séquence de six tokens. Choisissez la requête et la tête illustrative ; le masque causal annule les tokens futurs. Ce ne sont ni des poids extraits d’un LLM ni une explication causale.",
+    en: "Constructed attention weights for a six-token sequence. Choose the query and illustrative head; the causal mask zeros future tokens. These are neither weights extracted from an LLM nor a causal explanation."
   },
   '43_Copula': {
     fr: "Exemple de copule gaussienne : les lois marginales théoriques du poids et de la ClCr restent fixes tandis que la dépendance change. Dans un échantillon fini, histogrammes et corrélation empiriques peuvent varier légèrement.",
@@ -194,12 +198,12 @@ export const visualizationDescriptions = {
     en: "An IV parent and metabolite formed at fm·k, assuming equal volumes. The metabolite terminal slope tends toward the slower of k and km; other formation and elimination pathways are omitted."
   },
   '63_ClusterPCA': {
-    fr: "Paramètres individuels (CL, V) de patients de 3 types de cancer. Basculez « Vrai type » ↔ « Clusters (k-means) » et réglez la séparation : quand elle est nette, le clustering retrouve les groupes.",
-    en: "Individual parameters (CL, V) of patients from 3 cancer types. Toggle 'True type' ↔ 'Clusters (k-means)' and adjust the separation: when clear, clustering recovers the groups."
+    fr: "Estimations CL/V synthétiques de trois groupes construits. Comparez étiquettes, k-means avec ou sans standardisation et projection PCA ; la pureté n’est calculable que parce que les étiquettes simulées sont connues.",
+    en: "Synthetic CL/V estimates from three constructed groups. Compare labels, k-means with or without standardization, and PCA projection; purity is computable only because simulated labels are known."
   },
   '64_RMT': {
-    fr: "Random Matrix Theory : spectre des valeurs propres d'une matrice de corrélation. Sous λ₊ = compatible avec un bruit idéal ; au-dessus = signal statistique possible à confirmer. Réglez le nombre de facteurs et de patients.",
-    en: "Random Matrix Theory: the eigenvalue spectrum of a correlation matrix. Below λ₊ = compatible with ideal noise; above = possible statistical signal to confirm. Adjust the number of factors and patients."
+    fr: "Spectre propre synthétique comparé à la borne de Marchenko–Pastur. Réglez facteurs et effectif, puis répétez l’échantillon : un dépassement dépend des hypothèses et n’est pas une preuve biologique.",
+    en: "A synthetic eigenvalue spectrum compared with the Marchenko–Pastur edge. Set factors and sample size, then resample: an exceedance depends on assumptions and is not biological proof."
   },
   '62_ResidualPatterns': {
     fr: "Galerie de motifs synthétiques ressemblant à des CWRES : chaque forme génère plusieurs hypothèses et vérifications possibles, sans identifier seule une cause.",

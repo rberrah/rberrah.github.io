@@ -586,7 +586,7 @@
     {
       "id": "chapter:ai-clustering",
       "type": "chapter",
-      "label": "Sous-groupes cachés : clustering, PCA et RMT",
+      "label": "Clustering, PCA et structures candidates",
       "track": "ai"
     },
     {
@@ -760,7 +760,7 @@
     {
       "id": "chapter:micro-macro",
       "type": "chapter",
-      "label": "Micro ou macro : deux écritures d'un même modèle",
+      "label": "Constantes de vitesse ou clairances et volumes",
       "track": "core"
     },
     {
@@ -1927,6 +1927,11 @@
       "label": "46_ValidationSplit"
     },
     {
+      "id": "visualization:47_TokenAttention",
+      "type": "visualization",
+      "label": "47_TokenAttention"
+    },
+    {
       "id": "visualization:50_GOFPlots",
       "type": "visualization",
       "label": "50_GOFPlots"
@@ -2312,6 +2317,11 @@
       "from": "chapter:ai-llm",
       "to": "glossary:White / black / grey box",
       "type": "defines"
+    },
+    {
+      "from": "chapter:ai-llm",
+      "to": "visualization:47_TokenAttention",
+      "type": "illustrates"
     },
     {
       "from": "chapter:ai-ml-tdm",
@@ -6713,8 +6723,6 @@
     "orphanChapters": [],
     "chaptersWithoutDefinition": [],
     "chaptersWithoutExercise": [],
-    "chaptersWithoutVisualization": [
-      "ai-llm"
-    ]
+    "chaptersWithoutVisualization": []
   }
 }

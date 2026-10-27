@@ -15,11 +15,12 @@ glossary: ["NCA","PopPK","PBPK"]
 sources: ["yamaoka-moments","sheiner-beal-estimation","jones-rowland-yeo","mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "662b2437942845bc6fce6e758d4376bafabc601e172d6619014536328f63bc6d"
 quiz:
   - prompt: "Non-compartmental analysis (NCA) is mainly used to..."
     options:
-      - "describe the observed exposure without a model"
+      - "describe the observed exposure without a compartmental model"
       - "simulate unobserved patients with covariates"
       - "build a full physiological model of the body"
     correct: 0
@@ -84,13 +85,13 @@ The **practical question** decides the tool.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" slides="s45" -->
-Do not use NCA as if it were predictive.
+Do not use NCA as if it were, by itself, a population prediction model.
 
-**Pitfall —** NCA describes observed profiles perfectly, but it has no patient-level random effects, no covariate model and no mechanism to simulate a new dosing schedule. To predict, use a model built to predict.
+**Pitfall —** NCA summarizes observed profiles under interpolation and terminal-extrapolation assumptions. By itself it has neither population random effects nor a covariate model for predicting new patients or an unseen schedule. For that purpose, use a predictive model qualified for the intended scenario.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- NCA describes observed exposure (principle: **descriptive**).
+- NCA describes observed exposure without imposing a compartmental model, but with calculation assumptions.
 - PopPK explains population variability and enables simulation (principle: **empirical and statistical**).
 - PBPK extrapolates through physiology but depends heavily on assumptions (principle: **knowledge-based**).
 - Start from the question, then choose the method.

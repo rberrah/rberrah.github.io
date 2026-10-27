@@ -2,7 +2,7 @@
 id: "ai-trees"
 slug: "ai-trees"
 title: "Decision trees and random forests"
-description: "From a single tree (steps) to a random forest (a robust average): the building blocks of tabular ML."
+description: "From a single tree (steps) to a random forest (a lower-variance average): the building blocks of tabular ML."
 summary: "CART trees, bagging, random forests: how rules are learned from covariates."
 track: "ai"
 order: 14
@@ -47,7 +47,7 @@ They are the building blocks of most "classic" ML methods useful for TDM.
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 A **tree** asks successive questions ("CrCl < 60?") and splits the space into zones where the response is assumed constant: hence a **step** prediction.
 
-A deep tree fits the noise (overfitting). The **forest** idea: build many slightly different trees and **average** them — the result smooths and generalises better. Try the "Tree" then "Forest" modes, then move the profile to predict beyond the learned range.
+A deep tree may fit noise (overfitting). The **forest** idea is to build many decorrelated trees and **average** their predictions. This generally reduces variance relative to one tree, without guaranteeing better performance in every new population. The function is still built from steps. Try "Tree", then "Forest", then move the profile to predict beyond the learned range.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" -->
@@ -63,20 +63,20 @@ $$ \hat y(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x) $$
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
-To estimate the **AUC** of an immunosuppressant from 2–3 concentrations and covariates, a random forest captures interactions (e.g. genotype × dose) that a linear regression would miss.
+To estimate the **AUC** of an immunosuppressant from 2–3 concentrations and covariates, a random forest can learn interactions (e.g. genotype × dose) that a linear regression without interaction terms would not represent.
 
 It also provides a **variable importance** (next chapter, VSURF), useful to know *which* covariates matter.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
-A forest does not extrapolate.
+A standard regression forest does not naturally extrapolate.
 
-**Pitfall —** a tree predicts a **constant** outside the training range: the forest does not guess beyond the observed data. And high importance does not imply a **causal** relationship — only predictive power in this dataset.
+**Pitfall —** a tree predicts a **constant** in each leaf; a standard regression forest averages learned outcomes and does not extend a trend beyond the observed domain. High importance also does not imply a **causal** relationship — only a predictive contribution in this dataset and algorithm.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - A tree splits the covariate space → step prediction, overfitting if too deep.
-- The random forest averages many decorrelated trees (bagging + random variables).
+- The random forest averages many decorrelated trees (bagging + random variables) to reduce variance.
 - It captures interactions and provides variable importance.
 - It does not extrapolate; importance ≠ causality.
 <!-- /step -->

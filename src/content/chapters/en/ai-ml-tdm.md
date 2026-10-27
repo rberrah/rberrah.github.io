@@ -12,7 +12,7 @@ tags: ["ai", "machine-learning", "tdm", "limoges"]
 slides: []
 prerequisites: ["tdm","ai-boosting"]
 glossary: ["XGBoost","MAP-BE","TDM"]
-sources: ["woillard-ml-tacrolimus","woillard-ml-simulation","hughes-keizer","minichmayr-mipd","berrah-residual"]
+sources: ["woillard-ml-tacrolimus","woillard-ml-simulation","destere-iohexol-hybrid","sayadi-ml-tdm-review","hughes-keizer","minichmayr-mipd"]
 reviewed_on: "2026-07-09"
 review_type: "author"
 review_pending: true
@@ -33,7 +33,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-Bayesian TDM (MAP) requires a **good PopPK model** as a prior. An alternative — or complement — is to **learn** directly, from large databases, the relationship between a few concentrations and **exposure** (AUC).
+Bayesian TDM (MAP) requires a **PopPK model transportable** to the population of interest. An alternative — or complement — is to **learn** directly, from representative clinical or simulated profiles, the relationship between a few concentrations and **exposure** (AUC).
 
 This is a very active research area, notably driven by the **Limoges** team.
 <!-- /step -->
@@ -41,23 +41,23 @@ This is a very active research area, notably driven by the **Limoges** team.
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Rather than fitting a differential equation per patient, a **tree** model (Random Forest, XGBoost) learns a function: a few samples + covariates → **AUC**.
 
-Fast and non-parametric, it captures complex interactions — but remains more of a **black box** than a mechanistic model.
+Fast at inference, it may capture complex interactions — but remains **non-mechanistic** and closely tied to the samples, covariates and populations seen during training.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="BayesUpdate" -->
 Two families compare (and combine):
 
 - **Bayesian (MAP)**: $posterior \propto likelihood \times prior$ — interpretable, depends on the PopPK model.
-- **ML**: $\text{AUC} = f_{ML}(C_1, C_2, \text{covariates})$ — flexible, learned from thousands of profiles.
+- **ML**: $\text{AUC} = f_{ML}(C_1, C_2, \text{covariates})$ — flexible, learned from a profile dataset whose size and representativeness must be documented.
 - **Hybrid**: keep the PopPK and let ML correct the poorly explained part.
 
-**Ref (Limoges team) —** Woillard J.-B. et al., *Clin Pharmacol Ther* 2021 (ML estimation of tacrolimus AUC); Labriffe M. et al. (ML for immunosuppressant TDM); Destere A. et al., *Clin Pharmacokinet* 2022 (hybrid PopPK + ML, iohexol clearance); Sayadi H. et al. (role of ML models for optimised TDM); Berrah R. et al., *Ther Drug Monit* (residual error as a hidden lever in MIPD).
+**Documented examples —** Woillard *et al.* studied tacrolimus AUC estimation using clinical data and then simulations from published PopPK models; Destere *et al.* evaluated a hybrid correction of iohexol clearance; Sayadi *et al.* review these uses in TDM. These studies do not evaluate the same targets or domains of use.
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
-For **tacrolimus** (transplantation), estimating AUC₀₋₂₄ from 2–3 samples is crucial. ML models reach accuracy comparable to — or better than — classic Bayesian estimators, provided a **rich training database**.
+For **tacrolimus**, Woillard *et al.* estimated **interdose AUC** from 2–3 concentrations: AUC₀₋₁₂ for BID and AUC₀₋₂₄ for QD dosing. In their test sets and six rich external datasets, their XGBoost models outperformed the compared MAP estimators; this result remains conditional on the formulations, sampling times and populations studied.
 
-The **hybrid** approach (Destere et al.) combines the best of both: PopPK structure + ML correction.
+A **hybrid** approach (Destere et al.) combines a PopPK structure and an ML component. It must be compared with each component in independent data; "hybrid" does not automatically mean "better".
 <!-- /step -->
 
 <!-- step:title="Common pitfall" viz="46_ValidationSplit" -->
@@ -70,7 +70,7 @@ In the experiment, compare a random split of **rows**, a split by **patient**, a
 
 <!-- step:title="Key takeaways" -->
 - ML predicts exposure (AUC) from few samples, complementing the Bayesian approach.
-- Trees (XGBoost), hybrid PopPK + ML models (Destere), variable selection (Woillard, Labriffe).
-- Flagship cases: tacrolimus, iohexol; work from the Limoges team (Woillard, Sayadi, Berrah).
-- Requires external validation, uncertainty and caution when extrapolating.
+- Trees can estimate AUC directly; an ML component can also correct a MAP estimate, as in the iohexol example.
+- Published results concern defined uses, notably tacrolimus and iohexol; they do not establish a general superiority of ML.
+- Requires validation suited to the use, ideally external, a documented training domain and uncertainty when it can be estimated.
 <!-- /step -->

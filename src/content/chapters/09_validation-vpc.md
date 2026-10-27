@@ -15,6 +15,7 @@ slides: ["s43", "s44", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s25"]
 sources: ["karlsson-holford-vpc", "bergstrand-pcvpc", "hooker-cwres", "efron-bootstrap"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "1891f69a0d8d5ad79e6ae9d119a3e058a22e5a7f768cf86ca50855f58cb504be"
 quiz:
   - prompt: "Une VPC compare les données observées avec..."
@@ -59,7 +60,7 @@ $$ e_{ij} = y_{ij} - \hat{y}_{ij} $$
 Les résidus pondérés mettent cet écart à l'échelle de la variabilité attendue.
 
 :::math
-Une VPC va plus loin : on laisse **de nombreuses** classes simulées bâtir à partir de la même notice, puis on vérifie si la médiane et la dispersion des simulations recouvrent les observations, intervalle de temps par intervalle de temps.
+Une VPC va plus loin : on simule **de nombreux** jeux de données avec le modèle et le plan observé, puis on compare les percentiles observés aux intervalles de simulation de ces mêmes percentiles, par intervalle de temps. La couverture des observations individuelles n'est pas l'objet principal d'une VPC standard.
 :::
 <!-- /step -->
 

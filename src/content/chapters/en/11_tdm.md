@@ -16,6 +16,7 @@ glossary: ["TDM","MAP","Precision dosing"]
 sources: ["sheiner-forecasting","minichmayr-mipd","woillard-tacrolimus","rybak-vanco"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "44b6c3fdfbf341bcde84fbe4b4eaf2c64b4a78ba7de270a785ab334fc48628a4"
 quiz:
   - prompt: "Therapeutic drug monitoring (TDM) uses drug measurements to..."
@@ -57,7 +58,7 @@ A Bayesian TDM workflow combines:
 
 $$ \text{population model} + \text{dosing history} + \text{sampling time} + \text{measured concentration} $$
 
-**Math —** the output is an **updated individual estimate with its uncertainty** — not a guaranteed truth. It is the Bayesian chapter applied at the bedside.
+**Math —** the minimum output is an **updated individual estimate** — not a guaranteed truth. Uncertainty may be provided when the method computes it and its interpretation is documented; a point MAP estimate alone does not quantify it.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s62" -->

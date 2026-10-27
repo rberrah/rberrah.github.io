@@ -2,7 +2,7 @@
 id: "ai-trees"
 slug: "ai-trees"
 title: "Arbres de décision et forêts aléatoires"
-description: "De l'arbre unique (des marches) à la forêt aléatoire (une moyenne robuste) : les briques du ML tabulaire."
+description: "De l'arbre unique (des marches) à la forêt aléatoire (une moyenne moins variable) : les briques du ML tabulaire."
 summary: "Arbres CART, bagging, forêts aléatoires : comment on apprend des règles à partir de covariables."
 track: "ai"
 order: 14
@@ -47,7 +47,7 @@ Ce sont les briques de la plupart des méthodes de ML « classiques » utiles au
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Un **arbre** pose des questions successives (« ClCr < 60 ? ») et découpe l'espace en zones où la réponse est supposée constante : d'où une prédiction **en marches**.
 
-Un arbre profond colle au bruit (surajustement). L'idée de la **forêt** : construire beaucoup d'arbres un peu différents et **moyenner** — le résultat se lisse et généralise mieux. Testez les modes « Arbre » puis « Forêt », puis déplacez le profil à prédire hors de la plage apprise.
+Un arbre profond peut coller au bruit (surajustement). L'idée de la **forêt** : construire beaucoup d'arbres décorrélés et **moyenner** leurs prédictions. Cela réduit généralement la variance par rapport à un arbre unique, sans garantir une meilleure performance sur toute nouvelle population. La fonction reste construite à partir de marches. Testez les modes « Arbre » puis « Forêt », puis déplacez le profil à prédire hors de la plage apprise.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" -->
@@ -65,22 +65,22 @@ Réf. : Breiman L., *Random Forests*, Machine Learning 2001. Explications visuel
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
-Pour estimer l'**AUC** d'un immunosuppresseur à partir de 2–3 concentrations et de covariables, une forêt aléatoire capture des interactions (ex. génotype × dose) qu'une régression linéaire manquerait.
+Pour estimer l'**AUC** d'un immunosuppresseur à partir de 2–3 concentrations et de covariables, une forêt aléatoire peut apprendre des interactions (ex. génotype × dose) qu'une régression linéaire sans terme d'interaction ne représenterait pas.
 
 Elle fournit aussi une **importance des variables** (chapitre suivant sur VSURF), utile pour savoir *quelles* covariables comptent.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
-Une forêt n'extrapole pas.
+Une forêt de régression standard n'extrapole pas naturellement.
 
 :::pitfall
-Un arbre prédit une **constante** hors de la plage vue à l'entraînement : la forêt ne devine pas au-delà des données observées. Et une importance élevée n'implique pas une **relation causale** — juste un pouvoir prédictif dans ce jeu de données.
+Un arbre prédit une **constante** dans chaque feuille ; une forêt de régression standard moyenne des valeurs apprises et ne prolonge pas une tendance au-delà du domaine observé. Une importance élevée n'implique pas une **relation causale** — seulement une contribution prédictive dans ce jeu de données et avec cet algorithme.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Un arbre découpe l'espace des covariables → prédiction en marches, surajustement si trop profond.
-- La forêt aléatoire moyenne de nombreux arbres décorrélés (bagging + variables aléatoires).
+- La forêt aléatoire moyenne de nombreux arbres décorrélés (bagging + variables aléatoires) pour réduire la variance.
 - Elle capte les interactions et fournit une importance des variables.
 - Elle n'extrapole pas ; importance ≠ causalité.
 <!-- /step -->

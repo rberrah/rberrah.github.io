@@ -24,16 +24,29 @@ Garde-fous : données synthétiques déterministes (44 train + 16 test), sépara
 
 **Relecture** : marquer 40_TreeEnsemble en pending jusqu'à revue scientifique et pédagogique par l'auteur, puis exécuter npm run review:seal -- 40_TreeEnsemble et npm run viz:inventory.
 
-## Suite éventuelle — PR séparées et conditionnées à l'évaluation du pilote
+## Extension auditée avant fusion
+
+La même logique expérimentale est maintenant appliquée aux autres notions IA sans transformer une illustration en résultat ajusté :
+
+- `20_NeuralBox` distingue domaine illustré d'apprentissage et extrapolation, avec une sonde temporelle et une dérive volontairement construite hors domaine ;
+- `41_SVMMargin` permet de modifier la séparation des classes ;
+- `42_VarImportance` montre l'instabilité de l'importance entre deux variables corrélées au fil d'ajustements synthétiques ;
+- `63_ClusterPCA` compare groupes simulés, k-means et projection PCA, avec ou sans standardisation ;
+- `64_RMT` permet de retirer un échantillon et montre que le nombre de valeurs propres au-dessus du seuil nul n'est pas nécessairement le nombre de facteurs injectés ;
+- `47_TokenAttention` fait varier le token requête et la tête illustrative, en rendant visible le masque causal. Les poids sont explicitement construits et ne sont ni extraits d'un LLM ni présentés comme une explication causale.
+
+Les chapitres IA et le parcours pharmacométrique fondamental ont été relus en français et en anglais. Les corrections portent notamment sur les limites de l'extrapolation, l'importance non causale, les EBE et le shrinkage, la différence entre microconstantes et paramétrisation clairances-volumes, l'interprétation des VPC et l'incertitude d'une estimation MAP. Toute version textuelle ou visuelle modifiée reste marquée `review_pending` jusqu'à une nouvelle validation humaine.
+
+## Suites éventuelles, après évaluation utilisateur
 
 1. **Régression + fonction de perte** : ajuster manuellement pente/interception, comparer MSE et lancer une optimisation. Relier ensuite aux erreurs de prédiction d'AUC, sans assimiler régression simple et PK non linéaire.
-2. **Validation et fuite de données — première étape implémentée** : la séparation par lignes, patients et centre est interactive. Une suite éventuelle pourra distinguer validation d'hyperparamètres, test final verrouillé et validation externe multicentrique.
-3. **ACP et phénotypes** : déplacer les axes de projection et quantifier la variance conservée ; discuter standardisation et risques d'interprétation de groupes sur EBE.
-4. **Modèle hybride PopPK–ML** : comparaison pédagogique sur un jeu synthétique commun, avec métriques séparées, incertitude et prudence vis-à-vis de l'extrapolation. Ne pas prétendre comparer la performance clinique à partir de simulations ad hoc.
+2. **Validation et fuite de données** : distinguer validation d'hyperparamètres, test final verrouillé et validation externe multicentrique au-delà de la comparaison actuelle lignes/patients/centre.
+3. **Modèle hybride PopPK–ML** : comparaison pédagogique sur un jeu synthétique commun, avec métriques séparées, incertitude et prudence vis-à-vis de l'extrapolation. Ne pas prétendre comparer la performance clinique à partir de simulations ad hoc.
 
 ## Critères avant fusion
 
-- [ ] npm run validate, npm run check, npm run build, npm run test:science
-- [ ] Revue manuelle FR/EN, clavier, mobile, contraste clair/sombre, réduction du mouvement
-- [ ] Vérifier l'absence de dépendance distante et de données patient
-- [ ] Revue de l'hypothèse pédagogique : l'étudiant peut expliquer pourquoi une diminution de RMSE sur train n'implique pas une amélioration sur test
+- [x] `npm run validate`, `npm run check`, `npm run build`, `npm run test:pmx`
+- [x] Tests Playwright desktop/mobile, clavier, thème sombre et absence de débordement ; tests ciblés des nouvelles interactions IA
+- [x] Absence de dépendance distante et de données patient, contrôlée par la suite PMx
+- [x] Les expériences distinguent explicitement score d'apprentissage, test interne et domaine externe, et ne revendiquent pas une amélioration clinique
+- [ ] Revue scientifique et pédagogique humaine des contenus marqués `review_pending`

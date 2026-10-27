@@ -9,4 +9,4 @@ The graph links 95 chapters and 17 tracks to definitions, visualizations, exerci
 | orphanChapters | 0 | None |
 | chaptersWithoutDefinition | 0 | None |
 | chaptersWithoutExercise | 0 | None |
-| chaptersWithoutVisualization | 1 | ai-llm |
+| chaptersWithoutVisualization | 0 | None |

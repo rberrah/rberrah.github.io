@@ -196,6 +196,9 @@
   });
 
   let activeIndex = 0;
+  // Raw {@html} blocks adopt the prerendered French DOM during hydration. Changing this
+  // flag after mount forces one clean client render with the language selected from the URL.
+  let clientRendered = false;
   /** @type {HTMLElement[]} */
   let stepEls = [];
   /** @type {HTMLElement} */
@@ -256,6 +259,7 @@
   }
 
   onMount(async () => {
+    clientRendered = true;
     await tick();
     setupObserver();
     onScroll();
@@ -275,6 +279,17 @@
     tick().then(() => {
       setupObserver();
     });
+  }
+
+  // The static page is prerendered in French. Re-mount the complete narrative when
+  // hydration selects English so {@html} blocks, quizzes and the scroll observer all
+  // refer to the same language version.
+  let lastRenderedLanguage = '';
+  $: if (browser && shownLang && shownLang !== lastRenderedLanguage) {
+    lastRenderedLanguage = shownLang;
+    activeIndex = 0;
+    stepEls = [];
+    tick().then(() => setupObserver());
   }
 </script>
 
@@ -340,6 +355,7 @@
   </nav>
 
   <div class="scrolly">
+    {#key `${shownLang}:${clientRendered ? 'client' : 'ssr'}`}
     <div id="chapter-content" class="narrative" bind:this={articleEl}>
       {#each displayChapter.steps as step, i}
         <section
@@ -396,6 +412,7 @@
         {/if}
       </nav>
     </div>
+    {/key}
 
     {#if isDesktop}
     <aside class="viz-panel" data-testid="viz-panel">

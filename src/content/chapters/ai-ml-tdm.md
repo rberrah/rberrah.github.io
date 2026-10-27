@@ -12,7 +12,7 @@ tags: ["ai", "machine-learning", "tdm", "limoges"]
 prerequisites: ["tdm", "ai-boosting"]
 glossary: ["XGBoost", "MAP-BE", "TDM"]
 slides: []
-sources: ["woillard-ml-tacrolimus", "woillard-ml-simulation", "hughes-keizer", "minichmayr-mipd", "berrah-residual"]
+sources: ["woillard-ml-tacrolimus", "woillard-ml-simulation", "destere-iohexol-hybrid", "sayadi-ml-tdm-review", "hughes-keizer", "minichmayr-mipd"]
 reviewed_on: "2026-07-09"
 review_type: "author"
 review_pending: true
@@ -33,7 +33,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Le TDM bayésien (MAP) exige un **bon modèle PopPK** a priori. Une alternative — ou un complément — est d'**apprendre** directement, à partir de grandes bases, la relation entre quelques concentrations et l'**exposition** (AUC).
+Le TDM bayésien (MAP) exige un **modèle PopPK transportable** à la population concernée. Une alternative — ou un complément — est d'**apprendre** directement, à partir de profils cliniques ou simulés représentatifs, la relation entre quelques concentrations et l'**exposition** (AUC).
 
 C'est un axe de recherche très actif, notamment porté par l'équipe de **Limoges**.
 <!-- /step -->
@@ -41,25 +41,25 @@ C'est un axe de recherche très actif, notamment porté par l'équipe de **Limog
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Plutôt que d'ajuster une équation différentielle par patient, un modèle d'**arbres** (Random Forest, XGBoost) apprend une fonction : quelques prélèvements + covariables → **AUC**.
 
-Rapide, non paramétrique, il capte des interactions complexes — mais reste une **boîte plus noire** qu'un modèle mécaniste.
+Rapide à l'utilisation, il peut capter des interactions complexes — mais reste **non mécaniste** et dépend étroitement des prélèvements, covariables et populations vus à l'entraînement.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="BayesUpdate" -->
 Deux familles se comparent (et se combinent) :
 
 - **Bayésien (MAP)** : $a\,posteriori \propto vraisemblance \times a\,priori$ — interprétable, dépend du modèle PopPK.
-- **ML** : $\text{AUC} = f_{ML}(C_1, C_2, \text{covariables})$ — flexible, appris sur des milliers de profils.
+- **ML** : $\text{AUC} = f_{ML}(C_1, C_2, \text{covariables})$ — flexible, appris sur un jeu de profils dont la taille et la représentativité doivent être documentées.
 - **Hybride** : garder la PopPK et laisser le ML corriger la partie mal expliquée.
 
 :::note
-Réf. (équipe de Limoges) : Woillard J.-B. et al., *Clin Pharmacol Ther* 2021 (estimation de l'AUC du tacrolimus par ML) ; Labriffe M. et al. (ML pour le TDM des immunosuppresseurs) ; Destere A. et al., *Clin Pharmacokinet* 2022 (modèle hybride PopPK + ML, clairance de l'iohexol) ; Sayadi H. et al. (rôle des modèles de ML pour le TDM optimisé) ; Berrah R. et al., *Ther Drug Monit* (l'erreur résiduelle comme levier caché en MIPD).
+Exemples documentés : Woillard *et al.* ont étudié l'estimation de l'AUC du tacrolimus sur des données cliniques, puis à partir de simulations de modèles PopPK publiés ; Destere *et al.* ont évalué une correction hybride de la clairance de l'iohexol ; Sayadi *et al.* proposent une revue de ces usages en TDM. Ces travaux n'évaluent ni les mêmes cibles ni les mêmes domaines d'utilisation.
 :::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
-Pour le **tacrolimus** (greffe), estimer l'AUC₀₋₂₄ à partir de 2–3 prélèvements est crucial. Les modèles de ML atteignent une précision comparable — voire meilleure — que les estimateurs bayésiens classiques, à condition d'une **base d'apprentissage riche**.
+Pour le **tacrolimus**, Woillard *et al.* ont estimé l'**AUC interdose** à partir de 2–3 concentrations : AUC₀₋₁₂ pour une prise BID et AUC₀₋₂₄ pour une prise QD. Dans leurs jeux de test et six jeux externes riches, leurs modèles XGBoost ont obtenu de meilleures performances que les estimateurs MAP comparés ; ce résultat reste conditionnel aux formulations, temps de prélèvement et populations étudiés.
 
-L'approche **hybride** (Destere et al.) combine le meilleur des deux : structure PopPK + correction ML.
+Une approche **hybride** (Destere et al.) associe une structure PopPK et une composante ML. Elle doit être comparée à chacune de ses composantes sur des données indépendantes ; « hybride » ne signifie pas automatiquement « meilleur ».
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" viz="46_ValidationSplit" -->
@@ -74,7 +74,7 @@ Dans l'expérience, comparez une séparation aléatoire des **lignes**, une sép
 
 <!-- step:title="À retenir" -->
 - Le ML prédit l'exposition (AUC) à partir de peu de prélèvements, en complément du bayésien.
-- Arbres (XGBoost), modèles hybrides PopPK + ML (Destere), sélection de variables (Woillard, Labriffe).
-- Cas phares : tacrolimus, iohexol ; travaux de l'équipe de Limoges (Woillard, Sayadi, Berrah).
-- Exige validation externe, incertitude et prudence à l'extrapolation.
+- Les arbres peuvent estimer directement une AUC ; une composante ML peut aussi corriger une estimation MAP, comme dans l'exemple de l'iohexol.
+- Les résultats publiés concernent des usages définis, notamment le tacrolimus et l'iohexol ; ils ne démontrent pas une supériorité générale du ML.
+- Exige une validation adaptée à l'usage, idéalement externe, une description du domaine d'apprentissage et une incertitude lorsqu'elle est estimable.
 <!-- /step -->

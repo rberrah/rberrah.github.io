@@ -37,7 +37,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "067df1eeeb8f582630e4830d66b244444ce89180730d43be784552335f3bbc84",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -109,7 +109,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "9a9c95ab7b397b0a1cd15fde0f7e8c7db0b168c6cdff9d4fcd875d1b43868569",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -339,13 +339,13 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "84b6a44a867bb9dd8213be84ddd51f711437ba38d5b06b99a403752247036cc3",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
         "prompt": "L'analyse non compartimentale (NCA) sert surtout à...",
         "options": [
-          "décrire l'exposition observée sans modèle",
+          "décrire l'exposition observée sans modèle compartimental",
           "simuler des patients non observés avec covariables",
           "construire un modèle physiologique complet"
         ],
@@ -417,13 +417,13 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "662b2437942845bc6fce6e758d4376bafabc601e172d6619014536328f63bc6d",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
             "prompt": "Non-compartmental analysis (NCA) is mainly used to...",
             "options": [
-              "describe the observed exposure without a model",
+              "describe the observed exposure without a compartmental model",
               "simulate unobserved patients with covariates",
               "build a full physiological model of the body"
             ],
@@ -597,9 +597,9 @@
     "id": "micro-macro",
     "track": "core",
     "slug": "micro-macro",
-    "title": "Micro ou macro : deux écritures d'un même modèle",
-    "description": "Le même modèle compartimental s'écrit en constantes de vitesse (ke, k12, k21) ou en clairances et volumes (CL, Q, V). Pourquoi on choisit CL/V.",
-    "summary": "Paramétrisation micro (constantes de vitesse) vs macro (clairances/volumes) : deux langages pour un même modèle, et pourquoi on garde CL/V.",
+    "title": "Constantes de vitesse ou clairances et volumes",
+    "description": "Le même modèle compartimental s'écrit en constantes de vitesse (ke, k12, k21) ou en clairances et volumes (CL, Q, V), sans confondre ces derniers avec les macroconstantes alpha et bêta.",
+    "summary": "Deux paramétrisations équivalentes d'un modèle compartimental, et le sens précis des termes microconstantes et macroconstantes.",
     "order": 2.5,
     "duration": "6 min",
     "level": "beginner",
@@ -631,11 +631,11 @@
     "reviewed_on": "2026-10-09",
     "reviewed_hash": "7533cd15fbaa793e3c73af47c154be31e2dc57cb7866717a8d68a44114b4e2f9",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
-        "prompt": "Dans un modèle à un compartiment, quelle égalité relie l'écriture micro à l'écriture macro ?",
+        "prompt": "Dans un modèle à un compartiment, quelle égalité relie la constante d'élimination à CL et V ?",
         "options": [
           "kₑ = CL / V",
           "kₑ = CL × V",
@@ -644,7 +644,7 @@
         "correct": 0
       },
       {
-        "prompt": "Pourquoi ce cours privilégie-t-il l'écriture en CL, Q et V (macro) ?",
+        "prompt": "Pourquoi ce cours privilégie-t-il l'écriture en CL, Q et V ?",
         "options": [
           "parce que ces grandeurs ont une interprétation physiologique utile, même si elles restent des paramètres de modèle",
           "parce que les constantes de vitesse micro sont fausses",
@@ -669,9 +669,9 @@
         "id": "micro-macro",
         "track": "core",
         "slug": "micro-macro",
-        "title": "Micro or macro: two ways to write one model",
-        "description": "The same compartmental model can be written with rate constants (ke, k12, k21) or with clearances and volumes (CL, Q, V). Why we choose CL/V.",
-        "summary": "Micro (rate constants) vs macro (clearances/volumes) parametrization: two languages for one model, and why we keep CL/V.",
+        "title": "Rate constants or clearances and volumes",
+        "description": "The same compartmental model can be written in rate constants (ke, k12, k21) or in clearances and volumes (CL, Q, V), without confusing the latter with the alpha and beta macroconstants.",
+        "summary": "Two equivalent parameterizations of a compartmental model, with precise use of the terms microconstants and macroconstants.",
         "order": 2.5,
         "duration": "6 min",
         "level": "beginner",
@@ -703,11 +703,11 @@
         "reviewed_on": "2026-10-09",
         "reviewed_hash": "946105d5fc89c63e565c70bda55f82af8efd50394c5c2e1019dd426b9dd4bf61",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
-            "prompt": "In a one-compartment model, which identity links the micro and macro forms?",
+            "prompt": "In a one-compartment model, which identity links the elimination rate constant to CL and V?",
             "options": [
               "kₑ = CL / V",
               "kₑ = CL × V",
@@ -716,7 +716,7 @@
             "correct": 0
           },
           {
-            "prompt": "Why does this course favour the CL, Q, V (macro) form?",
+            "prompt": "Why does this course favour the CL, Q, V parameterization?",
             "options": [
               "because these quantities have a useful physiological interpretation, while remaining model parameters",
               "because the micro rate constants are wrong",
@@ -3315,7 +3315,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "1891f69a0d8d5ad79e6ae9d119a3e058a22e5a7f768cf86ca50855f58cb504be",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -3399,7 +3399,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "eadfc60cf18f1862aa64a739044e2fc1fb3aeb20f6033f0abfa8e29fbcbdaaff",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -3651,7 +3651,7 @@
     "reviewed_on": "2026-10-09",
     "reviewed_hash": "ad8b7ba728ba779bbb99490d7b5d0f93effa5a8caa7b9eb337f9186769ac4897",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -3727,7 +3727,7 @@
         "reviewed_on": "2026-10-09",
         "reviewed_hash": "44b6c3fdfbf341bcde84fbe4b4eaf2c64b4a78ba7de270a785ab334fc48628a4",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -3810,7 +3810,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "a05ccf89b70e8a4aebb39e4f1ee1b575fb1b67cecbe8f8f8b3bb7fb70ef6309d",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -3891,7 +3891,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "11fdd75a9ed8a8274c980ceebf672eec523449ee7d251422f985817c4e06db13",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -3957,9 +3957,10 @@
     "sources": [
       "woillard-ml-tacrolimus",
       "woillard-ml-simulation",
+      "destere-iohexol-hybrid",
+      "sayadi-ml-tdm-review",
       "hughes-keizer",
-      "minichmayr-mipd",
-      "berrah-residual"
+      "minichmayr-mipd"
     ],
     "updated_on": "",
     "software_verified_on": "",
@@ -4022,9 +4023,10 @@
         "sources": [
           "woillard-ml-tacrolimus",
           "woillard-ml-simulation",
+          "destere-iohexol-hybrid",
+          "sayadi-ml-tdm-review",
           "hughes-keizer",
-          "minichmayr-mipd",
-          "berrah-residual"
+          "minichmayr-mipd"
         ],
         "updated_on": "",
         "software_verified_on": "",
@@ -4064,7 +4066,7 @@
     "track": "ai",
     "slug": "ai-trees",
     "title": "Arbres de décision et forêts aléatoires",
-    "description": "De l'arbre unique (des marches) à la forêt aléatoire (une moyenne robuste) : les briques du ML tabulaire.",
+    "description": "De l'arbre unique (des marches) à la forêt aléatoire (une moyenne moins variable) : les briques du ML tabulaire.",
     "summary": "Arbres CART, bagging, forêts aléatoires : comment on apprend des règles à partir de covariables.",
     "order": 14,
     "duration": "14 min",
@@ -4134,7 +4136,7 @@
         "track": "ai",
         "slug": "ai-trees",
         "title": "Decision trees and random forests",
-        "description": "From a single tree (steps) to a random forest (a robust average): the building blocks of tabular ML.",
+        "description": "From a single tree (steps) to a random forest (a lower-variance average): the building blocks of tabular ML.",
         "summary": "CART trees, bagging, random forests: how rules are learned from covariates.",
         "order": 14,
         "duration": "14 min",
@@ -4206,7 +4208,7 @@
     "track": "ai",
     "slug": "ai-boosting",
     "title": "Gradient boosting : XGBoost et CatBoost",
-    "description": "Additionner de petits arbres qui corrigent les erreurs du précédent : les modèles qui gagnent sur données tabulaires.",
+    "description": "Additionner de petits arbres qui corrigent progressivement les erreurs : une famille puissante pour les données tabulaires.",
     "summary": "Gradient boosting, XGBoost (régularisé, second ordre) et CatBoost (boosting ordonné, catégories).",
     "order": 15,
     "duration": "14 min",
@@ -4277,7 +4279,7 @@
         "track": "ai",
         "slug": "ai-boosting",
         "title": "Gradient boosting: XGBoost and CatBoost",
-        "description": "Adding small trees that fix the previous one's errors: the models that win on tabular data.",
+        "description": "Adding small trees that progressively correct errors: a powerful family for tabular data.",
         "summary": "Gradient boosting, XGBoost (regularised, second order) and CatBoost (ordered boosting, categories).",
         "order": 15,
         "duration": "14 min",
@@ -4379,7 +4381,7 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "be37232337d99501f4d356048f6f8959c8d08bbc5a60b67e4577ae1f041a28fc",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -4447,7 +4449,7 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "391f360c7701cff8c032d6110d6dea37f5a4c8129ee2fa5533395ad5296af5b3",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -4488,7 +4490,7 @@
     "track": "ai",
     "slug": "ai-featselect",
     "title": "Sélection de variables : VSURF et OrdinalForest",
-    "description": "Choisir les covariables qui comptent vraiment — et gérer une réponse ordinale — avec les forêts aléatoires.",
+    "description": "Sélectionner des covariables prédictives — et gérer une réponse ordinale — avec les forêts aléatoires.",
     "summary": "Importance des variables, sélection automatique par VSURF, et forêts pour réponses ordinales (OrdinalForest).",
     "order": 17,
     "duration": "12 min",
@@ -4521,7 +4523,7 @@
     "reviewed_on": "2026-10-12",
     "reviewed_hash": "c6bb54dccd51f55ebd68bf24a501d62c5ec85b0a39f7f67c640517f3b26493ab",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -4560,7 +4562,7 @@
         "track": "ai",
         "slug": "ai-featselect",
         "title": "Variable selection: VSURF and OrdinalForest",
-        "description": "Choosing the covariates that really matter — and handling an ordinal response — with random forests.",
+        "description": "Selecting predictive covariates — and handling an ordinal response — with random forests.",
         "summary": "Variable importance, automatic selection with VSURF, and forests for ordinal responses (OrdinalForest).",
         "order": 17,
         "duration": "12 min",
@@ -4593,7 +4595,7 @@
         "reviewed_on": "2026-10-12",
         "reviewed_hash": "fd0cdaf3892f05b90457ff1908387f838f7089fb6cef1b5f357a762e8a768881",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -4663,11 +4665,11 @@
     "reviewed_on": "2026-07-09",
     "reviewed_hash": "ba858843e463128600650ec360a94f340559a4686db27ae3e7bfd5cfb6126917",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
-        "prompt": "Un LLM est, à la base, entraîné à...",
+        "prompt": "Un LLM auto-régressif est, à la base, entraîné à...",
         "options": [
           "prédire le prochain token à partir des précédents",
           "rechercher la réponse exacte dans une base de connaissances",
@@ -4731,11 +4733,11 @@
         "reviewed_on": "2026-07-09",
         "reviewed_hash": "cd8e4a541c13993245ac0e9797c3e7e976596a4903cc1b80e4d96ba65d819c4b",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
-            "prompt": "An LLM is, at its core, trained to...",
+            "prompt": "An autoregressive LLM is, at its core, trained to...",
             "options": [
               "predict the next token from the previous ones",
               "look up the exact answer in an internal knowledge base",
@@ -4771,8 +4773,8 @@
     "id": "ai-clustering",
     "track": "ai",
     "slug": "ai-clustering",
-    "title": "Sous-groupes cachés : clustering, PCA et RMT",
-    "description": "Découvrir des phénotypes dans les paramètres individuels — clustering (k-means/kNN), réduction de dimension (PCA) et tri signal/bruit (RMT).",
+    "title": "Clustering, PCA et structures candidates",
+    "description": "Explorer des structures candidates dans les paramètres individuels — clustering, réduction de dimension (PCA) et repère signal/bruit (RMT).",
     "summary": "Explorer les paramètres individuels par groupe : clustering non supervisé, PCA pour visualiser, RMT pour séparer signal et bruit.",
     "order": 19,
     "duration": "16 min",
@@ -4808,13 +4810,13 @@
     "reviewed_on": "2026-10-09",
     "reviewed_hash": "c39489299d5821a8f5e8607cde648a49215560618272eb193abc109ae4ef2bf7",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
-        "prompt": "Regrouper les paramètres individuels (EBE) par type de cancer peut révéler...",
+        "prompt": "Regrouper les paramètres individuels (EBE) par type de cancer peut suggérer...",
         "options": [
-          "qu'un paramètre (ex. la clairance) dépend du type de cancer → une covariable",
+          "une association candidate à évaluer entre le paramètre et le type de cancer",
           "que la variabilité résiduelle explique à elle seule les écarts observés",
           "que le type de cancer doit devenir la variable réponse à prédire"
         ],
@@ -4846,8 +4848,8 @@
         "id": "ai-clustering",
         "track": "ai",
         "slug": "ai-clustering",
-        "title": "Hidden subgroups: clustering, PCA and RMT",
-        "description": "Discovering phenotypes in individual parameters — clustering (k-means/kNN), dimension reduction (PCA) and signal/noise sorting (RMT).",
+        "title": "Clustering, PCA and candidate structures",
+        "description": "Exploring candidate structures in individual parameters — clustering, dimension reduction (PCA) and a signal/noise reference (RMT).",
         "summary": "Exploring individual parameters by group: unsupervised clustering, PCA to visualise, RMT to separate signal from noise.",
         "order": 19,
         "duration": "16 min",
@@ -4883,13 +4885,13 @@
         "reviewed_on": "2026-10-09",
         "reviewed_hash": "2aa366fb55eee3ef86739e351f5c0378843b823d8e6ad2ab54ba5853618ad13a",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
-            "prompt": "Grouping individual parameters (EBEs) by cancer type can reveal...",
+            "prompt": "Grouping individual parameters (EBEs) by cancer type can suggest...",
             "options": [
-              "that a parameter (e.g. clearance) depends on cancer type → a covariate",
+              "a candidate association to evaluate between the parameter and cancer type",
               "that residual variability alone explains the observed gaps",
               "that cancer type should become the response variable to predict"
             ],

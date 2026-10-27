@@ -1,9 +1,9 @@
 # Registre de relecture des visualisations
 
-Ce registre couvre les 66 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
+Ce registre couvre les 67 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
 
-- Relues : 63
-- En attente : 3
+- Relues : 58
+- En attente : 9
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
@@ -24,18 +24,19 @@ Ce registre couvre les 66 composants de visualisation. Une ligne `pending` signi
 | 17_VPCCrashTest | reviewed | 2026-10-11 | author | hash current |
 | 18_BayesianShrinkage | reviewed | 2026-10-11 | author | hash current |
 | 19_VSURF | reviewed | 2026-10-11 | author | hash current |
-| 20_NeuralBox | reviewed | 2026-10-11 | author | hash current |
+| 20_NeuralBox | pending | — | — | — |
 | 21_PopPKPlayground | reviewed | 2026-10-11 | author | hash current |
 | 30_TumorGrowth | reviewed | 2026-10-11 | author | hash current |
 | 31_JointSurvival | reviewed | 2026-10-11 | author | hash current |
 | 32_Myelosuppression | reviewed | 2026-10-12 | author | hash current |
 | 40_TreeEnsemble | pending | 2026-10-11 | author | — |
-| 41_SVMMargin | reviewed | 2026-10-11 | author | hash current |
-| 42_VarImportance | reviewed | 2026-10-09 | author | hash current |
+| 41_SVMMargin | pending | — | — | — |
+| 42_VarImportance | pending | — | — | — |
 | 43_Copula | reviewed | 2026-10-12 | author | hash current |
 | 44_Survival | reviewed | 2026-10-10 | author | hash current |
 | 45_ViralKinetics | reviewed | 2026-10-10 | author | hash current |
 | 46_ValidationSplit | pending | — | — | — |
+| 47_TokenAttention | pending | — | — | — |
 | 50_GOFPlots | reviewed | 2026-10-11 | author | hash current |
 | 51_Bootstrap | reviewed | 2026-10-10 | author | hash current |
 | 52_NPDE | reviewed | 2026-10-10 | author | hash current |
@@ -49,8 +50,8 @@ Ce registre couvre les 66 composants de visualisation. Une ligne `pending` signi
 | 60_WarfarinFit | reviewed | 2026-10-10 | author | hash current |
 | 61_ResidualError | reviewed | 2026-10-10 | author | hash current |
 | 62_ResidualPatterns | reviewed | 2026-10-10 | author | hash current |
-| 63_ClusterPCA | reviewed | 2026-10-09 | author | hash current |
-| 64_RMT | reviewed | 2026-10-09 | author | hash current |
+| 63_ClusterPCA | pending | — | — | — |
+| 64_RMT | pending | — | — | — |
 | 65_ParentMetabolite | reviewed | 2026-10-11 | author | hash current |
 | 66_FOCELinearization | reviewed | 2026-10-10 | author | hash current |
 | 67_SAEMConvergence | reviewed | 2026-10-10 | author | hash current |
