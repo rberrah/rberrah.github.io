@@ -2,7 +2,7 @@
 id: "ai-featselect"
 slug: "ai-featselect"
 title: "Variable selection: VSURF and OrdinalForest"
-description: "Choosing the covariates that really matter — and handling an ordinal response — with random forests."
+description: "Selecting predictive covariates — and handling an ordinal response — with random forests."
 summary: "Variable importance, automatic selection with VSURF, and forests for ordinal responses (OrdinalForest)."
 track: "ai"
 order: 17
@@ -15,7 +15,7 @@ glossary: ["VSURF","Covariable"]
 sources: ["genuer-vsurf","hornung-ordinal-forests","breiman-rf","guyon-featsel"]
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "fd0cdaf3892f05b90457ff1908387f838f7089fb6cef1b5f357a762e8a768881"
 quiz:
   - prompt: "VSURF selects variables by..."
@@ -41,13 +41,13 @@ quiz:
 <!-- step:title="Why this chapter" -->
 With dozens of candidate covariates, we want to know **which to keep** for predictive power — for a simpler, more robust, more interpretable model.
 
-Two tools from the random-forest community are especially useful: **VSURF** (selection) and **OrdinalForest** (ordinal response).
+Two methods illustrate different goals: **VSURF** selects variables from random forests; **OrdinalForest** adapts prediction to an ordinal response.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="42_VarImportance" -->
 A forest assigns each covariate an **importance** (loss of performance when it is scrambled). We rank, then **cut** at the right level.
 
-Too low: we keep noise. Too high: we discard useful variables. Move the threshold and watch which covariates survive.
+Too low: noise is retained. Too high: predictive information is discarded. Move the threshold, activate a correlated covariate, then repeat the synthetic fit: importance may be allocated differently between two substitutes.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="42_VarImportance" -->
@@ -57,7 +57,7 @@ $$ VI_j = \frac{1}{B}\sum_{b} \big(\,err_b^{\text{perm}(j)} - err_b\,\big) $$
 
 **VSURF** automates the decision in three steps: (1) **thresholding** (remove noise), (2) **interpretation** (keep all related variables), (3) **prediction** (minimal subset that predicts well).
 
-**OrdinalForest** adapts the forest to an **ordinal** response (ordered categories) by optimising partition scores — ideal for **grades** (toxicity 0→4, RECIST).
+**OrdinalForest** adapts the forest to an **ordinal** response (ordered categories) by optimising partition scores — for example **toxicity grades** 0→4.
 
 **Ref —** Genuer R., Poggi J.-M. & Tuleau-Malot C., *VSURF: Variable Selection Using Random Forests* (Pattern Recognition Letters 2010; R package, R Journal 2015); Hornung R., *Ordinal Forests* (J. Classif. 2020). See also **MLU-Explain**, https://mlu-explain.github.io.
 <!-- /step -->

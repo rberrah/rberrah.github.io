@@ -15,6 +15,7 @@ glossary: ["Neural ODE","EDO","White / black / grey box"]
 sources: ["chen-neural-ode","hughes-keizer","woillard-ml-tacrolimus","genuer-vsurf"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "11fdd75a9ed8a8274c980ceebf672eec523449ee7d251422f985817c4e06db13"
 quiz:
   - prompt: "A grey-box model combines..."
@@ -52,11 +53,11 @@ The danger: letting the assistant invent a rule that only works for yesterday's 
 <!-- step:title="Three uses in pharmacometrics" slides="s66,s68,s69" viz="20_NeuralBox" -->
 The course distinguishes three concrete roles for AI:
 
-- **Selection** (random forests / VSURF): sift dozens of covariates and flag the truly influential ones, beyond manual forward/backward.
+- **Selection** (random forests / VSURF): rank candidate covariates by predictive information without confusing importance with a causal mechanism.
 - **Prediction** (e.g. XGBoost): learn a relationship directly — say concentration → AUC — without a differential equation.
 - **Hybridization** (Neural ODE): keep the mechanistic structure and let the network handle only the unknown part.
 
-**Note —** a related use: **cluster the EBEs** to discover phenotypes (slow/fast metabolizers) and generate clinical hypotheses.
+**Note —** a related use is to **explore EBEs by clustering** to generate subgroup hypotheses. The result depends on shrinkage, distances and the imposed number of groups; it does not establish biological phenotypes.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" slides="s70" viz="20_NeuralBox" -->
@@ -64,11 +65,11 @@ A mechanistic ODE might be:
 
 $$ \frac{dA}{dt} = f_{\mathrm{PK}}(A, \theta) $$
 
-A grey-box or Neural ODE extends it:
+One possible grey-box formulation adds a learned correction:
 
 $$ \frac{dA}{dt} = f_{\mathrm{PK}}(A, \theta) + f_{\mathrm{NN}}(A, x) $$
 
-**Math —** $f_{\mathrm{PK}}$ stays the mechanistic part (interpretable, with units); $f_{\mathrm{NN}}$ is a learned correction. It must be **constrained, checked and interpreted** with caution, not left free.
+**Math —** $f_{\mathrm{PK}}$ stays the mechanistic part (interpretable, with units); here $f_{\mathrm{NN}}$ is a learned correction with the same units as $dA/dt$. Other hybrid architectures exist. The correction must be **constrained and evaluated** within and beyond the training domain; it does not automatically acquire a biological interpretation.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s68,s69" viz="20_NeuralBox" -->
@@ -89,7 +90,7 @@ Do not confuse predictive accuracy within a dataset with scientific transportabi
 - Three uses: **selection** (VSURF), **prediction** (XGBoost), **hybridization** (Neural ODE).
 - Grey-box models combine mechanism and flexibility; Neural ODEs keep a dynamical-system view.
 - Horizon: the patient's **digital twin** (DIGPHAT consortium), fusing physiology + AI.
-- Clinical conclusion: **AI is not magic, it is useful**. The clinician decides; the algorithm reduces uncertainty. Extrapolation, uncertainty and interpretability remain essential.
+- Clinical conclusion: **AI is not magic; it can be useful**. A validated algorithm may reduce predictive error for a defined task, but it does not automatically reduce or quantify uncertainty. Extrapolation, uncertainty and interpretability remain essential.
 
 :::note
 **Going further.** This chapter is the **entry point** of the core track. The **"AI in pharmacometrics"** track is an **advanced, research-oriented** deep dive (trees, boosting, SVM, clustering, feature selection, LLMs). It is a **fast-moving** field: it is not required to master the fundamentals, and its content ages faster than the rest of the site.

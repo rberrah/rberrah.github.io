@@ -1,8 +1,8 @@
 ---
 id: "ai-clustering"
 slug: "ai-clustering"
-title: "Hidden subgroups: clustering, PCA and RMT"
-description: "Discovering phenotypes in individual parameters — clustering (k-means/kNN), dimension reduction (PCA) and signal/noise sorting (RMT)."
+title: "Clustering, PCA and candidate structures"
+description: "Exploring candidate structures in individual parameters — clustering, dimension reduction (PCA) and a signal/noise reference (RMT)."
 summary: "Exploring individual parameters by group: unsupervised clustering, PCA to visualise, RMT to separate signal from noise."
 track: "ai"
 order: 19
@@ -15,11 +15,12 @@ slides: []
 sources: ["pearson-1901-pca","marchenko-pastur","hotelling-1933","hastie-esl","savic-karlsson-shrinkage"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "2aa366fb55eee3ef86739e351f5c0378843b823d8e6ad2ab54ba5853618ad13a"
 quiz:
-  - prompt: "Grouping individual parameters (EBEs) by cancer type can reveal..."
+  - prompt: "Grouping individual parameters (EBEs) by cancer type can suggest..."
     options:
-      - "that a parameter (e.g. clearance) depends on cancer type → a covariate"
+      - "a candidate association to evaluate between the parameter and cancer type"
       - "that residual variability alone explains the observed gaps"
       - "that cancer type should become the response variable to predict"
     correct: 0
@@ -38,7 +39,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-Once a population model is estimated, we obtain each patient's **individual parameters** (the EBEs: clearance, volume…). These are a goldmine: sometimes an **unforeseen** subgroup hides in them — for example a **clearance that depends on cancer type**.
+Once a population model is estimated, we obtain **individual parameter estimates** (EBEs: clearance, volume…). They can be explored for unexpected structure — for example an association between clearance and cancer type — but EBEs are model- and shrinkage-dependent estimates, not observed true parameters.
 
 Three tools to explore it: **clustering** (grouping without labels), **PCA** (principal component analysis, to visualise in 2D), and **RMT** (random matrix theory, to flag components incompatible with a simple noise model).
 <!-- /step -->
@@ -46,7 +47,7 @@ Three tools to explore it: **clustering** (grouping without labels), **PCA** (pr
 <!-- step:title="Intuition" viz="63_ClusterPCA" -->
 Plot the individual parameters and **colour by cancer type**: if the clouds separate, a parameter varies by group.
 
-A **clustering** algorithm does the reverse: it groups the points **without knowing** the type, from their positions alone. When the separation is clear, it may **recover** the cancers — evidence for structure to confirm, not biological proof by itself.
+A **clustering** algorithm groups the points **without knowing** the type, from their positions alone. In the synthetic example, clear separation allows it to recover the constructed groups. This demonstrates the algorithm; it does not discover cancers or phenotypes in real data.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="63_ClusterPCA" -->
@@ -58,7 +59,7 @@ where $\mu_c$ is the **centroid** of cluster $c$. **kNN** (k nearest neighbours)
 
 **How to read it — the classroom metaphor.** Place students by two scores (maths, sport); without looking at their class, you spot natural **clumps**. k-means draws boundaries around them; kNN guesses a new student's class from their **immediate neighbours**.
 
-**On the maths side.** You must **standardise** the parameters (CL ≈ 0.1; V ≈ 8: incomparable scales) before computing distances. A simple **group comparison** (ANOVA, Kruskal-Wallis) then confirms that a parameter really differs between types.
+**On the maths side.** Parameters on different units usually need **standardisation** before Euclidean distances are computed (CL ≈ 0.1; V ≈ 8 here). A prespecified **group comparison** (ANOVA, Kruskal-Wallis) can then test an association under its assumptions; it does not confirm a causal mechanism.
 <!-- /step -->
 
 <!-- step:title="Dimension reduction (PCA)" viz="63_ClusterPCA" -->
@@ -66,7 +67,7 @@ With **many** parameters (CL, V, Ka, Q, Tlag…), you cannot plot everything. **
 
 $$ \text{PC}_1, \text{PC}_2 = \text{eigenvectors of the covariance, by decreasing variance} $$
 
-Patients are then visualised in the (PC₁, PC₂) plane — often 2–3 components capture most of the variance, and subgroups appear there.
+Patients may then be visualised in the (PC₁, PC₂) plane. The retained variance must be reported: two components may be insufficient, and a group absent from the projection may exist in another direction — or vice versa.
 
 **Ref —** Pearson (1901), Hotelling (1933) for PCA; MacQueen (1967) for k-means.
 <!-- /step -->
@@ -84,21 +85,21 @@ $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="63_ClusterPCA" -->
-In oncology, a drug is modelled across several cancers. Grouping the **individual clearances**, we discover three clouds matching the **tumour types**: CL is lower in one, higher in another.
+In the displayed synthetic scenario, three constructed tumour types have different mean clearances. K-means receives only CL and V; changing separation and standardisation shows when its groups do or do not resemble the simulated labels.
 
-Practical conclusion: the result may motivate evaluating **cancer type as a covariate** on clearance. Clustering generates a hypothesis; OFV, VPC, stability, shrinkage and possible external validation then provide converging evidence without establishing a causal mechanism by themselves.
+In a real analysis, an analogous result might motivate evaluating **cancer type as a covariate** on clearance. Clustering generates a hypothesis; stability, model diagnostics, predictive assessment and possible external validation may then provide converging evidence, without establishing a causal mechanism by themselves.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
 A clustering algorithm **always** finds clusters.
 
-**Pitfall —** k-means returns $k$ groups even in pure noise — structure is real only if it **survives** (RMT, validation, biological sense). Moreover, EBEs are **shrunk**: clustering on uninformative EBEs invents subgroups. Finally, correlation is not causation: a "discovered" subgroup must be **confirmed** as a covariate in the model, not assumed.
+**Pitfall —** k-means returns $k$ groups even in pure noise. Stability, validation and biological plausibility can make a structure more credible, not prove that it is a phenotype. Moreover, EBEs are **shrunk**: clustering on uninformative EBEs can create apparent subgroups. Finally, correlation is not causation: a "discovered" subgroup must be independently evaluated, not assumed.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- Individual parameters (EBEs) can reveal unforeseen subgroups (e.g. CL by cancer type).
-- Clustering (k-means) to group without labels; kNN to classify; always standardise.
+- Individual parameter estimates (EBEs) can suggest unforeseen structure (e.g. CL by cancer type).
+- Clustering (k-means) groups without labels; kNN classifies; standardise when scale should not drive distance.
 - PCA: reduce dimension by keeping the largest-variance directions, to visualise.
 - RMT: above λ₊ = possible statistical signal under the null assumptions, not biological proof; more patients stabilises the edge.
-- Clustering generates hypotheses; the model (covariate + OFV/VPC) validates them.
+- Clustering generates hypotheses; a covariate model and independent assessment may support them, not automatically turn them into mechanisms.
 <!-- /step -->

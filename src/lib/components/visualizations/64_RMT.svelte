@@ -7,6 +7,7 @@
   // ni une corrélation causale ni un facteur biologique réel.
   let kfac = 3; // nombre de facteurs synthétiques injectés
   let n = 90; // nombre de patients (échantillons)
+  let seed = 2024;
   const p = 20; // nombre de paramètres
 
   /** @param {number} a @returns {() => number} */
@@ -42,7 +43,7 @@
   }
 
   $: ev = (() => {
-    const rng = mulberry32(2024);
+    const rng = mulberry32(seed);
     /** @type {number[][]} */ const X = [];
     for (let i = 0; i < n; i++) {
       const f = []; for (let b = 0; b < kfac; b++) f.push(gauss(rng));
@@ -91,16 +92,17 @@
     .join(' ');
 </script>
 
-<div class="wrap">
+<div class="wrap" data-testid="rmt-lab">
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'Injected factors' : 'Facteurs injectés'}</span><strong>{kfac}</strong><input type="range" min="0" max="5" step="1" bind:value={kfac} /></label>
     <label class="s"><span>{$language === 'en' ? 'Patients n' : 'Patients n'}</span><strong>{n}</strong><input type="range" min="30" max="180" step="10" bind:value={n} /></label>
+    <button type="button" on:click={() => (seed += 1)}>{$language === 'en' ? 'Draw another sample' : 'Tirer un autre échantillon'}</button>
     <div class="readout">
       <div><span>p / n (q)</span><strong>{q.toFixed(2)}</strong></div>
       <div><span>{$language === 'en' ? 'Noise threshold λ₊' : 'Seuil bruit λ₊'}</span><strong>{lamP.toFixed(2)}</strong></div>
-      <div class="verdict" class:ok={aboveEdge === kfac}>{aboveEdge} {$language === 'en' ? 'component(s) above the null edge' : 'composante(s) au-dessus du seuil nul'} · {kfac} {$language === 'en' ? 'factor(s) injected' : 'facteur(s) injecté(s)'}</div>
+      <div class="verdict">{aboveEdge} {$language === 'en' ? 'component(s) above the null edge' : 'composante(s) au-dessus du seuil nul'} · {kfac} {$language === 'en' ? 'factor(s) injected' : 'facteur(s) injecté(s)'}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}Under the Marchenko-Pastur assumptions, values within the expected spectrum are compatible with the null model. A value above λ₊ is incompatible with that spectrum and deserves investigation; it does not prove causality or biological reality. More patients narrow the expected null spectrum.{:else}Sous les hypothèses de Marchenko-Pastur, les valeurs dans le spectre attendu sont compatibles avec le modèle nul. Un dépassement de λ₊ est incompatible avec ce spectre et mérite d’être étudié ; il ne prouve ni causalité ni réalité biologique. Davantage de patients resserre le spectre nul attendu.{/if}</p>
+    <p class="hint">{#if $language === 'en'}Repeat the sample: finite-sample eigenvalues vary, so the count above λ₊ need not equal the injected factor count. Under the Marchenko-Pastur assumptions, an exceedance is incompatible with the ideal-noise spectrum and deserves investigation; it does not prove causality or biological reality.{:else}Répétez l’échantillon : les valeurs propres varient à effectif fini, donc le nombre au-dessus de λ₊ n’égale pas forcément le nombre de facteurs injectés. Sous les hypothèses de Marchenko-Pastur, un dépassement est incompatible avec le spectre de bruit idéal et mérite d’être étudié ; il ne prouve ni causalité ni réalité biologique.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Eigenvalue spectrum vs Marchenko-Pastur' : 'Spectre des valeurs propres vs Marchenko-Pastur'}>
@@ -132,12 +134,13 @@
   .s span { color: var(--text-secondary); }
   .s strong { color: var(--accent-ai); }
   .s input { grid-column: 1 / -1; }
+  button { border: 1px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-primary); border-radius: var(--radius); padding: 7px 9px; cursor: pointer; font: inherit; font-size: var(--text-xs); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent-ai); outline-offset: 2px; }
   .readout { display: grid; gap: 3px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
   .readout div:not(.verdict) { display: flex; justify-content: space-between; gap: var(--space-2); }
   .readout span { color: var(--text-secondary); }
   .readout strong { color: var(--text-primary); }
   .verdict { margin-top: 2px; padding: 3px 6px; border-radius: var(--radius); text-align: center; font-weight: 600; background: var(--bg-tertiary); color: var(--text-secondary); }
-  .verdict.ok { background: var(--quiz-success-bg); color: var(--quiz-success-text); }
   .hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
   .chart { width: 100%; height: auto; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }

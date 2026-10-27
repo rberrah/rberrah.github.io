@@ -1,11 +1,11 @@
 <script>
   import { language } from '#lib/stores/language.js';
-  // Découvrir des sous-groupes : paramètres individuels (CL, V) de patients de 3 types de
-  // cancer. Mode « Vrai type » (couleur = type) vs « Clusters » (k-means non supervisé).
-  // Quand la clairance dépend du type de cancer, le clustering retrouve les groupes.
-  let mode = 'true'; // 'true' | 'kmeans'
+  // Synthetic CL/V estimates in three constructed groups. The experiment compares known
+  // simulation labels with k-means and exposes the effect of distance scaling.
+  let mode = 'true'; // 'true' | 'kmeans' | 'pca'
   let sep = 1; // séparation des groupes (0 = confondus, 1.5 = très distincts)
   let k = 3; // nombre de clusters k-means
+  let standardized = true;
 
   const groups = [
     { name: 'Poumon', color: '#b0392b' },
@@ -44,7 +44,9 @@
     const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
     const sx = Math.sqrt(xs.reduce((a, b) => a + (b - mx) ** 2, 0) / xs.length) || 1;
     const sy = Math.sqrt(ys.reduce((a, b) => a + (b - my) ** 2, 0) / ys.length) || 1;
-    const Z = pts.map((p) => [(p.cl - mx) / sx, (p.v - my) / sy]);
+    const Z = standardized
+      ? pts.map((p) => [(p.cl - mx) / sx, (p.v - my) / sy])
+      : pts.map((p) => [p.cl, p.v]);
     const r = mulberry32(99);
     let cen = Array.from({ length: k }, () => Z[Math.floor(r() * Z.length)].slice());
     const asg = new Array(Z.length).fill(0);
@@ -60,6 +62,33 @@
     }
     return asg;
   })();
+  $: purity = (() => {
+    let correctlyGrouped = 0;
+    for (let cluster = 0; cluster < k; cluster += 1) {
+      const counts = [0, 0, 0];
+      km.forEach((assigned, index) => { if (assigned === cluster) counts[pts[index].gi] += 1; });
+      correctlyGrouped += Math.max(...counts);
+    }
+    return correctlyGrouped / pts.length;
+  })();
+  $: pca = (() => {
+    const mx = pts.reduce((sum, point) => sum + point.cl, 0) / pts.length;
+    const my = pts.reduce((sum, point) => sum + point.v, 0) / pts.length;
+    const sx0 = Math.sqrt(pts.reduce((sum, point) => sum + (point.cl - mx) ** 2, 0) / pts.length) || 1;
+    const sy0 = Math.sqrt(pts.reduce((sum, point) => sum + (point.v - my) ** 2, 0) / pts.length) || 1;
+    const z = pts.map((point) => ({ x: (point.cl - mx) / sx0, y: (point.v - my) / sy0, gi: point.gi }));
+    const rho = z.reduce((sum, point) => sum + point.x * point.y, 0) / z.length;
+    const direction = rho >= 0 ? 1 : -1;
+    const root = Math.sqrt(2);
+    return {
+      points: z.map((point) => ({
+        x: (point.x + direction * point.y) / root,
+        y: (-direction * point.x + point.y) / root,
+        gi: point.gi
+      })),
+      explained: (1 + Math.abs(rho)) / 2
+    };
+  })();
 
   // moyennes de CL par vrai groupe (pour le readout)
   $: means = groups.map((g, gi) => {
@@ -70,37 +99,49 @@
   const W = 480, H = 300, m = { top: 14, right: 14, bottom: 40, left: 46 };
   $: iW = W - m.left - m.right;
   $: iH = H - m.top - m.bottom;
-  const xLo = 0.02, xHi = 0.32, yLo = 3, yHi = 14;
+  $: plotted = mode === 'pca' ? pca.points : pts.map((point) => ({ x: point.cl, y: point.v, gi: point.gi }));
+  $: xLo = mode === 'pca' ? -3.5 : 0.02;
+  $: xHi = mode === 'pca' ? 3.5 : 0.32;
+  $: yLo = mode === 'pca' ? -3.5 : 3;
+  $: yHi = mode === 'pca' ? 3.5 : 14;
   $: sx = (/** @type {number} */ x) => ((x - xLo) / (xHi - xLo)) * iW;
   $: sy = (/** @type {number} */ y) => iH - ((y - yLo) / (yHi - yLo)) * iH;
 </script>
 
-<div class="wrap">
+<div class="wrap" data-testid="cluster-pca-lab">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'true'} on:click={() => (mode = 'true')}>{$language === 'en' ? 'True type' : 'Vrai type'}</button>
-      <button class:on={mode === 'kmeans'} on:click={() => (mode = 'kmeans')}>Clusters (k-means)</button>
+      <button type="button" class:on={mode === 'true'} aria-pressed={mode === 'true'} on:click={() => (mode = 'true')}>{$language === 'en' ? 'Simulated groups' : 'Groupes simulés'}</button>
+      <button type="button" class:on={mode === 'kmeans'} aria-pressed={mode === 'kmeans'} on:click={() => (mode = 'kmeans')}>Clusters (k-means)</button>
+      <button type="button" class:on={mode === 'pca'} aria-pressed={mode === 'pca'} on:click={() => (mode = 'pca')}>PCA</button>
     </div>
     <label class="s"><span>{$language === 'en' ? 'Separation' : 'Séparation'}</span><strong>{sep.toFixed(1)}</strong><input type="range" min="0" max="1.6" step="0.1" bind:value={sep} /></label>
-    {#if mode === 'kmeans'}<label class="s"><span>Clusters k</span><strong>{k}</strong><input type="range" min="2" max="4" step="1" bind:value={k} /></label>{/if}
+    {#if mode === 'kmeans'}
+      <label class="s"><span>Clusters k</span><strong>{k}</strong><input type="range" min="2" max="4" step="1" bind:value={k} /></label>
+      <label class="toggle"><input type="checkbox" bind:checked={standardized} /> <span>{$language === 'en' ? 'Standardize CL and V' : 'Standardiser CL et V'}</span></label>
+    {/if}
     <div class="readout">
       {#if mode === 'true'}
         {#each means as g}<div class="line"><span class="dot" style={`background:${g.color}`}></span>{$language === 'en' ? ({ Poumon: 'Lung', Sein: 'Breast', 'Côlon': 'Colon' }[g.name] ?? g.name) : g.name}<strong>CL {g.cl.toFixed(2)} L/h</strong></div>{/each}
+      {:else if mode === 'kmeans'}
+        <div class="line"><span>{$language === 'en' ? 'Purity vs simulated labels' : 'Pureté vs groupes simulés'}</span><strong>{(100 * purity).toFixed(0)}%</strong></div>
+        <div class="km">{$language === 'en' ? 'Purity describes agreement with known simulation labels; it is not available for unknown clinical phenotypes.' : 'La pureté décrit l’accord avec les étiquettes connues de la simulation ; elle n’existe pas face à des phénotypes cliniques inconnus.'}</div>
       {:else}
-        <div class="km">{$language === 'en' ? 'k-means groups patients without knowing cancer type. With strong separation, clusters recover the true cancer groups.' : 'k-means regroupe sans connaître le type. Comparez au « Vrai type » : quand la séparation est forte, les clusters retrouvent les cancers.'}</div>
+        <div class="line"><span>{$language === 'en' ? 'Variance shown by PC1' : 'Variance portée par PC1'}</span><strong>{(100 * pca.explained).toFixed(0)}%</strong></div>
+        <div class="km">{$language === 'en' ? 'With only CL and V, PCA rotates the standardized plane; it does not create or validate groups.' : 'Avec seulement CL et V, la PCA tourne le plan standardisé ; elle ne crée ni ne valide des groupes.'}</div>
       {/if}
     </div>
-    <p class="hint">{$language === 'en' ? 'Each point represents estimated individual parameters. Lower separation increases overlap, yet a clustering algorithm will still return groups. Treat them as hypotheses and examine shrinkage, stability and external relevance.' : 'Chaque point représente des paramètres individuels estimés. Réduire la séparation augmente le chevauchement, mais l’algorithme renvoie tout de même des groupes. Les considérer comme des hypothèses et examiner shrinkage, stabilité et pertinence externe.'}</p>
+    <p class="hint">{$language === 'en' ? 'Switch off standardization: V, measured on a much larger numerical scale than CL, dominates Euclidean distance. K-means still returns k groups even when separation is zero; clinical interpretation requires shrinkage, stability and external relevance checks.' : 'Décochez la standardisation : V, sur une échelle numérique bien plus grande que CL, domine la distance euclidienne. Le k-means renvoie toujours k groupes même si la séparation vaut zéro ; l’interprétation clinique exige d’examiner shrinkage, stabilité et pertinence externe.'}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Clustering of individual parameters by cancer type' : 'Clustering des paramètres individuels par type de cancer'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <rect x="0" y="0" width={iW} height={iH} class="frame" />
-      {#each pts as p, i}
-        <circle cx={sx(p.cl)} cy={sy(p.v)} r="4" style={`fill:${mode === 'true' ? groups[p.gi].color : kColors[km[i]]}`} class="pt" />
+      {#each plotted as p, i}
+        <circle cx={sx(p.x)} cy={sy(p.y)} r="4" style={`fill:${mode === 'kmeans' ? kColors[km[i]] : groups[p.gi].color}`} class="pt" />
       {/each}
-      <text x={iW / 2} y={iH + 30} class="lbl">{$language === 'en' ? 'Clearance CL (L/h)' : 'Clairance CL (L/h)'}</text>
-      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Volume V (L)</text>
+      <text x={iW / 2} y={iH + 30} class="lbl">{mode === 'pca' ? 'PC1' : ($language === 'en' ? 'Clearance CL (L/h)' : 'Clairance CL (L/h)')}</text>
+      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">{mode === 'pca' ? 'PC2' : 'Volume V (L)'}</text>
     </g>
   </svg>
 </div>
@@ -120,6 +161,9 @@
   .s span { color: var(--text-secondary); }
   .s strong { color: var(--accent-ai); }
   .s input { grid-column: 1 / -1; }
+  .toggle { display: flex; align-items: center; gap: 7px; color: var(--text-secondary); font-size: var(--text-xs); }
+  .toggle input { accent-color: var(--accent-ai); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent-ai); outline-offset: 2px; }
   .readout { display: grid; gap: 4px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
   .line { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
   .line strong { margin-left: auto; color: var(--text-primary); }
