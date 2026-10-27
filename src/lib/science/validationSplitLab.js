@@ -3,6 +3,29 @@
 // experiment is about the split, not about claiming clinical performance.
 
 const CENTER_EFFECT = [0, 4, 18];
+export const ROW_SPLIT_SEED = 20261027;
+
+/** @param {number} seed */
+function seededRandom(seed) {
+  return () => {
+    seed |= 0;
+    seed = seed + 0x6D2B79F5 | 0;
+    let value = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    value = value + Math.imul(value ^ value >>> 7, 61 | value) ^ value;
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/** @param {ValidationRow[]} data @param {number} [seed] */
+function shuffledRows(data, seed = ROW_SPLIT_SEED) {
+  const rows = [...data];
+  const random = seededRandom(seed);
+  for (let index = rows.length - 1; index > 0; index--) {
+    const target = Math.floor(random() * (index + 1));
+    [rows[index], rows[target]] = [rows[target], rows[index]];
+  }
+  return rows;
+}
 
 /** @typedef {{patient:number, center:number, visit:number, concentration:number, weight:number, auc:number}} ValidationRow */
 
@@ -34,9 +57,11 @@ export function makeValidationData() {
  */
 export function splitValidationData(strategy, data = makeValidationData()) {
   if (strategy === 'rows') {
+    const rows = shuffledRows(data);
+    const splitAt = Math.floor(rows.length / 2);
     return {
-      train: data.filter((row) => row.visit === 0),
-      test: data.filter((row) => row.visit === 1)
+      train: rows.slice(splitAt),
+      test: rows.slice(0, splitAt)
     };
   }
   if (strategy === 'patients') {

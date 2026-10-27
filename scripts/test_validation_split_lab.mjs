@@ -30,7 +30,15 @@ assert.ok(centerSplit.test.every((row) => row.center === 2) && centerSplit.train
 const rowResult = runValidationStrategy('rows');
 const patientResult = runValidationStrategy('patients');
 const centerResult = runValidationStrategy('center');
-assert.ok(rowResult.predictions.filter((row) => row.neighborPatient === row.patient).length >= 0.9 * rowResult.predictions.length,
+assert.deepEqual(splitValidationData('rows', data), splitValidationData('rows', data),
+  'Random-row validation must be reproducible with the fixed teaching seed');
+assert.ok(rowResult.train.some((row) => row.visit === 0) && rowResult.train.some((row) => row.visit === 1)
+  && rowResult.test.some((row) => row.visit === 0) && rowResult.test.some((row) => row.visit === 1),
+  'Random-row validation must not use visit identity as the split rule');
+const rowTrainPatients = new Set(rowResult.train.map((row) => row.patient));
+assert.ok(rowResult.test.some((row) => rowTrainPatients.has(row.patient)),
+  'Random-row validation should expose repeated-patient leakage in this demonstration');
+assert.ok(rowResult.predictions.filter((row) => row.neighborPatient === row.patient).length >= 0.4 * rowResult.predictions.length,
   'Row splitting should expose the intended repeated-patient resemblance in this demonstration');
 assert.ok(rowResult.metrics.rmse < patientResult.metrics.rmse,
   'Random-row validation should be more optimistic than new-patient validation in this fixed example');

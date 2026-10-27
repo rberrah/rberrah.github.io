@@ -122,8 +122,8 @@ export const visualizationDescriptions = {
     en: "A linear soft-margin SVM fitted by gradient descent to two synthetic classes. Change their overlap and C; points with functional margin ≤1 are marked as approximate support vectors."
   },
   '46_ValidationSplit': {
-    fr: "Expérience de validation sur 24 patients synthétiques avec deux visites et trois centres construits. Un modèle 1-plus-proche-voisin identique est évalué après séparation par lignes, patients ou centre ; l'exemple illustre la dépendance intra-patient et le décalage de domaine, sans constituer une validation clinique.",
-    en: "Validation experiment using 24 synthetic patients with two visits and three constructed centers. The same 1-nearest-neighbour model is evaluated after splitting rows, patients or centers; the example illustrates within-patient dependence and domain shift, not clinical validation."
+    fr: "Expérience de validation sur 24 patients synthétiques avec deux visites et trois centres construits. Un modèle 1-plus-proche-voisin identique est évalué après répartition aléatoire reproductible des lignes, séparation par patients ou centre ; l'exemple illustre la dépendance intra-patient et le décalage de domaine, sans constituer une validation clinique.",
+    en: "Validation experiment using 24 synthetic patients with two visits and three constructed centers. The same 1-nearest-neighbour model is evaluated after a reproducible random row split, a patient split or a center split; the example illustrates within-patient dependence and domain shift, not clinical validation."
   },
   '42_VarImportance': {
     fr: "Importances construites pour illustrer le seuillage et l’instabilité entre covariables corrélées. Aucun modèle n’est ajusté : répétez l’expérience et observez comment poids et proxy se partagent l’information.",
