@@ -23,7 +23,7 @@
     <label>
       <span>{$language === 'en' ? 'Illustrative head' : 'Tête illustrative'}</span>
       <select bind:value={head}>
-        <option value="relation">{$language === 'en' ? 'Learned relation' : 'Relation apprise'}</option>
+        <option value="relation">{$language === 'en' ? 'Simulated relation' : 'Relation simulée'}</option>
         <option value="local">{$language === 'en' ? 'Local context' : 'Contexte local'}</option>
       </select>
     </label>

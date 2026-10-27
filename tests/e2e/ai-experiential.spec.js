@@ -7,6 +7,7 @@ test('token attention is localized, interactive and causally masked', async ({ p
 
   const lab = page.getByTestId('token-attention-lab');
   await expect(lab).toBeVisible();
+  await expect(lab.getByRole('combobox').locator('option').first()).toHaveText('Relation simulée');
   await expect(lab.getByRole('button', { name: 'ajustée' })).toBeVisible();
   await lab.getByRole('button', { name: 'selon' }).click();
   for (const index of [3, 4, 5]) await expect(lab.locator('.row').nth(index).locator('strong')).toHaveText('0%');

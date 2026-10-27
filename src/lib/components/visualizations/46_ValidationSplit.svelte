@@ -10,13 +10,15 @@
 
   $: result = runValidationStrategy(strategy);
   $: testRows = new Set(result.test.map((row) => `${row.patient}-${row.visit}`));
+  $: trainPatients = new Set(result.train.map((row) => row.patient));
+  $: sharedPatientCount = new Set(result.test.filter((row) => trainPatients.has(row.patient)).map((row) => row.patient)).size;
   $: aucValues = result.predictions.flatMap((row) => [row.auc, row.predicted]);
   $: aucMin = Math.floor((Math.min(...aucValues) - 4) / 10) * 10;
   $: aucMax = Math.ceil((Math.max(...aucValues) + 4) / 10) * 10;
   $: interpretation = strategy === 'rows'
     ? ($language === 'en'
-      ? 'The same patients contribute to training and testing. Their two visits resemble each other, so this score is optimistic for a future patient.'
-      : 'Les mêmes patients contribuent à l’apprentissage et au test. Leurs deux visites se ressemblent : ce score est optimiste pour un futur patient.')
+      ? `A reproducible random row split (fixed seed) places ${sharedPatientCount} patients in both sets. Their visits resemble each other, so this score is optimistic for a future patient.`
+      : `Une répartition aléatoire reproductible des lignes (graine fixe) place ${sharedPatientCount} patients dans les deux jeux. Leurs visites se ressemblent : ce score est optimiste pour un futur patient.`)
     : strategy === 'patients'
       ? ($language === 'en'
         ? 'All visits from each test patient are held out. This estimates internal generalization to new patients from the same centers.'

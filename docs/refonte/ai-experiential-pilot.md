@@ -10,7 +10,7 @@
 
 Réutilisation du composant 40_TreeEnsemble dans les chapitres **arbres**, **boosting** et **ML pour le TDM**, avec une seule occurrence par chapitre. Le profil à prédire peut être déplacé hors de la plage apprise pour rendre l'extrapolation visible. Aucun changement d'architecture, de navigation ou de backend.
 
-Le composant 46_ValidationSplit complète le chapitre **ML pour le TDM** : le même modèle est évalué après séparation par lignes, patients ou centre externe, sur des données synthétiques avec mesures répétées.
+Le composant 46_ValidationSplit complète le chapitre **ML pour le TDM** : le même modèle est évalué après répartition aléatoire reproductible des lignes (graine fixe), séparation par patients ou centre externe, sur des données synthétiques avec mesures répétées.
 
 | Geste | Ce que voit l'étudiant | Ce qu'il doit comprendre |
 | --- | --- | --- |
