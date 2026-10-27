@@ -62,8 +62,8 @@ clinical suitability, translation quality or learning effectiveness.
 | Language | Chapter | Track | Level | Last review | Reason |
 | --- | --- | --- | --- | --- | --- |
 | FR | pourquoi-pharmacometrie | core | beginner | 2026-07-09 | content hash changed |
-| FR | micro-macro | core | beginner | 2026-10-09 | content hash changed |
 | FR | trois-approches | core | beginner | 2026-07-09 | content hash changed |
+| FR | micro-macro | core | beginner | 2026-10-09 | content hash changed |
 | FR | pmetrics-nonparametric | core | advanced | 2026-10-12 | content hash changed |
 | FR | validation-vpc | core | intermediate | 2026-07-09 | content hash changed |
 | FR | tdm | core | intermediate | 2026-10-09 | content hash changed |
@@ -78,8 +78,8 @@ clinical suitability, translation quality or learning effectiveness.
 | FR | nlmixr2-moteur | nlmixr2 | intermediate | 2026-10-12 | content hash changed |
 | FR | tools-nlmixr2 | nlmixr2 | intermediate | 2026-10-12 | content hash changed |
 | EN | pourquoi-pharmacometrie | core | beginner | 2026-07-09 | content hash changed |
-| EN | micro-macro | core | beginner | 2026-10-09 | content hash changed |
 | EN | trois-approches | core | beginner | 2026-07-09 | content hash changed |
+| EN | micro-macro | core | beginner | 2026-10-09 | content hash changed |
 | EN | pmetrics-nonparametric | core | advanced | 2026-10-12 | content hash changed |
 | EN | validation-vpc | core | intermediate | 2026-07-09 | content hash changed |
 | EN | tdm | core | intermediate | 2026-10-09 | content hash changed |
