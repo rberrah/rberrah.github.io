@@ -1,0 +1,26 @@
+name: Public sitemap HTTP audit
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/check_live_sitemaps.py'
+      - '.github/workflows/public-sitemap-http-audit.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '19 8 * * 1'
+
+permissions:
+  contents: read
+
+env:
+  PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
+
+jobs:
+  check:
+    name: Check live sitemap fetchability
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check sitemap HTTP status, content types and XML
+        run: python3 scripts/check_live_sitemaps.py
