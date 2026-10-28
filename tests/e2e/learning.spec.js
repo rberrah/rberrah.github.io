@@ -145,11 +145,11 @@ test('Learning: average trees explicitly identifies all correct and incorrect ch
   const answers = panel.getByTestId('case-answer-key').locator('li');
   await expect(answers).toHaveCount(3);
   await expect(answers.nth(0)).toContainText('Correcte');
-  await expect(answers.nth(0)).toContainText('corrélées');
+  await expect(answers.nth(0)).toContainText('mêmes erreurs');
   await expect(answers.nth(1)).toContainText('Incorrecte');
-  await expect(answers.nth(1)).toContainText('intervalle de confiance à 95 %');
+  await expect(answers.nth(1)).toContainText('marge d’erreur fiable à 95 %');
   await expect(answers.nth(2)).toContainText('Correcte');
-  await expect(answers.nth(2)).toContainText('hors domaine');
+  await expect(answers.nth(2)).toContainText('Hors des valeurs');
   await expect(next(panel)).toBeEnabled();
 });
 
