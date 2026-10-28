@@ -9,9 +9,10 @@ populationnels, Pmetrics et les artefacts ML sont maintenus séparément dans
 dans `integration/mipd-release.json` et ne contient plus de copie exécutable du
 moteur.
 
-**Statut : maintenance / périmètre gelé (19 octobre 2026).** La baseline de gel,
+**Statut : maintenance / périmètre gelé (28 octobre 2026).** La baseline de code
+qualifiée est `d42107d8d15857a8e019851aea37bee2f5f355fa`. La baseline de gel,
 les dépendances externes épinglées et les seules classes de changements encore
-acceptées sont documentées dans [la baseline figée](docs/FROZEN_BASELINE_20261019.md).
+acceptées sont documentées dans [la baseline figée](docs/FROZEN_BASELINE_20261028.md).
 La [roadmap](ROADMAP.md) est conservée comme historique et comme liste de pistes
 non bloquantes ; elle ne constitue plus un plan de développement actif.
 

@@ -1,48 +1,60 @@
 # Author review required
 
 Automated checks do not replace author or independent scientific review. The
-following content changed after its stored author-review hash and must be read
-again by the author before a new hash is sealed.
+items below changed after their stored human-review evidence or have never been
+sealed. Their status must remain `pending` until a person reviews the exact
+content.
 
-## French chapters
+## Chapters: 16 French and 16 English files
 
-- `src/content/chapters/nlmixr2-moteur.md`: distinction between ODE stiffness,
-  SAEM/FOCEI estimation and post-SAEM FOCEi objective evaluation.
-- `src/content/chapters/tools-nlmixr2.md`: neutral, non-promotional description
-  of the software scope and limitations.
-- `src/content/chapters/08c_pmetrics-nonparametric.md`: interpretation of
-  support points and separated regions without cluster/phenotype claims.
+The same filenames are pending under `src/content/chapters/` and
+`src/content/chapters/en/`:
 
-## English chapters
+- `01_intro-pkpd.md`
+- `02_trois-approches.md`
+- `02b_nca.md`
+- `08c_pmetrics-nonparametric.md`
+- `09_validation-vpc.md`
+- `11_tdm.md`
+- `12_neural-ode.md`
+- `ai-boosting.md`
+- `ai-clustering.md`
+- `ai-featselect.md`
+- `ai-llm.md`
+- `ai-ml-tdm.md`
+- `ai-svm.md`
+- `ai-trees.md`
+- `nlmixr2-moteur.md`
+- `tools-nlmixr2.md`
 
-- `src/content/chapters/en/nlmixr2-moteur.md`.
-- `src/content/chapters/en/tools-nlmixr2.md`.
-- `src/content/chapters/en/08c_pmetrics-nonparametric.md`.
+`docs/content-inventory.md` is the generated source of truth for their current
+hash status.
+
+## Visualizations: 9 components
+
+- `20_NeuralBox`
+- `40_TreeEnsemble`
+- `41_SVMMargin`
+- `42_VarImportance`
+- `46_ValidationSplit`
+- `47_TokenAttention`
+- `63_ClusterPCA`
+- `64_RMT`
+- `NPAGSupportPoints`
+
+`docs/visualization-review.md` is the generated source of truth for this list.
+
+## Cross-domain lessons: 4 per language
+
+The `match`, `covariate`, `pd` and `mechanistic` Omics to PK/PD lessons remain
+pending independently in French and English.
 
 ## Communication content
 
-- `src/lib/content/communications.js`: verify metadata, bilingual site summaries,
-  publication status and the two pending classifications against the maintained
-  source collection.
-- Generated pages under `portal/communications/`: verify PDF/PPTX/preview pairing
-  and the suggested citations.
+- `src/lib/content/communications.js`: verify metadata, bilingual summaries and
+  publication status against the maintained source collection.
+- Generated pages under `portal/communications/`: verify source-file pairing
+  and suggested citations.
 
-## Cross-domain lessons
-
-The four Omics → PK/PD lessons have independent FR and EN content hashes, but
-no human review has yet been recorded. The eight language records remain
-explicitly `pending`:
-
-- `match` (FR and EN)
-- `covariate` (FR and EN)
-- `pd` (FR and EN)
-- `mechanistic` (FR and EN)
-
-## Visualizations
-
-- `src/lib/components/visualizations/NPAGSupportPoints.svelte`: the labels and
-  caveat now distinguish support-point weights and marginal masses from clinical
-  clusters or phenotypes. Author review and independent review remain pending.
-
-Do not change `review_type`, `reviewed_on` or stored review hashes until the
-corresponding human review has actually occurred.
+Do not change `review_type`, `reviewed_on`, stored review hashes or visualization
+status until the corresponding human review has actually occurred.
