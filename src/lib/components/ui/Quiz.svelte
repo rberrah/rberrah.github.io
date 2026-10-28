@@ -73,8 +73,8 @@
             ? ($language === 'en' ? 'Correct answer.' : 'Bonne réponse.')
             : ($language === 'en' ? 'Incorrect answer.' : 'Réponse incorrecte.')}</strong>
           <span>{$language === 'en' ? 'Expected answer:' : 'Bonne réponse :'} <ScientificText text={q.options[q.correct]}/></span>
-          {#if quizRationales[chapterSlug]?.[i]?.[$language]}
-            <span><ScientificText text={quizRationales[chapterSlug][i][$language]}/></span>
+          {#if quizRationales[chapterSlug]?.[i]?.[$language === 'en' ? 'en' : 'fr']}
+            <span><ScientificText text={quizRationales[chapterSlug][i][$language === 'en' ? 'en' : 'fr']}/></span>
           {:else}
             <span class="review-hint">{$language === 'en' ? 'Review the corresponding lesson to understand the reasoning.' : 'Relisez le passage correspondant du cours pour comprendre le raisonnement.'}</span>
           {/if}
