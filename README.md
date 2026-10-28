@@ -9,13 +9,15 @@ populationnels, Pmetrics et les artefacts ML sont maintenus séparément dans
 dans `integration/mipd-release.json` et ne contient plus de copie exécutable du
 moteur.
 
-**Statut : maintenance / périmètre gelé (28 octobre 2026).** La baseline de code
-qualifiée est `7ebe39b0693f8b4393c4135d9fc48cf38b521868`. La baseline de gel,
-les dépendances externes épinglées et les seules classes de changements encore
-acceptées sont documentées dans [la baseline figée](docs/FROZEN_BASELINE_20261028.md).
-Cette baseline a été fusionnée et publiée par le merge
-`965fb659b66f3d36452a3c55cd216636aafc05a1`; les commits documentaires
-ultérieurs ne changent pas la baseline de code qualifiée.
+**Statut : maintenance / périmètre logiciel gelé (28 octobre 2026).** La dernière
+baseline applicative qualifiée et publiée après les corrections pédagogiques est
+`af8f3d657ad48345164359ad658d3f03a6a4e946` ([CI](https://github.com/rberrah/rberrah.github.io/actions/runs/40764081497),
+[Pages](https://github.com/rberrah/rberrah.github.io/actions/runs/40765107725)).
+La [requalification après exercices et QCM](docs/FROZEN_BASELINE_POST_PEDAGOGY_20261028.md)
+précise le périmètre, les dépendances épinglées et le travail de relecture
+humaine restant. La [baseline historique du gel initial](docs/FROZEN_BASELINE_20261028.md)
+reste conservée sans réécrire son ancien tag. Les commits ultérieurs
+exclusivement documentaires ne changent pas le périmètre applicatif qualifié.
 La [roadmap](ROADMAP.md) est conservée comme historique et comme liste de pistes
 non bloquantes ; elle ne constitue plus un plan de développement actif.
 
