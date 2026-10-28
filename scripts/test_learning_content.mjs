@@ -6,6 +6,7 @@ import { guidedActivities as activities, activitiesForChapter } from '../src/lib
 import { learningTracks, tracks } from '../src/lib/content/tracks.js';
 import { resolveSources } from '../src/lib/content/references.js';
 import { assess, activityStatus, emptyStep, numericValue } from '../src/lib/learning/assessment.js';
+import { choiceRationales } from '../src/lib/learning/choiceRationales.js';
 import { displayUnit } from '../src/lib/learning/activityContent.js';
 import { experimentDefinitions, experimentCurve, experimentValue, validExperiment, parameterBounds } from '../src/lib/learning/experiments.js';
 import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
@@ -54,6 +55,14 @@ for (const activity of activities) {
       assert(!assess(step, []).valid);
       assert(step.correct.every(i => step.options[i]));
       assert(step.correct.length < step.options.length);
+      const rationales = choiceRationales[activity.id]?.[step.id];
+      assert(Array.isArray(rationales), `Missing selection answer explanation: ${activity.id}/${step.id}`);
+      assert.equal(rationales.length, step.options.length, `One explanation per option: ${activity.id}/${step.id}`);
+      for (let i = 0; i < step.options.length; i++) {
+        for (const lang of ['fr', 'en']) {
+          assert(rationales[i]?.[lang]?.trim()?.length >= 18, `Missing substantive ${lang} rationale: ${activity.id}/${step.id} [${i}]`);
+        }
+      }
     } else if (step.type === 'reflection') {
       assert(step.rubric.length >= 2);
       assert(!assess(step, 'This is not auto-graded').correct);
@@ -82,6 +91,25 @@ for (const activity of activities) {
   states[objective].revealed = true;
   assert.equal(activityStatus(activity.steps, states), 'reviewed');
 }
+
+// All authored option rationales must refer to a real activity and selection step.
+const selections = activities.flatMap(activity => activity.steps
+  .filter(step => step.type === 'select')
+  .map(step => `${activity.id}/${step.id}`));
+const authored = Object.entries(choiceRationales).flatMap(([id, steps]) =>
+  Object.keys(steps).map(step => `${id}/${step}`));
+assert.deepEqual(authored.slice().sort(), selections.slice().sort(),
+  'Choice rationales must cover every selection exactly once (including generated tool activities)');
+assert.equal(selections.length, 43, 'Selection audit covers all guided and synthesis activities');
+assert.deepEqual(activities.find(a => a.id === 'practice-ai-trees').steps.find(s => s.id === 'limits').correct, [0, 2],
+  'Forest exercise: tree correlation and out-of-domain behavior are correct, raw tree spread is not a patient 95% CI');
+for (const activity of activities) for (const step of activity.steps) {
+  for (const lang of ['fr', 'en']) {
+    assert(step.prompt?.[lang]?.trim(), `Missing question ${lang}: ${activity.id}/${step.id}`);
+    assert(step.correction?.[lang]?.trim()?.length >= 12, `Missing explained correction ${lang}: ${activity.id}/${step.id}`);
+  }
+}
+console.log(`Audited ${activities.length} guided/synthesis activities and ${selections.length} multi-select corrections with bilingual, per-choice rationales.`);
 
 // Independently rounded reference results, not generated from the answer catalogue.
 const expected = {
