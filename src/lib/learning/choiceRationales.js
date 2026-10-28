@@ -229,30 +229,30 @@ export const choiceRationales = {
   "synthesis-start": {
     "predict": [
       {
-        "fr": "à dose identique, l'AUC décroît si la clairance augmente en PK linéaire.",
-        "en": "at identical dose, AUC decreases when clearance increases in linear PK."
+        "fr": "À dose identique, si le corps élimine le médicament plus vite, l'exposition totale diminue.",
+        "en": "At the same dose, faster drug elimination means lower total exposure."
       },
       {
-        "fr": "la réponse PD peut être saturable, retardée ou non proportionnelle à l'AUC.",
-        "en": "PD response may be saturable, delayed or nonproportional to AUC."
+        "fr": "L'effet ne suit pas forcément l'AUC : il peut atteindre un maximum ou apparaître plus tard.",
+        "en": "Effect does not always follow AUC: it may reach a maximum or appear later."
       },
       {
-        "fr": "les couples CL/V du scénario conduisent au même rapport d'élimination.",
-        "en": "the scenario's CL/V pairs yield the same elimination-rate ratio."
+        "fr": "Les deux rapports CL/V sont égaux : la vitesse de diminution après un bolus IV est donc identique.",
+        "en": "Both CL/V ratios are equal: the decline rate after an IV bolus is therefore the same."
       }
     ],
     "noise": [
       {
-        "fr": "une variation de CL individuelle peut modifier la concentration à dose identique.",
-        "en": "individual CL variation can change concentrations at the same dose."
+        "fr": "Deux patients peuvent avoir des clairances différentes et donc des concentrations différentes.",
+        "en": "Two patients may have different clearances, leading to different concentrations."
       },
       {
-        "fr": "un écart de mesure ou d'heure de prélèvement peut expliquer l'observation.",
-        "en": "a measurement or sampling-time error can explain the observation."
+        "fr": "Un prélèvement pris trop tôt ou une erreur de mesure peuvent expliquer la valeur élevée.",
+        "en": "A sample taken too early or a measurement error may explain the high value."
       },
       {
-        "fr": "la dose, sans autres observations, ne démontre pas une erreur de structure.",
-        "en": "dose alone, without other observations, does not prove structural error."
+        "fr": "Connaître la dose ne suffit pas à prouver que le modèle est faux.",
+        "en": "Knowing the dose alone is not enough to prove that the model is wrong."
       }
     ]
   },
@@ -275,42 +275,42 @@ export const choiceRationales = {
   "synthesis-nca": {
     "terminal": [
       {
-        "fr": "une fraction extrapolée importante indique un mauvais support des données terminales.",
-        "en": "a large extrapolated fraction signals inadequate terminal data support."
+        "fr": "Si une grande partie de l'AUC est calculée après le dernier prélèvement, le résultat dépend beaucoup d'une extrapolation.",
+        "en": "If much of the AUC is calculated beyond the last sample, the result depends heavily on extrapolation."
       },
       {
-        "fr": "une biodisponibilité supérieure à 1 n'est pas nécessaire pour expliquer le problème.",
-        "en": "bioavailability greater than 1 is not required to explain this issue."
+        "fr": "Le problème est le manque de données en fin de courbe, pas la nécessité d'une biodisponibilité supérieure à 100 %.",
+        "en": "The problem is missing late samples, not any need for bioavailability above 100%."
       }
     ]
   },
   "synthesis-pbpk": {
     "mechanism": [
       {
-        "fr": "la liaison protéique influe notamment sur la fraction libre et la disposition.",
-        "en": "protein binding affects unbound fraction and drug disposition."
+        "fr": "Seule une partie du médicament circule librement : la liaison aux protéines modifie cette fraction.",
+        "en": "Only part of the drug circulates freely: protein binding changes that fraction."
       },
       {
-        "fr": "débit et clairance intrinsèque conditionnent l'extraction hépatique.",
-        "en": "blood flow and intrinsic clearance govern hepatic extraction."
+        "fr": "Le débit sanguin et la capacité du foie à éliminer le médicament influencent son extraction.",
+        "en": "Blood flow and the liver's ability to remove the drug affect hepatic extraction."
       },
       {
-        "fr": "la couleur d'un schéma ne définit aucun mécanisme pharmacocinétique.",
-        "en": "a diagram's color is not a pharmacokinetic mechanism."
+        "fr": "La couleur d'un dessin ne change pas ce qui se passe dans le corps.",
+        "en": "The color of a diagram does not change what happens in the body."
       }
     ],
     "validate": [
       {
-        "fr": "confronter les concentrations totales et libres détecte certaines erreurs de liaison ou distribution.",
-        "en": "checking total and free concentrations may reveal binding or distribution errors."
+        "fr": "Quand les mesures existent, comparez les concentrations totales et libres aux prédictions du modèle.",
+        "en": "When available, compare measured total and unbound concentrations with model predictions."
       },
       {
-        "fr": "le modèle doit prévoir des observations pertinentes pour la population visée.",
-        "en": "the model should predict relevant outcomes in the target population."
+        "fr": "Le modèle doit être confronté à des données de la population dans laquelle il sera utilisé.",
+        "en": "Test the model against data from the population in which it will be used."
       },
       {
-        "fr": "une conservation de masse correcte ne démontre pas la validité externe.",
-        "en": "correct mass conservation does not establish external validity."
+        "fr": "Un modèle peut conserver correctement la quantité de médicament tout en prédisant mal les concentrations.",
+        "en": "A model can conserve drug amount correctly and still predict concentrations poorly."
       }
     ]
   },
@@ -347,72 +347,72 @@ export const choiceRationales = {
   "synthesis-covariates": {
     "eta": [
       {
-        "fr": "ETA encode l'écart individuel non expliqué par les effets fixes du modèle.",
-        "en": "ETA encodes the individual deviation not explained by model fixed effects."
+        "fr": "ETA représente ce qui distingue encore un patient de la valeur attendue après prise en compte des covariables.",
+        "en": "ETA represents the patient's remaining deviation from the expected value after accounting for covariates."
       },
       {
-        "fr": "le DFG est une covariable observée, pas la réalisation d'ETA.",
-        "en": "GFR is an observed covariate, not an ETA realization."
+        "fr": "Le DFG est une mesure de fonction rénale. Il ne correspond pas à l'effet aléatoire ETA.",
+        "en": "GFR is a measure of kidney function. It is not the random effect ETA."
       }
     ]
   },
   "synthesis-onco": {
     "dose": [
       {
-        "fr": "aucune amélioration de survie ne découle automatiquement d'une augmentation de dose.",
-        "en": "improved survival does not automatically follow dose escalation."
+        "fr": "Augmenter la dose peut aussi augmenter la toxicité. La survie ne s'améliore donc pas automatiquement.",
+        "en": "A higher dose can also increase toxicity. Survival does not automatically improve."
       },
       {
-        "fr": "réduire la tumeur dans un modèle n'établit pas à lui seul un bénéfice de survie.",
-        "en": "modeled tumor shrinkage alone does not establish a survival benefit."
+        "fr": "Une diminution de tumeur simulée ne prouve pas que les patients vivront plus longtemps.",
+        "en": "Simulated tumor shrinkage does not prove that patients will live longer."
       }
     ],
     "data": [
       {
-        "fr": "les trajectoires de taille tumorale renseignent la dynamique de réponse.",
-        "en": "tumor-size trajectories inform response dynamics."
+        "fr": "Plusieurs mesures de la tumeur montrent comment elle évolue au fil du traitement.",
+        "en": "Repeated tumor measurements show how it changes during treatment."
       },
       {
-        "fr": "les interruptions et changements de dose conditionnent l'exposition réelle.",
-        "en": "interruptions and dose changes determine actual exposure."
+        "fr": "Une dose interrompue ou réduite change le traitement réellement reçu.",
+        "en": "An interrupted or reduced dose changes the treatment actually received."
       },
       {
-        "fr": "les dates d'événement et de censure sont nécessaires aux analyses de survie.",
-        "en": "event and censoring times are required for survival analysis."
+        "fr": "Il faut savoir quand un événement survient et quand le suivi s'arrête pour étudier la survie.",
+        "en": "To study survival, we need to know when an event occurs and when follow-up ends."
       },
       {
-        "fr": "une mesure finale unique efface la dynamique et les événements intermédiaires.",
-        "en": "one final measurement discards temporal dynamics and intervening events."
+        "fr": "La dernière taille tumorale seule ne raconte pas toutes les étapes du traitement.",
+        "en": "The final tumor size alone does not tell the full treatment history."
       }
     ]
   },
   "synthesis-mab": {
     "tmdd": [
       {
-        "fr": "la saturation d'une voie d'élimination par la cible peut rendre la PK non linéaire.",
-        "en": "saturation of target-mediated elimination can produce nonlinear PK."
+        "fr": "Si une voie d'élimination liée à la cible se sature, la clairance peut changer avec la concentration.",
+        "en": "When target-mediated elimination becomes saturated, clearance may change with concentration."
       },
       {
-        "fr": "une clairance constante strictement linéaire ne suffit pas à expliquer une relation non linéaire.",
-        "en": "constant, strictly linear clearance alone does not explain nonlinear kinetics."
+        "fr": "Une clairance toujours constante ne suffit pas à expliquer une pharmacocinétique non linéaire.",
+        "en": "Clearance that always stays constant cannot explain nonlinear pharmacokinetics on its own."
       }
     ],
     "measure": [
       {
-        "fr": "mesurer médicament libre et total peut distinguer des mécanismes de liaison.",
-        "en": "measuring free and total drug may distinguish binding mechanisms."
+        "fr": "Mesurer la forme libre et la quantité totale de médicament peut aider à comprendre sa liaison.",
+        "en": "Measuring free and total drug may help explain binding."
       },
       {
-        "fr": "cible et complexes peuvent renseigner les interactions médicament-cible.",
-        "en": "target and complexes can inform drug-target interactions."
+        "fr": "Mesurer la cible et ses complexes avec le médicament renseigne sur leur interaction.",
+        "en": "Measuring the target and drug–target complexes informs us about their interaction."
       },
       {
-        "fr": "la chronologie des ADA et leur titre permettent d'étudier une variation de clairance.",
-        "en": "ADA timing and titer help investigate clearance changes."
+        "fr": "La date d'apparition et la quantité d'anticorps anti-médicament (ADA) aident à rechercher leur effet.",
+        "en": "The timing and amount of anti-drug antibodies (ADA) help investigate their impact."
       },
       {
-        "fr": "une simple positivité ADA sans chronologie ou méthode ne démontre pas son effet.",
-        "en": "ADA positivity alone, without timing or method details, does not prove an effect."
+        "fr": "Un résultat ADA positif, isolé et sans date, ne prouve pas que ces anticorps ont modifié la PK.",
+        "en": "A positive ADA result with no timing does not prove the antibodies changed PK."
       }
     ]
   },
@@ -435,26 +435,26 @@ export const choiceRationales = {
   "synthesis-valid": {
     "retain": [
       {
-        "fr": "l'AIC n'est qu'un élément parmi les diagnostics et la plausibilité.",
-        "en": "AIC is only one element alongside diagnostics and plausibility."
+        "fr": "Un AIC plus bas est utile, mais il faut aussi vérifier la fiabilité des calculs et des prédictions.",
+        "en": "A lower AIC is useful, but we must also check calculations and predictions."
       },
       {
-        "fr": "un AIC inférieur ne garantit pas une solution convergée ou un modèle utilisable.",
-        "en": "lower AIC does not guarantee a converged solution or usable model."
+        "fr": "Un modèle peut avoir un bon AIC tout en étant instable ou peu plausible.",
+        "en": "A model may have a good AIC while still being unstable or implausible."
       }
     ],
     "next": [
       {
-        "fr": "structure et erreur résiduelle peuvent toutes deux expliquer des écarts diagnostiques.",
-        "en": "structure and residual error can both explain diagnostic discrepancies."
+        "fr": "Une erreur peut venir des équations du modèle ou de la façon dont les mesures varient autour de ses prédictions.",
+        "en": "An error may come from the model equations or from the way measurements vary around predictions."
       },
       {
-        "fr": "une VPC doit reproduire fidèlement le plan de données et peut nécessiter une stratification.",
-        "en": "VPC simulations must reproduce the data design and may require stratification."
+        "fr": "Une VPC doit simuler des patients et prélèvements comparables à ceux de l'étude.",
+        "en": "A VPC must simulate patients and samples comparable to those in the study."
       },
       {
-        "fr": "ignorer la VPC supprime une information prédictive utile.",
-        "en": "ignoring VPC discards useful predictive evidence."
+        "fr": "Ignorer la VPC revient à ne pas vérifier si le modèle reproduit la répartition observée.",
+        "en": "Ignoring the VPC means not checking whether the model reproduces the observed distribution."
       }
     ]
   },
@@ -473,176 +473,176 @@ export const choiceRationales = {
   "synthesis-tools": {
     "fixed": [
       {
-        "fr": "THETA(1) représente ici la valeur populationnelle de référence.",
-        "en": "THETA(1) is the reference population parameter here."
+        "fr": "Dans cet exemple NONMEM, THETA(1) est la clairance de référence de la population.",
+        "en": "Here, THETA(1) is the reference population clearance in NONMEM."
       },
       {
-        "fr": "Cl_pop désigne ici la clairance typique du modèle Monolix.",
-        "en": "Cl_pop denotes typical clearance in this Monolix model."
+        "fr": "Dans cet exemple Monolix, Cl_pop représente cette même clairance typique.",
+        "en": "Here, Cl_pop represents the same typical clearance in Monolix."
       },
       {
-        "fr": "exp(tcl) remet un effet fixe logarithmique sur l'échelle naturelle.",
-        "en": "exp(tcl) maps a log-scale fixed effect to the natural scale."
+        "fr": "Dans cet exemple nlmixr2, exp(tcl) convertit la clairance de l'échelle logarithmique à l'échelle habituelle.",
+        "en": "Here, exp(tcl) converts clearance from the log scale to its usual scale in nlmixr2."
       },
       {
-        "fr": "EPS(1) correspond ici à l'erreur résiduelle, pas à la clairance typique.",
-        "en": "EPS(1) represents residual error here, not typical clearance."
+        "fr": "EPS(1) décrit une erreur de mesure, pas la clairance habituelle des patients.",
+        "en": "EPS(1) describes measurement error, not typical patient clearance."
       }
     ],
     "random": [
       {
-        "fr": "ETA(1) représente ici un écart individuel dans NONMEM.",
-        "en": "ETA(1) represents an individual deviation in NONMEM here."
+        "fr": "ETA(1) représente dans NONMEM la différence propre à un patient par rapport à la population.",
+        "en": "ETA(1) represents a patient's deviation from the population in NONMEM."
       },
       {
-        "fr": "eta_Cl joue le rôle d'effet individuel dans Monolix.",
-        "en": "eta_Cl acts as an individual random effect in Monolix."
+        "fr": "eta_Cl joue ce rôle pour la clairance dans Monolix.",
+        "en": "eta_Cl plays that role for clearance in Monolix."
       },
       {
-        "fr": "eta.cl désigne l'écart individuel dans le code nlmixr2.",
-        "en": "eta.cl denotes the individual deviation in nlmixr2 code."
+        "fr": "eta.cl joue ce rôle dans le code nlmixr2 montré ici.",
+        "en": "eta.cl plays that role in the nlmixr2 code shown here."
       },
       {
-        "fr": "IPRED est une prédiction individuelle, pas le paramètre aléatoire ETA.",
-        "en": "IPRED is an individual prediction, not the ETA random effect."
+        "fr": "IPRED est une concentration prédite pour un patient. Ce n'est pas une variation individuelle du paramètre.",
+        "en": "IPRED is a predicted concentration for one patient. It is not a patient parameter deviation."
       }
     ],
     "residual": [
       {
-        "fr": "EPS et SIGMA définissent ici l'erreur d'observation proportionnelle de NONMEM.",
-        "en": "EPS and SIGMA define NONMEM's proportional observation error here."
+        "fr": "EPS et SIGMA décrivent dans cet exemple NONMEM l'écart des mesures autour des prédictions.",
+        "en": "Here, EPS and SIGMA describe how measurements differ from predictions in NONMEM."
       },
       {
-        "fr": "b et eps paramètrent ici le bruit de mesure Monolix.",
-        "en": "b and eps parameterize Monolix observation noise here."
+        "fr": "Dans cet exemple Monolix, b et eps décrivent cette erreur de mesure.",
+        "en": "Here, b and eps describe that measurement error in Monolix."
       },
       {
-        "fr": "prop(0.15) spécifie ici un terme d'erreur proportionnelle nlmixr2.",
-        "en": "prop(0.15) specifies a proportional residual error in nlmixr2 here."
+        "fr": "Dans cet exemple nlmixr2, prop(0.15) définit une erreur qui grandit avec la concentration.",
+        "en": "Here, prop(0.15) defines an error that grows with concentration in nlmixr2."
       },
       {
-        "fr": "OMEGA et eta.cl décrivent la variabilité entre individus, pas l'erreur résiduelle.",
-        "en": "OMEGA and eta.cl describe between-subject variability, not residual error."
+        "fr": "OMEGA et eta.cl concernent les différences entre patients, pas les erreurs de mesure.",
+        "en": "OMEGA and eta.cl concern differences between patients, not measurement errors."
       }
     ]
   },
   "cov-dispersion": {
     "predict": [
       {
-        "fr": "l'exposant bêta reste inchangé, donc la courbe typique aussi.",
-        "en": "beta is unchanged, so the typical curve is unchanged."
+        "fr": "Bêta ne change pas : la relation moyenne entre poids et clairance reste identique.",
+        "en": "Beta does not change: the average relationship between weight and clearance stays the same."
       },
       {
-        "fr": "omega = 0 supprime la composante ETA de variabilité interindividuelle de ce modèle.",
-        "en": "omega = 0 removes this model's ETA between-subject variation."
+        "fr": "Avec omega = 0, les patients n'ont plus d'écarts ETA autour de cette moyenne dans le modèle.",
+        "en": "With omega = 0, patients have no ETA deviations around that average in the model."
       },
       {
-        "fr": "la relation au poids dépend de bêta, pas d'omega.",
-        "en": "the weight relationship depends on beta, not omega."
+        "fr": "C'est bêta qui décrit l'effet du poids. Modifier omega ne supprime pas cet effet.",
+        "en": "Beta describes the weight effect. Changing omega does not remove it."
       },
       {
-        "fr": "l'erreur de mesure SIGMA est un autre niveau de variabilité.",
-        "en": "measurement error SIGMA is a separate variation component."
+        "fr": "L'erreur de mesure, représentée par SIGMA, n'est pas supprimée par omega = 0.",
+        "en": "Measurement error, represented by SIGMA, is not removed by omega = 0."
       }
     ]
   },
   "cov-threshold": {
     "validation": [
       {
-        "fr": "transformations et groupes sont estimés exclusivement sur l'entraînement.",
-        "en": "transformations and groups are fitted only to training data."
+        "fr": "Calculez les seuils et les groupes uniquement avec les données d'entraînement.",
+        "en": "Calculate thresholds and groups using training data only."
       },
       {
-        "fr": "la règle d'affectation doit être figée avant l'évaluation sur données indépendantes.",
-        "en": "the assignment rule must be frozen before independent evaluation."
+        "fr": "Fixez la règle avant de l'essayer sur les patients réservés au test.",
+        "en": "Set the rule before trying it on patients reserved for testing."
       },
       {
-        "fr": "utiliser l'AUC test pour former les groupes introduit une fuite de données.",
-        "en": "using test AUC to form groups causes information leakage."
+        "fr": "Si vous utilisez l'AUC des patients du test pour créer les groupes, le test n'est plus indépendant.",
+        "en": "If you use test patients' AUC to create groups, the test is no longer independent."
       },
       {
-        "fr": "une validation croisée doit réajuster les étapes apprises dans chaque pli d'entraînement.",
-        "en": "cross-validation must refit learned steps within each training fold."
+        "fr": "À chaque division de validation, recréez les groupes sans utiliser les patients réservés.",
+        "en": "At every validation split, rebuild groups without using held-out patients."
       }
     ]
   },
   "cov-extrapolation": {
     "domain": [
       {
-        "fr": "des modèles proches dans le domaine observé peuvent diverger à ses extrêmes.",
-        "en": "models close in the observed domain may diverge at the extremes."
+        "fr": "Deux modèles peuvent donner des résultats proches pour 40–90 kg, puis différents à 200 kg.",
+        "en": "Two models can agree for 40–90 kg but differ at 200 kg."
       },
       {
-        "fr": "une formule concise n'est pas une preuve de validité à 200 kg.",
-        "en": "a compact equation is not evidence of validity at 200 kg."
+        "fr": "Une équation courte n'est pas forcément correcte pour un poids jamais étudié.",
+        "en": "A short equation is not necessarily right for a weight never studied."
       },
       {
-        "fr": "il faut justifier et évaluer séparément l'extrapolation hors domaine.",
-        "en": "out-of-domain extrapolation needs separate justification and evaluation."
+        "fr": "Avant de prédire hors de la plage connue, vérifiez les hypothèses et cherchez des données adaptées.",
+        "en": "Before predicting beyond the known range, check assumptions and look for suitable data."
       },
       {
-        "fr": "l'accord entre deux courbes n'évalue pas le bénéfice clinique.",
-        "en": "agreement between curves does not evaluate clinical benefit."
+        "fr": "Deux courbes qui se ressemblent ne prouvent pas qu'une stratégie aide réellement les patients.",
+        "en": "Two similar curves do not prove that a strategy benefits patients."
       }
     ]
   },
   "cov-symbolic-validation": {
     "split": [
       {
-        "fr": "garder tous les prélèvements d'un patient du même côté évite une fuite intra-patient.",
-        "en": "keeping one patient's samples in one split prevents within-patient leakage."
+        "fr": "Gardez les prélèvements d'un même patient ensemble pour éviter de lui faire passer le test avec des données déjà vues.",
+        "en": "Keep one patient's samples together so the test does not include data already seen during training."
       },
       {
-        "fr": "choisir l'équation sur le test réutilise indûment le jeu final.",
-        "en": "choosing an equation with the test set improperly reuses the final set."
+        "fr": "Choisir l'équation grâce aux résultats du test final rend le score trop optimiste.",
+        "en": "Choosing the equation from final-test results makes the score too optimistic."
       },
       {
-        "fr": "toute standardisation ou sélection doit être apprise sur l'entraînement.",
-        "en": "all standardization or selection must be fitted on training only."
+        "fr": "Calculez les transformations, comme la standardisation, uniquement sur l'entraînement.",
+        "en": "Fit transformations, such as standardization, using training data only."
       },
       {
-        "fr": "figer la formule avant le test protège la validité de l'évaluation.",
-        "en": "freezing the formula before testing protects evaluation validity."
+        "fr": "Choisissez puis fixez la formule avant de mesurer ses performances sur le test.",
+        "en": "Choose and lock the formula before measuring its performance on the test."
       }
     ]
   },
   "cov-code-check": {
     "bugs": [
       {
-        "fr": "le poids est en kilogrammes dans ce contrat, pas en minutes.",
-        "en": "weight is measured in kilograms in this contract, not minutes."
+        "fr": "Le poids est exprimé en kilogrammes dans cet exercice. La minute n'est pas la bonne unité.",
+        "en": "Weight is measured in kilograms in this exercise. Minutes are the wrong unit."
       },
       {
-        "fr": "le dénominateur 70 doit être dans la puissance pour calculer (WT/70)^0,75.",
-        "en": "70 must be inside the power to compute (WT/70)^0.75."
+        "fr": "Le bon calcul est (WT/70)^0,75 : toute la fraction doit être élevée à la puissance.",
+        "en": "The correct calculation is (WT/70)^0.75: the entire fraction must be raised to the power."
       },
       {
-        "fr": "le contrat impose ici que le génotype agisse sur CL, pas sur V.",
-        "en": "this contract specifies a genotype effect on CL, not V."
+        "fr": "Le contrat de cet exercice prévoit un effet du génotype sur CL seulement, pas sur V.",
+        "en": "This exercise specifies a genotype effect on CL only, not on V."
       },
       {
-        "fr": "CL et V peuvent avoir des exposants allométriques différents.",
-        "en": "CL and V can have different allometric exponents."
+        "fr": "L'exposant du poids peut être différent pour CL et pour V.",
+        "en": "The weight exponent can differ for CL and V."
       }
     ]
   },
   "cov-omega-time": {
     "time": [
       {
-        "fr": "à 6 h, une mesure réalisée à 12 h appartient encore au futur.",
-        "en": "at 6 hours, a sample at 12 hours is still in the future."
+        "fr": "À 6 heures, le résultat de 12 heures n'est pas encore connu.",
+        "en": "At 6 hours, the 12-hour result is not available yet."
       },
       {
-        "fr": "le report de la dernière valeur connue est une hypothèse utilisable si elle est déclarée.",
-        "en": "carrying the last observed value forward is an option if disclosed."
+        "fr": "On peut provisoirement conserver la dernière valeur connue, à condition de préciser cette hypothèse.",
+        "en": "We may carry forward the last known value if we clearly state this assumption."
       },
       {
-        "fr": "une interpolation mobilisant la mesure future entraînerait une fuite pour une prédiction à 6 h.",
-        "en": "interpolation using a future value would leak information for a 6-hour prediction."
+        "fr": "Utiliser la mesure future de 12 heures pour prédire à 6 heures revient à connaître le futur.",
+        "en": "Using the future 12-hour measurement to predict at 6 hours is like knowing the future."
       },
       {
-        "fr": "LOCF est une convention de modélisation, pas la preuve d'une fonction d'organe constante.",
-        "en": "LOCF is a modeling convention, not evidence of constant organ function."
+        "fr": "LOCF ne prouve pas que la fonction du rein est restée constante : c'est une hypothèse pratique.",
+        "en": "LOCF does not prove kidney function stayed constant: it is a practical assumption."
       }
     ]
   },
