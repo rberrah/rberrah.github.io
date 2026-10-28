@@ -14,6 +14,15 @@
   export let onComplete = null;
   /** @type {Record<number, number>} */
   let answers = {};
+  // A reused component (SPA chapter/track change or FR/EN switch) must never
+  // carry a previous question's answer into a different question set.
+  let lastQuestions = questions;
+  let lastChapterSlug = chapterSlug;
+  $: if (questions !== lastQuestions || chapterSlug !== lastChapterSlug) {
+    lastQuestions = questions;
+    lastChapterSlug = chapterSlug;
+    answers = {};
+  }
   // The server-rendered quiz is inert until hydration attaches event handlers.
   // Expose the actual state to E2E instead of racing against a static page.
   let hydrated = false;
