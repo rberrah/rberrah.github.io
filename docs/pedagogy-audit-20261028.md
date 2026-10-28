@@ -23,6 +23,17 @@ Trois niveaux de preuve sont séparés :
 
 Aucune réponse scientifique, unité, niveau de réussite, fonction de simulation ou valeur de référence n'est modifiée.
 
+## QCM des chapitres : dette distincte, détectée pendant l'audit
+
+Les **282 questions à choix unique** intégrées aux cours sont distinctes des 43 sélections guidées. Leur interface indiquait la bonne option après réponse, mais ne présentait pas nécessairement une justification.
+
+- Désormais, chaque question indique explicitement **bonne réponse / réponse incorrecte** et affiche le texte de la bonne option.
+- Les **8 QCM des trois chapitres IA réécrits** disposent aussi d'une explication scientifique courte et spécifique en FR/EN.
+- Pour les **274 autres QCM**, l'interface invite honnêtement à relire le passage du cours au lieu de fabriquer une explication générique présentée comme une preuve.
+- Le contrôle automatisé vérifie les 282 indices corrects FR/EN et suit explicitement la part des questions qui disposent d'un corrigé explicatif éditorial.
+
+**Travail restant :** rédiger et relire humainement des explications propres aux 274 autres QCM, puis les soumettre par lots de parcours. Ne pas marquer cette partie « revue terminée » sur la base d'une simple correspondance avec l'option correcte.
+
 ## Contrôles permanents
 
 - `npm run audit:pedagogy` passe sur tous les contenus, signale les phrases particulièrement longues et vérifie la clarté du retour d'échec.
