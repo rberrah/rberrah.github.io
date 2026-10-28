@@ -33,7 +33,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-Bayesian TDM (MAP) requires a **PopPK model transportable** to the population of interest. An alternative — or complement — is to **learn** directly, from representative clinical or simulated profiles, the relationship between a few concentrations and **exposure** (AUC).
+In **therapeutic drug monitoring (TDM)**, we often want to estimate a patient's drug exposure from just a few blood samples. The Bayesian (**MAP**) approach uses a population pharmacokinetic (**PopPK**) model together with the patient's measurements. That model must be suitable for the population studied. Another approach, **machine learning (ML)**, uses clinical or simulated data to learn how a few concentrations relate to drug exposure (**AUC**, the area under the concentration-time curve).
 
 This is a very active research area, notably driven by the **Limoges** team.
 <!-- /step -->
@@ -41,7 +41,7 @@ This is a very active research area, notably driven by the **Limoges** team.
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Rather than fitting a differential equation per patient, a **tree** model (Random Forest, XGBoost) learns a function: a few samples + covariates → **AUC**.
 
-Fast at inference, it may capture complex interactions — but remains **non-mechanistic** and closely tied to the samples, covariates and populations seen during training.
+Once trained, the model can calculate AUC quickly and combine several pieces of information. But it does not necessarily describe how the body handles the drug. Predictions may be less reliable in patients or sampling schedules very different from those used for training.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="BayesUpdate" -->
@@ -61,7 +61,7 @@ A **hybrid** approach (Destere et al.) combines a PopPK structure and an ML comp
 <!-- /step -->
 
 <!-- step:title="Common pitfall" viz="46_ValidationSplit" -->
-A good internal score does not make a good clinical tool.
+Good results in patients used to develop a model do not prove that it will work in other patients.
 
 **Pitfall —** ML **extrapolates poorly** outside its training domain (new population, new schedule, extreme values). Without **external validation** or displayed uncertainty, performance on training data guarantees nothing at the bedside.
 

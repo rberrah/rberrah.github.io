@@ -141,11 +141,22 @@
           {/if}
           {#if state.result}
             <div class:correct={state.correct} class="feedback" role="status" data-testid="case-feedback">
-              {#if state.correct}{t('Résultat correct.', 'Correct result.')}
-              {:else if !state.result.valid}{t('Renseignez une réponse valide avant de vérifier.', 'Enter a valid answer before checking.')}
-              {:else if state.result.reason === 'unit'}{t('L’unité ne correspond pas à la grandeur demandée. La valeur doit être donnée dans l’unité attendue, sans conversion implicite.', 'The unit does not match the requested quantity. Give the value in the expected unit; there is no implicit conversion.')}
-              {:else if state.result.feedback}<ScientificText text={text(state.result.feedback)}/>
-              {:else}{t('Ce résultat ne respecte pas encore les conditions de l’exercice. Vérifiez les hypothèses, les unités ou utilisez un indice.', 'This result does not yet meet the exercise conditions. Check assumptions, units or use a hint.')}{/if}
+              {#if state.correct}{t('Bonne réponse.', 'Correct answer.')}
+              {:else if !state.result.valid}{t('Réponse incomplète. Saisissez une valeur ou sélectionnez au moins une proposition.', 'Incomplete answer. Enter a value or select at least one statement.')}
+              {:else}
+                <strong>{t('Réponse incorrecte.', 'Incorrect answer.')}</strong>
+                {#if state.result.reason === 'unit'}
+                  {t('Vérifiez l’unité choisie, puis réessayez.', 'Check the selected unit, then try again.')}
+                {:else if state.result.feedback}
+                  <ScientificText text={text(state.result.feedback)}/>
+                {:else if step.type === 'select'}
+                  {t('Une ou plusieurs propositions ne conviennent pas. Relisez-les, puis réessayez ou consultez un indice.', 'One or more choices are not right. Read them again, then retry or use a hint.')}
+                {:else if step.type === 'numeric'}
+                  {t('Vérifiez le calcul et les unités, puis réessayez ou utilisez un indice.', 'Check the calculation and units, then retry or use a hint.')}
+                {:else}
+                  {t('Vérifiez les valeurs choisies, puis réessayez ou utilisez un indice.', 'Check the settings, then retry or use a hint.')}
+                {/if}
+              {/if}
             </div>
           {/if}
           <div class="actions">
@@ -173,7 +184,7 @@
               {:else if step.type === 'tune'}
                 <p class="expected-value" data-testid="case-expected-settings"><strong>{t('Réglages attendus', 'Expected settings')} :</strong> {Object.entries(step.targets).map(([key, value]) => `${key} = ${number(value)}`).join(' · ')}</p>
               {/if}
-              <h5>{t('Pourquoi ?', 'Why?')}</h5><p><ScientificText text={text(step.correction)}/></p>
+              <h5>{t('Explication', 'Explanation')}</h5><p><ScientificText text={text(step.correction)}/></p>
               {#if step.type === 'reflection'}
                 <ul>{#each step.rubric as criterion}<li><ScientificText text={text(criterion)}/></li>{/each}</ul>
                 <p>{t('Comparez votre réponse à ces critères. Aucun texte libre n’est noté automatiquement.', 'Compare your response with these criteria. Free text is not automatically graded.')}</p>

@@ -5,6 +5,7 @@
   import { ui } from '#lib/i18n/translations.js';
   import CaseExercise from './CaseExercise.svelte';
   import ScientificText from './ScientificText.svelte';
+  import { numericValue } from '#lib/learning/assessment.js';
 
   /** @type {import('#lib/content/exercises.js').Exercise[]} */
   export let items = [];
@@ -35,9 +36,9 @@
   $: if (previousItems !== items) { previousItems = items; state = items.map(() => ({ done: false, correct: false, input: '' })); }
   function checkNum(/** @type {number} */ i) {
     const ex = items[i];
-    const v = parseFloat((state[i].input || '').replace(',', '.'));
+    const v = numericValue(state[i].input);
     const tol = (ex.tol ?? 0.05) * Math.abs(ex.answer ?? 0) + 1e-9;
-    const ok = Number.isFinite(v) && Math.abs(v - (ex.answer ?? 0)) <= tol;
+    const ok = v !== null && Math.abs(v - (ex.answer ?? 0)) <= tol;
     state[i] = { ...state[i], done: true, correct: ok };
     state = state;
   }

@@ -45,7 +45,9 @@ They build on the trees of the previous chapter, but assembled differently.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
-Where a forest **averages** independent trees, boosting adds them **sequentially**: each new tree corrects the **errors** (residuals) left by the sum of the previous ones.
+A forest **averages** several trees. **Boosting** works differently: it starts with a prediction, then adds a small tree to improve it. With squared-error loss, the new tree tries to correct the gaps between predicted and observed values (the **residuals**).
+
+**Example:** if the model predicts an AUC of 80 but the observed value is 100, the error is 20. A new tree can learn to correct part of that gap. This does not guarantee equally good predictions in new patients.
 
 Switch the module to "Boosting" mode and increase the iterations: the fit sharpens step by step, like a progressive focus.
 <!-- /step -->
@@ -55,7 +57,7 @@ The **additive** model is built in stages. At iteration $m$:
 
 $$ F_m(x) = F_{m-1}(x) + \nu\, h_m(x) $$
 
-where $h_m$ fits the **negative gradient** of the loss (residuals for squared loss) and $\nu$ is the **learning rate**. **XGBoost** minimises a **regularised** objective with a **second-order** approximation:
+Here, $h_m$ is the next tree, which aims to reduce prediction error, and $\nu$ is a **small multiplier** that limits each added correction (the learning rate). The **gradient** tells us which way to change a prediction to reduce the error; for squared-error loss, it is related to the residuals. **XGBoost** also discourages unnecessarily complex trees (**regularization**) and takes account of how the error curve bends (**second order**):
 
 $$ \mathcal{L} = \sum_i \ell(y_i,\hat y_i) + \sum_k \Omega(f_k),\qquad \Omega(f)=\gamma T + \tfrac{1}{2}\lambda\lVert w\rVert^2 $$
 
@@ -77,7 +79,7 @@ Boosting overfits fast if left unchecked.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- Boosting = trees added sequentially, each correcting the residuals (the gradient).
+- Boosting adds trees one after another to gradually reduce prediction errors.
 - $F_m = F_{m-1} + \nu\,h_m$; the learning rate $\nu$ controls the pace.
 - XGBoost: regularised + second-order objective; CatBoost: ordered boosting + categories.
 - Powerful on tabular data, but overfits without validation (early stopping).

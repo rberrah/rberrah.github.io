@@ -33,7 +33,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Le TDM bayésien (MAP) exige un **modèle PopPK transportable** à la population concernée. Une alternative — ou un complément — est d'**apprendre** directement, à partir de profils cliniques ou simulés représentatifs, la relation entre quelques concentrations et l'**exposition** (AUC).
+En **suivi thérapeutique pharmacologique (TDM)**, on cherche souvent à estimer l'exposition d'un patient à partir de quelques prises de sang. La méthode bayésienne (**MAP**) utilise un modèle pharmacocinétique de population (**PopPK**) et les mesures du patient. Ce modèle doit convenir à la population étudiée. Une autre approche, l'**apprentissage automatique (ML)**, apprend à partir de données cliniques ou simulées à relier quelques concentrations à l'exposition (**AUC**, l'aire sous la courbe des concentrations).
 
 C'est un axe de recherche très actif, notamment porté par l'équipe de **Limoges**.
 <!-- /step -->
@@ -41,7 +41,7 @@ C'est un axe de recherche très actif, notamment porté par l'équipe de **Limog
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Plutôt que d'ajuster une équation différentielle par patient, un modèle d'**arbres** (Random Forest, XGBoost) apprend une fonction : quelques prélèvements + covariables → **AUC**.
 
-Rapide à l'utilisation, il peut capter des interactions complexes — mais reste **non mécaniste** et dépend étroitement des prélèvements, covariables et populations vus à l'entraînement.
+Une fois entraîné, ce modèle peut calculer rapidement une AUC et combiner plusieurs informations. Mais il ne décrit pas nécessairement les mécanismes du corps. Ses résultats peuvent être moins fiables pour un patient ou des horaires de prélèvement très différents de ceux étudiés.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="BayesUpdate" -->
@@ -63,7 +63,7 @@ Une approche **hybride** (Destere et al.) associe une structure PopPK et une com
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" viz="46_ValidationSplit" -->
-Un bon score interne ne fait pas un bon outil clinique.
+Un bon résultat sur les patients utilisés pour développer un modèle ne prouve pas qu'il fonctionnera chez d'autres patients.
 
 :::pitfall
 Le ML **extrapole mal** hors du domaine d'apprentissage (nouvelle population, nouveau schéma, valeurs extrêmes). Sans **validation externe** ni incertitude affichée, la performance sur les données d'entraînement ne garantit rien au lit du patient.

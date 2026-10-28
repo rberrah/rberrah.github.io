@@ -35,20 +35,20 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
           if (step.units) await panel.getByTestId('case-unit').selectOption(step.unit);
           await check(panel).click();
           await expect(next(panel)).toBeDisabled();
-          await expect(panel.getByTestId('case-feedback')).not.toHaveText(/Résultat correct|Correct result/);
+          await expect(panel.getByTestId('case-feedback')).not.toHaveText(/Bonne réponse|Correct answer/);
         }
         await panel.getByTestId('case-number').fill(String(step.answer).replace('.', lang === 'fr' ? ',' : '.'));
         if (step.units) await panel.getByTestId('case-unit').selectOption(step.unit);
         await check(panel).click();
-        await expect(panel.getByTestId('case-feedback')).toHaveText(/Résultat correct|Correct result/);
+        await expect(panel.getByTestId('case-feedback')).toHaveText(/Bonne réponse|Correct answer/);
       } else if (step.type === 'select') {
         for (const correct of step.correct) await panel.locator('fieldset input').nth(correct).check();
         await check(panel).click();
-        await expect(panel.getByTestId('case-feedback')).toHaveText(/Résultat correct|Correct result/);
+        await expect(panel.getByTestId('case-feedback')).toHaveText(/Bonne réponse|Correct answer/);
       } else if (step.type === 'tune') {
         for (const [key, value] of Object.entries(step.targets)) await panel.getByTestId(`${step.experiment ? 'experiment' : 'lesson'}-${key}`).fill(String(value));
         await panel.getByRole('button', { name: /Vérifier les paramètres|Check parameters/ }).click();
-        await expect(panel.getByTestId('case-feedback')).toHaveText(/Résultat correct|Correct result/);
+        await expect(panel.getByTestId('case-feedback')).toHaveText(/Bonne réponse|Correct answer/);
       } else {
         await panel.getByTestId('case-reasoning').fill('My private reasoning is never stored.');
         await panel.getByRole('button', { name: /Comparer au corrigé|Compare with the rubric/ }).click();
@@ -56,7 +56,7 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
         await panel.getByTestId('case-correction').getByRole('checkbox').check();
       }
       const correction = panel.getByTestId('case-correction');
-      await expect(correction).toContainText(lang === 'en' ? 'Why?' : 'Pourquoi ?');
+      await expect(correction).toContainText(lang === 'en' ? 'Explanation' : 'Explication');
       if (step.type === 'select') {
         const entries = panel.getByTestId('case-answer-key').locator('li');
         await expect(entries).toHaveCount(step.options.length);
@@ -109,6 +109,27 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
   });
 }
 
+test('Learning: wrong answers receive a short, helpful explanation in French and English', async ({ page }) => {
+  const activity = activities.find(item => item.id === 'practice-ai-trees');
+  for (const lang of ['fr', 'en']) {
+    await page.goto(path(activity, lang));
+    const panel = page.getByTestId('activity-practice-ai-trees');
+    await panel.getByTestId('case-number').fill('999');
+    await check(panel).click();
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Réponse incorrecte.' : 'Incorrect answer.');
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Vérifiez le calcul' : 'Check the calculation');
+    await expect(panel.getByTestId('case-feedback')).not.toContainText('Ce résultat ne respecte pas encore');
+    await panel.getByTestId('case-number').fill('100');
+    await check(panel).click();
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Bonne réponse.' : 'Correct answer.');
+    await next(panel).click();
+    await panel.locator('fieldset input').nth(1).check();
+    await check(panel).click();
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Réponse incorrecte.' : 'Incorrect answer.');
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Une ou plusieurs propositions' : 'One or more choices');
+  }
+});
+
 test('Learning: average trees explicitly identifies all correct and incorrect choices after a wrong attempt', async ({ page }) => {
   const activity = activities.find(item => item.id === 'practice-ai-trees');
   await page.goto(path(activity, 'fr'));
@@ -124,11 +145,11 @@ test('Learning: average trees explicitly identifies all correct and incorrect ch
   const answers = panel.getByTestId('case-answer-key').locator('li');
   await expect(answers).toHaveCount(3);
   await expect(answers.nth(0)).toContainText('Correcte');
-  await expect(answers.nth(0)).toContainText('corrélées');
+  await expect(answers.nth(0)).toContainText('mêmes erreurs');
   await expect(answers.nth(1)).toContainText('Incorrecte');
-  await expect(answers.nth(1)).toContainText('intervalle de confiance à 95 %');
+  await expect(answers.nth(1)).toContainText('marge d’erreur fiable à 95 %');
   await expect(answers.nth(2)).toContainText('Correcte');
-  await expect(answers.nth(2)).toContainText('hors domaine');
+  await expect(answers.nth(2)).toContainText('Hors des valeurs');
   await expect(next(panel)).toBeEnabled();
 });
 

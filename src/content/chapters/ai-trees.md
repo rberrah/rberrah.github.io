@@ -47,15 +47,15 @@ Ce sont les briques de la plupart des méthodes de ML « classiques » utiles au
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Un **arbre** pose des questions successives (« ClCr < 60 ? ») et découpe l'espace en zones où la réponse est supposée constante : d'où une prédiction **en marches**.
 
-Un arbre profond peut coller au bruit (surajustement). L'idée de la **forêt** : construire beaucoup d'arbres décorrélés et **moyenner** leurs prédictions. Cela réduit généralement la variance par rapport à un arbre unique, sans garantir une meilleure performance sur toute nouvelle population. La fonction reste construite à partir de marches. Testez les modes « Arbre » puis « Forêt », puis déplacez le profil à prédire hors de la plage apprise.
+Un arbre très détaillé peut aussi apprendre les particularités des patients étudiés au lieu d'apprendre une règle utile : c'est le **surajustement**. Pour limiter ce problème, une **forêt** fait travailler plusieurs arbres et calcule la moyenne de leurs prédictions. Si les arbres font des erreurs différentes, certaines se compensent. Mais s'ils se trompent tous de la même façon, la moyenne reste fausse. Testez « Arbre », puis « Forêt » : déplacez ensuite le profil hors des valeurs utilisées pour apprendre.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" -->
-Un arbre choisit à chaque nœud le découpage qui **réduit le plus l'impureté**. En régression, on minimise la variance résiduelle :
+À chaque question, l'arbre cherche une séparation qui regroupe des patients ayant des résultats proches. Par exemple, séparer les patients selon leur poids peut réduire les différences d'AUC *à l'intérieur* des deux groupes. On mesure les différences restantes par la **somme des erreurs au carré (SSE)** :
 
 $$ \text{split}^\star = \arg\min_{s}\ \big[\,SSE(\text{gauche}) + SSE(\text{droite})\,\big] $$
 
-Une **forêt aléatoire** (Breiman) combine deux ingrédients de décorrélation : le **bagging** (chaque arbre sur un échantillon bootstrap) et un **sous-ensemble aléatoire de variables** à chaque nœud. La prédiction est la moyenne :
+Une **forêt aléatoire** construit plusieurs arbres à partir de tirages différents des patients (**bootstrap**) et ne propose pas toujours les mêmes variables à chaque question. Les arbres ne sont donc pas identiques. Pour un nouveau patient, on calcule simplement la **moyenne** de leurs prédictions :
 
 $$ \hat y(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x) $$
 
@@ -80,7 +80,7 @@ Un arbre prédit une **constante** dans chaque feuille ; une forêt de régressi
 
 <!-- step:title="À retenir" -->
 - Un arbre découpe l'espace des covariables → prédiction en marches, surajustement si trop profond.
-- La forêt aléatoire moyenne de nombreux arbres décorrélés (bagging + variables aléatoires) pour réduire la variance.
+- Une forêt moyenne plusieurs arbres différents : certaines erreurs se compensent, mais la moyenne peut encore être fausse.
 - Elle capte les interactions et fournit une importance des variables.
 - Elle n'extrapole pas ; importance ≠ causalité.
 <!-- /step -->

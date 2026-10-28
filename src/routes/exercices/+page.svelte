@@ -110,7 +110,7 @@
           <details class="quiz-card">
             <summary><span>QCM · {quiz.questions.length} {$language === 'en' ? 'questions' : 'questions'}</span><strong>{quiz.title}</strong></summary>
             <div class="quiz-body">
-              <Quiz title={$language === 'en' ? 'Course knowledge check' : 'Vérification du cours'} questions={quiz.questions}/>
+              <Quiz title={$language === 'en' ? 'Course knowledge check' : 'Vérification du cours'} questions={quiz.questions} chapterSlug={quiz.slug}/>
               <a href={`${base}/chapitres/${quiz.slug}/?lang=${$language}`}>{$language === 'en' ? 'Review the lesson' : 'Revoir le cours'}</a>
             </div>
           </details>
