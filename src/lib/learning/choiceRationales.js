@@ -53,16 +53,16 @@ export const choiceRationales = {
   "practice-nca-absorption": {
     "interval": [
       {
-        "fr": "la borne 0,79 est inférieure à la limite 0,80.",
-        "en": "the 0.79 bound falls below the 0.80 limit."
+        "fr": "La limite est de 0,80, mais l'intervalle descend jusqu'à 0,79 : le critère n'est pas respecté.",
+        "en": "The limit is 0.80, but the interval goes down to 0.79: the criterion is not met."
       },
       {
-        "fr": "le critère concerne l'ensemble de l'intervalle à 90 %, pas seulement l'estimation ponctuelle.",
-        "en": "the criterion applies to the entire 90% interval, not just its point estimate."
+        "fr": "Pour conclure, il faut vérifier les deux bornes de l'intervalle à 90 %, pas seulement la moyenne.",
+        "en": "To decide, check both ends of the 90% interval, not just the average."
       },
       {
-        "fr": "l'intervalle dépasse une borne du critère préspécifié.",
-        "en": "the interval crosses a prespecified acceptance boundary."
+        "fr": "Une des limites de l'intervalle sort de la zone autorisée : on ne peut pas conclure à l'équivalence.",
+        "en": "One end of the interval falls outside the accepted range: equivalence is not established."
       }
     ]
   },
@@ -133,32 +133,32 @@ export const choiceRationales = {
   "practice-ai-llm": {
     "audit": [
       {
-        "fr": "une affirmation biomédicale doit pouvoir être rattachée à une source vérifiable.",
-        "en": "a biomedical claim needs a verifiable supporting source."
+        "fr": "Retrouvez la source de l'affirmation et vérifiez ce qu'elle dit réellement.",
+        "en": "Find the source behind the claim and check what it actually says."
       },
       {
-        "fr": "unités, sens physiologique et hypothèses sont à vérifier indépendamment du style du texte.",
-        "en": "units, physiological plausibility and assumptions must be checked independently of writing style."
+        "fr": "Même si le texte semble convaincant, contrôlez les unités, les calculs et le sens biologique.",
+        "en": "Even if the text sounds convincing, check units, calculations and biology."
       },
       {
-        "fr": "une formulation assurée n'apporte aucune preuve de validité scientifique.",
-        "en": "confident wording is not evidence of scientific validity."
+        "fr": "Un modèle peut présenter une erreur avec beaucoup d'assurance. Cela ne la rend pas vraie.",
+        "en": "A model can confidently present a mistake. Confidence does not make it true."
       }
     ]
   },
   "practice-valid-gof": {
     "interpret": [
       {
-        "fr": "les observations dépassent ici les prédictions, ce qui caractérise une sous-prédiction locale.",
-        "en": "observations exceed predictions here, indicating local underprediction."
+        "fr": "Les concentrations observées dépassent les valeurs prédites : ici, le modèle prédit trop bas.",
+        "en": "Observed concentrations are higher than predictions: the model predicts too low here."
       },
       {
-        "fr": "le graphique seul ne permet pas d'attribuer avec certitude le biais à la clairance.",
-        "en": "this plot alone cannot attribute the bias to clearance with certainty."
+        "fr": "Un tel graphique montre un écart, mais pas le paramètre qui en est forcément responsable.",
+        "en": "Such a plot shows a mismatch but does not identify which parameter must be responsible."
       },
       {
-        "fr": "unités, doses, temps et valeur de référence sont des causes alternatives à contrôler.",
-        "en": "units, doses, timing and baseline are alternative causes to check."
+        "fr": "Vérifiez aussi les doses, les heures de prélèvement et les unités avant de changer le modèle.",
+        "en": "Also check doses, sample times and units before changing the model."
       }
     ]
   },
@@ -197,16 +197,16 @@ export const choiceRationales = {
   "practice-valid-interpretation": {
     "hypotheses": [
       {
-        "fr": "une cinétique mal représentée peut produire des écarts dépendant du temps.",
-        "en": "misspecified kinetics can produce time-dependent discrepancies."
+        "fr": "Une absorption ou une distribution mal représentée peut créer des erreurs qui varient selon le temps.",
+        "en": "If absorption or distribution is poorly represented, errors may vary over time."
       },
       {
-        "fr": "une erreur d'horodatage ou d'événement peut générer un motif similaire.",
-        "en": "incorrect timing or events can generate a similar pattern."
+        "fr": "Une dose ou un prélèvement mal daté peut produire un motif semblable.",
+        "en": "An incorrectly timed dose or sample can produce a similar pattern."
       },
       {
-        "fr": "le nombre de mesures ne démontre pas le nombre de compartiments nécessaires.",
-        "en": "the number of observations does not prove the required compartment count."
+        "fr": "Le nombre de points ne dit pas à lui seul combien de compartiments il faut.",
+        "en": "The number of data points alone does not tell us how many compartments are needed."
       }
     ]
   },
@@ -649,48 +649,48 @@ export const choiceRationales = {
   "practice-nonmem-moteur": {
     "checks": [
       {
-        "fr": "les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "starting values and numerical bounds can affect the fitted optimum."
+        "fr": "Changer les valeurs de départ peut aider à voir si le logiciel retrouve le même résultat.",
+        "en": "Changing starting values helps check whether the program finds the same result."
       },
       {
-        "fr": "diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "diagnostics and numerical stability help assess solution reliability."
+        "fr": "Regardez si le calcul a convergé et si le résultat reste stable entre plusieurs essais.",
+        "en": "Check that fitting has converged and the result stays stable across several runs."
       },
       {
-        "fr": "la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "the last execution may be nonconverged or trapped at a local optimum."
+        "fr": "Le dernier calcul n'est pas forcément le meilleur. Il peut s'être arrêté trop tôt.",
+        "en": "The last run is not necessarily the best. It may have stopped too early."
       }
     ]
   },
   "practice-monolix-moteur": {
     "checks": [
       {
-        "fr": "les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "starting values and numerical bounds can affect the fitted optimum."
+        "fr": "Changer les valeurs de départ peut aider à voir si le logiciel retrouve le même résultat.",
+        "en": "Changing starting values helps check whether the program finds the same result."
       },
       {
-        "fr": "diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "diagnostics and numerical stability help assess solution reliability."
+        "fr": "Regardez si le calcul a convergé et si le résultat reste stable entre plusieurs essais.",
+        "en": "Check that fitting has converged and the result stays stable across several runs."
       },
       {
-        "fr": "la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "the last execution may be nonconverged or trapped at a local optimum."
+        "fr": "Le dernier calcul n'est pas forcément le meilleur. Il peut s'être arrêté trop tôt.",
+        "en": "The last run is not necessarily the best. It may have stopped too early."
       }
     ]
   },
   "practice-nlmixr2-moteur": {
     "checks": [
       {
-        "fr": "les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "starting values and numerical bounds can affect the fitted optimum."
+        "fr": "Changer les valeurs de départ peut aider à voir si le logiciel retrouve le même résultat.",
+        "en": "Changing starting values helps check whether the program finds the same result."
       },
       {
-        "fr": "diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "diagnostics and numerical stability help assess solution reliability."
+        "fr": "Regardez si le calcul a convergé et si le résultat reste stable entre plusieurs essais.",
+        "en": "Check that fitting has converged and the result stays stable across several runs."
       },
       {
-        "fr": "la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "the last execution may be nonconverged or trapped at a local optimum."
+        "fr": "Le dernier calcul n'est pas forcément le meilleur. Il peut s'être arrêté trop tôt.",
+        "en": "The last run is not necessarily the best. It may have stopped too early."
       }
     ]
   }
