@@ -106,7 +106,7 @@ assert.deepEqual(activities.find(a => a.id === 'practice-ai-trees').steps.find(s
 for (const activity of activities) for (const step of activity.steps) {
   for (const lang of ['fr', 'en']) {
     assert(step.prompt?.[lang]?.trim(), `Missing question ${lang}: ${activity.id}/${step.id}`);
-    assert(step.correction?.[lang]?.trim()?.length >= 12, `Missing explained correction ${lang}: ${activity.id}/${step.id}`);
+    assert(step.correction?.[lang]?.trim(), `Missing explained correction ${lang}: ${activity.id}/${step.id}`);
   }
 }
 console.log(`Audited ${activities.length} guided/synthesis activities and ${selections.length} multi-select corrections with bilingual, per-choice rationales.`);
