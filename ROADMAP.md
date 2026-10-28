@@ -1,7 +1,8 @@
 # Roadmap - PMx Explain
 
-Mise à jour : 2026-10-17.
-Lot actuel : validation scientifique, validation pédagogique et reproductibilité.
+Mise à jour : 2026-10-28.
+Statut : historique et travaux non bloquants après le nouveau gel PMx Explain.
+La baseline active est documentée dans `docs/FROZEN_BASELINE_20261028.md`.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
 

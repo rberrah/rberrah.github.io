@@ -1,6 +1,6 @@
 # PMx Explain repository governance
 
-Updated: 2026-10-17.
+Updated: 2026-10-28.
 
 ## Repository boundaries
 
@@ -16,7 +16,9 @@ PMx must not reintroduce executable mirrors or scientific test suites owned by t
 
 The importable repository ruleset is versioned at `.github/rulesets/main-protection.json`. It targets the default branch, requires a pull request, zero approving reviews while the repository has a single maintainer, resolved review threads, an up-to-date branch, and the five actual PMx check contexts: `build`, `scientific-js`, `scientific-r`, `scientific-pmetrics` and `mipd-consumer`. It also blocks force pushes and branch deletion. CODEOWNERS review can be enabled later when independent collaborators are available.
 
-The repository-level connector used for maintenance cannot change branch-protection settings. Until the JSON ruleset is imported and activated in repository settings, the deploy workflow remains fail-closed: Pages only publishes an artifact from a successful `PMx qualification` push run.
+The repository ruleset is active as `Protect PMx main` (ID `25306480`) with no
+bypass actor. The deploy workflow is also fail-closed: Pages only publishes an
+artifact from a successful `PMx qualification` push run.
 
 ## Pull-request rules
 

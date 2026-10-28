@@ -3,19 +3,14 @@
 This queue records work that still requires a person other than the author.
 It does not claim that an internal or external review has occurred.
 
-Before the targeted 2026-10-12 review, 62 of 65 visualizations had a current
-author-review hash. After the bilingual text, equations and captions of
-`32_Myelosuppression`, `43_Copula` and `NPAGSupportPoints` were reread, all
-65 of 65 had a current author-review hash. The interpretation text of
-`NPAGSupportPoints` changed again on 2026-10-14, so its author review and its
-independent scientific review are both pending.
-
-The 2026-10-14 software-documentation update changed three French and three
-English chapters after their stored author-review hashes. Automated inventory
-checks identify them as pending author review; 92 of 95 chapters in each language
-still match their stored author-review hash. The exact files are listed in
-[author-review-required.md](author-review-required.md). No internal or external
-review is recorded for these changes.
+At the 2026-10-28 freeze, the generated registries report 58 of 67
+visualizations with a current recorded review and 9 `pending`. They also report
+79 of 95 chapters with a current author-review hash in each language: 16 French
+and 16 English files changed after their stored hashes. The exact files and
+components are listed in
+[author-review-required.md](author-review-required.md). Four cross-domain
+lessons per language also remain `pending`. No internal or external chapter
+review is recorded.
 
 Use the file-level [independent review checklist](scientific-review-checklist.md)
 to record sources, reviewer, date, comments and status.
