@@ -160,7 +160,7 @@
                 <ol class="answer-review" data-testid="case-answer-key">
                   {#each step.options as option, i}
                     <li>
-                      <strong>{step.correct.includes(i) ? t('Correcte', 'Correct') : t('Incorrecte', 'Incorrect')} — {i + 1}.</strong>
+                      <strong>{step.correct.includes(i) ? t('Correcte', 'Correct') : t('Incorrecte', 'Incorrect')}</strong>
                       <ScientificText text={text(option)}/>
                       {#if choiceRationales[activity.id]?.[step.id]?.[i]}
                         <p class="option-why"><ScientificText text={text(choiceRationales[activity.id][step.id][i])}/></p>
