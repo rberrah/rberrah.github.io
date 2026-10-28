@@ -21,7 +21,9 @@ for (const file of files) {
     const paragraphs = main.split(/\n\s*\n/g).filter(p => p.trim());
     for (const paragraph of paragraphs) {
       const plain = paragraph.replace(/\[[^\]]+\]\([^)]*\)/g, 'lien').replace(/[\*_~`]/g, ' ').trim();
-      if (words(plain) >= 80) add('long-paragraph', file, lang, words(plain), plain);
+      for (const sentence of plain.split(/(?<=[.!?])\s+(?=[A-ZÀ-Ü])/u)) {
+        if (words(sentence) >= 42) add('long-sentence', file, lang, words(sentence), sentence);
+      }
     }
     const highJargon = (main.match(/\b(?:asymptotique|hétéroscédasticité|régularisation|décorrélation|mécaniste|calibr(?:ation|ée)|transportabilité|shrinkage|likelihood|regularization|decorrelation)\b/gi) ?? []).length;
     tags.push({ file, lang, paragraphs: paragraphs.length, highJargon });
