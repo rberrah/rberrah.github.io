@@ -38,7 +38,7 @@
     const ex = items[i];
     const v = numericValue(state[i].input);
     const tol = (ex.tol ?? 0.05) * Math.abs(ex.answer ?? 0) + 1e-9;
-    const ok = Number.isFinite(v) && Math.abs(v - (ex.answer ?? 0)) <= tol;
+    const ok = v !== null && Math.abs(v - (ex.answer ?? 0)) <= tol;
     state[i] = { ...state[i], done: true, correct: ok };
     state = state;
   }
