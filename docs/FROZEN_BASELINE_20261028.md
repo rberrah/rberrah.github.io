@@ -45,7 +45,12 @@ passed:
   successful;
 - public sitemap and representative HTML audit: HTTP 200 with valid XML,
   canonical metadata and server-rendered content;
-- npm audit: zero known advisories at low severity or above.
+- npm audit: zero known advisories at low severity or above. The unreleased
+  [`deepmerge` prototype-pollution fix](https://github.com/TehShrike/deepmerge/commit/d0256cde79edba0c8e10a888ac439124318b14ca)
+  is vendored and guarded by a regression test because
+  [GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)
+  has no patched npm release. Replace the vendor override with an official
+  fixed release when one becomes available.
 
 The active repository ruleset `Protect PMx main` (ID `25306480`) requires a
 pull request, resolved review threads, an up-to-date branch and the five PMx
@@ -88,4 +93,3 @@ remain outside the frozen scope.
 - manual NVDA, VoiceOver, 200% zoom and physical-device accessibility checks;
 - unguided user studies;
 - future pedagogical improvements already recorded in the historical roadmap.
-
