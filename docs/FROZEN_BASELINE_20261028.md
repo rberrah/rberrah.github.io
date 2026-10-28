@@ -1,7 +1,7 @@
 # PMx Explain - frozen maintenance baseline
 
 **Freeze decision:** 28 October 2026  
-**Qualified code baseline:** `9d5d31bdb133f56fdb24f5f9319742d41e3b49f6`  
+**Qualified code baseline:** `d42107d8d15857a8e019851aea37bee2f5f355fa`
 **Intended use:** teaching and research only  
 **Repository:** `rberrah/rberrah.github.io`
 
@@ -33,11 +33,11 @@ release and must pass the complete PMx consumer, build and browser gates.
 
 ## Qualification evidence
 
-The exact code baseline `9d5d31bdb133f56fdb24f5f9319742d41e3b49f6`
+The exact code baseline `d42107d8d15857a8e019851aea37bee2f5f355fa`
 passed:
 
 - PMx qualification run
-  [40598781928](https://github.com/rberrah/rberrah.github.io/actions/runs/40598781928):
+  [40668781439](https://github.com/rberrah/rberrah.github.io/actions/runs/40668781439):
   `build`, `scientific-js`, `scientific-r`, `scientific-pmetrics` and
   `mipd-consumer` successful;
 - qualified Pages deployment run
