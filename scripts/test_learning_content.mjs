@@ -150,6 +150,27 @@ for (const activity of activities.filter(a => !a.id.startsWith('cov-') && a.kind
   answers.forEach((s, i) => assert(Math.abs(s.answer - expected[activity.chapter][i]) < .00002, `${activity.chapter}: ${s.answer} vs ${expected[activity.chapter][i]}`));
 }
 
+// Independent reference calculations for all 10 numerical steps in synthesis cases.
+// These were absent from the per-chapter numerical fixture above.
+const synthesisReference = {
+  'synthesis-start': { auc: 100 / 10 },
+  'synthesis-math': { k: 0.2, cl: 0.2 * 20 },
+  'synthesis-nca': { f: (30 / 200) / (20 / 100) },
+  'synthesis-covariates': { cl: 5 * Math.exp(0.8 * Math.log(45 / 90)) },
+  'synthesis-infectio': { pta: 100 * 3 / 4, mic: 0 },
+  'synthesis-ai': { gain: 100 * (20 - 14) / 20 },
+  'synthesis-trials': { power: 100 * 820 / 1000 },
+  'synthesis-tools': { omega: Math.sqrt(0.09) }
+};
+for (const activity of syntheses) {
+  const observed = activity.steps.filter(step => step.type === 'numeric');
+  const reference = synthesisReference[activity.id] ?? {};
+  assert.deepEqual(observed.map(step => step.id).sort(), Object.keys(reference).sort(),
+    `Complete independent numerical reference for synthesis: ${activity.id}`);
+  for (const step of observed) assert(Math.abs(step.answer - reference[step.id]) < 0.00002,
+    `Incorrect synthesis answer: ${activity.id}/${step.id}`);
+}
+
 const defaults = kind => ({ ...experimentDefinitions[kind].defaults });
 assert.equal(experimentValue('bolus', 0, defaults('bolus')), 5);
 assert.equal(experimentValue('bolus', 0, { ...defaults('bolus'), v: 10 }), 10);
