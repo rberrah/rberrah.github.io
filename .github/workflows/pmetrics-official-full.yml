@@ -60,7 +60,7 @@ jobs:
           use-public-rspm: true
       - name: Install pinned Pmetrics
         run: |
-          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(timeout = 600, repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
+          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); cran_repo <- Sys.getenv("RSPM", unset = "https://cloud.r-project.org"); options(timeout = 600, repos = c(LAPKB = binary_repo("lapkb"), CRAN = cran_repo)); install.packages(c("Pmetrics", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
       - run: npm ci
       - name: Run official full benchmark
         run: npm run benchmark:pmetrics-official
