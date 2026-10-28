@@ -1,5 +1,6 @@
 // Independently authored, beginner-friendly explanations for selected course checkpoint quizzes.
 // Explanations are keyed by chapter slug and the original question index; questions may be shuffled for display.
+/** @type {Record<string, Array<{fr: string, en: string}>>} */
 export const quizRationales = {
   'ai-trees': [
     {
