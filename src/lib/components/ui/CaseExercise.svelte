@@ -8,6 +8,7 @@
   import { language } from '#lib/stores/language.js';
   import { learning, markLearning, loadLearning } from '#lib/stores/learning.js';
   import { assess, activityStatus, emptyStep } from '#lib/learning/assessment.js';
+  import { choiceRationales } from '#lib/learning/choiceRationales.js';
   import { displayUnit } from '#lib/learning/activityContent.js';
   import { resolveSources } from '#lib/content/references.js';
   import { defaults, covariateCurves } from '#lib/covariates/models.js';
@@ -20,7 +21,7 @@
   export let activity;
   const text = value => value?.[$language] ?? value?.fr ?? '';
   const t = (fr, en) => $language === 'en' ? en : fr;
-  const number = value => new Intl.NumberFormat($language, { maximumSignificantDigits: 4 }).format(value);
+  const number = value => new Intl.NumberFormat($language, { maximumSignificantDigits: 8 }).format(value);
   let states = activity.steps.map(emptyStep), index = 0, open = false, finished = false;
   let visuals = {}, root, heading, status = '', mounted = false;
   $: step = activity.steps[index];
@@ -129,7 +130,7 @@
               <p class="tolerance">{t('Tolérance', 'Tolerance')} : {step.tolerance.kind === 'relative' ? `${number(step.tolerance.value * 100)} % (${t('relative', 'relative')})` : `± ${number(step.tolerance.value)} ${displayUnit(step.unit, $language)} (${t('absolue', 'absolute')})`}</p>
             </form>
           {:else if step.type === 'select'}
-            <fieldset disabled={done}><legend>{t('Toutes les propositions correctes', 'All correct statements')}</legend>
+            <fieldset disabled={done}><legend>{t('Cochez toutes les affirmations exactes. Plusieurs réponses peuvent être correctes.', 'Select every true statement. More than one answer may be correct.')}</legend>
               {#each step.options as option, i}<label class="option"><input type="checkbox" checked={state.selected.includes(i)} on:change={e => choose(i, e.currentTarget.checked)} /><ScientificText text={text(option)}/></label>{/each}
             </fieldset>
             <button on:click={check} disabled={done}><Check size={16}/>{t('Vérifier', 'Check')}</button>
@@ -154,7 +155,25 @@
           {#each (step.hints ?? []).slice(0, state.hints) as hint}<p class="hint"><ScientificText text={text(hint)}/></p>{/each}
           {#if state.correct || state.revealed}
             <div class="correction" data-testid="case-correction">
-              <h5>{t('Raisonnement attendu', 'Expected reasoning')}</h5><p><ScientificText text={text(step.correction)}/></p>
+              {#if step.type === 'select'}
+                <h5>{t('Réponses et justifications', 'Answers and explanations')}</h5>
+                <ol class="answer-review" data-testid="case-answer-key">
+                  {#each step.options as option, i}
+                    <li>
+                      <strong>{step.correct.includes(i) ? t('Correcte', 'Correct') : t('Incorrecte', 'Incorrect')} — {i + 1}.</strong>
+                      <ScientificText text={text(option)}/>
+                      {#if choiceRationales[activity.id]?.[step.id]?.[i]}
+                        <p class="option-why"><ScientificText text={text(choiceRationales[activity.id][step.id][i])}/></p>
+                      {/if}
+                    </li>
+                  {/each}
+                </ol>
+              {:else if step.type === 'numeric'}
+                <p class="expected-value" data-testid="case-expected-value"><strong>{t('Réponse attendue', 'Expected answer')} :</strong> {number(step.answer)} {displayUnit(step.unit, $language)}</p>
+              {:else if step.type === 'tune'}
+                <p class="expected-value" data-testid="case-expected-settings"><strong>{t('Réglages attendus', 'Expected settings')} :</strong> {Object.entries(step.targets).map(([key, value]) => `${key} = ${number(value)}`).join(' · ')}</p>
+              {/if}
+              <h5>{t('Pourquoi ?', 'Why?')}</h5><p><ScientificText text={text(step.correction)}/></p>
               {#if step.type === 'reflection'}
                 <ul>{#each step.rubric as criterion}<li><ScientificText text={text(criterion)}/></li>{/each}</ul>
                 <p>{t('Comparez votre réponse à ces critères. Aucun texte libre n’est noté automatiquement.', 'Compare your response with these criteria. Free text is not automatically graded.')}</p>
@@ -194,6 +213,11 @@
   button:disabled { opacity: .5; cursor: not-allowed; } button :global(svg), a :global(svg) { flex-shrink: 0; }
   .actions, .step-nav, footer { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; } .step-nav { justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 16px; }
   fieldset { border: 0; padding: 0; margin: 16px 0; } legend { font-size: .8rem; margin-bottom: 10px; color: var(--text-secondary); } .option { display: flex; align-items: start; gap: 9px; margin: 10px 0; line-height: 1.5; } .option input { flex-shrink: 0; margin-top: 4px; }
+  .answer-review { padding-left: 22px; margin: 12px 0; display: grid; gap: 12px; }
+  .answer-review li { padding-left: 4px; line-height: 1.55; }
+  .answer-review strong { display: block; margin-bottom: 3px; }
+  .option-why { margin: 4px 0 0; color: var(--text-secondary); }
+  .expected-value { font-variant-numeric: tabular-nums; font-size: .95rem; }
   .feedback, .correction { border-left: 3px solid #a14b64; padding: 12px; margin-top: 16px; background: var(--bg-secondary); line-height: 1.6; } .correct, .correction { border-color: #18998d; } .correction p:last-child { margin-bottom: 0; } .hint { padding-left: 12px; border-left: 2px solid var(--border-strong); }
   pre { overflow-x: auto; max-width: 100%; padding: 12px; background: var(--bg-secondary); font-size: .8rem; } .sources { width: 100%; overflow-wrap: anywhere; } .sources summary { padding: 8px 0; font-size: .85rem; } .sources p, .sources li { font-size: .8rem; }
   .data-table { overflow-x: auto; margin-block: 16px; } table { width: 100%; border-collapse: collapse; font-size: .85rem; } th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border-strong); }
