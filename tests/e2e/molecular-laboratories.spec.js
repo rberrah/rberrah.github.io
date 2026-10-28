@@ -64,7 +64,7 @@ test('effect-site discovery focuses ke0 and provides a complete French applicati
   await expect(page.locator('#molecular-ke0')).toBeVisible();
   await expect(page.locator('#molecular-dose')).toHaveCount(0);
   const debrief = page.getByTestId('laboratory-debrief');
-  await expect(debrief.locator('.application p')).toContainText('Si ke0 diminue');
+  await expect(debrief.locator('.application p')).toContainText('Un ke0 plus faible produit quel profil ?');
   await debrief.getByLabel("Réponse d'application").selectOption('1');
   await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Réponse incorrecte.');
   await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText("Un retard d'effet plus long");
