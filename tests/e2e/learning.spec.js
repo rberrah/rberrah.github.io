@@ -35,20 +35,20 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
           if (step.units) await panel.getByTestId('case-unit').selectOption(step.unit);
           await check(panel).click();
           await expect(next(panel)).toBeDisabled();
-          await expect(panel.getByTestId('case-feedback')).not.toHaveText(/Résultat correct|Correct result/);
+          await expect(panel.getByTestId('case-feedback')).not.toHaveText(/Bonne réponse|Correct answer/);
         }
         await panel.getByTestId('case-number').fill(String(step.answer).replace('.', lang === 'fr' ? ',' : '.'));
         if (step.units) await panel.getByTestId('case-unit').selectOption(step.unit);
         await check(panel).click();
-        await expect(panel.getByTestId('case-feedback')).toHaveText(/Résultat correct|Correct result/);
+        await expect(panel.getByTestId('case-feedback')).toHaveText(/Bonne réponse|Correct answer/);
       } else if (step.type === 'select') {
         for (const correct of step.correct) await panel.locator('fieldset input').nth(correct).check();
         await check(panel).click();
-        await expect(panel.getByTestId('case-feedback')).toHaveText(/Résultat correct|Correct result/);
+        await expect(panel.getByTestId('case-feedback')).toHaveText(/Bonne réponse|Correct answer/);
       } else if (step.type === 'tune') {
         for (const [key, value] of Object.entries(step.targets)) await panel.getByTestId(`${step.experiment ? 'experiment' : 'lesson'}-${key}`).fill(String(value));
         await panel.getByRole('button', { name: /Vérifier les paramètres|Check parameters/ }).click();
-        await expect(panel.getByTestId('case-feedback')).toHaveText(/Résultat correct|Correct result/);
+        await expect(panel.getByTestId('case-feedback')).toHaveText(/Bonne réponse|Correct answer/);
       } else {
         await panel.getByTestId('case-reasoning').fill('My private reasoning is never stored.');
         await panel.getByRole('button', { name: /Comparer au corrigé|Compare with the rubric/ }).click();
@@ -56,7 +56,7 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
         await panel.getByTestId('case-correction').getByRole('checkbox').check();
       }
       const correction = panel.getByTestId('case-correction');
-      await expect(correction).toContainText(lang === 'en' ? 'Why?' : 'Pourquoi ?');
+      await expect(correction).toContainText(lang === 'en' ? 'Explanation' : 'Explication');
       if (step.type === 'select') {
         const entries = panel.getByTestId('case-answer-key').locator('li');
         await expect(entries).toHaveCount(step.options.length);
