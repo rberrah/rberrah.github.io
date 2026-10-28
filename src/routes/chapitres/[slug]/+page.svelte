@@ -384,7 +384,7 @@
       {#if displayChapter.quiz?.length}
         <section class="step quiz-step" data-testid="chapter-quiz">
           <p class="step-kicker">{copy.chapter.checkpoint}</p>
-          <Quiz title={copy.chapter.quizTitle} questions={displayChapter.quiz} />
+          <Quiz title={copy.chapter.quizTitle} questions={displayChapter.quiz} chapterSlug={displayChapter.slug} />
         </section>
       {/if}
 
