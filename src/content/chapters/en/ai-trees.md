@@ -47,15 +47,15 @@ They are the building blocks of most "classic" ML methods useful for TDM.
 <!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 A **tree** asks successive questions ("CrCl < 60?") and splits the space into zones where the response is assumed constant: hence a **step** prediction.
 
-A deep tree may fit noise (overfitting). The **forest** idea is to build many decorrelated trees and **average** their predictions. This generally reduces variance relative to one tree, without guaranteeing better performance in every new population. The function is still built from steps. Try "Tree", then "Forest", then move the profile to predict beyond the learned range.
+A very detailed tree may learn peculiarities of the training patients rather than a rule that works elsewhere: this is **overfitting**. A **forest** tackles this problem by building several trees and averaging their predictions. If the trees make different mistakes, some may cancel out. But when all the trees make the same mistake, the average can still be wrong. Try "Tree", then "Forest", then move the patient profile beyond the range used for training.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" -->
-At each node a tree picks the split that **reduces impurity** the most. For regression, we minimise the residual variance:
+At each step, the tree looks for a split that groups patients with similar outcomes. For example, splitting by weight may make AUC values more alike *within* each group. We measure the remaining differences with the **sum of squared errors (SSE)**:
 
 $$ \text{split}^\star = \arg\min_{s}\ \big[\,SSE(\text{left}) + SSE(\text{right})\,\big] $$
 
-A **random forest** (Breiman) combines two decorrelation ingredients: **bagging** (each tree on a bootstrap sample) and a **random subset of variables** at each node. The prediction is the average:
+A **random forest** grows trees using different random samples of patients (**bootstrap**). Each question also considers a random subset of variables, so the trees are not identical. For a new patient, we simply **average** their predictions:
 
 $$ \hat y(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x) $$
 
@@ -76,7 +76,7 @@ A standard regression forest does not naturally extrapolate.
 
 <!-- step:title="Key takeaways" -->
 - A tree splits the covariate space → step prediction, overfitting if too deep.
-- The random forest averages many decorrelated trees (bagging + random variables) to reduce variance.
+- A forest averages several different trees: some errors cancel out, but the average can still be wrong.
 - It captures interactions and provides variable importance.
 - It does not extrapolate; importance ≠ causality.
 <!-- /step -->
