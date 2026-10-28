@@ -50,6 +50,7 @@ drug-specific population model or a clinically validated dosing tool.
 - **Infectiology:** repeated exposure is compared with an MIC threshold and a
   reduced bacterial growth/kill response. The displayed `%T > MIC` is an
   individual deterministic index, not a population PTA result.
+- **Renal clearance covariate:** a kidney-function input modifies the renal component of total clearance while keeping nonrenal clearance separate. This is illustrative and not a validated GFR-to-dose rule.
 - **Weight and volume covariate:** first-order input feeds a fluid reservoir whose
   apparent size follows `V = Vref (WT/WTref)^betaV`. The illustrated relation is
   restricted to 40-120 kg and is not an extrapolation rule.
