@@ -57,6 +57,20 @@ test('molecular discovery mode exposes one mechanism before free exploration', a
   await expect(page.locator('.debrief')).toBeVisible();
 });
 
+test('effect-site discovery focuses ke0 and provides a complete French application correction', async ({ page }) => {
+  await page.goto(url('/laboratoires/?lang=fr&lab=effect-site'));
+  await expect(page.getByTestId('molecular-laboratory')).toBeVisible({ timeout: 45000 });
+  await expect(page.getByTestId('molecular-learning-guided')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#molecular-ke0')).toBeVisible();
+  await expect(page.locator('#molecular-dose')).toHaveCount(0);
+  const debrief = page.getByTestId('laboratory-debrief');
+  await expect(debrief.locator('.application p')).toContainText('Un ke0 plus faible');
+  await debrief.getByLabel("Réponse d'application").selectOption('1');
+  await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Réponse incorrecte.');
+  await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText("Un retard d'effet plus long");
+  await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText("Un équilibrage plus lent");
+});
+
 test('all eleven animated journeys render a nonblank model', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   for (const lab of labs) {
