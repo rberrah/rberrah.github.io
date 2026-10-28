@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { guidedActivities } from '../src/lib/content/guidedActivities.js';
 import { choiceRationales } from '../src/lib/learning/choiceRationales.js';
+import { quizRationales } from '../src/lib/learning/quizRationales.js';
 
 const root = new URL('../src/content/chapters/', import.meta.url);
 const files = readdirSync(root).filter(name => name.endsWith('.md') && !name.startsWith('_')).sort();
@@ -29,6 +30,31 @@ for (const file of files) {
     tags.push({ file, lang, paragraphs: paragraphs.length, highJargon });
   }
 }
+
+const chapterIndex = JSON.parse(readFileSync(new URL('../src/lib/content/chapterIndex.generated.json', import.meta.url), 'utf8'));
+let courseQuizTotal = 0;
+let courseQuizExplained = 0;
+for (const chapter of chapterIndex) {
+  const frQuiz = chapter.quiz ?? [];
+  const enQuiz = chapter.translations?.en?.quiz ?? [];
+  assert.equal(frQuiz.length, enQuiz.length, `FR/EN quiz count differs: ${chapter.slug}`);
+  courseQuizTotal += frQuiz.length;
+  const explanations = quizRationales[chapter.slug] ?? [];
+  if (explanations.length) assert.equal(explanations.length, frQuiz.length,
+    `Per-question explanation count differs: ${chapter.slug}`);
+  for (let i = 0; i < frQuiz.length; i++) {
+    for (const q of [frQuiz[i], enQuiz[i]]) assert(Number.isInteger(q.correct) && q.options?.[q.correct],
+      `Invalid course quiz answer: ${chapter.slug}/${i}`);
+    if (explanations[i]) {
+      courseQuizExplained++;
+      for (const lang of ['fr', 'en']) assert(explanations[i][lang]?.length >= 35,
+        `Course quiz needs a meaningful ${lang} explanation: ${chapter.slug}/${i}`);
+    }
+  }
+}
+for (const slug of Object.keys(quizRationales)) assert(chapterIndex.some(c => c.slug === slug),
+  `Explanation references unknown chapter: ${slug}`);
+console.log(`Course quizzes: ${courseQuizTotal} questions, ${courseQuizExplained} with individually authored explanations, ${courseQuizTotal-courseQuizExplained} awaiting editorial explanations.`);
 
 const seen = new Set();
 for (const activity of guidedActivities) {
