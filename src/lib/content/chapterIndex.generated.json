@@ -3339,9 +3339,9 @@
       {
         "prompt": "Un piège diagnostique fréquent est...",
         "options": [
-          "de faire confiance à un modèle du seul fait qu'il a convergé",
+          "de comparer plusieurs diagnostics et leurs hypothèses avant de conclure",
           "de conclure au succès à partir d'une seule métrique",
-          "de prendre un motif de résidus systématique pour du bruit"
+          "de rechercher des motifs non aléatoires dans les résidus"
         ],
         "correct": 1
       }
@@ -3423,9 +3423,9 @@
           {
             "prompt": "A common diagnostic pitfall is...",
             "options": [
-              "trusting a model just because it converged",
+              "comparing several diagnostics and their assumptions before concluding",
               "declaring success from a single metric",
-              "taking a systematic residual pattern for noise"
+              "checking residuals for systematic, non-random patterns"
             ],
             "correct": 1
           }
@@ -12792,15 +12792,15 @@
     "reviewed_on": "2026-07-14",
     "reviewed_hash": "121850c4ad3e5ba81b5601f155aca696419babee38d672aba8bfe182a9383af7",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
-        "prompt": "Vous passez un modèle de `combined1(a, b)` à `combined2(a, b)` en gardant les mêmes valeurs de a et de b. L'écart-type résiduel change le plus...",
+        "prompt": "Vous passez un modèle de `combined1(a, b)` à `combined2(a, b)` en gardant les mêmes valeurs de a et de b. Le rapport des écarts-types résiduels combined1/combined2 est maximal...",
         "options": [
-          "à la concentration f = a/b, où combined1 est exactement racine de 2 fois plus large que combined2 : c'est le maximum de leur écart",
-          "aux fortes concentrations, où le terme proportionnel b·f domine et où l'addition des écarts-types de combined1 s'emballe",
-          "aux faibles concentrations, où le terme additif a domine et où la mise au carré de combined2 écrase le plancher de bruit"
+          "à f = a/b : les termes additif et proportionnel sont égaux et combined1 est √2 fois plus large que combined2",
+          "aux fortes concentrations, car le terme proportionnel fait augmenter sans limite le rapport entre combined1 et combined2",
+          "aux faibles concentrations, car combined2 supprimerait alors le bruit additif alors que combined1 le conserverait"
         ],
         "correct": 0
       },
@@ -12874,15 +12874,15 @@
         "reviewed_on": "2026-07-14",
         "reviewed_hash": "c59529f603933e4024d5add9bfea6bce3bacedf7676ab0e45c4607bc986b32f6",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
-            "prompt": "You switch a model from `combined1(a, b)` to `combined2(a, b)`, keeping the same values of a and b. The residual standard deviation changes most...",
+            "prompt": "You switch a model from `combined1(a, b)` to `combined2(a, b)`, keeping the same values of a and b. The ratio of residual standard deviations combined1/combined2 is greatest...",
             "options": [
-              "at the concentration f = a/b, where combined1 is exactly the square root of 2 times wider than combined2: that is their maximum gap",
-              "at high concentrations, where the proportional term b·f dominates and where combined1, adding standard deviations, runs away",
-              "at low concentrations, where the additive term a dominates and where the squaring in combined2 crushes the noise floor"
+              "at f = a/b: the additive and proportional contributions are equal, and combined1 is √2 times wider than combined2",
+              "at high concentrations, because the proportional term makes the ratio between combined1 and combined2 increase without limit",
+              "at low concentrations, because combined2 would eliminate the additive noise floor while combined1 retains it"
             ],
             "correct": 0
           },

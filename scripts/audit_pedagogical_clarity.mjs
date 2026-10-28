@@ -40,6 +40,10 @@ for (const chapter of chapterIndex) {
   assert.equal(frQuiz.length, enQuiz.length, `FR/EN quiz count differs: ${chapter.slug}`);
   courseQuizTotal += frQuiz.length;
   const explanations = quizRationales[chapter.slug] ?? [];
+  assert.equal(frQuiz.length, explanations.length,
+    `Missing question-specific, bilingual explanations: ${chapter.slug}`);
+  for (let i = 0; i < frQuiz.length; i++) assert.equal(frQuiz[i].correct, enQuiz[i].correct,
+    `Answer key differs between FR and EN: ${chapter.slug}/${i}`);
   if (explanations.length) assert.equal(explanations.length, frQuiz.length,
     `Per-question explanation count differs: ${chapter.slug}`);
   for (let i = 0; i < frQuiz.length; i++) {
@@ -54,7 +58,16 @@ for (const chapter of chapterIndex) {
 }
 for (const slug of Object.keys(quizRationales)) assert(chapterIndex.some(c => c.slug === slug),
   `Explanation references unknown chapter: ${slug}`);
-console.log(`Course quizzes: ${courseQuizTotal} questions, ${courseQuizExplained} with individually authored explanations, ${courseQuizTotal-courseQuizExplained} awaiting editorial explanations.`);
+assert.equal(courseQuizTotal, 282, 'Unexpected number of chapter quiz questions');
+assert.equal(courseQuizExplained, courseQuizTotal, 'All course questions must have individual bilingual explanations');
+const ratio = x => (1 + x) / Math.sqrt(1 + x*x);
+const absoluteGap = x => 1 + x - Math.sqrt(1 + x*x);
+assert(Math.abs(ratio(1) - Math.SQRT2) < 1e-12);
+assert(ratio(1) > ratio(10) && ratio(1) > ratio(0.1), 'Maximal relative combined error ratio occurs at a = b*f');
+assert(absoluteGap(10) > absoluteGap(1), 'Do not confuse maximum relative gap with absolute error gap');
+const vpc = chapterIndex.find(ch => ch.slug === 'validation-vpc');
+assert(vpc.quiz[2].options[0].includes('comparer plusieurs diagnostics'), 'VPC distractor must be a sound practice, not another pitfall');
+console.log(`Course quizzes: ${courseQuizTotal} questions, all with individual FR/EN explanations; scientific distractor checks passed.`);
 
 const seen = new Set();
 for (const activity of guidedActivities) {

@@ -23,16 +23,16 @@ Trois niveaux de preuve sont séparés :
 
 Aucune réponse scientifique, unité, niveau de réussite, fonction de simulation ou valeur de référence n'est modifiée.
 
-## QCM des chapitres : dette distincte, détectée pendant l'audit
+## QCM des chapitres — issue #201 traitée par PR #202
 
-Les **282 questions à choix unique** intégrées aux cours sont distinctes des 43 sélections guidées. Leur interface indiquait la bonne option après réponse, mais ne présentait pas nécessairement une justification.
+Les **282 questions à choix unique** des 95 chapitres existent en deux langues et sont distinctes des 43 sélections guidées. Chaque QCM affiche la réponse attendue et une **explication scientifique propre à la question**, en FR et EN.
 
-- Désormais, chaque question indique explicitement **bonne réponse / réponse incorrecte** et affiche le texte de la bonne option.
-- Les **8 QCM des trois chapitres IA réécrits** disposent aussi d'une explication scientifique courte et spécifique en FR/EN.
-- Pour les **274 autres QCM**, l'interface invite honnêtement à relire le passage du cours au lieu de fabriquer une explication générique présentée comme une preuve.
-- Le contrôle automatisé vérifie les 282 indices corrects FR/EN et suit explicitement la part des questions qui disposent d'un corrigé explicatif éditorial.
+- **282/282 justifications** rédigées et structurées en quatre catalogues (`quizRationalesCore`, `Methods`, `Validation`, `Software`).
+- Contrôle automatique strict de la complétude des 282 entrées, des deux langues, de la cohérence des réponses FR/EN et de l'absence de questions orphelines.
+- Deux erreurs de formulation scientifique corrigées dans les deux langues : la question VPC où les trois distracteurs étaient des pièges valides, et la distinction entre écart absolu et rapport maximal des modèles d'erreur `combined1`/`combined2`.
+- Tests numériques sur le rapport des erreurs et tests navigateur bilingues sur les deux questions corrigées.
 
-**Travail restant :** rédiger et relire humainement des explications propres aux 274 autres QCM, puis les soumettre par lots de parcours. Ne pas marquer cette partie « revue terminée » sur la base d'une simple correspondance avec l'option correcte.
+**Limite :** la relecture scientifique humaine de ces 282 nouvelles explications reste une étape éditoriale distincte. Le contrôle logiciel ne remplace pas une évaluation de compréhension par des apprenants.
 
 ## Contrôles permanents
 
