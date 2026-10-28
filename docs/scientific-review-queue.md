@@ -5,8 +5,8 @@ It does not claim that an internal or external review has occurred.
 
 At the 2026-10-28 freeze, the generated registries report 58 of 67
 visualizations with a current recorded review and 9 `pending`. They also report
-79 of 95 chapters with a current author-review hash in each language: 16 French
-and 16 English files changed after their stored hashes. The exact files and
+77 of 95 chapters with a current author-review hash in each language: 18 French
+and 18 English files changed after their stored hashes. The exact files and
 components are listed in
 [author-review-required.md](author-review-required.md). Four cross-domain
 lessons per language also remain `pending`. No internal or external chapter
