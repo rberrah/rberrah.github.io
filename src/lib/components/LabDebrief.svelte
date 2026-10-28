@@ -20,7 +20,15 @@
     <option value="">{en ? 'Choose' : 'Choisir'}</option>
     {#each application.options as option, index}<option value={String(index)}>{text(option)}</option>{/each}
   </select>
-  {#if choice !== ''}<p class:correct={Number(choice) === application.answer} class="feedback">{Number(choice) === application.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{text(application.feedback)}</p>{/if}
+  {#if choice !== ''}
+    <div class:correct={Number(choice) === application.answer} class="feedback" role="status" data-testid="laboratory-application-feedback">
+      <strong>{Number(choice) === application.answer ? (en ? 'Correct answer.' : 'Bonne réponse.') : (en ? 'Incorrect answer.' : 'Réponse incorrecte.')}</strong>
+      {#if Number(choice) !== application.answer && application.options[application.answer]}
+        <p>{en ? 'Expected answer:' : 'Bonne réponse :'} {text(application.options[application.answer])}</p>
+      {/if}
+      <p>{text(application.feedback)}</p>
+    </div>
+  {/if}
 </section>
 
 <style>
