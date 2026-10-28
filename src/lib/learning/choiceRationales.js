@@ -226,22 +226,6 @@ export const choiceRationales = {
       }
     ]
   },
-  "practice-residual-mipd": {
-    "checks": [
-      {
-        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
-      },
-      {
-        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
-      },
-      {
-        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
-      }
-    ]
-  },
   "synthesis-start": {
     "predict": [
       {
@@ -659,6 +643,54 @@ export const choiceRationales = {
       {
         "fr": "Non : LOCF est une convention de modélisation, pas la preuve d'une fonction d'organe constante.",
         "en": "No: LOCF is a modeling convention, not evidence of constant organ function."
+      }
+    ]
+  },
+  "practice-nonmem-moteur": {
+    "checks": [
+      {
+        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
+        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
+      },
+      {
+        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
+        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
+      },
+      {
+        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
+        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
+      }
+    ]
+  },
+  "practice-monolix-moteur": {
+    "checks": [
+      {
+        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
+        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
+      },
+      {
+        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
+        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
+      },
+      {
+        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
+        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
+      }
+    ]
+  },
+  "practice-nlmixr2-moteur": {
+    "checks": [
+      {
+        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
+        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
+      },
+      {
+        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
+        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
+      },
+      {
+        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
+        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
       }
     ]
   }
