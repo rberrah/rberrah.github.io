@@ -3,7 +3,7 @@
 This queue records work that still requires a person other than the author.
 It does not claim that an internal or external review has occurred.
 
-At the 2026-10-28 freeze, the generated registries report 58 of 67
+After the post-freeze pedagogical and VPC maintenance changes on 2026-10-28, the generated registries report 58 of 67
 visualizations with a current recorded review and 9 `pending`. They also report
 77 of 95 chapters with a current author-review hash in each language: 18 French
 and 18 English files changed after their stored hashes. The exact files and
