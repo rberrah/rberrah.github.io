@@ -11,7 +11,7 @@ for (const lang of ['fr', 'en']) {
     const feedback = quiz.getByTestId('quiz-correction-0');
     await expect(feedback).toContainText(lang === 'fr' ? 'Réponse incorrecte.' : 'Incorrect answer.');
     await expect(feedback).toContainText(lang === 'fr' ? 'Bonne réponse :' : 'Expected answer:');
-    await expect(feedback).toContainText(lang === 'fr' ? 'chaque feuille' : 'Each tree leaf');
+    await expect(feedback).toContainText(lang === 'fr' ? 'Chaque feuille' : 'Each tree leaf');
     const rightText = lang === 'fr' ? 'en marches' : 'piecewise-constant';
     await quiz.getByTestId('quiz-option-button').filter({ hasText: rightText }).click();
     await expect(feedback).toContainText(lang === 'fr' ? 'Bonne réponse.' : 'Correct answer.');
