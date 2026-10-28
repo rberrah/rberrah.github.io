@@ -15,13 +15,14 @@ slides: []
 sources: ["monolix","lavielle","beal-bql","savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+review_pending: true
 reviewed_hash: "c59529f603933e4024d5add9bfea6bce3bacedf7676ab0e45c4607bc986b32f6"
 quiz:
-  - prompt: "You switch a model from `combined1(a, b)` to `combined2(a, b)`, keeping the same values of a and b. The residual standard deviation changes most..."
+  - prompt: "You switch a model from `combined1(a, b)` to `combined2(a, b)`, keeping the same values of a and b. The ratio of residual standard deviations combined1/combined2 is greatest..."
     options:
-      - "at the concentration f = a/b, where combined1 is exactly the square root of 2 times wider than combined2: that is their maximum gap"
-      - "at high concentrations, where the proportional term b·f dominates and where combined1, adding standard deviations, runs away"
-      - "at low concentrations, where the additive term a dominates and where the squaring in combined2 crushes the noise floor"
+      - "at f = a/b: the additive and proportional contributions are equal, and combined1 is √2 times wider than combined2"
+      - "at high concentrations, because the proportional term makes the ratio between combined1 and combined2 increase without limit"
+      - "at low concentrations, because combined2 would eliminate the additive noise floor while combined1 retains it"
     correct: 0
   - prompt: "In `DEFINITION:`, you write `{distribution=logNormal, prediction=Cc, errorModel=constant(a)}` and SAEM returns a = 0.15. This means that..."
     options:
