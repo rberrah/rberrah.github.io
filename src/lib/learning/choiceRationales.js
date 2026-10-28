@@ -5,692 +5,692 @@ export const choiceRationales = {
   "practice-trois-approches": {
     "choice": [
       {
-        "fr": "Oui : la qualité et la durée des prélèvements conditionnent l'AUC estimée sans modèle.",
-        "en": "Yes: sampling quality and duration condition model-independent AUC estimation."
+        "fr": "Pour calculer une AUC à partir des prises de sang, il faut suffisamment de mesures dans le temps.",
+        "en": "To calculate AUC from blood samples, we need enough measurements over time."
       },
       {
-        "fr": "Oui : les effets mixtes exploitent l'information collective pour les profils individuels clairsemés.",
-        "en": "Yes: mixed-effects methods borrow information across patients for sparse individual profiles."
+        "fr": "En PopPK, les données d’autres patients aident à estimer les paramètres d’un patient peu prélevé.",
+        "en": "In population PK, data from other patients help estimate parameters for a patient with few samples."
       },
       {
-        "fr": "Non : une extrapolation PBPK dépend des paramètres physiologiques et de la vérification des hypothèses.",
-        "en": "No: PBPK extrapolation depends on physiological parameters and verified assumptions."
+        "fr": "La PBPK utilise la physiologie, mais ses prédictions doivent quand même être vérifiées.",
+        "en": "PBPK uses physiology, but its predictions still need to be checked."
       }
     ]
   },
   "practice-validation-vpc": {
     "causes": [
       {
-        "fr": "Oui : une variabilité trop faible rend les bandes prédictives artificiellement étroites.",
-        "en": "Yes: underestimated variability makes predictive bands artificially narrow."
+        "fr": "Si le modèle prévoit trop peu de différences entre patients, sa zone de prédiction sera trop étroite.",
+        "en": "If the model predicts too little variation between patients, its prediction band will be too narrow."
       },
       {
-        "fr": "Oui : une mauvaise structure ou une simulation non conforme au plan d'étude peut dégrader la couverture.",
-        "en": "Yes: structural misspecification or incorrect simulation design may impair coverage."
+        "fr": "Le problème peut venir des équations ou de la façon dont les patients ont été simulés.",
+        "en": "The problem may come from the equations or from how patients were simulated."
       },
       {
-        "fr": "Non : le défaut de couverture ne désigne pas une valeur précise de clairance.",
-        "en": "No: inadequate coverage does not identify a specific clearance error."
+        "fr": "Ce graphique ne prouve pas que la clairance est la seule responsable.",
+        "en": "This plot does not prove that clearance alone is responsible."
       }
     ]
   },
   "practice-math-stats": {
     "conditions": [
       {
-        "fr": "Oui : un optimum non convergé ne permet pas de comparer valablement deux vraisemblances.",
-        "en": "Yes: nonconverged optima cannot support a valid likelihood comparison."
+        "fr": "Vérifiez d’abord que les deux calculs ont trouvé une solution stable.",
+        "en": "First, check that both calculations reached a stable solution."
       },
       {
-        "fr": "Oui : les approximations asymptotiques dépendent de conditions de régularité.",
-        "en": "Yes: asymptotic approximations require regularity conditions."
+        "fr": "Le seuil 3,84 repose sur des hypothèses statistiques. Elles ne sont pas toujours remplies.",
+        "en": "The 3.84 threshold relies on statistical assumptions. They do not always hold."
       },
       {
-        "fr": "Non : tester une variance nulle pose un problème de frontière ; le seuil usuel n'est pas automatique.",
-        "en": "No: testing zero variance is a boundary problem; the usual threshold need not apply."
+        "fr": "Une variance ne peut pas être négative. Tester si elle vaut zéro demande donc une méthode particulière.",
+        "en": "A variance cannot be negative. Testing whether it is zero therefore needs a special method."
       }
     ]
   },
   "practice-nca-absorption": {
     "interval": [
       {
-        "fr": "Oui : la borne 0,79 est inférieure à la limite 0,80.",
-        "en": "Yes: the 0.79 bound falls below the 0.80 limit."
+        "fr": "la borne 0,79 est inférieure à la limite 0,80.",
+        "en": "the 0.79 bound falls below the 0.80 limit."
       },
       {
-        "fr": "Non : le critère concerne l'ensemble de l'intervalle à 90 %, pas seulement l'estimation ponctuelle.",
-        "en": "No: the criterion applies to the entire 90% interval, not just its point estimate."
+        "fr": "le critère concerne l'ensemble de l'intervalle à 90 %, pas seulement l'estimation ponctuelle.",
+        "en": "the criterion applies to the entire 90% interval, not just its point estimate."
       },
       {
-        "fr": "Oui : l'intervalle dépasse une borne du critère préspécifié.",
-        "en": "Yes: the interval crosses a prespecified acceptance boundary."
+        "fr": "l'intervalle dépasse une borne du critère préspécifié.",
+        "en": "the interval crosses a prespecified acceptance boundary."
       }
     ]
   },
   "practice-pd-tolerance": {
     "hypotheses": [
       {
-        "fr": "Oui : une adaptation ou un médiateur antagoniste peut diminuer l'effet à concentration identique.",
-        "en": "Yes: adaptation or an antagonistic mediator can reduce effect at the same concentration."
+        "fr": "Le corps peut s’adapter au médicament ou produire une substance qui réduit son effet.",
+        "en": "The body may adapt to the drug or produce something that reduces its effect."
       },
       {
-        "fr": "Oui : antécédents, évolution de la maladie et erreur de mesure sont des explications concurrentes.",
-        "en": "Yes: history, disease evolution and measurement error are alternative explanations."
+        "fr": "L’état du patient a peut-être changé. Une erreur de mesure est aussi possible.",
+        "en": "The patient’s condition may have changed. A measurement error is also possible."
       },
       {
-        "fr": "Non : deux observations ne permettent pas d'identifier à elles seules un mécanisme unique.",
-        "en": "No: two observations alone cannot identify a unique mechanism."
+        "fr": "Deux mesures ne suffisent pas pour prouver une seule cause. Il faut d’autres données.",
+        "en": "Two measurements cannot prove a single cause. More data are needed."
       }
     ]
   },
   "practice-neural-ode": {
     "constraints": [
       {
-        "fr": "Oui : un taux d'élimination négatif produirait un flux d'accumulation sans entrée.",
-        "en": "Yes: a negative elimination rate would create accumulation without input."
+        "fr": "Ici, un taux d’élimination négatif ferait augmenter le médicament dans le corps sans nouvel apport.",
+        "en": "Here, a negative elimination rate would make the drug amount increase without a new input."
       },
       {
-        "fr": "Oui : bilans et extrapolation doivent être contrôlés au-delà de l'ajustement local.",
-        "en": "Yes: balances and extrapolation require checks beyond local fit."
+        "fr": "Vérifiez aussi que le médicament ne se crée pas tout seul et que le modèle reste plausible hors des données.",
+        "en": "Also check that the drug does not appear from nowhere and the model stays plausible beyond the data."
       },
       {
-        "fr": "Non : une faible erreur d'entraînement ne garantit ni admissibilité physique ni généralisation.",
-        "en": "No: low training error guarantees neither physical admissibility nor generalization."
+        "fr": "Bien prédire les données utilisées pour apprendre ne garantit pas de bonnes prédictions ailleurs.",
+        "en": "Predicting training data well does not guarantee good predictions elsewhere."
       }
     ]
   },
   "practice-ai-trees": {
     "limits": [
       {
-        "fr": "Oui : les prédictions des arbres peuvent rester corrélées malgré le bootstrap ; le gain de variance en dépend.",
-        "en": "Yes: tree predictions may remain correlated despite bootstrapping; variance reduction depends on this."
+        "fr": "Deux arbres peuvent faire les mêmes erreurs. Leur moyenne ne les efface donc pas toujours.",
+        "en": "Two trees can make the same mistakes. Averaging them does not always remove those mistakes."
       },
       {
-        "fr": "Non : la dispersion entre arbres n'est pas un intervalle de confiance à 95 % calibré pour un patient.",
-        "en": "No: between-tree spread is not a calibrated patient-level 95% confidence interval."
+        "fr": "Des arbres qui prédisent des valeurs différentes ne donnent pas automatiquement une marge d’erreur fiable à 95 %.",
+        "en": "Different tree predictions do not automatically give a reliable 95% uncertainty range."
       },
       {
-        "fr": "Oui : la moyenne des arbres n'impose aucune contrainte mécanistique sur les valeurs hors domaine.",
-        "en": "Yes: averaging trees imposes no mechanistic constraint on out-of-domain predictions."
+        "fr": "Hors des valeurs vues pendant l’entraînement, la forêt ne connaît pas forcément la bonne tendance à suivre.",
+        "en": "Beyond values seen during training, the forest may not know which trend to follow."
       }
     ]
   },
   "practice-ai-featselect": {
     "workflow": [
       {
-        "fr": "Oui : séparer par patient évite que ses autres prélèvements contaminent le test.",
-        "en": "Yes: splitting by patient prevents that patient's other samples leaking into testing."
+        "fr": "Toutes les mesures d’un patient doivent rester dans le même groupe : entraînement ou test.",
+        "en": "All samples from one patient must stay in the same group: training or test."
       },
       {
-        "fr": "Oui : la sélection doit être refaite à l'intérieur de chaque pli d'apprentissage.",
-        "en": "Yes: feature selection must be refit inside each training fold."
+        "fr": "À chaque test interne, il faut choisir les variables sans regarder les patients testés.",
+        "en": "For each internal check, choose features without looking at held-out patients."
       },
       {
-        "fr": "Non : exploiter le test final pour sélectionner les variables biaise son estimation de performance.",
-        "en": "No: using the final test to select features biases its performance estimate."
+        "fr": "Utiliser le test final pour choisir les variables rend le score trop optimiste.",
+        "en": "Using the final test to choose features makes its score too optimistic."
       }
     ]
   },
   "practice-ai-llm": {
     "audit": [
       {
-        "fr": "Oui : une affirmation biomédicale doit pouvoir être rattachée à une source vérifiable.",
-        "en": "Yes: a biomedical claim needs a verifiable supporting source."
+        "fr": "une affirmation biomédicale doit pouvoir être rattachée à une source vérifiable.",
+        "en": "a biomedical claim needs a verifiable supporting source."
       },
       {
-        "fr": "Oui : unités, sens physiologique et hypothèses sont à vérifier indépendamment du style du texte.",
-        "en": "Yes: units, physiological plausibility and assumptions must be checked independently of writing style."
+        "fr": "unités, sens physiologique et hypothèses sont à vérifier indépendamment du style du texte.",
+        "en": "units, physiological plausibility and assumptions must be checked independently of writing style."
       },
       {
-        "fr": "Non : une formulation assurée n'apporte aucune preuve de validité scientifique.",
-        "en": "No: confident wording is not evidence of scientific validity."
+        "fr": "une formulation assurée n'apporte aucune preuve de validité scientifique.",
+        "en": "confident wording is not evidence of scientific validity."
       }
     ]
   },
   "practice-valid-gof": {
     "interpret": [
       {
-        "fr": "Oui : les observations dépassent ici les prédictions, ce qui caractérise une sous-prédiction locale.",
-        "en": "Yes: observations exceed predictions here, indicating local underprediction."
+        "fr": "les observations dépassent ici les prédictions, ce qui caractérise une sous-prédiction locale.",
+        "en": "observations exceed predictions here, indicating local underprediction."
       },
       {
-        "fr": "Non : le graphique seul ne permet pas d'attribuer avec certitude le biais à la clairance.",
-        "en": "No: this plot alone cannot attribute the bias to clearance with certainty."
+        "fr": "le graphique seul ne permet pas d'attribuer avec certitude le biais à la clairance.",
+        "en": "this plot alone cannot attribute the bias to clearance with certainty."
       },
       {
-        "fr": "Oui : unités, doses, temps et valeur de référence sont des causes alternatives à contrôler.",
-        "en": "Yes: units, doses, timing and baseline are alternative causes to check."
+        "fr": "unités, doses, temps et valeur de référence sont des causes alternatives à contrôler.",
+        "en": "units, doses, timing and baseline are alternative causes to check."
       }
     ]
   },
   "practice-valid-vpc": {
     "reading": [
       {
-        "fr": "Oui : la médiane observée se situe dans l'intervalle simulé pour cette statistique.",
-        "en": "Yes: the observed median lies within the simulated interval for that statistic."
+        "fr": "La médiane mesurée est dans la plage simulée : c’est rassurant pour le centre des données.",
+        "en": "The measured median lies within the simulated range: reassuring for the center of the data."
       },
       {
-        "fr": "Oui : un désaccord en queue haute peut révéler un problème de dispersion ou de modèle.",
-        "en": "Yes: high-tail disagreement may reveal a spread or model problem."
+        "fr": "Les valeurs les plus élevées sont moins bien reproduites. Il faut chercher pourquoi.",
+        "en": "The highest values are less well reproduced. We need to find out why."
       },
       {
-        "fr": "Non : la couverture de la médiane ne valide pas les autres quantiles.",
-        "en": "No: median coverage does not validate other quantiles."
+        "fr": "Bien prédire la médiane ne prouve pas que les valeurs basses et hautes sont bien prédites.",
+        "en": "Predicting the median well does not prove that low and high values are well predicted."
       }
     ]
   },
   "practice-valid-diagnostics": {
     "prioritize": [
       {
-        "fr": "Oui : une VPC doit être lue avec le plan de simulation qui l'a produite.",
-        "en": "Yes: a VPC must be interpreted with its simulation design."
+        "fr": "Une VPC compare les mesures à des simulations. Vérifiez donc comment ces simulations ont été faites.",
+        "en": "A VPC compares measurements with simulations. Check how those simulations were produced."
       },
       {
-        "fr": "Oui : les EBE fortement shrinkés ne reflètent pas fidèlement la variabilité individuelle.",
-        "en": "Yes: heavily shrunken EBEs do not faithfully reflect individual variability."
+        "fr": "Quand le shrinkage est important, les paramètres estimés des patients sont attirés vers la moyenne : attention à leur interprétation.",
+        "en": "With high shrinkage, estimated patient parameters are drawn toward the average: interpret them carefully."
       },
       {
-        "fr": "Non : IPRED mesure l'ajustement individuel, pas l'intégralité des propriétés prédictives du modèle.",
-        "en": "No: IPRED assesses individual fit, not the model's full predictive behavior."
+        "fr": "IPRED mesure l’ajustement chez les patients étudiés, pas la fiabilité chez de nouveaux patients.",
+        "en": "IPRED measures fit in the studied patients, not reliability in new patients."
       }
     ]
   },
   "practice-valid-interpretation": {
     "hypotheses": [
       {
-        "fr": "Oui : une cinétique mal représentée peut produire des écarts dépendant du temps.",
-        "en": "Yes: misspecified kinetics can produce time-dependent discrepancies."
+        "fr": "une cinétique mal représentée peut produire des écarts dépendant du temps.",
+        "en": "misspecified kinetics can produce time-dependent discrepancies."
       },
       {
-        "fr": "Oui : une erreur d'horodatage ou d'événement peut générer un motif similaire.",
-        "en": "Yes: incorrect timing or events can generate a similar pattern."
+        "fr": "une erreur d'horodatage ou d'événement peut générer un motif similaire.",
+        "en": "incorrect timing or events can generate a similar pattern."
       },
       {
-        "fr": "Non : le nombre de mesures ne démontre pas le nombre de compartiments nécessaires.",
-        "en": "No: the number of observations does not prove the required compartment count."
+        "fr": "le nombre de mesures ne démontre pas le nombre de compartiments nécessaires.",
+        "en": "the number of observations does not prove the required compartment count."
       }
     ]
   },
   "practice-tools-algorithms": {
     "compare": [
       {
-        "fr": "Oui : les constantes incluses dans l'objectif et sa définition influencent la comparaison des OFV.",
-        "en": "Yes: objective-function definitions and included constants affect OFV comparisons."
+        "fr": "Deux logiciels peuvent calculer l’OFV différemment. Vérifiez ce que mesure chaque nombre.",
+        "en": "Two programs may calculate OFV differently. Check what each number means."
       },
       {
-        "fr": "Oui : il faut comparer les ajustements sur les mêmes données, sous contraintes et convergences compatibles.",
-        "en": "Yes: fits should use comparable data, constraints and convergence criteria."
+        "fr": "Comparez les mêmes données et vérifiez que les deux logiciels ont terminé leurs calculs correctement.",
+        "en": "Compare the same data and ensure both programs completed their calculations properly."
       },
       {
-        "fr": "Non : l'aspect graphique ne modifie pas la vraisemblance calculée.",
-        "en": "No: plot colors do not change the computed likelihood."
+        "fr": "Changer la couleur des graphiques ne change pas le calcul statistique.",
+        "en": "Changing plot colors does not change the statistical calculation."
       }
     ]
   },
   "synthesis-start": {
     "predict": [
       {
-        "fr": "Oui : à dose identique, l'AUC décroît si la clairance augmente en PK linéaire.",
-        "en": "Yes: at identical dose, AUC decreases when clearance increases in linear PK."
+        "fr": "à dose identique, l'AUC décroît si la clairance augmente en PK linéaire.",
+        "en": "at identical dose, AUC decreases when clearance increases in linear PK."
       },
       {
-        "fr": "Non : la réponse PD peut être saturable, retardée ou non proportionnelle à l'AUC.",
-        "en": "No: PD response may be saturable, delayed or nonproportional to AUC."
+        "fr": "la réponse PD peut être saturable, retardée ou non proportionnelle à l'AUC.",
+        "en": "PD response may be saturable, delayed or nonproportional to AUC."
       },
       {
-        "fr": "Oui : les couples CL/V du scénario conduisent au même rapport d'élimination.",
-        "en": "Yes: the scenario's CL/V pairs yield the same elimination-rate ratio."
+        "fr": "les couples CL/V du scénario conduisent au même rapport d'élimination.",
+        "en": "the scenario's CL/V pairs yield the same elimination-rate ratio."
       }
     ],
     "noise": [
       {
-        "fr": "Oui : une variation de CL individuelle peut modifier la concentration à dose identique.",
-        "en": "Yes: individual CL variation can change concentrations at the same dose."
+        "fr": "une variation de CL individuelle peut modifier la concentration à dose identique.",
+        "en": "individual CL variation can change concentrations at the same dose."
       },
       {
-        "fr": "Oui : un écart de mesure ou d'heure de prélèvement peut expliquer l'observation.",
-        "en": "Yes: a measurement or sampling-time error can explain the observation."
+        "fr": "un écart de mesure ou d'heure de prélèvement peut expliquer l'observation.",
+        "en": "a measurement or sampling-time error can explain the observation."
       },
       {
-        "fr": "Non : la dose, sans autres observations, ne démontre pas une erreur de structure.",
-        "en": "No: dose alone, without other observations, does not prove structural error."
+        "fr": "la dose, sans autres observations, ne démontre pas une erreur de structure.",
+        "en": "dose alone, without other observations, does not prove structural error."
       }
     ]
   },
   "synthesis-math": {
     "uncertainty": [
       {
-        "fr": "Oui : la distribution des erreurs conditionne la vraisemblance et l'incertitude.",
-        "en": "Yes: error distribution governs the likelihood and uncertainty."
+        "fr": "Pour mesurer l’incertitude, il faut savoir comment les erreurs de mesure se répartissent.",
+        "en": "To measure uncertainty, we need to know how measurement errors are distributed."
       },
       {
-        "fr": "Oui : les observations et leur plan de collecte déterminent l'information disponible.",
-        "en": "Yes: observations and their collection design determine the available information."
+        "fr": "Le nombre de mesures et les moments où elles sont faites influencent la précision des résultats.",
+        "en": "The number and timing of measurements affect precision."
       },
       {
-        "fr": "Non : afficher davantage de chiffres ne quantifie aucune incertitude.",
-        "en": "No: extra decimal places do not quantify uncertainty."
+        "fr": "Afficher plus de décimales ne rend pas une estimation plus fiable.",
+        "en": "Displaying more decimals does not make an estimate more reliable."
       }
     ]
   },
   "synthesis-nca": {
     "terminal": [
       {
-        "fr": "Oui : une fraction extrapolée importante indique un mauvais support des données terminales.",
-        "en": "Yes: a large extrapolated fraction signals inadequate terminal data support."
+        "fr": "une fraction extrapolée importante indique un mauvais support des données terminales.",
+        "en": "a large extrapolated fraction signals inadequate terminal data support."
       },
       {
-        "fr": "Non : une biodisponibilité supérieure à 1 n'est pas nécessaire pour expliquer le problème.",
-        "en": "No: bioavailability greater than 1 is not required to explain this issue."
+        "fr": "une biodisponibilité supérieure à 1 n'est pas nécessaire pour expliquer le problème.",
+        "en": "bioavailability greater than 1 is not required to explain this issue."
       }
     ]
   },
   "synthesis-pbpk": {
     "mechanism": [
       {
-        "fr": "Oui : la liaison protéique influe notamment sur la fraction libre et la disposition.",
-        "en": "Yes: protein binding affects unbound fraction and drug disposition."
+        "fr": "la liaison protéique influe notamment sur la fraction libre et la disposition.",
+        "en": "protein binding affects unbound fraction and drug disposition."
       },
       {
-        "fr": "Oui : débit et clairance intrinsèque conditionnent l'extraction hépatique.",
-        "en": "Yes: blood flow and intrinsic clearance govern hepatic extraction."
+        "fr": "débit et clairance intrinsèque conditionnent l'extraction hépatique.",
+        "en": "blood flow and intrinsic clearance govern hepatic extraction."
       },
       {
-        "fr": "Non : la couleur d'un schéma ne définit aucun mécanisme pharmacocinétique.",
-        "en": "No: a diagram's color is not a pharmacokinetic mechanism."
+        "fr": "la couleur d'un schéma ne définit aucun mécanisme pharmacocinétique.",
+        "en": "a diagram's color is not a pharmacokinetic mechanism."
       }
     ],
     "validate": [
       {
-        "fr": "Oui : confronter les concentrations totales et libres détecte certaines erreurs de liaison ou distribution.",
-        "en": "Yes: checking total and free concentrations may reveal binding or distribution errors."
+        "fr": "confronter les concentrations totales et libres détecte certaines erreurs de liaison ou distribution.",
+        "en": "checking total and free concentrations may reveal binding or distribution errors."
       },
       {
-        "fr": "Oui : le modèle doit prévoir des observations pertinentes pour la population visée.",
-        "en": "Yes: the model should predict relevant outcomes in the target population."
+        "fr": "le modèle doit prévoir des observations pertinentes pour la population visée.",
+        "en": "the model should predict relevant outcomes in the target population."
       },
       {
-        "fr": "Non : une conservation de masse correcte ne démontre pas la validité externe.",
-        "en": "No: correct mass conservation does not establish external validity."
+        "fr": "une conservation de masse correcte ne démontre pas la validité externe.",
+        "en": "correct mass conservation does not establish external validity."
       }
     ]
   },
   "synthesis-pd": {
     "delay": [
       {
-        "fr": "Oui : un compartiment d'effet introduit une cinétique d'équilibration vers le site d'action.",
-        "en": "Yes: an effect compartment introduces equilibration kinetics toward the effect site."
+        "fr": "Le compartiment d’effet permet de représenter le temps nécessaire au médicament pour atteindre son site d’action.",
+        "en": "An effect compartment represents the time a drug needs to reach its site of action."
       },
       {
-        "fr": "Oui : la réponse indirecte introduit un turnover physiologique susceptible de retarder le signal.",
-        "en": "Yes: indirect response introduces physiological turnover that can delay the signal."
+        "fr": "Une réponse indirecte peut être lente parce que l’organisme doit produire ou éliminer le biomarqueur.",
+        "en": "An indirect response can be slow because the body must produce or remove the biomarker."
       },
       {
-        "fr": "Non : un effet direct instantané ne décrit pas à lui seul un retard du biomarqueur.",
-        "en": "No: instantaneous direct effect alone cannot describe a biomarker delay."
+        "fr": "Un effet immédiat ne suffit pas à expliquer une réponse retardée.",
+        "en": "An immediate effect alone cannot explain a delayed response."
       }
     ],
     "choice": [
       {
-        "fr": "Oui : il faut examiner conjointement les profils temporels des concentrations et effets.",
-        "en": "Yes: temporal PK and PD profiles must be assessed together."
+        "fr": "Il faut comparer les concentrations et les effets au fil du temps, pas seulement à un instant.",
+        "en": "Compare concentrations and effects over time, not just at one instant."
       },
       {
-        "fr": "Oui : si des événements sont prédits, leur calibration et leur discrimination doivent être étudiées.",
-        "en": "Yes: if events are predicted, their calibration and discrimination need assessment."
+        "fr": "Si le modèle prédit des événements, vérifiez si leurs fréquences et leurs risques sont bien estimés.",
+        "en": "If the model predicts events, check whether their frequencies and risks are well estimated."
       },
       {
-        "fr": "Non : l'AIC seul ne renseigne pas suffisamment sur la prédiction et la plausibilité.",
-        "en": "No: AIC alone does not adequately assess prediction and plausibility."
+        "fr": "Un AIC faible ne prouve pas que le modèle prédit bien chez de nouveaux patients.",
+        "en": "A low AIC does not prove that the model predicts well in new patients."
       }
     ]
   },
   "synthesis-covariates": {
     "eta": [
       {
-        "fr": "Oui : ETA encode l'écart individuel non expliqué par les effets fixes du modèle.",
-        "en": "Yes: ETA encodes the individual deviation not explained by model fixed effects."
+        "fr": "ETA encode l'écart individuel non expliqué par les effets fixes du modèle.",
+        "en": "ETA encodes the individual deviation not explained by model fixed effects."
       },
       {
-        "fr": "Non : le DFG est une covariable observée, pas la réalisation d'ETA.",
-        "en": "No: GFR is an observed covariate, not an ETA realization."
+        "fr": "le DFG est une covariable observée, pas la réalisation d'ETA.",
+        "en": "GFR is an observed covariate, not an ETA realization."
       }
     ]
   },
   "synthesis-onco": {
     "dose": [
       {
-        "fr": "Oui : aucune amélioration de survie ne découle automatiquement d'une augmentation de dose.",
-        "en": "Yes: improved survival does not automatically follow dose escalation."
+        "fr": "aucune amélioration de survie ne découle automatiquement d'une augmentation de dose.",
+        "en": "improved survival does not automatically follow dose escalation."
       },
       {
-        "fr": "Non : réduire la tumeur dans un modèle n'établit pas à lui seul un bénéfice de survie.",
-        "en": "No: modeled tumor shrinkage alone does not establish a survival benefit."
+        "fr": "réduire la tumeur dans un modèle n'établit pas à lui seul un bénéfice de survie.",
+        "en": "modeled tumor shrinkage alone does not establish a survival benefit."
       }
     ],
     "data": [
       {
-        "fr": "Oui : les trajectoires de taille tumorale renseignent la dynamique de réponse.",
-        "en": "Yes: tumor-size trajectories inform response dynamics."
+        "fr": "les trajectoires de taille tumorale renseignent la dynamique de réponse.",
+        "en": "tumor-size trajectories inform response dynamics."
       },
       {
-        "fr": "Oui : les interruptions et changements de dose conditionnent l'exposition réelle.",
-        "en": "Yes: interruptions and dose changes determine actual exposure."
+        "fr": "les interruptions et changements de dose conditionnent l'exposition réelle.",
+        "en": "interruptions and dose changes determine actual exposure."
       },
       {
-        "fr": "Oui : les dates d'événement et de censure sont nécessaires aux analyses de survie.",
-        "en": "Yes: event and censoring times are required for survival analysis."
+        "fr": "les dates d'événement et de censure sont nécessaires aux analyses de survie.",
+        "en": "event and censoring times are required for survival analysis."
       },
       {
-        "fr": "Non : une mesure finale unique efface la dynamique et les événements intermédiaires.",
-        "en": "No: one final measurement discards temporal dynamics and intervening events."
+        "fr": "une mesure finale unique efface la dynamique et les événements intermédiaires.",
+        "en": "one final measurement discards temporal dynamics and intervening events."
       }
     ]
   },
   "synthesis-mab": {
     "tmdd": [
       {
-        "fr": "Oui : la saturation d'une voie d'élimination par la cible peut rendre la PK non linéaire.",
-        "en": "Yes: saturation of target-mediated elimination can produce nonlinear PK."
+        "fr": "la saturation d'une voie d'élimination par la cible peut rendre la PK non linéaire.",
+        "en": "saturation of target-mediated elimination can produce nonlinear PK."
       },
       {
-        "fr": "Non : une clairance constante strictement linéaire ne suffit pas à expliquer une relation non linéaire.",
-        "en": "No: constant, strictly linear clearance alone does not explain nonlinear kinetics."
+        "fr": "une clairance constante strictement linéaire ne suffit pas à expliquer une relation non linéaire.",
+        "en": "constant, strictly linear clearance alone does not explain nonlinear kinetics."
       }
     ],
     "measure": [
       {
-        "fr": "Oui : mesurer médicament libre et total peut distinguer des mécanismes de liaison.",
-        "en": "Yes: measuring free and total drug may distinguish binding mechanisms."
+        "fr": "mesurer médicament libre et total peut distinguer des mécanismes de liaison.",
+        "en": "measuring free and total drug may distinguish binding mechanisms."
       },
       {
-        "fr": "Oui : cible et complexes peuvent renseigner les interactions médicament-cible.",
-        "en": "Yes: target and complexes can inform drug-target interactions."
+        "fr": "cible et complexes peuvent renseigner les interactions médicament-cible.",
+        "en": "target and complexes can inform drug-target interactions."
       },
       {
-        "fr": "Oui : la chronologie des ADA et leur titre permettent d'étudier une variation de clairance.",
-        "en": "Yes: ADA timing and titer help investigate clearance changes."
+        "fr": "la chronologie des ADA et leur titre permettent d'étudier une variation de clairance.",
+        "en": "ADA timing and titer help investigate clearance changes."
       },
       {
-        "fr": "Non : une simple positivité ADA sans chronologie ou méthode ne démontre pas son effet.",
-        "en": "No: ADA positivity alone, without timing or method details, does not prove an effect."
+        "fr": "une simple positivité ADA sans chronologie ou méthode ne démontre pas son effet.",
+        "en": "ADA positivity alone, without timing or method details, does not prove an effect."
       }
     ]
   },
   "synthesis-ai": {
     "claims": [
       {
-        "fr": "Oui : une simulation démontre au mieux un résultat conditionnel au générateur et au protocole.",
-        "en": "Yes: simulation demonstrates at most a result conditional on generator and protocol."
+        "fr": "Une simulation montre ce qui arrive avec les hypothèses choisies, pas forcément dans la réalité.",
+        "en": "A simulation shows what happens under the chosen assumptions, not necessarily in real life."
       },
       {
-        "fr": "Non : une performance simulée ne démontre aucun bénéfice clinique prospectif.",
-        "en": "No: simulated performance does not establish prospective clinical benefit."
+        "fr": "Un bon score sur des patients simulés ne prouve pas un bénéfice clinique.",
+        "en": "A good score in simulated patients does not prove clinical benefit."
       },
       {
-        "fr": "Oui : la généralisation doit être évaluée sur des données indépendantes pertinentes.",
-        "en": "Yes: generalization needs evaluation on relevant independent data."
+        "fr": "Il faut également tester le modèle sur des données indépendantes, idéalement issues de nouveaux patients.",
+        "en": "We also need to test the model on independent data, ideally from new patients."
       }
     ]
   },
   "synthesis-valid": {
     "retain": [
       {
-        "fr": "Oui : l'AIC n'est qu'un élément parmi les diagnostics et la plausibilité.",
-        "en": "Yes: AIC is only one element alongside diagnostics and plausibility."
+        "fr": "l'AIC n'est qu'un élément parmi les diagnostics et la plausibilité.",
+        "en": "AIC is only one element alongside diagnostics and plausibility."
       },
       {
-        "fr": "Non : un AIC inférieur ne garantit pas une solution convergée ou un modèle utilisable.",
-        "en": "No: lower AIC does not guarantee a converged solution or usable model."
+        "fr": "un AIC inférieur ne garantit pas une solution convergée ou un modèle utilisable.",
+        "en": "lower AIC does not guarantee a converged solution or usable model."
       }
     ],
     "next": [
       {
-        "fr": "Oui : structure et erreur résiduelle peuvent toutes deux expliquer des écarts diagnostiques.",
-        "en": "Yes: structure and residual error can both explain diagnostic discrepancies."
+        "fr": "structure et erreur résiduelle peuvent toutes deux expliquer des écarts diagnostiques.",
+        "en": "structure and residual error can both explain diagnostic discrepancies."
       },
       {
-        "fr": "Oui : une VPC doit reproduire fidèlement le plan de données et peut nécessiter une stratification.",
-        "en": "Yes: VPC simulations must reproduce the data design and may require stratification."
+        "fr": "une VPC doit reproduire fidèlement le plan de données et peut nécessiter une stratification.",
+        "en": "VPC simulations must reproduce the data design and may require stratification."
       },
       {
-        "fr": "Non : ignorer la VPC supprime une information prédictive utile.",
-        "en": "No: ignoring VPC discards useful predictive evidence."
+        "fr": "ignorer la VPC supprime une information prédictive utile.",
+        "en": "ignoring VPC discards useful predictive evidence."
       }
     ]
   },
   "synthesis-trials": {
     "pos": [
       {
-        "fr": "Oui : l'assurance intègre l'incertitude pertinente sur l'effet dans la probabilité de succès.",
-        "en": "Yes: assurance integrates relevant effect uncertainty into success probability."
+        "fr": "L’assurance tient compte du fait que l’effet réel du traitement est encore incertain.",
+        "en": "Assurance accounts for uncertainty about the treatment’s true effect."
       },
       {
-        "fr": "Non : une fréquence sous paramètres fixés correspond à une probabilité conditionnelle, pas automatiquement à l'assurance.",
-        "en": "No: frequencies under fixed parameters are conditional probabilities, not automatically assurance."
+        "fr": "Une fréquence calculée pour un effet supposé connu ne tient pas compte de cette incertitude.",
+        "en": "A frequency calculated for a fixed assumed effect does not include that uncertainty."
       }
     ]
   },
   "synthesis-tools": {
     "fixed": [
       {
-        "fr": "Oui : THETA(1) représente ici la valeur populationnelle de référence.",
-        "en": "Yes: THETA(1) is the reference population parameter here."
+        "fr": "THETA(1) représente ici la valeur populationnelle de référence.",
+        "en": "THETA(1) is the reference population parameter here."
       },
       {
-        "fr": "Oui : Cl_pop désigne ici la clairance typique du modèle Monolix.",
-        "en": "Yes: Cl_pop denotes typical clearance in this Monolix model."
+        "fr": "Cl_pop désigne ici la clairance typique du modèle Monolix.",
+        "en": "Cl_pop denotes typical clearance in this Monolix model."
       },
       {
-        "fr": "Oui : exp(tcl) remet un effet fixe logarithmique sur l'échelle naturelle.",
-        "en": "Yes: exp(tcl) maps a log-scale fixed effect to the natural scale."
+        "fr": "exp(tcl) remet un effet fixe logarithmique sur l'échelle naturelle.",
+        "en": "exp(tcl) maps a log-scale fixed effect to the natural scale."
       },
       {
-        "fr": "Non : EPS(1) correspond ici à l'erreur résiduelle, pas à la clairance typique.",
-        "en": "No: EPS(1) represents residual error here, not typical clearance."
+        "fr": "EPS(1) correspond ici à l'erreur résiduelle, pas à la clairance typique.",
+        "en": "EPS(1) represents residual error here, not typical clearance."
       }
     ],
     "random": [
       {
-        "fr": "Oui : ETA(1) représente ici un écart individuel dans NONMEM.",
-        "en": "Yes: ETA(1) represents an individual deviation in NONMEM here."
+        "fr": "ETA(1) représente ici un écart individuel dans NONMEM.",
+        "en": "ETA(1) represents an individual deviation in NONMEM here."
       },
       {
-        "fr": "Oui : eta_Cl joue le rôle d'effet individuel dans Monolix.",
-        "en": "Yes: eta_Cl acts as an individual random effect in Monolix."
+        "fr": "eta_Cl joue le rôle d'effet individuel dans Monolix.",
+        "en": "eta_Cl acts as an individual random effect in Monolix."
       },
       {
-        "fr": "Oui : eta.cl désigne l'écart individuel dans le code nlmixr2.",
-        "en": "Yes: eta.cl denotes the individual deviation in nlmixr2 code."
+        "fr": "eta.cl désigne l'écart individuel dans le code nlmixr2.",
+        "en": "eta.cl denotes the individual deviation in nlmixr2 code."
       },
       {
-        "fr": "Non : IPRED est une prédiction individuelle, pas le paramètre aléatoire ETA.",
-        "en": "No: IPRED is an individual prediction, not the ETA random effect."
+        "fr": "IPRED est une prédiction individuelle, pas le paramètre aléatoire ETA.",
+        "en": "IPRED is an individual prediction, not the ETA random effect."
       }
     ],
     "residual": [
       {
-        "fr": "Oui : EPS et SIGMA définissent ici l'erreur d'observation proportionnelle de NONMEM.",
-        "en": "Yes: EPS and SIGMA define NONMEM's proportional observation error here."
+        "fr": "EPS et SIGMA définissent ici l'erreur d'observation proportionnelle de NONMEM.",
+        "en": "EPS and SIGMA define NONMEM's proportional observation error here."
       },
       {
-        "fr": "Oui : b et eps paramètrent ici le bruit de mesure Monolix.",
-        "en": "Yes: b and eps parameterize Monolix observation noise here."
+        "fr": "b et eps paramètrent ici le bruit de mesure Monolix.",
+        "en": "b and eps parameterize Monolix observation noise here."
       },
       {
-        "fr": "Oui : prop(0.15) spécifie ici un terme d'erreur proportionnelle nlmixr2.",
-        "en": "Yes: prop(0.15) specifies a proportional residual error in nlmixr2 here."
+        "fr": "prop(0.15) spécifie ici un terme d'erreur proportionnelle nlmixr2.",
+        "en": "prop(0.15) specifies a proportional residual error in nlmixr2 here."
       },
       {
-        "fr": "Non : OMEGA et eta.cl décrivent la variabilité entre individus, pas l'erreur résiduelle.",
-        "en": "No: OMEGA and eta.cl describe between-subject variability, not residual error."
+        "fr": "OMEGA et eta.cl décrivent la variabilité entre individus, pas l'erreur résiduelle.",
+        "en": "OMEGA and eta.cl describe between-subject variability, not residual error."
       }
     ]
   },
   "cov-dispersion": {
     "predict": [
       {
-        "fr": "Oui : l'exposant bêta reste inchangé, donc la courbe typique aussi.",
-        "en": "Yes: beta is unchanged, so the typical curve is unchanged."
+        "fr": "l'exposant bêta reste inchangé, donc la courbe typique aussi.",
+        "en": "beta is unchanged, so the typical curve is unchanged."
       },
       {
-        "fr": "Oui : omega = 0 supprime la composante ETA de variabilité interindividuelle de ce modèle.",
-        "en": "Yes: omega = 0 removes this model's ETA between-subject variation."
+        "fr": "omega = 0 supprime la composante ETA de variabilité interindividuelle de ce modèle.",
+        "en": "omega = 0 removes this model's ETA between-subject variation."
       },
       {
-        "fr": "Non : la relation au poids dépend de bêta, pas d'omega.",
-        "en": "No: the weight relationship depends on beta, not omega."
+        "fr": "la relation au poids dépend de bêta, pas d'omega.",
+        "en": "the weight relationship depends on beta, not omega."
       },
       {
-        "fr": "Non : l'erreur de mesure SIGMA est un autre niveau de variabilité.",
-        "en": "No: measurement error SIGMA is a separate variation component."
+        "fr": "l'erreur de mesure SIGMA est un autre niveau de variabilité.",
+        "en": "measurement error SIGMA is a separate variation component."
       }
     ]
   },
   "cov-threshold": {
     "validation": [
       {
-        "fr": "Oui : transformations et groupes sont estimés exclusivement sur l'entraînement.",
-        "en": "Yes: transformations and groups are fitted only to training data."
+        "fr": "transformations et groupes sont estimés exclusivement sur l'entraînement.",
+        "en": "transformations and groups are fitted only to training data."
       },
       {
-        "fr": "Oui : la règle d'affectation doit être figée avant l'évaluation sur données indépendantes.",
-        "en": "Yes: the assignment rule must be frozen before independent evaluation."
+        "fr": "la règle d'affectation doit être figée avant l'évaluation sur données indépendantes.",
+        "en": "the assignment rule must be frozen before independent evaluation."
       },
       {
-        "fr": "Non : utiliser l'AUC test pour former les groupes introduit une fuite de données.",
-        "en": "No: using test AUC to form groups causes information leakage."
+        "fr": "utiliser l'AUC test pour former les groupes introduit une fuite de données.",
+        "en": "using test AUC to form groups causes information leakage."
       },
       {
-        "fr": "Oui : une validation croisée doit réajuster les étapes apprises dans chaque pli d'entraînement.",
-        "en": "Yes: cross-validation must refit learned steps within each training fold."
+        "fr": "une validation croisée doit réajuster les étapes apprises dans chaque pli d'entraînement.",
+        "en": "cross-validation must refit learned steps within each training fold."
       }
     ]
   },
   "cov-extrapolation": {
     "domain": [
       {
-        "fr": "Oui : des modèles proches dans le domaine observé peuvent diverger à ses extrêmes.",
-        "en": "Yes: models close in the observed domain may diverge at the extremes."
+        "fr": "des modèles proches dans le domaine observé peuvent diverger à ses extrêmes.",
+        "en": "models close in the observed domain may diverge at the extremes."
       },
       {
-        "fr": "Non : une formule concise n'est pas une preuve de validité à 200 kg.",
-        "en": "No: a compact equation is not evidence of validity at 200 kg."
+        "fr": "une formule concise n'est pas une preuve de validité à 200 kg.",
+        "en": "a compact equation is not evidence of validity at 200 kg."
       },
       {
-        "fr": "Oui : il faut justifier et évaluer séparément l'extrapolation hors domaine.",
-        "en": "Yes: out-of-domain extrapolation needs separate justification and evaluation."
+        "fr": "il faut justifier et évaluer séparément l'extrapolation hors domaine.",
+        "en": "out-of-domain extrapolation needs separate justification and evaluation."
       },
       {
-        "fr": "Non : l'accord entre deux courbes n'évalue pas le bénéfice clinique.",
-        "en": "No: agreement between curves does not evaluate clinical benefit."
+        "fr": "l'accord entre deux courbes n'évalue pas le bénéfice clinique.",
+        "en": "agreement between curves does not evaluate clinical benefit."
       }
     ]
   },
   "cov-symbolic-validation": {
     "split": [
       {
-        "fr": "Oui : garder tous les prélèvements d'un patient du même côté évite une fuite intra-patient.",
-        "en": "Yes: keeping one patient's samples in one split prevents within-patient leakage."
+        "fr": "garder tous les prélèvements d'un patient du même côté évite une fuite intra-patient.",
+        "en": "keeping one patient's samples in one split prevents within-patient leakage."
       },
       {
-        "fr": "Non : choisir l'équation sur le test réutilise indûment le jeu final.",
-        "en": "No: choosing an equation with the test set improperly reuses the final set."
+        "fr": "choisir l'équation sur le test réutilise indûment le jeu final.",
+        "en": "choosing an equation with the test set improperly reuses the final set."
       },
       {
-        "fr": "Oui : toute standardisation ou sélection doit être apprise sur l'entraînement.",
-        "en": "Yes: all standardization or selection must be fitted on training only."
+        "fr": "toute standardisation ou sélection doit être apprise sur l'entraînement.",
+        "en": "all standardization or selection must be fitted on training only."
       },
       {
-        "fr": "Oui : figer la formule avant le test protège la validité de l'évaluation.",
-        "en": "Yes: freezing the formula before testing protects evaluation validity."
+        "fr": "figer la formule avant le test protège la validité de l'évaluation.",
+        "en": "freezing the formula before testing protects evaluation validity."
       }
     ]
   },
   "cov-code-check": {
     "bugs": [
       {
-        "fr": "Non : le poids est en kilogrammes dans ce contrat, pas en minutes.",
-        "en": "No: weight is measured in kilograms in this contract, not minutes."
+        "fr": "le poids est en kilogrammes dans ce contrat, pas en minutes.",
+        "en": "weight is measured in kilograms in this contract, not minutes."
       },
       {
-        "fr": "Oui : le dénominateur 70 doit être dans la puissance pour calculer (WT/70)^0,75.",
-        "en": "Yes: 70 must be inside the power to compute (WT/70)^0.75."
+        "fr": "le dénominateur 70 doit être dans la puissance pour calculer (WT/70)^0,75.",
+        "en": "70 must be inside the power to compute (WT/70)^0.75."
       },
       {
-        "fr": "Oui : le contrat impose ici que le génotype agisse sur CL, pas sur V.",
-        "en": "Yes: this contract specifies a genotype effect on CL, not V."
+        "fr": "le contrat impose ici que le génotype agisse sur CL, pas sur V.",
+        "en": "this contract specifies a genotype effect on CL, not V."
       },
       {
-        "fr": "Non : CL et V peuvent avoir des exposants allométriques différents.",
-        "en": "No: CL and V can have different allometric exponents."
+        "fr": "CL et V peuvent avoir des exposants allométriques différents.",
+        "en": "CL and V can have different allometric exponents."
       }
     ]
   },
   "cov-omega-time": {
     "time": [
       {
-        "fr": "Non : à 6 h, une mesure réalisée à 12 h appartient encore au futur.",
-        "en": "No: at 6 hours, a sample at 12 hours is still in the future."
+        "fr": "à 6 h, une mesure réalisée à 12 h appartient encore au futur.",
+        "en": "at 6 hours, a sample at 12 hours is still in the future."
       },
       {
-        "fr": "Oui : le report de la dernière valeur connue est une hypothèse utilisable si elle est déclarée.",
-        "en": "Yes: carrying the last observed value forward is an option if disclosed."
+        "fr": "le report de la dernière valeur connue est une hypothèse utilisable si elle est déclarée.",
+        "en": "carrying the last observed value forward is an option if disclosed."
       },
       {
-        "fr": "Oui : une interpolation mobilisant la mesure future entraînerait une fuite pour une prédiction à 6 h.",
-        "en": "Yes: interpolation using a future value would leak information for a 6-hour prediction."
+        "fr": "une interpolation mobilisant la mesure future entraînerait une fuite pour une prédiction à 6 h.",
+        "en": "interpolation using a future value would leak information for a 6-hour prediction."
       },
       {
-        "fr": "Non : LOCF est une convention de modélisation, pas la preuve d'une fonction d'organe constante.",
-        "en": "No: LOCF is a modeling convention, not evidence of constant organ function."
+        "fr": "LOCF est une convention de modélisation, pas la preuve d'une fonction d'organe constante.",
+        "en": "LOCF is a modeling convention, not evidence of constant organ function."
       }
     ]
   },
   "practice-nonmem-moteur": {
     "checks": [
       {
-        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
+        "fr": "les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
+        "en": "starting values and numerical bounds can affect the fitted optimum."
       },
       {
-        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
+        "fr": "diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
+        "en": "diagnostics and numerical stability help assess solution reliability."
       },
       {
-        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
+        "fr": "la dernière exécution peut être non convergée ou dominée par un optimum local.",
+        "en": "the last execution may be nonconverged or trapped at a local optimum."
       }
     ]
   },
   "practice-monolix-moteur": {
     "checks": [
       {
-        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
+        "fr": "les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
+        "en": "starting values and numerical bounds can affect the fitted optimum."
       },
       {
-        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
+        "fr": "diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
+        "en": "diagnostics and numerical stability help assess solution reliability."
       },
       {
-        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
+        "fr": "la dernière exécution peut être non convergée ou dominée par un optimum local.",
+        "en": "the last execution may be nonconverged or trapped at a local optimum."
       }
     ]
   },
   "practice-nlmixr2-moteur": {
     "checks": [
       {
-        "fr": "Oui : les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
-        "en": "Yes: starting values and numerical bounds can affect the fitted optimum."
+        "fr": "les points de départ et limites numériques peuvent influencer l'optimum trouvé.",
+        "en": "starting values and numerical bounds can affect the fitted optimum."
       },
       {
-        "fr": "Oui : diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
-        "en": "Yes: diagnostics and numerical stability help assess solution reliability."
+        "fr": "diagnostics et stabilité permettent de juger la fiabilité d'une solution.",
+        "en": "diagnostics and numerical stability help assess solution reliability."
       },
       {
-        "fr": "Non : la dernière exécution peut être non convergée ou dominée par un optimum local.",
-        "en": "No: the last execution may be nonconverged or trapped at a local optimum."
+        "fr": "la dernière exécution peut être non convergée ou dominée par un optimum local.",
+        "en": "the last execution may be nonconverged or trapped at a local optimum."
       }
     ]
   }
