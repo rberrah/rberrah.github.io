@@ -15,13 +15,14 @@ slides: []
 sources: ["monolix", "lavielle", "beal-bql", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+review_pending: true
 reviewed_hash: "121850c4ad3e5ba81b5601f155aca696419babee38d672aba8bfe182a9383af7"
 quiz:
-  - prompt: "Vous passez un modèle de `combined1(a, b)` à `combined2(a, b)` en gardant les mêmes valeurs de a et de b. L'écart-type résiduel change le plus..."
+  - prompt: "Vous passez un modèle de `combined1(a, b)` à `combined2(a, b)` en gardant les mêmes valeurs de a et de b. Le rapport des écarts-types résiduels combined1/combined2 est maximal..."
     options:
-      - "à la concentration f = a/b, où combined1 est exactement racine de 2 fois plus large que combined2 : c'est le maximum de leur écart"
-      - "aux fortes concentrations, où le terme proportionnel b·f domine et où l'addition des écarts-types de combined1 s'emballe"
-      - "aux faibles concentrations, où le terme additif a domine et où la mise au carré de combined2 écrase le plancher de bruit"
+      - "à f = a/b : les termes additif et proportionnel sont égaux et combined1 est √2 fois plus large que combined2"
+      - "aux fortes concentrations, car le terme proportionnel fait augmenter sans limite le rapport entre combined1 et combined2"
+      - "aux faibles concentrations, car combined2 supprimerait alors le bruit additif alors que combined1 le conserverait"
     correct: 0
   - prompt: "Dans `DEFINITION:`, vous écrivez `{distribution=logNormal, prediction=Cc, errorModel=constant(a)}` et le SAEM rend a = 0,15. Cela signifie que..."
     options:
