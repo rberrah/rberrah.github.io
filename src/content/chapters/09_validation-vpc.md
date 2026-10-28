@@ -32,9 +32,9 @@ quiz:
     correct: 0
   - prompt: "Un piège diagnostique fréquent est..."
     options:
-      - "de faire confiance à un modèle du seul fait qu'il a convergé"
+      - "de comparer plusieurs diagnostics et leurs hypothèses avant de conclure"
       - "de conclure au succès à partir d'une seule métrique"
-      - "de prendre un motif de résidus systématique pour du bruit"
+      - "de rechercher des motifs non aléatoires dans les résidus"
     correct: 1
 ---
 
