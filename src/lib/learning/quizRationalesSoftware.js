@@ -174,8 +174,8 @@ export const softwareQuizRationales = {
   ],
   "monolix-erreur-residuelle": [
     {
-      "fr": "combined1 additionne les écarts-types, combined2 combine leurs carrés ; leur écart absolu est maximal lorsque a = b × f.",
-      "en": "combined1 adds standard deviations, while combined2 combines their squares; their absolute difference peaks when a = b × f."
+      "fr": "combined1 additionne les deux erreurs alors que combined2 combine leurs carrés : leur rapport est maximal lorsque a = b × f, et vaut alors √2.",
+      "en": "combined1 adds the two errors while combined2 combines their squares: their ratio is greatest when a = b × f, and then equals √2."
     },
     {
       "fr": "Avec distribution=logNormal, constant(a) agit sur le logarithme des observations : a = 0,15 représente une dispersion relative d’environ 15 %.",
