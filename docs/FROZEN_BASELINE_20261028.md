@@ -2,6 +2,7 @@
 
 **Freeze decision:** 28 October 2026  
 **Qualified code baseline:** `7ebe39b0693f8b4393c4135d9fc48cf38b521868`
+**First public merge containing that baseline:** `965fb659b66f3d36452a3c55cd216636aafc05a1`
 **Intended use:** teaching and research only  
 **Repository:** `rberrah/rberrah.github.io`
 
@@ -42,10 +43,18 @@ passed:
   `mipd-consumer` successful;
 - Pmetrics official full benchmark
   [40713450051](https://github.com/rberrah/rberrah.github.io/actions/runs/40713450051):
-  successful on its first attempt with the extended dependency-download timeout;
+  successful on its first attempt after selecting the Posit CRAN mirror for
+  dependencies while retaining the LAPKB repository for Pmetrics;
+- post-merge PMx qualification
+  [40716545556](https://github.com/rberrah/rberrah.github.io/actions/runs/40716545556):
+  all five required jobs successful on merge
+  `965fb659b66f3d36452a3c55cd216636aafc05a1`;
+- post-merge Pmetrics official full benchmark
+  [40716545565](https://github.com/rberrah/rberrah.github.io/actions/runs/40716545565):
+  successful on its first attempt;
 - qualified Pages deployment run
-  [40672550174](https://github.com/rberrah/rberrah.github.io/actions/runs/40672550174):
-  successful;
+  [40717962286](https://github.com/rberrah/rberrah.github.io/actions/runs/40717962286):
+  successful for merge `965fb659b66f3d36452a3c55cd216636aafc05a1`;
 - public sitemap and representative HTML audit: HTTP 200 with valid XML,
   canonical metadata and server-rendered content;
 - npm audit: zero known advisories at low severity or above. The unreleased
