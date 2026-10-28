@@ -55,6 +55,25 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
         await expect(panel.getByTestId('case-correction')).toContainText(step.rubric[0][lang]);
         await panel.getByTestId('case-correction').getByRole('checkbox').check();
       }
+      const correction = panel.getByTestId('case-correction');
+      await expect(correction).toContainText(lang === 'en' ? 'Why?' : 'Pourquoi ?');
+      if (step.type === 'select') {
+        const entries = panel.getByTestId('case-answer-key').locator('li');
+        await expect(entries).toHaveCount(step.options.length);
+        for (let option = 0; option < step.options.length; option++) {
+          await expect(entries.nth(option)).toContainText(step.options[option][lang]);
+          await expect(entries.nth(option).locator('strong')).toContainText(step.correct.includes(option)
+            ? (lang === 'en' ? 'Correct' : 'Correcte')
+            : (lang === 'en' ? 'Incorrect' : 'Incorrecte'));
+          await expect(entries.nth(option).locator('.option-why')).not.toBeEmpty();
+        }
+      } else if (step.type === 'numeric') {
+        await expect(panel.getByTestId('case-expected-value')).toContainText(lang === 'en' ? 'Expected answer' : 'Réponse attendue');
+      } else if (step.type === 'tune') {
+        for (const target of Object.keys(step.targets)) {
+          await expect(panel.getByTestId('case-expected-settings')).toContainText(target);
+        }
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       if (step.experiment) {
         const paths = panel.locator('svg[data-testid="covariate-plot"] path');
@@ -89,6 +108,29 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
     expect(errors).toEqual([]);
   });
 }
+
+test('Learning: average trees explicitly identifies all correct and incorrect choices after a wrong attempt', async ({ page }) => {
+  const activity = activities.find(item => item.id === 'practice-ai-trees');
+  await page.goto(path(activity, 'fr'));
+  const panel = page.getByTestId('activity-practice-ai-trees');
+  await panel.getByTestId('case-number').fill('100');
+  await check(panel).click();
+  await next(panel).click();
+  await expect(panel.locator('fieldset legend')).toContainText('Cochez toutes les affirmations exactes');
+  await panel.locator('fieldset input').nth(1).check(); // Wrong: between-tree spread is not a 95% CI.
+  await check(panel).click();
+  await expect(next(panel)).toBeDisabled();
+  await panel.getByRole('button', { name: 'Voir le corrigé' }).click();
+  const answers = panel.getByTestId('case-answer-key').locator('li');
+  await expect(answers).toHaveCount(3);
+  await expect(answers.nth(0)).toContainText('Correcte');
+  await expect(answers.nth(0)).toContainText('corrélées');
+  await expect(answers.nth(1)).toContainText('Incorrecte');
+  await expect(answers.nth(1)).toContainText('intervalle de confiance à 95 %');
+  await expect(answers.nth(2)).toContainText('Correcte');
+  await expect(answers.nth(2)).toContainText('hors domaine');
+  await expect(next(panel)).toBeEnabled();
+});
 
 test('Learning: mistakes, hints, solutions, opt-in persistence and clearing', async ({ page }) => {
   const activity = activities[0];
