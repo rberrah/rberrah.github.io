@@ -39,6 +39,19 @@ test('discovery mode guides prediction, one manipulation and debrief', async ({ 
   await page.getByTestId('lab-learning-free').click();
   await expect(page.locator('#lab-cl')).toBeVisible();
 });
+test('all four fundamental laboratories explicitly explain right and wrong application answers in French', async ({ page }) => {
+  for (const lab of ['distribution', 'accumulation', 'absorption', 'infusion']) {
+    await open(page, '/laboratoires/?lang=fr&lab=' + lab);
+    const debrief = page.getByTestId('laboratory-debrief');
+    await expect(debrief.getByLabel("Réponse d'application").locator('option')).toHaveCount(3);
+    await debrief.getByLabel("Réponse d'application").selectOption('1');
+    const feedback = debrief.getByTestId('laboratory-application-feedback');
+    await expect(feedback).toContainText('Réponse incorrecte.');
+    await expect(feedback).toContainText('Bonne réponse :');
+    await debrief.getByLabel("Réponse d'application").selectOption('0');
+    await expect(feedback).toContainText('Bonne réponse.');
+  }
+});
 test('laboratory home exposes every molecular journey and course animations separately', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.goto(url('/laboratoires/?lang=en'));
