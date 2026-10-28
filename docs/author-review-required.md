@@ -5,7 +5,7 @@ items below changed after their stored human-review evidence or have never been
 sealed. Their status must remain `pending` until a person reviews the exact
 content.
 
-## Chapters: 16 French and 16 English files
+## Chapters: 18 French and 18 English files
 
 The same filenames are pending under `src/content/chapters/` and
 `src/content/chapters/en/`:
@@ -24,8 +24,10 @@ The same filenames are pending under `src/content/chapters/` and
 - `ai-ml-tdm.md`
 - `ai-svm.md`
 - `ai-trees.md`
+- `monolix-erreur-residuelle.md`
 - `nlmixr2-moteur.md`
 - `tools-nlmixr2.md`
+- `valid-vpc.md`
 
 `docs/content-inventory.md` is the generated source of truth for their current
 hash status.

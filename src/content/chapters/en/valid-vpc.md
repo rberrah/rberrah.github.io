@@ -17,6 +17,7 @@ updated_on: "2026-10-10"
 reviewed_on: "2026-10-10"
 review_type: "author"
 reviewed_hash: "e0abad946f436538fd32b991caf669fef4cf82da15ffbe58a359a1227df5725b"
+review_pending: true
 scientific_values: {"lower_percentile":5,"median_percentile":50,"upper_percentile":95,"demo_replicates":500,"demo_subjects":60}
 units: {"percentiles":"percent","replicates":"datasets","subjects":"patients"}
 quiz:
@@ -32,11 +33,11 @@ quiz:
       - "group observations into optimal time intervals (binning)"
       - "correct the linearisation bias in the residual calculation"
     correct: 0
-  - prompt: "If many observations fall outside the simulated intervals, then..."
+  - prompt: "If observed percentiles repeatedly fall outside simulated bands in a VPC, this suggests that..."
     options:
-      - "the model reproduces the observed trend or spread poorly"
-      - "the simulated bands are too narrow and just need widening"
-      - "too few simulations were run to draw any conclusion"
+      - "the model may reproduce observed trends or variability poorly"
+      - "the simulated bands should simply be widened after seeing the results"
+      - "simulations should be repeated until observed percentiles fall inside the bands"
     correct: 0
 ---
 

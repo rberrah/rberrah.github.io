@@ -40,3 +40,31 @@ for (const lang of ['fr', 'en']) {
     await expect(feedback).toContainText(lang === 'fr' ? 'leur rapport est maximal' : 'their ratio is greatest');
   });
 }
+
+for (const lang of ['fr', 'en']) {
+  test(`VPC explanations interpret simulated percentile bands rather than individual observations (${lang})`, async ({ page }) => {
+    await page.goto(`${prefix}/chapitres/valid-vpc/?lang=${lang}`);
+    const quiz = page.getByTestId('chapter-quiz');
+    await expect(quiz.getByTestId('quiz-block')).toHaveAttribute('data-hydrated', 'true');
+    await quiz.getByTestId('quiz-option-button').filter({ hasText: lang === 'fr' ? 'le modèle pourrait mal' : 'the model may reproduce' }).click();
+    const feedback = quiz.getByTestId('quiz-correction-2');
+    await expect(feedback).toContainText(lang === 'fr' ? 'Bonne réponse.' : 'Correct answer.');
+    await expect(feedback).toContainText(lang === 'fr' ? 'percentiles observés' : 'observed percentiles');
+  });
+}
+
+test('Switching exercise tracks resets answers from the previous quiz', async ({ page }) => {
+  await page.goto(`${prefix}/exercices/?track=core&kind=quiz&lang=fr`);
+  await expect(page.getByTestId('exercise-track-core')).toBeVisible();
+  let panel = page.getByTestId('exercise-track-core').locator('.quiz-card').first();
+  await panel.locator('summary').click();
+  await expect(panel.getByTestId('quiz-block')).toHaveAttribute('data-hydrated', 'true');
+  await panel.getByTestId('quiz-option-button').first().click();
+  await expect(panel.getByTestId('quiz-correction-0')).toBeVisible();
+  await page.getByRole('navigation', { name: "Choisir un parcours d'exercices" }).getByRole('button', { name: /Mathématiques/ }).click();
+  await expect(page.getByTestId('exercise-track-math')).toBeVisible();
+  panel = page.getByTestId('exercise-track-math').locator('.quiz-card').first();
+  if (!(await panel.evaluate(node => node.open))) await panel.locator('summary').click();
+  await expect(panel.getByTestId('quiz-block')).toHaveAttribute('data-hydrated', 'true');
+  await expect(panel.getByTestId('quiz-correction-0')).toHaveCount(0);
+});

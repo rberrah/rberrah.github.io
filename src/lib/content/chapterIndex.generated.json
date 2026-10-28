@@ -9615,7 +9615,7 @@
     "reviewed_on": "2026-10-10",
     "reviewed_hash": "085c8bf93d34d8efdb66eb95ffa649ebcd9f7eda6a405833878398a2b57785db",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -9637,11 +9637,11 @@
         "correct": 0
       },
       {
-        "prompt": "Si beaucoup d'observations tombent hors des intervalles simulés, alors...",
+        "prompt": "Si les percentiles observés sortent souvent des bandes simulées dans une VPC, cela suggère que...",
         "options": [
-          "le modèle reproduit mal la tendance ou la variabilité observées",
-          "les bandes simulées sont trop étroites, il suffit de les élargir",
-          "le nombre de simulations est trop faible pour conclure"
+          "le modèle pourrait mal reproduire les tendances ou la variabilité observées",
+          "il suffit d'élargir les bandes simulées après avoir vu les résultats",
+          "il faut relancer les simulations jusqu'à ce que les percentiles rentrent dans les bandes"
         ],
         "correct": 0
       }
@@ -9687,7 +9687,7 @@
         "reviewed_on": "2026-10-10",
         "reviewed_hash": "e0abad946f436538fd32b991caf669fef4cf82da15ffbe58a359a1227df5725b",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -9709,11 +9709,11 @@
             "correct": 0
           },
           {
-            "prompt": "If many observations fall outside the simulated intervals, then...",
+            "prompt": "If observed percentiles repeatedly fall outside simulated bands in a VPC, this suggests that...",
             "options": [
-              "the model reproduces the observed trend or spread poorly",
-              "the simulated bands are too narrow and just need widening",
-              "too few simulations were run to draw any conclusion"
+              "the model may reproduce observed trends or variability poorly",
+              "the simulated bands should simply be widened after seeing the results",
+              "simulations should be repeated until observed percentiles fall inside the bands"
             ],
             "correct": 0
           }

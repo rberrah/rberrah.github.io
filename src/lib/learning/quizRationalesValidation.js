@@ -226,8 +226,8 @@ export const validationQuizRationales = {
       "en": "A pcVPC adjusts for differences in typical predictions caused by dose schedules or covariates across observations."
     },
     {
-      "fr": "Si les observations sont souvent hors des plages simulées, le modèle, la variabilité ou le plan de simulation méritent un examen.",
-      "en": "If observations often fall outside simulated bands, investigate model fit, variability and simulation design."
+      "fr": "Si les percentiles observés sortent régulièrement des bandes simulées, vérifiez la structure du modèle, sa variabilité et le plan de simulation.",
+      "en": "If observed percentiles repeatedly fall outside simulated bands, check model structure, variability and the simulation design."
     }
   ],
   "valid-shrinkage": [

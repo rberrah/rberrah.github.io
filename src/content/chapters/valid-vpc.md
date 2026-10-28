@@ -17,6 +17,7 @@ updated_on: "2026-10-10"
 reviewed_on: "2026-10-10"
 review_type: "author"
 reviewed_hash: "085c8bf93d34d8efdb66eb95ffa649ebcd9f7eda6a405833878398a2b57785db"
+review_pending: true
 scientific_values: {"lower_percentile":5,"median_percentile":50,"upper_percentile":95,"demo_replicates":500,"demo_subjects":60}
 units: {"percentiles":"percent","replicates":"datasets","subjects":"patients"}
 quiz:
@@ -32,11 +33,11 @@ quiz:
       - "regrouper les observations en intervalles de temps optimaux"
       - "corriger le biais de linéarisation dans le calcul des résidus"
     correct: 0
-  - prompt: "Si beaucoup d'observations tombent hors des intervalles simulés, alors..."
+  - prompt: "Si les percentiles observés sortent souvent des bandes simulées dans une VPC, cela suggère que..."
     options:
-      - "le modèle reproduit mal la tendance ou la variabilité observées"
-      - "les bandes simulées sont trop étroites, il suffit de les élargir"
-      - "le nombre de simulations est trop faible pour conclure"
+      - "le modèle pourrait mal reproduire les tendances ou la variabilité observées"
+      - "il suffit d'élargir les bandes simulées après avoir vu les résultats"
+      - "il faut relancer les simulations jusqu'à ce que les percentiles rentrent dans les bandes"
     correct: 0
 ---
 
