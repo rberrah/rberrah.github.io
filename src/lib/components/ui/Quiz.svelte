@@ -2,8 +2,11 @@
   import { language } from '#lib/stores/language.js';
   import { ui } from '#lib/i18n/translations.js';
   import ScientificText from './ScientificText.svelte';
+  import { quizRationales } from '#lib/learning/quizRationales.js';
 
   export let title = 'Quiz';
+  /** Source chapter slug (absent for diagnostic quizzes). */
+  export let chapterSlug = '';
   /** @type {{prompt:string, options:string[], correct:number}[]} */
   export let questions = [];
   /** @type {null | ((result: {score:number, total:number}) => void)} */
@@ -64,6 +67,19 @@
           </button>
         {/each}
       </div>
+      {#if answers[i] !== undefined}
+        <p class="answer-detail" role="status" data-testid={`quiz-correction-${i}`}>
+          <strong>{answers[i] === q.correct
+            ? ($language === 'en' ? 'Correct answer.' : 'Bonne réponse.')
+            : ($language === 'en' ? 'Incorrect answer.' : 'Réponse incorrecte.')}</strong>
+          <span>{$language === 'en' ? 'Expected answer:' : 'Bonne réponse :'} <ScientificText text={q.options[q.correct]}/></span>
+          {#if quizRationales[chapterSlug]?.[i]?.[$language]}
+            <span><ScientificText text={quizRationales[chapterSlug][i][$language]}/></span>
+          {:else}
+            <span class="review-hint">{$language === 'en' ? 'Review the corresponding lesson to understand the reasoning.' : 'Relisez le passage correspondant du cours pour comprendre le raisonnement.'}</span>
+          {/if}
+        </p>
+      {/if}
     </div>
   {/each}
 
@@ -94,5 +110,7 @@
   .opt.wrong { background: var(--quiz-error-bg); border-color: var(--quiz-error-text); color: var(--quiz-error-text); }
   .opt.wrong .dot { background: var(--quiz-error-text); border-color: var(--quiz-error-text); }
   .tag { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-xs); }
+  .answer-detail { display: grid; gap: 5px; margin: 12px 0 0; padding: 12px; border-left: 3px solid var(--accent-ai); background: var(--bg-tertiary); font-size: .89rem; line-height: 1.5; }
+  .review-hint { color: var(--text-secondary); }
   .score { margin: var(--space-4) 0 0; font-family: var(--font-mono); font-weight: 600; }
 </style>
