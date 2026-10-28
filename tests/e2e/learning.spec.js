@@ -109,6 +109,27 @@ for (const lang of ['fr', 'en']) for (const activity of activities) {
   });
 }
 
+test('Learning: wrong answers receive a short, helpful explanation in French and English', async ({ page }) => {
+  const activity = activities.find(item => item.id === 'practice-ai-trees');
+  for (const lang of ['fr', 'en']) {
+    await page.goto(path(activity, lang));
+    const panel = page.getByTestId('activity-practice-ai-trees');
+    await panel.getByTestId('case-number').fill('999');
+    await check(panel).click();
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Réponse incorrecte.' : 'Incorrect answer.');
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Vérifiez le calcul' : 'Check the calculation');
+    await expect(panel.getByTestId('case-feedback')).not.toContainText('Ce résultat ne respecte pas encore');
+    await panel.getByTestId('case-number').fill('100');
+    await check(panel).click();
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Bonne réponse.' : 'Correct answer.');
+    await next(panel).click();
+    await panel.locator('fieldset input').nth(1).check();
+    await check(panel).click();
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Réponse incorrecte.' : 'Incorrect answer.');
+    await expect(panel.getByTestId('case-feedback')).toContainText(lang === 'fr' ? 'Une ou plusieurs propositions' : 'One or more choices');
+  }
+});
+
 test('Learning: average trees explicitly identifies all correct and incorrect choices after a wrong attempt', async ({ page }) => {
   const activity = activities.find(item => item.id === 'practice-ai-trees');
   await page.goto(path(activity, 'fr'));
