@@ -250,7 +250,7 @@ jobs:
           echo "MIPD_ENGINE_DIR=$source_dir" >> "$GITHUB_ENV"
       - name: Install pinned Pmetrics and backend dependencies
         run: |
-          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
+          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); cran_repo <- Sys.getenv("RSPM", unset = "https://cloud.r-project.org"); options(timeout = 600, repos = c(LAPKB = binary_repo("lapkb"), CRAN = cran_repo)); install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
       - name: Report native scientific versions
         run: Rscript -e 'cat("R version:", as.character(getRversion()), "\nPmetrics version:", as.character(packageVersion("Pmetrics")), "\n")'
       - name: Install Node dependencies

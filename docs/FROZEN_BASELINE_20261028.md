@@ -1,7 +1,7 @@
 # PMx Explain - frozen maintenance baseline
 
 **Freeze decision:** 28 October 2026  
-**Qualified code baseline:** `d42107d8d15857a8e019851aea37bee2f5f355fa`
+**Qualified code baseline:** `7ebe39b0693f8b4393c4135d9fc48cf38b521868`
 **Intended use:** teaching and research only  
 **Repository:** `rberrah/rberrah.github.io`
 
@@ -33,15 +33,18 @@ release and must pass the complete PMx consumer, build and browser gates.
 
 ## Qualification evidence
 
-The exact code baseline `d42107d8d15857a8e019851aea37bee2f5f355fa`
+The exact code baseline `7ebe39b0693f8b4393c4135d9fc48cf38b521868`
 passed:
 
 - PMx qualification run
-  [40668781439](https://github.com/rberrah/rberrah.github.io/actions/runs/40668781439):
+  [40713450064](https://github.com/rberrah/rberrah.github.io/actions/runs/40713450064):
   `build`, `scientific-js`, `scientific-r`, `scientific-pmetrics` and
   `mipd-consumer` successful;
+- Pmetrics official full benchmark
+  [40713450051](https://github.com/rberrah/rberrah.github.io/actions/runs/40713450051):
+  successful on its first attempt with the extended dependency-download timeout;
 - qualified Pages deployment run
-  [40599749090](https://github.com/rberrah/rberrah.github.io/actions/runs/40599749090):
+  [40672550174](https://github.com/rberrah/rberrah.github.io/actions/runs/40672550174):
   successful;
 - public sitemap and representative HTML audit: HTTP 200 with valid XML,
   canonical metadata and server-rendered content;
