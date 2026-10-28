@@ -32,9 +32,9 @@ quiz:
     correct: 0
   - prompt: "A common diagnostic pitfall is..."
     options:
-      - "trusting a model just because it converged"
+      - "comparing several diagnostics and their assumptions before concluding"
       - "declaring success from a single metric"
-      - "taking a systematic residual pattern for noise"
+      - "checking residuals for systematic, non-random patterns"
     correct: 1
 ---
 
