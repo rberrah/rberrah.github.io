@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { language } from '#lib/stores/language.js';
   import { ui } from '#lib/i18n/translations.js';
   import ScientificText from './ScientificText.svelte';
@@ -13,6 +14,10 @@
   export let onComplete = null;
   /** @type {Record<number, number>} */
   let answers = {};
+  // The server-rendered quiz is inert until hydration attaches event handlers.
+  // Expose the actual state to E2E instead of racing against a static page.
+  let hydrated = false;
+  onMount(() => { hydrated = true; });
 
   // Mélange DÉTERMINISTE des options. Sans lui, la bonne réponse était presque toujours en
   // position 0 : devinable sans lire le cours. La permutation est dérivée de l'énoncé (donc
@@ -42,7 +47,7 @@
   $: copy = ui($language).quiz;
 </script>
 
-<div class="quiz" data-testid="quiz-block">
+<div class="quiz" data-testid="quiz-block" data-hydrated={hydrated}>
   <h4>{title}</h4>
   {#each questions as q, i}
     <div class="q">
