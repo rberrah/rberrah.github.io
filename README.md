@@ -13,6 +13,9 @@ moteur.
 qualifiée est `7ebe39b0693f8b4393c4135d9fc48cf38b521868`. La baseline de gel,
 les dépendances externes épinglées et les seules classes de changements encore
 acceptées sont documentées dans [la baseline figée](docs/FROZEN_BASELINE_20261028.md).
+Cette baseline a été fusionnée et publiée par le merge
+`965fb659b66f3d36452a3c55cd216636aafc05a1`; les commits documentaires
+ultérieurs ne changent pas la baseline de code qualifiée.
 La [roadmap](ROADMAP.md) est conservée comme historique et comme liste de pistes
 non bloquantes ; elle ne constitue plus un plan de développement actif.
 
