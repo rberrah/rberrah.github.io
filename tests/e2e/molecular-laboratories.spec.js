@@ -67,6 +67,17 @@ test('all eleven animated journeys render a nonblank model', async ({ page }) =>
     await expect(page.getByTestId('molecular-scene')).toHaveAttribute('data-direct-key', /.+/);
     await expect(page.getByLabel('Animate particles')).toBeChecked();
     await expect(page.getByTestId('lab-comparison-summary')).toBeVisible();
+    const debrief = page.getByTestId('laboratory-debrief');
+    await expect(debrief.locator('.application p')).not.toBeEmpty();
+    await expect(debrief.getByLabel('Application answer').locator('option')).toHaveCount(3);
+    if (lab === 'effect-site') {
+      await debrief.getByLabel('Application answer').selectOption('1');
+      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Incorrect answer.');
+      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Expected answer:');
+      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('A longer effect delay');
+      await debrief.getByLabel('Application answer').selectOption('0');
+      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Correct answer.');
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     if (lab === 'tmdd') await page.screenshot({ path: 'test-results/molecular-laboratory-desktop.png', fullPage: true });
   }
