@@ -171,7 +171,7 @@ export const molecularLabs = {
     equations: 'dAc/dt = -(CL/V) Ac\ndCe/dt = ke0 (Cp - Ce)\nEffect = Emax Ce/(EC50 + Ce)',
     question: l('If ke0 decreases, what happens to the effect peak?', "Si ke0 diminue, que devient le pic d'effet ?"),
     choices: [l('It occurs later', 'Il survient plus tard'), l('It is unchanged', 'Il est inchange'), l('It occurs earlier', 'Il survient plus tot')], answer: 0,
-    explanation: l('A smaller ke0 slows equilibration between plasma and the conceptual biophase.', "Un ke0 plus faible ralentit l'equilibration entre le plasma et la biophase conceptuelle."),
+    explanation: l('A smaller ke0 makes the effect site follow plasma concentration changes more slowly, delaying the effect peak.', "Quand ke0 diminue, le site d'effet suit plus lentement les changements de concentration sanguine : le pic d'effet arrive plus tard."),
     secondary: l('Effect', 'Effet'), secondaryUnit: '%', related: 'pd-effect-compartment',
     caveat: l('The effect compartment is a conceptual biophase and does not remove drug mass from plasma.', 'Le compartiment d’effet est une biophase conceptuelle et ne retire aucune masse de médicament du plasma.'),
     derivative: (y, p) => { const c = y[0] / p.v, elimination = p.cl / p.v * y[0]; return [-elimination, p.ke0 * (c - y[1]), elimination, c]; },
