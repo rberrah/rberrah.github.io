@@ -34,6 +34,10 @@
   $: names = { dose: 'Dose (mg)', cl: 'CL (L/h)', vc: lab === 'distribution' ? 'Vc (L)' : 'V (L)', q: 'Q (L/h)', vp: 'Vp (L)', tau: en ? 'Interval (h)' : 'Intervalle (h)', count: en ? 'Number of doses' : 'Nombre de doses', loading: en ? 'First dose multiplier' : 'Multiplicateur premiere dose', end: 'Horizon (h)', ka: 'ka (1/h)', f: 'F (0-1)', duration: en ? 'Infusion duration (h)' : 'Durée de perfusion (h)' };
   $: fields = lab === 'distribution' ? ['dose', 'cl', 'vc', 'q', 'vp', 'end'] : lab === 'absorption' ? ['dose', 'cl', 'vc', 'ka', 'f', 'end'] : lab === 'infusion' ? ['dose', 'cl', 'vc', 'duration', 'end'] : ['dose', 'cl', 'vc', 'tau', 'count', 'loading', 'end'];
   $: focus = ({ distribution: 'q', accumulation: 'tau', absorption: 'f', infusion: 'duration' })[lab];
+  $: expectedPrediction = lab === 'infusion' ? 'down' : 'up';
+  $: expectedPredictionLabel = lab === 'distribution'
+    ? (en ? 'Faster' : 'Plus rapide')
+    : lab === 'infusion' ? (en ? 'Lower' : 'Plus faible') : (en ? 'Higher' : 'Plus élevée');
   $: visibleFields = learningMode === 'guided' ? fields.filter(key => key === focus) : fields;
   $: lockedFields = fields.filter(key => key !== focus);
   $: landmarks = valid && newLab ? singleDoseSummary(lab, valid) : null;
@@ -51,9 +55,9 @@
   };
   const applicationByLab = {
     distribution: application('If Vp increases at fixed Q, what happens to k21=Q/Vp?', 'Si Vp augmente à Q fixe, que devient k21=Q/Vp ?', ['It decreases', 'It increases'], ['Il diminue', 'Il augmente'], 0, 'The same Q divided by a larger peripheral volume gives a smaller return rate constant.', 'Le même Q divisé par un volume périphérique plus grand donne une constante de retour plus faible.'),
-    accumulation: application('Keeping the same daily dose but splitting it more often mainly changes what?', 'Garder la même dose quotidienne en la fractionnant davantage modifie surtout quoi ?', ['Fluctuations', 'Complete daily AUC'], ['Les fluctuations', "L'AUC quotidienne complète"], 0, 'Under linear PK, mean exposure is preserved while peaks and troughs change.', "Sous PK linéaire, l'exposition moyenne est conservée tandis que pics et résiduelles changent."),
+    accumulation: application('Keeping the same daily dose but splitting it more often mainly changes what?', 'Garder la même dose quotidienne en la fractionnant davantage modifie surtout quoi ?', ['Complete daily AUC', 'Fluctuations'], ["L'AUC quotidienne complète", 'Les fluctuations'], 1, 'Under linear PK, mean exposure is preserved while peaks and troughs change.', "Sous PK linéaire, l'exposition moyenne est conservée tandis que pics et résiduelles changent."),
     absorption: application('At fixed F and CL, slower ka changes complete AUC how?', 'À F et CL fixes, comment un ka plus lent modifie-t-il l’AUC complète ?', ['It does not', 'It halves it'], ['Elle ne change pas', 'Elle est divisée par deux'], 0, 'Absorption rate changes timing, not complete exposure, under these assumptions.', "La vitesse d'absorption change la chronologie, pas l'exposition complète, sous ces hypothèses."),
-    infusion: application('At the same dose, a longer infusion changes complete AUC how?', 'À dose identique, comment une perfusion plus longue modifie-t-elle l’AUC complète ?', ['It does not', 'It doubles it'], ['Elle ne change pas', 'Elle double'], 0, 'Duration changes rate and peak; linear complete AUC remains Dose/CL.', "La durée modifie le débit et le pic ; l'AUC complète linéaire reste Dose/CL.")
+    infusion: application('At the same dose, a longer infusion changes complete AUC how?', 'À dose identique, comment une perfusion plus longue modifie-t-elle l’AUC complète ?', ['It doubles it', 'It does not'], ['Elle double', 'Elle ne change pas'], 1, 'Duration changes rate and peak; linear complete AUC remains Dose/CL.', "La durée modifie le débit et le pic ; l'AUC complète linéaire reste Dose/CL.")
   };
   function application(enQuestion, frQuestion, enOptions, frOptions, answer, enFeedback, frFeedback) { return { question: { en: enQuestion, fr: frQuestion }, options: enOptions.map((value, index) => ({ en: value, fr: frOptions[index] })), answer, feedback: { en: enFeedback, fr: frFeedback } }; }
   $: if (!teacher) hidden = false;
@@ -143,11 +147,23 @@
       {#if newLab}<div class="question"><strong>01 · {en ? 'Predict' : 'Prédire'}</strong><p>{question}</p>
         <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prédiction'}</option><option value="up">{en ? 'Higher' : 'Plus élevée'}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{en ? 'Lower' : 'Plus faible'}</option></select>
         <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Vérifier la prédiction'}</button>
-        {#if answer && !hidden}<p class="feedback" role="status">{prediction === (lab === 'absorption' ? 'up' : 'down') ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{explanation}</p>{/if}
+        {#if answer && !hidden}
+          <p class="feedback" role="status" data-testid="lab-prediction-feedback">
+            <strong>{prediction === expectedPrediction ? (en ? 'Correct answer.' : 'Bonne réponse.') : (en ? 'Incorrect answer.' : 'Réponse incorrecte.')}</strong>
+            {#if prediction !== expectedPrediction} {en ? 'Expected answer:' : 'Bonne réponse :'} {expectedPredictionLabel}.{/if}
+            {' '}{explanation}
+          </p>
+        {/if}
       </div>{:else}<div class="question"><strong>01 · {en ? 'Predict' : 'Prédire'}</strong><p>{lab === 'distribution' ? (en ? 'If Q rises, what happens to the initial decline in central concentration? Keep CL and volumes fixed.' : 'Si Q augmente, que devient la chute initiale de concentration centrale ? Garder CL et les volumes fixes.') : (en ? 'At the same maintenance dose and clearance, shortening the interval changes steady-state mean concentration how?' : "À dose d'entretien et clairance constantes, comment le raccourcissement de l'intervalle modifie-t-il la concentration moyenne à l'équilibre ?")}</p>
         <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prédiction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prédiction'}</option><option value="up">{lab === 'distribution' ? (en ? 'Faster' : 'Plus rapide') : (en ? 'Higher' : 'Plus élevée')}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{lab === 'distribution' ? (en ? 'Slower' : 'Plus lente') : (en ? 'Lower' : 'Plus faible')}</option></select>
         <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Vérifier la prédiction'}</button>
-        {#if answer && !hidden}<p class="feedback" role="status">{prediction === 'up' ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{lab === 'distribution' ? (en ? 'The initial outward transfer rises. Distribution is not elimination: drug can return from the peripheral compartment.' : "Le transfert sortant initial augmente. La distribution n'est pas une élimination : le médicament peut revenir du compartiment périphérique.") : (en ? 'The dose rate increases. For this linear model, Css,mean = dose / (CL * interval).' : 'Le débit de dose augmente. Pour ce modèle linéaire, Cmoy,ss = dose / (CL × intervalle).')}</p>{/if}
+        {#if answer && !hidden}
+          <p class="feedback" role="status" data-testid="lab-prediction-feedback">
+            <strong>{prediction === expectedPrediction ? (en ? 'Correct answer.' : 'Bonne réponse.') : (en ? 'Incorrect answer.' : 'Réponse incorrecte.')}</strong>
+            {#if prediction !== expectedPrediction} {en ? 'Expected answer:' : 'Bonne réponse :'} {expectedPredictionLabel}.{/if}
+            {' '}{lab === 'distribution' ? (en ? 'The initial outward transfer rises. Distribution is not elimination: drug can return from the peripheral compartment.' : "Le transfert initial vers le compartiment périphérique augmente. Le médicament peut ensuite revenir dans le compartiment central.") : (en ? 'The dose rate increases. For this linear model, Css,mean = dose / (CL * interval).' : "Une même dose donnée plus souvent augmente la quantité reçue par jour. Dans ce modèle linéaire, la concentration moyenne augmente donc aussi.")}
+          </p>
+        {/if}
       </div>{/if}
       <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="lab-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="lab-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
       {#if learningMode === 'guided'}<p class="guided-note"><b>02 · {en ? 'Manipulate' : 'Manipuler'}</b> {en ? 'Change the single highlighted mechanism.' : 'Modifiez uniquement le mécanisme mis en avant.'}</p>{/if}
