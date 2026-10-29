@@ -4,6 +4,20 @@ import { test, expect } from '@playwright/test';
 const origin = process.env.LABS_E2E_URL || '';
 const url = path => origin + path;
 const labs = ['covariate-volume', 'covariate-clearance', 'parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'effect-site', 'pd-general', 'pd-infectiology', 'pd-oncology', 'tmdd'];
+// Independent expected answer keys; do not derive these from the displayed questions.
+const applications = {
+  'covariate-volume': { answer: 0, label: 'Lower' },
+  'covariate-clearance': { answer: 1, label: 'Lower' },
+  'parent-metabolite': { answer: 0, label: 'It increases' },
+  'long-acting': { answer: 1, label: 'The first peak' },
+  saturable: { answer: 0, label: 'No' },
+  enterohepatic: { answer: 1, label: 'A secondary peak' },
+  'effect-site': { answer: 1, label: 'A longer effect delay' },
+  'pd-general': { answer: 1, label: 'Effect versus concentration' },
+  'pd-infectiology': { answer: 0, label: 'No' },
+  'pd-oncology': { answer: 1, label: 'No' },
+  tmdd: { answer: 0, label: 'Target-mediated elimination' }
+};
 
 test.setTimeout(90000);
 test.beforeEach(async ({ page }) => {
@@ -63,15 +77,22 @@ test('effect-site discovery focuses ke0 and provides a complete French applicati
   await expect(page.getByTestId('molecular-learning-guided')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#molecular-ke0')).toBeVisible();
   await expect(page.locator('#molecular-dose')).toHaveCount(0);
+  await page.getByLabel('Votre prédiction').selectOption('1');
+  await expect(page.getByTestId('molecular-prediction-feedback')).toContainText('Réponse incorrecte.');
+  await expect(page.getByTestId('molecular-prediction-feedback')).toContainText('Il survient plus tard');
   const debrief = page.getByTestId('laboratory-debrief');
   await expect(debrief.locator('.application p')).toContainText('Un ke0 plus faible produit quel profil ?');
-  await debrief.getByLabel("Réponse d'application").selectOption('1');
+  await debrief.getByLabel("Réponse d'application").selectOption('0');
   await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Réponse incorrecte.');
   await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText("Un retard d'effet plus long");
-  await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText("Un équilibrage plus lent");
+  await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText("le pic d'effet arrive donc plus tard");
+  await debrief.getByLabel("Réponse d'application").selectOption('1');
+  await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Bonne réponse.');
 });
 
 test('all eleven animated journeys render a nonblank model', async ({ page }) => {
+  expect(labs.filter(lab => applications[lab].answer === 0)).toHaveLength(5);
+  expect(labs.filter(lab => applications[lab].answer === 1)).toHaveLength(6);
   await page.setViewportSize({ width: 1440, height: 1000 });
   for (const lab of labs) {
     await open(page, lab);
@@ -84,14 +105,14 @@ test('all eleven animated journeys render a nonblank model', async ({ page }) =>
     const debrief = page.getByTestId('laboratory-debrief');
     await expect(debrief.locator('.application p')).not.toBeEmpty();
     await expect(debrief.getByLabel('Application answer').locator('option')).toHaveCount(3);
-    if (lab === 'effect-site') {
-      await debrief.getByLabel('Application answer').selectOption('1');
-      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Incorrect answer.');
-      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Expected answer:');
-      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('A longer effect delay');
-      await debrief.getByLabel('Application answer').selectOption('0');
-      await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Correct answer.');
-    }
+    const { answer, label } = applications[lab];
+    const choices = debrief.getByLabel('Application answer');
+    await expect(choices.locator('option').nth(answer + 1)).toHaveText(label);
+    await choices.selectOption(String(1 - answer));
+    await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Incorrect answer.');
+    await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Expected answer: ' + label);
+    await choices.selectOption(String(answer));
+    await expect(debrief.getByTestId('laboratory-application-feedback')).toContainText('Correct answer.');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     if (lab === 'tmdd') await page.screenshot({ path: 'test-results/molecular-laboratory-desktop.png', fullPage: true });
   }
