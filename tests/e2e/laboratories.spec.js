@@ -69,6 +69,23 @@ test('all four fundamental laboratories explain predictions and applications wit
   }
   expect(cases.map(item => item.answer)).toEqual([0, 1, 0, 1]);
 });
+test('oral absorption prediction explains a change in F rather than ka in both languages', async ({ page }) => {
+  for (const [language, expected] of [
+    ['fr', 'une biodisponibilité F plus élevée'],
+    ['en', 'a higher F means more drug reaches the blood']
+  ]) {
+    await open(page, `/laboratoires/?lang=${language}&lab=absorption`);
+    const question = page.locator('.parameters .question');
+    await question.locator('select').selectOption('up');
+    await question.getByRole('button', { name: language === 'fr' ? 'Vérifier la prédiction' : 'Check prediction' }).click();
+    const feedback = page.getByTestId('lab-prediction-feedback');
+    await expect(feedback).toContainText(language === 'fr' ? 'Bonne réponse.' : 'Correct answer.');
+    await expect(feedback).toContainText(expected);
+    await expect(feedback).toContainText('AUC = F × Dose / CL');
+    await expect(feedback).toContainText(language === 'fr' ? 'Modifier ka seul' : 'Changing ka instead');
+  }
+});
+
 test('laboratory home exposes every molecular journey and course animations separately', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.goto(url('/laboratoires/?lang=en'));
