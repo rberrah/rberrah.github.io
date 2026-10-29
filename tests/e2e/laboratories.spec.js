@@ -39,18 +39,35 @@ test('discovery mode guides prediction, one manipulation and debrief', async ({ 
   await page.getByTestId('lab-learning-free').click();
   await expect(page.locator('#lab-cl')).toBeVisible();
 });
-test('all four fundamental laboratories explicitly explain right and wrong application answers in French', async ({ page }) => {
-  for (const lab of ['distribution', 'accumulation', 'absorption', 'infusion']) {
+test('all four fundamental laboratories explain predictions and applications without answer-position bias', async ({ page }) => {
+  const cases = [
+    { lab: 'distribution', answer: 0, expected: 'Il diminue', prediction: 'up' },
+    { lab: 'accumulation', answer: 1, expected: 'Les fluctuations', prediction: 'up' },
+    { lab: 'absorption', answer: 0, expected: 'Elle ne change pas', prediction: 'up' },
+    { lab: 'infusion', answer: 1, expected: 'Elle ne change pas', prediction: 'down' }
+  ];
+  for (const { lab, answer, expected, prediction } of cases) {
     await open(page, '/laboratoires/?lang=fr&lab=' + lab);
+    const firstQuestion = page.locator('.parameters .question');
+    await firstQuestion.locator('select').selectOption('same');
+    await firstQuestion.getByRole('button', { name: 'Vérifier la prédiction' }).click();
+    await expect(page.getByTestId('lab-prediction-feedback')).toContainText('Réponse incorrecte.');
+    await expect(page.getByTestId('lab-prediction-feedback')).toContainText('Bonne réponse :');
+    await firstQuestion.locator('select').selectOption(prediction);
+    await firstQuestion.getByRole('button', { name: 'Vérifier la prédiction' }).click();
+    await expect(page.getByTestId('lab-prediction-feedback')).toContainText('Bonne réponse.');
     const debrief = page.getByTestId('laboratory-debrief');
-    await expect(debrief.getByLabel("Réponse d'application").locator('option')).toHaveCount(3);
-    await debrief.getByLabel("Réponse d'application").selectOption('1');
+    const choices = debrief.getByLabel("Réponse d'application");
+    await expect(choices.locator('option')).toHaveCount(3);
+    await expect(choices.locator('option').nth(answer + 1)).toHaveText(expected);
+    await choices.selectOption(String(1 - answer));
     const feedback = debrief.getByTestId('laboratory-application-feedback');
     await expect(feedback).toContainText('Réponse incorrecte.');
-    await expect(feedback).toContainText('Bonne réponse :');
-    await debrief.getByLabel("Réponse d'application").selectOption('0');
+    await expect(feedback).toContainText('Bonne réponse : ' + expected);
+    await choices.selectOption(String(answer));
     await expect(feedback).toContainText('Bonne réponse.');
   }
+  expect(cases.map(item => item.answer)).toEqual([0, 1, 0, 1]);
 });
 test('laboratory home exposes every molecular journey and course animations separately', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 950 });
