@@ -1498,12 +1498,16 @@
       const additive = parameterEffects.filter((covariate) => covariateForm(covariate) === 'linear-additive')
         .map((covariate) => ` + beta_${covariateName(covariate.name)}_${p.name}*(${covariateCode(covariate, 'r')}-${fmt(covariate.reference)})`).join('');
       const distribution = iivDistribution(p);
+      // Normal parameters are initialized as TV_*, whereas lognormal and logit
+      // parameters are initialized on their transformed scales (l*).
+      // Never emit an undefined TV_* symbol for a lognormal parameter.
       const typical = `TV_${p.name}*exp(0${effects})${additive}`;
+      const lognormalTypical = `exp(l${p.name}${effects})${additive}`;
       const expression = distribution === 'normal'
         ? `${typical}${eta ? ` + eta_${p.name}` : ''}`
         : distribution === 'logit'
           ? `plogis(l${p.name}${effects}${eta})`
-          : `${typical}${eta ? `*exp(eta_${p.name})` : ''}`;
+          : `${additive ? `(${lognormalTypical})` : lognormalTypical}${eta ? `*exp(eta_${p.name})` : ''}`;
       L.push(`    ${p.name.padEnd(w)} <- ${expression}`);
     }
     if (dosed.length) {
