@@ -1498,12 +1498,16 @@
       const additive = parameterEffects.filter((covariate) => covariateForm(covariate) === 'linear-additive')
         .map((covariate) => ` + beta_${covariateName(covariate.name)}_${p.name}*(${covariateCode(covariate, 'r')}-${fmt(covariate.reference)})`).join('');
       const distribution = iivDistribution(p);
+      // Normal parameters are initialized as TV_*, whereas lognormal and logit
+      // parameters are initialized on their transformed scales (l*).
+      // Never emit an undefined TV_* symbol for a lognormal parameter.
       const typical = `TV_${p.name}*exp(0${effects})${additive}`;
+      const lognormalTypical = `exp(l${p.name}${effects})${additive}`;
       const expression = distribution === 'normal'
         ? `${typical}${eta ? ` + eta_${p.name}` : ''}`
         : distribution === 'logit'
           ? `plogis(l${p.name}${effects}${eta})`
-          : `${typical}${eta ? `*exp(eta_${p.name})` : ''}`;
+          : `${additive ? `(${lognormalTypical})` : lognormalTypical}${eta ? `*exp(eta_${p.name})` : ''}`;
       L.push(`    ${p.name.padEnd(w)} <- ${expression}`);
     }
     if (dosed.length) {
@@ -2127,7 +2131,10 @@
       : codeTab === 'mlxtran' ? codeMlxtran
         : codeTab === 'pmetrics' ? pmetricsExport.code
         : codeNonmem;
-  $: activeCodeNote = codeTab === 'nlmixr2' ? copy.pages.legoNoteNlmixr
+  $: activeCodeNote = codeTab === 'nlmixr2'
+    ? `${copy.pages.legoNoteNlmixr} ${$language === 'en'
+      ? 'Structural teaching export: this is not a validated Monolix-project conversion. Verify initial values, covariates, data mappings, residual error and native execution in nlmixr2.'
+      : "Export structurel pédagogique : ce n'est pas une conversion validée d'un projet Monolix. Vérifiez les valeurs initiales, les covariables, les données, l'erreur résiduelle et l'exécution native dans nlmixr2."}`
     : codeTab === 'mrgsolve' ? copy.pages.legoNoteMrgsolve
       : codeTab === 'mlxtran' ? copy.pages.legoNoteMlxtran
         : codeTab === 'pmetrics' ? ($language === 'en'
