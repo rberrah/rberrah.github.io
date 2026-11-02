@@ -330,7 +330,7 @@ test('nlmixr2 export resolves lognormal, covariate and normal parameter names ac
     return { code, ini, model };
   }
 
-  for (const preset of ['Oral 1-cpt', 'IV 2-cpt', 'Transit ×3', 'Double absorption', 'KOKA (Samtani)', "PP6M (T'jollyn)"]) {
+  for (const preset of ['Oral 1-cpt', 'IV 2-cpt', 'Transit ×3', 'Dual absorption', 'KOKA (Samtani)', "PP6M (T'jollyn)"]) {
     await page.locator('.toolbar').getByRole('button', { name: preset, exact: true }).click();
     const { model } = await checkSymbols();
     expect(model).toMatch(/d\/dt\(/);
