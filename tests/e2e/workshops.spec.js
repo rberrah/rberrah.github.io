@@ -299,3 +299,54 @@ test('a generated PK model compiles and simulates in the local PD engine', async
   await engine.screenshot({ path: 'test-results/workshop-pk-local-pd.png', fullPage: true });
   await engine.close();
 });
+
+/**
+ * nlmixr2 exports must reference the actual ini() parameters, not undeclared TV_*
+ * variables when a positive PK parameter is initialized on its log scale.
+ * This checks the generated browser output across distinct PK topologies.
+ */
+test('nlmixr2 export resolves lognormal, covariate and normal parameter names across PK presets', async ({ page }) => {
+  await page.goto('/advanced/?lang=en');
+  await page.waitForLoadState('networkidle');
+  const codeTab = page.locator('.codehead').getByRole('tab', { name: 'nlmixr2', exact: true });
+  const sourceCode = page.locator('pre.codeblk code');
+
+  async function checkSymbols() {
+    await codeTab.click();
+    const code = await sourceCode.innerText();
+    const ini = code.match(/\bini\(\{([\s\S]*?)\n\s*\}\)/)?.[1];
+    const model = code.match(/\bmodel\(\{([\s\S]*?)\n\s*\}\)/)?.[1];
+    expect(ini, 'nlmixr2 ini block').toBeTruthy();
+    expect(model, 'nlmixr2 model block').toBeTruthy();
+    const initialized = new Set([...ini.matchAll(/^\s*([A-Za-z][A-Za-z0-9_]*)\s*<-/gm)].map((match) => match[1]));
+    const referencedTV = [...new Set([...model.matchAll(/\bTV_[A-Za-z0-9_]+\b/g)].map((match) => match[0]))];
+    for (const name of referencedTV) expect(initialized.has(name), `Missing ini() definition for ${name}`).toBe(true);
+    const logParameters = [...ini.matchAll(/^\s*(l[A-Za-z0-9_]+)\s*<-\s*log\(/gm)].map((match) => match[1]);
+    expect(logParameters.length, 'Default positive parameters should use log scale').toBeGreaterThan(0);
+    for (const logName of logParameters) {
+      expect(model, `Model must use initialized log parameter ${logName}`).toContain(`exp(${logName}`);
+      expect(model).not.toContain(`TV_${logName.slice(1)}`);
+    }
+    return { code, ini, model };
+  }
+
+  for (const preset of ['Oral 1-cpt', 'IV 2-cpt', 'Transit ×3', 'Double absorption', 'KOKA (Samtani)', "PP6M (T'jollyn)"]) {
+    await page.locator('.toolbar').getByRole('button', { name: preset, exact: true }).click();
+    const { model } = await checkSymbols();
+    expect(model).toMatch(/d\/dt\(/);
+  }
+
+  // Normal random-effect parameters use TV_* directly and should remain valid.
+  await page.locator('.toolbar').getByRole('button', { name: 'Oral 1-cpt', exact: true }).click();
+  const firstRandom = page.locator('.population-editor .iiv-row').filter({
+    has: page.locator('input[type="checkbox"]:checked')
+  }).first();
+  await expect(firstRandom).toBeVisible();
+  await firstRandom.locator('select').selectOption('normal');
+  const code = await sourceCode.innerText();
+  const ini = code.match(/\bini\(\{([\s\S]*?)\n\s*\}\)/)?.[1] ?? '';
+  const model = code.match(/\bmodel\(\{([\s\S]*?)\n\s*\}\)/)?.[1] ?? '';
+  const typicalNames = [...ini.matchAll(/^\s*(TV_[A-Za-z0-9_]+)\s*<-/gm)].map((match) => match[1]);
+  expect(typicalNames.length).toBeGreaterThan(0);
+  for (const name of typicalNames) expect(model).toContain(name);
+});
