@@ -32,6 +32,49 @@ usable licence is unavailable. A `passed` status is emitted only after Simulx
 has run the generated MLXTRAN fixtures and their concentration profiles agree
 with the mrgsolve references within the documented tolerance.
 
+## nlmixr2 export and Monolix conversion: separate levels of evidence
+
+The PMx Explain [Model Translator](https://rberrah.github.io/pharmacometrie/translator/)
+imports recognized model **structures** into an editable Lego graph, and the
+`nlmixr2` tab generates a new `ini({})` / `model({})` template. It does **not**
+import a complete Monolix project: fitted population parameters, individual
+ETAs, full OMEGA/SIGMA, original observation data, administration histories,
+or PRED/IPRED are not reconstructed by the structural importer.
+
+The browser regression in `tests/e2e/workshops.spec.js` checks the actual
+`nlmixr2` tab output for six structural presets. In particular, any
+`TV_*` symbol used in the model must be declared in `ini({})`; lognormal
+parameters initialized as `l* <- log(value)` must be referenced from that
+same log-scale symbol. The test also exercises a normal parameter to avoid
+breaking that distinct parameterization. This is **generator contract
+evidence**, not native R validation or numerical equivalence.
+
+For a future **native qualification** (currently **not executed**):
+
+1. Use a public Monolix project that includes the source MLXTRAN, dataset,
+   parameter estimates, covariances, observation predictions and dosing
+   events. Record the exact versions and the model's numerical settings.
+2. Import it using
+   [monolix2rx](https://nlmixr2.github.io/monolix2rx/articles/convert-nlmixr2.html)
+   and, where appropriate, `babelmixr2::as.nlmixr2()`. This is the
+   **full-project comparison reference**, not a dependency of the PMx site.
+3. Reconstruct only a model fully supported by the PMx structural parser;
+   record every omitted effect or assumption. For unsupported or lossy
+   models, stop and mark them **not comparable**, not equivalent.
+4. Execute the generated `nlmixr2` model in R with the **same** parameters,
+   ETAs (when applicable), dosing records, output units, residual structure
+   and solver tolerances. Check successful parsing/compilation before fitting.
+5. Compare structural concentration profiles and, when comparable and
+   available, PRED and IPRED on the same time grid. Prespecify numerical
+   tolerances before inspecting results, and report both absolute and
+   relative errors, discrepancies and excluded configurations.
+
+Do not treat an exported `ini({})` / `model({})` function, a passing
+JavaScript/Playwright check, or a reconstructed browser diagram as evidence
+that an arbitrary Monolix estimation or individual Bayesian prediction was
+preserved. PMx is an educational structural translator; `monolix2rx`
+addresses a different, full-project conversion task.
+
 ## Latest local status
 
 On 2026-10-15, both native harnesses completed cleanly with status
