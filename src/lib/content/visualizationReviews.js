@@ -213,7 +213,7 @@ export const visualizationReviews = {
     "reviewed_hash": "ea4b1f9789f94554fae5c92146dda8759c90939fd6cf869da8e7424a8c3429e1"
   },
   "10_PK2C": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "00d2afc33b6e2ea510436f6c6a7ae2980c138d2ec02f75ea95836fcca03fa478"
@@ -327,13 +327,13 @@ export const visualizationReviews = {
     "reviewed_hash": "319d355c2b09aea85a02a2a2fd86d647d8f1ab34b7de9337c370c049dddd6186"
   },
   "01_HumanBody": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "6bf265f49d9aa75fef6eff131a96f9c1edfadeff83046aa2a5c6d428faeb5421"
   },
   "02_BucketSim": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "065bcefaa6fb571d8fbe3a4814c99b1117de142629f0193b88f6bb6d5f1fc29c"
