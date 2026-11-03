@@ -7,14 +7,14 @@ Ce registre couvre les 67 composants de visualisation. Une ligne `pending` signi
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
-| 01_HumanBody | pending | 2026-10-11 | author | content changed |
-| 02_BucketSim | pending | 2026-10-11 | author | content changed |
+| 01_HumanBody | pending | 2026-10-11 | author | — |
+| 02_BucketSim | pending | 2026-10-11 | author | — |
 | 03_PopulationDistrib | reviewed | 2026-10-11 | author | hash current |
 | 04_ThreeApproaches | reviewed | 2026-10-11 | author | hash current |
 | 07_NeuralODE | reviewed | 2026-10-09 | author | hash current |
 | 08_AUCTrap | reviewed | 2026-10-11 | author | hash current |
 | 09_PK1C | reviewed | 2026-10-11 | author | hash current |
-| 10_PK2C | pending | 2026-10-11 | author | content changed |
+| 10_PK2C | pending | 2026-10-11 | author | — |
 | 11_ADEChooser | reviewed | 2026-10-11 | author | hash current |
 | 12_VariabilitySandbox | reviewed | 2026-10-11 | author | hash current |
 | 13_ResidualError | reviewed | 2026-10-10 | author | hash current |
