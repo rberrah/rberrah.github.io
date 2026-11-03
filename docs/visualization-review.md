@@ -2,19 +2,19 @@
 
 Ce registre couvre les 67 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
 
-- Relues : 58
-- En attente : 9
+- Relues : 55
+- En attente : 12
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
-| 01_HumanBody | reviewed | 2026-10-11 | author | hash current |
-| 02_BucketSim | reviewed | 2026-10-11 | author | hash current |
+| 01_HumanBody | pending | 2026-10-11 | author | content changed |
+| 02_BucketSim | pending | 2026-10-11 | author | content changed |
 | 03_PopulationDistrib | reviewed | 2026-10-11 | author | hash current |
 | 04_ThreeApproaches | reviewed | 2026-10-11 | author | hash current |
 | 07_NeuralODE | reviewed | 2026-10-09 | author | hash current |
 | 08_AUCTrap | reviewed | 2026-10-11 | author | hash current |
 | 09_PK1C | reviewed | 2026-10-11 | author | hash current |
-| 10_PK2C | reviewed | 2026-10-11 | author | hash current |
+| 10_PK2C | pending | 2026-10-11 | author | content changed |
 | 11_ADEChooser | reviewed | 2026-10-11 | author | hash current |
 | 12_VariabilitySandbox | reviewed | 2026-10-11 | author | hash current |
 | 13_ResidualError | reviewed | 2026-10-10 | author | hash current |
