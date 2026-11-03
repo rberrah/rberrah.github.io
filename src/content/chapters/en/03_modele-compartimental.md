@@ -67,9 +67,9 @@ For an IV bolus, the initial concentration is:
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-and the amount decays as:
+With a constant volume, the **concentration** decreases over time as:
 
-$$ \frac{dA}{dt} = -\frac{CL}{V}\,A $$
+$ \frac{dC(t)}{dt} = -\frac{CL}{V}\,C(t) $
 
 The ratio $CL/V$ is the elimination rate constant $k$.
 
