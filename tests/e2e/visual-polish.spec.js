@@ -33,7 +33,7 @@ for (const lang of ['fr', 'en']) {
     await expect(time.locator('strong')).toHaveText(/^\d{1,2}\.\d$/);
     await intuition.getByRole('button', { name: /Pause/ }).click();
 
-    const two = page.locator('.step[data-index="5"] .viz-inline');
+    const two = page.locator('.step[data-index="4"] .viz-inline');
     await two.scrollIntoViewIfNeeded();
     const chart = two.locator('svg.chart');
     await expect(chart).toBeVisible();
@@ -57,7 +57,7 @@ for (const lang of ['fr', 'en']) {
 test('one-compartment course teaches the concentration ODE in both languages', () => {
   for (const folder of ['', 'en/']) {
     const raw = readFileSync(new URL(`../../src/content/chapters/${folder}03_modele-compartimental.md`, import.meta.url), 'utf8');
-    expect(raw).toContain(String.raw`\\frac{dC(t)}{dt} = -\\frac{CL}{V}\\,C(t)`);
-    expect(raw).not.toContain(String.raw`\\frac{dA}{dt} = -\\frac{CL}{V}\\,A`);
+    expect(raw).toContain(String.raw`\frac{dC(t)}{dt} = -\frac{CL}{V}\,C(t)`);
+    expect(raw).not.toContain(String.raw`\frac{dA}{dt} = -\frac{CL}{V}\,A`);
   }
 });
