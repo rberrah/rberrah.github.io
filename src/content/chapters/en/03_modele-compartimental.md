@@ -16,6 +16,7 @@ glossary: ["CL","V","t½","ke","EDO","Phases α et β","Vss"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
 reviewed_on: "2026-10-10"
 review_type: "author"
+review_pending: true
 reviewed_hash: "936a7cb84000b58958dac015b1b96efd84eaf70f50c1dfcd8e28dc1f482d67bb"
 scientific_values: {"ln2":0.693147,"example_dose_mg":100,"example_volume_low_l":10,"example_volume_high_l":20}
 units: {"clearance":"L/h","volume":"L","half_life":"h","concentration":"mg/L"}
