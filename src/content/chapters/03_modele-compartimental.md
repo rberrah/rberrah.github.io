@@ -16,6 +16,7 @@ sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 updated_on: "2026-10-10"
 reviewed_on: "2026-10-10"
 review_type: "author"
+review_pending: true
 reviewed_hash: "a699720566959622e4c5cb5ae9063000572cb4a569258b8b0eeda7cb762f69e8"
 scientific_values: {"ln2":0.693147,"example_dose_mg":100,"example_volume_low_l":10,"example_volume_high_l":20}
 units: {"clearance":"L/h","volume":"L","half_life":"h","concentration":"mg/L"}
