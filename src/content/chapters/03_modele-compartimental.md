@@ -73,9 +73,9 @@ Pour un bolus IV, la concentration initiale est :
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-et la quantité décroît selon :
+Dans ce modèle à volume constant, la **concentration** diminue au fil du temps selon :
 
-$$ \frac{dA}{dt} = -\frac{CL}{V}\,A $$
+$ \frac{dC(t)}{dt} = -\frac{CL}{V}\,C(t) $
 
 Le rapport $CL/V$ est la constante d'élimination :
 
