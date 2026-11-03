@@ -5,7 +5,7 @@ items below changed after their stored human-review evidence or have never been
 sealed. Their status must remain `pending` until a person reviews the exact
 content.
 
-## Chapters: 18 French and 18 English files
+## Chapters: 19 French and 19 English files
 
 The same filenames are pending under `src/content/chapters/` and
 `src/content/chapters/en/`:
@@ -13,6 +13,7 @@ The same filenames are pending under `src/content/chapters/` and
 - `01_intro-pkpd.md`
 - `02_trois-approches.md`
 - `02b_nca.md`
+- `03_modele-compartimental.md`
 - `08c_pmetrics-nonparametric.md`
 - `09_validation-vpc.md`
 - `11_tdm.md`
@@ -32,7 +33,11 @@ The same filenames are pending under `src/content/chapters/` and
 `docs/content-inventory.md` is the generated source of truth for their current
 hash status.
 
-## Visualizations: 9 components
+## Visualizations: 12 components
+
+- `01_HumanBody`
+- `02_BucketSim`
+- `10_PK2C`
 
 - `20_NeuralBox`
 - `40_TreeEnsemble`
