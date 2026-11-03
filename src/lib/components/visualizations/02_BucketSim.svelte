@@ -110,7 +110,7 @@
     <Slider label="Dose (mg)" min={25} max={400} step={5} bind:value={dose} />
     <Slider label="Volume V (L) — largeur" min={10} max={80} step={1} bind:value={volume} />
     <Slider label="Clairance CL (L/h) — robinet" min={1} max={20} step={0.5} bind:value={cl} />
-    <Slider label="Temps (h)" min={0} max={duration} step={0.1} bind:value={time} />
+    <Slider label="Temps (h)" min={0} max={duration} step={0.1} displayDecimals={1} bind:value={time} />
     <div class="actions">
       <button on:click={play} disabled={playing}>▶ {$language === 'en' ? 'Play' : 'Lecture'}</button>
       <button on:click={pause} disabled={!playing}>❚❚ Pause</button>

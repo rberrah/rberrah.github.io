@@ -791,7 +791,7 @@
     "reviewed_on": "2026-10-10",
     "reviewed_hash": "a699720566959622e4c5cb5ae9063000572cb4a569258b8b0eeda7cb762f69e8",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -877,7 +877,7 @@
         "reviewed_on": "2026-10-10",
         "reviewed_hash": "936a7cb84000b58958dac015b1b96efd84eaf70f50c1dfcd8e28dc1f482d67bb",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {

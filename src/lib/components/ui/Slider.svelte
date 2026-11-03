@@ -10,13 +10,17 @@
   export let unit = '';
   export let disabled = false;
   export let numeric = false;
+  /** @type {number | null} */
+  export let displayDecimals = null;
   $: localizedLabel = vizText($language, label);
+  // Formatting is display-only: preserve the underlying full-precision value.
+  $: shownValue = displayDecimals === null ? value : Number(value).toFixed(displayDecimals);
 </script>
 
 <label class="slider">
   <div class="slider__top">
     <span>{localizedLabel}</span>
-    <strong>{value}{unit}</strong>
+    <strong>{shownValue}{unit}</strong>
   </div>
   {#if numeric}
     <input type="number" bind:value min={min} max={max} step={step} {disabled} aria-label={localizedLabel} />

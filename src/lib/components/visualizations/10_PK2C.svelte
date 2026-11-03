@@ -17,6 +17,18 @@
   const W = 460, H = 300, m = { top: 20, right: 16, bottom: 46, left: 56 };
   const tEnd = 24;
   const times = Array.from({ length: 241 }, (_, i) => (i * tEnd) / 240);
+  // Readable 1–5–10 logarithmic intervals rather than every minor D3 log tick.
+  const logTickCandidates = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100];
+  /** @param {(n: number) => number} scale @param {number} lower @param {number} upper */
+  function sparseLogTicks(scale, lower, upper) {
+    /** @type {number[]} */
+    const selected = [];
+    for (const value of logTickCandidates) {
+      if (value < lower || value > upper) continue;
+      if (!selected.length || Math.abs(scale(value) - scale(selected[selected.length - 1])) >= 22) selected.push(value);
+    }
+    return selected;
+  }
 
   $: two = times.map((t) => ({ t, c: concTwoComp(t, dose, cl, q, v1, v2) }));
   $: mono = times.map((t) => ({ t, c: concMono(t, dose, cl, v1) }));
@@ -26,7 +38,7 @@
   $: iH = H - m.top - m.bottom;
   $: x = scaleLinear().domain([0, tEnd]).range([0, iW]);
   $: yMax = c0 * 1.08 || 1;
-  $: yMin = logScale ? Math.max(c0 / 500, 0.02) : 0;
+  $: yMin = logScale ? Math.max(c0 / 1000, 0.005) : 0;
   $: y = logScale
     ? scaleLog().domain([yMin, yMax]).range([iH, 0]).clamp(true)
     : scaleLinear().domain([0, yMax]).range([iH, 0]);
@@ -39,7 +51,7 @@
   $: twoPath = pathOf(two);
   $: monoPath = pathOf(mono);
   $: xTicks = x.ticks(6);
-  $: yTicks = logScale ? y.ticks(4) : y.ticks(5);
+  $: yTicks = logScale ? sparseLogTicks(y, yMin, yMax) : y.ticks(5);
 </script>
 
 <div class="wrap">
@@ -59,7 +71,7 @@
     <g transform={`translate(${m.left},${m.top})`}>
       {#each yTicks as t}
         <line x1="0" x2={iW} y1={y(t)} y2={y(t)} class="grid" />
-        <text x="-8" y={y(t) + 4} class="ytick">{t >= 1 ? t.toFixed(0) : t.toFixed(2)}</text>
+        <text x="-8" y={y(t) + 4} class="ytick">{logScale ? String(t) : String(Number(t.toPrecision(3)))}</text>
       {/each}
       {#each xTicks as t}<text x={x(t)} y={iH + 20} class="xtick">{t}</text>{/each}
 
