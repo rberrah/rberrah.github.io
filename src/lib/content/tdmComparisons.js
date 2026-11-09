@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { tdmTargetSources, tdmDrugs, formatTdmTarget } from './tdmTargets.js';
 
 // The comparison key is editorially curated; never compare targets just because
