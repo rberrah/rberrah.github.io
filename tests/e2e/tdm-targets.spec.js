@@ -11,6 +11,8 @@ test('TDM target guide searches aliases and preserves distinct source statuses',
   await search.fill('MPA');
   await expect(cards).toHaveCount(5);
   await search.fill('cardiaque');
+  await expect(cards).toHaveCount(4);
+  await page.getByTestId('tdm-target-drug').selectOption('mpa');
   await expect(cards).toHaveCount(2);
   await expect(page.getByText('≈50', { exact: true })).toBeVisible();
   await expect(page.getByText('>36', { exact: true })).toBeVisible();
