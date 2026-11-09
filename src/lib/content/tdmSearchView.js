@@ -2,7 +2,9 @@
 // Presentation-only grouping for the concise, molecule-first TDM guide.
 // Original scientific values, context, and source metadata remain untouched.
 import { tdmDrugs, tdmTargets, normalizeTdmSearch } from './tdmTargets.js';
-import { searchManualCatalog, manualCatalogSources } from './tdmManualCatalog.js';
+import { searchManualCatalog } from './tdmManualCatalog.js';
+import { antibioticPdForDrug } from './tdmAntibioticPd.js';
+import { chuSamplingForDrug } from './tdmChuSampling.js';
 
 export function searchTdmMolecules(query = '') {
   const needle = normalizeTdmSearch(query);
@@ -32,14 +34,14 @@ export function searchTdmMolecules(query = '') {
         indications.get(key).alternatives.push(entry);
       }
     }
-    return { drug, indications: Array.from(indications.values()) };
-  }).filter((group) => group.indications.length > 0);
+    return { drug, indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id) };
+  }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0);
 
   const alreadyListed = new Set(groups.map((group) => group.drug.id));
   const withoutTargets = searchManualCatalog({ query }).filter((entry) =>
     !entry.drugKey || !alreadyListed.has(entry.drugKey)
   ).map((entry) => ({
-    ...entry, originalUrl: manualCatalogSources[entry.sourceId].url
+    ...entry, samplingDocument: chuSamplingForDrug(entry.drugKey)
   }));
 
   return { groups, withoutTargets };
