@@ -53,7 +53,7 @@ test('MPA and valproate compare different authoritative sources without a prefer
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(3);
   await expect(page.getByTestId('tdm-comparisons')).toBeVisible();
   await expect(page.getByText('40–100', { exact: true })).toHaveCount(1);
-  await expect(page.getByText('50–100', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('50–100', { exact: true })).toHaveCount(2);
   await page.getByTestId('tdm-target-search').fill('mycophenolate');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(6);
   await expect(page.getByText('IATDMCT / Immunosuppressive Drugs Scientific Committee · 2021')).toBeVisible();
