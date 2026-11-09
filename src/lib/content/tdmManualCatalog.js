@@ -85,7 +85,32 @@ const antidepressantNames = [
 const knownKeys = {
   'Acide valproïque': 'valproate', 'Lithium': 'lithium',
   'Mycophénolate': 'mpa', 'Tacrolimus': 'tac', 'Évérolimus': 'everolimus',
-  'Linézolide': 'linezolid', 'Vancomycine': 'vancomycin'
+  'Linézolide': 'linezolid', 'Vancomycine': 'vancomycin',
+  "Ciclosporine": 'cyclosporine',
+  "Sirolimus": 'sirolimus',
+  "Amitriptyline": 'amitriptyline',
+  "Citalopram": 'citalopram',
+  "Clomipramine": 'clomipramine',
+  "Désipramine": 'desipramine',
+  "Dosulépine": 'dosulepine',
+  "Doxépine": 'doxepine',
+  "Duloxétine": 'duloxetine',
+  "Escitalopram": 'escitalopram',
+  "Fluoxétine": 'fluoxetine',
+  "Fluvoxamine": 'fluvoxamine',
+  "Imipramine": 'imipramine',
+  "Maprotiline": 'maprotiline',
+  "Miansérine": 'mianserine',
+  "Milnacipran": 'milnacipran',
+  "Mirtazapine": 'mirtazapine',
+  "Moclobémide": 'moclobemide',
+  "Nortriptyline": 'nortriptyline',
+  "Paroxétine": 'paroxetine',
+  "Sertraline": 'sertraline',
+  "Tianeptine": 'tianeptine',
+  "Trimipramine": 'trimipramine',
+  "Venlafaxine": 'venlafaxine',
+  "Vortioxétine": 'vortioxetine'
 };
 
 function makeEntry(name, sourceId, family, status = 'named_in_document') {
