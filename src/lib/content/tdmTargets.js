@@ -43,6 +43,7 @@ export const tdmInstitutionalResources = [
   }
 ];
 
+/** @type {Record<string, {title: string, url: string, doi?: string, year: number, organization: string, access: 'open_full_text'|'open_abstract', evidenceSection: string, verifiedOn: string, newerConsensusUrl?: string, newerConsensusTitle?: string}>} */
 export const tdmTargetSources = {
   mpa2025: {
     title: 'Liu et al. (2025) · Recommandations MPA en transplantation d’organes solides',
@@ -256,6 +257,7 @@ export const tdmTargets = [
   }
 ];
 
+/** @param {unknown} value */
 export function normalizeTdmSearch(value) {
   return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
 }
@@ -288,8 +290,11 @@ export function searchTdmTargets({ query = '', drug = 'all', indication = 'all' 
   });
 }
 
+/** @param {{relation: 'range', min: number, max: number}|{relation: 'above'|'approx', min: number, max: null}} entry
+ *  @param {'fr'|'en'} [lang]
+ */
 export function formatTdmTarget(entry, lang = 'fr') {
-  const value = (number) => new Intl.NumberFormat(lang === 'en' ? 'en' : 'fr', { maximumFractionDigits: 2 }).format(number);
+  const value = (/** @type {number} */ number) => new Intl.NumberFormat(lang === 'en' ? 'en' : 'fr', { maximumFractionDigits: 2 }).format(number);
   if (entry.relation === 'range') return `${value(entry.min)}–${value(entry.max)}`;
   if (entry.relation === 'above') return `>${value(entry.min)}`;
   if (entry.relation === 'approx') return `≈${value(entry.min)}`;
