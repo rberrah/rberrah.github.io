@@ -3,6 +3,8 @@
   import { Search, BookOpen, ArrowRight, ExternalLink } from '@lucide/svelte';
   import { language } from '#lib/stores/language.js';
   import { tdmDrugs, tdmTargets, tdmTargetSources, tdmInstitutionalResources, TDM_REFERENCE_REVIEW_DATE, searchTdmTargets, formatTdmTarget } from '#lib/content/tdmTargets.js';
+  import { collectTdmComparisons } from '#lib/content/tdmComparisons.js';
+  import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '#lib/content/tdmManualCatalog.js';
 
   const base = resolve('/').replace(/\/$/, '');
   let query = $state('');
@@ -10,6 +12,12 @@
   let selectedIndication = $state('all');
   let en = $derived($language === 'en');
   let results = $derived(searchTdmTargets({ query, drug: selectedDrug, indication: selectedIndication }));
+  let comparisons = $derived(collectTdmComparisons(results));
+  let manualHits = $derived(searchManualCatalog({ query }).filter((entry) =>
+    selectedDrug === 'all' || entry.drugKey === selectedDrug
+  ));
+  let expandedManual = $state(false);
+  let visibleManual = $derived(query.trim() || expandedManual ? manualHits : manualHits.slice(0, 12));
   const indicationOptions = Array.from(new Map(tdmTargets.map((row) => [row.indication, {
     key: row.indication,
     fr: row.indicationFr.split(' ·')[0],
@@ -63,8 +71,86 @@
       </select>
     </label>
   </div>
-  <p class="result-count" role="status">{results.length} {en ? 'referenced target(s)' : 'cible(s) documentée(s)'} · {tdmDrugs.length} {en ? 'medications in this pilot catalogue' : 'médicaments dans ce catalogue pilote'}</p>
+  <p class="result-count" role="status">{results.length} {en ? 'scientifically referenced target(s)' : 'cible(s) scientifiquement documentée(s)'} · {tdmDrugs.length} {en ? 'medications with targets' : 'médicaments disposant de cibles documentées'}</p>
 </section>
+
+<section class="manual-catalogue" data-testid="tdm-manual-catalogue" aria-labelledby="manual-catalogue-title">
+  <h2 id="manual-catalogue-title">{en ? 'CHU Limoges · sampling and assay catalogue' : 'CHU de Limoges · catalogue des dosages et prélèvements'}</h2>
+  <p>{en
+    ? 'Indexed from individually accessible examination records and two official pharmacology documents. The full laboratory manual cannot be certified as exhaustively indexed; its thousands of non-drug tests are outside this TDM guide.'
+    : 'Inventaire établi à partir de fiches d’examens accessibles et de deux documents officiels de pharmacologie. Le manuel complet n’a pas pu être indexé exhaustivement : les analyses non médicamenteuses ne sont pas des cibles de STP.'}</p>
+  <p class="manual-count">{tdmManualCatalog.length} {en ? 'named medicines in the verified document subset' : 'molécules nommées dans ce sous-ensemble de documents vérifiés'} · {manualHits.length} {en ? 'matching the search' : 'correspondant à la recherche'}</p>
+  <div class="manual-grid">
+    {#each visibleManual as item (item.id)}
+      {@const manualSource = manualCatalogSources[item.sourceId]}
+      {@const withTargets = tdmTargets.some((entry) => entry.drug === item.drugKey)}
+      <article class="manual-card" data-testid="tdm-manual-entry">
+        <h3>{item.name}</h3>
+        <p>{withTargets
+          ? (en ? 'Target evidence available above' : 'Cibles scientifiques disponibles ci-dessus')
+          : (en ? 'No reviewed numeric target in this guide' : 'Aucune cible numérique qualifiée dans ce guide')}</p>
+        <p class="manual-type">{item.status === 'request_form_only'
+          ? (en ? 'Request form (assay confirmation needed)' : 'Formulaire de demande (dosage à confirmer)')
+          : item.status === 'outsourced_exam'
+            ? (en ? 'Outsourced laboratory examination' : 'Examen sous-traité')
+            : (en ? 'Documented assay / laboratory sampling' : 'Dosage / prélèvement documenté')}</p>
+        <a href={manualSource.url} target="_blank" rel="noopener noreferrer">{en ? 'Original CHU document' : 'Document officiel du CHU'} <ExternalLink size={13} aria-hidden="true"/></a>
+      </article>
+    {/each}
+  </div>
+  {#if !query.trim() && manualHits.length > visibleManual.length}
+    <button class="btn btn-outline manual-more" data-testid="tdm-manual-show-all" onclick={() => expandedManual = true}>
+      {en ? 'Show all documented medicines' : 'Afficher toutes les molécules documentées'} ({manualHits.length})
+    </button>
+  {/if}
+  {#if query.trim() && !manualHits.length}
+    <p>{en ? 'No drug identified in this audited CHU subset. The source catalogue may contain additional exams.' : 'Aucune molécule trouvée dans ce sous-ensemble audité du CHU. Le catalogue officiel peut contenir d’autres examens.'}</p>
+  {/if}
+  <p class="manual-notice">{en
+    ? 'The CHU sources confirm analytical availability or request procedures, not therapeutic targets. They may evolve: always check the live examination record. No batch copy of the protected manual is embedded.'
+    : 'Les documents du CHU attestent de dosages ou de formulaires, pas des cibles thérapeutiques. Les fiches sont susceptibles de changer : vérifier l’original en ligne. Aucune copie intégrale du manuel protégé n’est intégrée.'}</p>
+</section>
+
+{#if comparisons.length}
+  <section class="comparison-section" data-testid="tdm-comparisons" aria-labelledby="comparison-title">
+    <h2 id="comparison-title">{en ? 'Compare published targets' : 'Comparer les cibles selon les sources'}</h2>
+    <p>{en
+      ? 'Same medication, indication, exposure metric and unit. Differences in study design, treatment regimen, timing or serum/plasma matrix still matter: equal numbers do not establish clinical equivalence.'
+      : 'Même molécule, indication, métrique d’exposition et unité. Les différences de schéma, de méthode, de temporalité ou de matrice sérum/plasma restent déterminantes : des chiffres identiques n’impliquent pas une équivalence clinique.'}</p>
+    {#each comparisons as comparison (comparison.id)}
+      <article class="comparison-block">
+        <div class="comparison-heading">
+          <h3>{en ? comparison.drugEn : comparison.drugFr} · {en ? comparison.indicationEn : comparison.indicationFr}</h3>
+          <p>{comparison.metric} · {comparison.unit} · {comparison.entries.length} {en ? 'sources' : 'sources'}</p>
+        </div>
+        <p class="compare-status">{comparison.distinctNumericValues
+          ? (en ? 'Different published figures — interpret their contexts' : 'Valeurs publiées différentes — comparer les contextes')
+          : (en ? 'Same published figures, check assumptions' : 'Valeurs publiées identiques, vérifier les conditions')}
+          {comparison.matrixDifference
+            ? (en ? ' · Caution: serum/plasma matrix differs' : ' · Attention : matrice sérum/plasma différente')
+            : ''}</p>
+        <div class="comparison-table-wrap">
+          <table class="comparison-table">
+            <thead><tr>
+              <th>{en ? 'Source' : 'Source'}</th>
+              <th>{en ? 'Reported target' : 'Cible rapportée'}</th>
+              <th>{en ? 'Applicability' : 'Conditions d’application'}</th>
+            </tr></thead>
+            <tbody>
+              {#each comparison.entries as entry (entry.id)}
+                <tr>
+                  <td><a href={entry.source.url} target="_blank" rel="noopener noreferrer">{entry.source.organization} · {entry.source.year}</a><div class="comparison-kind">{entry.status === 'study' ? (en ? 'Study / review' : 'Étude / revue') : (en ? 'Guideline / consensus' : 'Recommandation / consensus')}</div></td>
+                  <td class="comparison-value">{en ? entry.valueEn : entry.valueFr} <small>{comparison.unit}</small></td>
+                  <td>{en ? entry.contextEn : entry.contextFr}<div class="comparison-kind">{en ? entry.matrixEn : entry.matrixFr}</div></td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    {/each}
+  </section>
+{/if}
 
 <section class="results" aria-label={en ? 'Documented targets' : 'Cibles documentées'}>
   {#if !results.length}
@@ -154,6 +240,31 @@
 </section>
 
 <style>
+  .manual-catalogue, .comparison-section { padding: 1.5rem 0 2rem; margin: 1rem 0 2rem; border-top: 1px solid var(--border-subtle); }
+  .manual-catalogue > h2, .comparison-section > h2 { font-family: var(--font-heading); font-size: 1.65rem; }
+  .manual-catalogue > p, .comparison-section > p { color: var(--text-secondary); }
+  .manual-count { font-weight: 600; }
+  .manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px,100%),1fr)); gap: .75rem; }
+  .manual-card { border: 1px solid var(--border-subtle); border-radius: 8px; padding: .85rem; min-width: 0; }
+  .manual-card h3 { font-family: var(--font-body); font-size: .96rem; margin: 0 0 .5rem; }
+  .manual-card p { font-size: .8rem; color: var(--text-secondary); margin: .25rem 0; line-height: 1.5; }
+  .manual-card .manual-type { font-style: italic; }
+  .manual-card a { display: inline-flex; align-items: center; gap: .35rem; font-size: .8rem; margin-top: .45rem; }
+  .manual-more { margin-top: 1rem; }
+  .manual-notice { font-size: .82rem; }
+  .comparison-block { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+  .comparison-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .comparison-heading h3 { font-family: var(--font-heading); font-size: 1.25rem; margin: .1rem 0; }
+  .comparison-heading p, .compare-status { font-size: .82rem; color: var(--text-secondary); margin: .35rem 0; }
+  .compare-status { font-weight: 600; }
+  .comparison-table-wrap { overflow-x: auto; }
+  .comparison-table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: .85rem; }
+  .comparison-table th { text-align: left; background: var(--bg-secondary); color: var(--text-secondary); padding: .65rem; }
+  .comparison-table td { border-top: 1px solid var(--border-subtle); padding: .75rem .65rem; vertical-align: top; }
+  .comparison-table th:nth-child(1) { width: 25%; }
+  .comparison-table th:nth-child(2) { width: 20%; }
+  .comparison-value { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .comparison-value small, .comparison-kind { font-size: .72rem; font-weight: 400; color: var(--text-secondary); margin-top: .3rem; }
   .reference-hero { max-width: 860px; margin: 0 auto 2rem; }
   .reference-hero h1 { font-family: var(--font-heading); font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.15; margin: .5rem 0 1rem; }
   .reference-hero .lede { max-width: 780px; }
