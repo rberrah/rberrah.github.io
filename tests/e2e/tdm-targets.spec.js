@@ -27,7 +27,7 @@ test('MPA and MMF aliases show one molecule and four indication cards, with stud
 
   const kidney = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: 'Greffe rénale', exact: true }) });
   await kidney.locator('summary').click();
-  await expect(kidney.getByTestId('tdm-other-sources').getByText(/IATDMCT.*2021/)).toBeVisible();
+  await expect(kidney.getByTestId('tdm-other-sources').getByRole('link', { name: /IATDMCT.*2021/ })).toBeVisible();
 });
 
 test('Valproate displays one primary RCP target; SFPT values and limitations are in details', async ({ page }) => {
@@ -40,7 +40,7 @@ test('Valproate displays one primary RCP target; SFPT values and limitations are
   await expect(card.getByTestId('tdm-other-sources')).toBeHidden();
   await card.locator('summary').click();
   await expect(card.getByTestId('tdm-other-sources')).toBeVisible();
-  await expect(card.getByTestId('tdm-other-sources').getByText(/50–100/)).toHaveCount(2);
+  await expect(card.getByTestId('tdm-other-sources').locator('.alternative-head strong').filter({ hasText: /50–100/ })).toHaveCount(2);
 });
 
 test('Different transplant regimens remain distinct; supported mobile English search', async ({ page }) => {
