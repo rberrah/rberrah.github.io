@@ -146,7 +146,7 @@ const reviewedNumericClaims = new Map([
   ["ad-vortioxetine-mdd-2024", ["psychReview2024","range",15,60]],
   ["carbamazepine-epilepsy", ["psychReview2024","range",4,12]],
   ["lamotrigine-epilepsy", ["psychReview2024","range",3,15]],
-  ["oxcarbazepine-mhd-epilepsy", ["oxcarb2018","range",3,35]],
+  ["oxcarbazepine-mhd-epilepsy", ["oxcarb2018","range",3,36]],
   ["levetiracetam-limoges", ["levetiLimoges2022","range",10,40]],
   ["levetiracetam-2016", ["levetiReview2016","range",12,46]],
   ["phenytoin-total-epilepsy", ["phenytoinFDA","range",10,20]],
