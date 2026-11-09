@@ -23,7 +23,8 @@ export function collectTdmComparisons(targets) {
       const distinctNumericValues = new Set(entries.map((e) =>
         `${e.relation}|${e.min}|${e.max}`)).size > 1;
       const sorted = entries.slice().sort((a, b) => {
-        const statusDiff = (a.status === 'guideline' ? 0 : 1) - (b.status === 'guideline' ? 0 : 1);
+        const priority = { guideline: 0, regulatory: 1, review: 2, study: 3 };
+        const statusDiff = (priority[a.status] ?? 4) - (priority[b.status] ?? 4);
         return statusDiff || (tdmTargetSources[b.source].year - tdmTargetSources[a.source].year);
       });
       const drug = tdmDrugs.find((item) => item.id === anchor.drug);
