@@ -6,6 +6,13 @@ import {
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
 import { searchTdmMolecules } from '../src/lib/content/tdmSearchView.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
+import {
+  antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
+  parseMic, formatMicCalculation, antibioticPdForDrug, antibioticPdReference, antibioticPdSource
+} from '../src/lib/content/tdmAntibioticPd.js';
+import {
+  chuSamplingDocuments, antibioticsWithChuSamplingDocument, chuSamplingForDrug
+} from '../src/lib/content/tdmChuSampling.js';
 
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
@@ -300,10 +307,86 @@ assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRc
 assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
 assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 4);
 assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 3);
-assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 1);
-assert.equal(searchTdmMolecules('cefepime').groups.length, 0);
+assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 0);
+assert.equal(searchTdmMolecules('cefepime').groups.length, 1);
 assert.equal(searchTdmMolecules('not-a-molecule-xyz').groups.length, 0);
 console.log('TDM compact UI grouping: molecule-only search, coherent indications and source details validated.');
+
+
+const chuAntibiotics = searchManualCatalog({ family: 'antibiotics' });
+assert.equal(chuAntibiotics.length, 36, 'Official CHU document lists 36 antibiotics');
+assert.equal(antibioticsWithChuSamplingDocument.length, 36);
+assert.equal(new Set(antibioticsWithChuSamplingDocument).size, 36);
+assert.equal(new Set(chuAntibiotics.map((entry) => entry.drugKey)).size, 36);
+assert.ok(chuAntibiotics.every((entry) =>
+  entry.drugKey && chuSamplingForDrug(entry.drugKey)?.url === chuSamplingDocuments.ptpAntibiotics2026.url),
+  'Every official listed antibiotic must have precisely the verified sampling-times document');
+assert.equal(chuSamplingDocuments.ptpAntibiotics2026.url,
+  'https://chu-limoges.manuelprelevement.fr/DocumentNew.aspx?idDoc=41157');
+assert.equal(chuSamplingDocuments.ptpAntibiotics2026.kind, 'sampling_times');
+assert.equal(chuSamplingForDrug('lithium'), null);
+assert.equal(chuSamplingForDrug('mpa'), null,
+  'The immunosuppressant prescription is not a sampling-times-only document');
+assert.equal(chuSamplingForDrug('amitriptyline'), null,
+  'The antidepressant examination is not a verified sampling-times document');
+assert.equal(chuSamplingForDrug('nonexistent'), null);
+
+assert.equal(antibioticPdTargets.length, 2 * 16 + 3 + 4 + 1 + 1);
+assert.equal(betaLactamIds.length, 16);
+assert.equal(aminoglycosideIds.length, 3);
+assert.equal(fluoroquinoloneIds.length, 4);
+assert.equal(new Set(antibioticPdTargets.map((entry) => entry.id)).size,
+  antibioticPdTargets.length);
+const validPdKinds = new Set([
+  'beta_trough', 'beta_continuous', 'peak_ratio', 'free_auc_ratio',
+  'total_auc_ratio', 'vancomycin_mic1'
+]);
+for (const pd of antibioticPdTargets) {
+  assert.ok(validPdKinds.has(pd.kind), pd.id);
+  assert.ok(drugIds.has(pd.drug), 'MIC target not searchable: ' + pd.drug);
+  assert.ok(chuSamplingForDrug(pd.drug), 'MIC target not associated with an official CHU antibiotic sampling document: ' + pd.drug);
+  assert.ok(pd.criterionFr && pd.contextFr && pd.criterionEn && pd.contextEn, pd.id);
+  assert.ok(pd.evidenceSection && pd.evidenceSection.length > 20, pd.id);
+  assert.match(antibioticPdReference(pd).url, /^https:\/\//);
+}
+assert.equal(antibioticPdSource.url, 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7223855/');
+assert.equal(antibioticPdSource.doi, '10.1007/s00134-020-06050-1');
+assert.equal(antibioticPdForDrug('cefepime').length, 2);
+assert.equal(antibioticPdForDrug('avibactam').length, 0,
+  'Avibactam inhibitor does not get an invented beta-lactam active-drug target');
+assert.equal(antibioticPdForDrug('tazobactam').length, 0,
+  'Tazobactam inhibitor does not get an invented PK/PD target');
+assert.equal(antibioticPdForDrug('amikacin').length, 1);
+assert.equal(antibioticPdForDrug('ciprofloxacin').length, 1);
+assert.equal(antibioticPdForDrug('daptomycin').length, 1);
+assert.equal(antibioticPdForDrug('vancomycin').length, 1);
+assert.equal(searchTdmMolecules('céfépime').groups[0].pdTargets.length, 2);
+assert.equal(searchTdmMolecules('cefepime').groups[0].samplingDocument.code, 'PTP PREA 0059 C');
+assert.equal(searchTdmMolecules('amikacine').groups[0].pdTargets.length, 1);
+assert.equal(searchTdmMolecules('gentamicine').groups[0].pdTargets.length, 1);
+assert.equal(searchTdmMolecules('ciprofloxacine').groups[0].pdTargets.length, 1);
+assert.equal(searchTdmMolecules('vancomycine').groups[0].pdTargets.length, 1);
+assert.equal(searchTdmMolecules('vancomycine').groups[0].indications.length, 1);
+assert.equal(searchTdmMolecules('tazobactam').withoutTargets.length, 1);
+assert.equal(searchTdmMolecules('tazobactam').withoutTargets[0].samplingDocument.code, 'PTP PREA 0059 C');
+assert.equal(searchTdmMolecules('lithium').groups[0].samplingDocument, null);
+
+assert.equal(parseMic('0,5'), 0.5);
+assert.equal(parseMic('0.125'), 0.125);
+assert.equal(parseMic(' 2 '), 2);
+for (const invalid of ['', '0', '-1', 'NaN', 'Infinity', '1e5', '1,2,3', '1025']) {
+  assert.equal(parseMic(invalid), null, 'Invalid MIC: ' + invalid);
+}
+const pdByKind = (kind) => antibioticPdTargets.find((entry) => entry.kind === kind);
+assert.equal(formatMicCalculation(pdByKind('beta_trough'), 2, 'fr'), 'Repère : fCmin > 2 mg/L');
+assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 2, 'fr'), 'À l’état stable : fCss > 2 mg/L');
+assert.equal(formatMicCalculation(pdByKind('peak_ratio'), 0.5, 'fr'), 'Cmax ≥ 4–5 mg/L');
+assert.equal(formatMicCalculation(pdByKind('free_auc_ratio'), 0.5, 'fr'), 'fAUC₀–₂₄ ≥ 40 mg·h/L');
+assert.equal(formatMicCalculation(pdByKind('total_auc_ratio'), 0.5, 'fr'), 'AUC₀–₂₄ > 333 mg·h/L');
+assert.equal(formatMicCalculation(pdByKind('vancomycin_mic1'), 1, 'fr'), 'AUC₀–₂₄ : 400–600 mg·h/L (CMI = 1 mg/L)');
+assert.match(formatMicCalculation(pdByKind('vancomycin_mic1'), 2, 'fr'), /Pas de recalcul linéaire/);
+assert.equal(formatMicCalculation(pdByKind('beta_trough'), 0), null);
+console.log('TDM antibiotic MIC objectives: 41 source-scoped contexts, 36 CHU sampling-time links, calculator and safety gates validated.');
 
 console.log(`TDM manual linked index: ${tdmManualCatalog.length} named medicines across ${Object.keys(manualCatalogSources).length} official document types.`);
 console.log(`TDM comparisons: ${comparisons.length} source-by-source groups validated.`);

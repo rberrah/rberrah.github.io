@@ -5,6 +5,7 @@
   import { tdmDrugs, tdmTargetSources, tdmInstitutionalResources, formatTdmTarget, TDM_REFERENCE_REVIEW_DATE } from '#lib/content/tdmTargets.js';
   import { tdmManualCatalog } from '#lib/content/tdmManualCatalog.js';
   import { searchTdmMolecules } from '#lib/content/tdmSearchView.js';
+  import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
 
   const base = resolve('/').replace(/\/$/, '');
   const suggestions = [...new Set([
@@ -16,6 +17,8 @@
   let en = $derived($language === 'en');
   let results = $derived(searchTdmMolecules(query));
   let hasQuery = $derived(Boolean(query.trim()));
+  let micInput = $state('');
+  let micValue = $derived(parseMic(micInput));
 </script>
 
 <svelte:head>
@@ -52,13 +55,31 @@
   </section>
 
   {#if hasQuery}
+    {#if results.groups.some((group) => group.pdTargets.length > 0)}
+      <section class="mic-entry" data-testid="tdm-mic-input-section" aria-label={en ? 'MIC-dependent pharmacodynamic target' : 'Objectif pharmacodynamique selon la CMI'}>
+        <label for="tdm-mic-input">{en ? 'MIC of the isolated pathogen (mg/L) · optional' : 'CMI du germe isolé (mg/L) · facultative'}</label>
+        <input id="tdm-mic-input" data-testid="tdm-mic-input" type="text" inputmode="decimal"
+          spellcheck="false" autocomplete="off" bind:value={micInput}
+          placeholder={en ? 'e.g. 0.5 or 0,5' : 'Ex. 0,5 ou 0.5'} />
+        {#if micInput.trim() && micValue === null}
+          <span class="mic-error" role="status">{en ? 'Enter a positive MIC in mg/L.' : 'Saisissez une CMI positive en mg/L.'}</span>
+        {:else}
+          <span class="mic-help">{en ? 'Class-level ICU objectives. MIC testing method, infection site and free vs total concentrations matter.' : 'Objectifs de classe en réanimation : méthode de CMI, site infectieux et fraction libre à vérifier.'}</span>
+        {/if}
+      </section>
+    {/if}
     {#if results.groups.length}
       <div class="drug-results" data-testid="tdm-drug-results" aria-live="polite">
         {#each results.groups as group (group.drug.id)}
           <section class="drug-section" data-testid="tdm-drug-group">
             <div class="drug-heading">
               <h2>{en ? group.drug.en : group.drug.fr}</h2>
-              <span>{group.indications.length} {en ? 'indication(s) / context(s)' : 'indication(s) / contexte(s)'}</span>
+              {#if group.samplingDocument}
+                <a class="chu-sampling-link" data-testid="tdm-chu-sampling-link"
+                  href={group.samplingDocument.url} target="_blank" rel="noopener noreferrer">
+                  {en ? 'CHU · Sampling times' : 'CHU · Temps de prélèvement'} <ExternalLink size={14} aria-hidden="true" />
+                </a>
+              {/if}
             </div>
             <div class="indication-list">
               {#each group.indications as item (item.id)}
@@ -135,17 +156,59 @@
                 </article>
               {/each}
             </div>
+            {#if group.pdTargets.length}
+              <div class="mic-cards">
+                {#each group.pdTargets as pd (pd.id)}
+                  {@const pdSource = antibioticPdReference(pd)}
+                  <article class="indication-card mic-card" data-testid="tdm-mic-card">
+                    <div class="target-overview">
+                      <div class="indication-label">
+                        <h3>{en ? pd.labelEn : pd.labelFr}</h3>
+                        <span>{pd.metric}</span>
+                      </div>
+                      <p class="target-number"><strong>{en ? pd.criterionEn : pd.criterionFr}</strong></p>
+                      <div class="source-actions">
+                        <a class="main-source" href={pdSource.url} target="_blank" rel="noopener noreferrer"
+                          aria-label={(en ? 'Original PK/PD source: ' : 'Source PK/PD originale : ') + pdSource.citation}>
+                          {pdSource.citation} <ExternalLink size={14} aria-hidden="true" />
+                        </a>
+                        <span class="study-note">{en ? 'Conditional PK/PD objective' : 'Objectif PK/PD contextualisé'}</span>
+                      </div>
+                    </div>
+                    {#if micValue !== null}
+                      <p class="mic-calculation" data-testid="tdm-mic-result">
+                        {formatMicCalculation(pd, micValue, en ? 'en' : 'fr')}
+                      </p>
+                    {/if}
+                    <details class="detail-panel" data-testid="tdm-mic-details">
+                      <summary>{en ? 'Details and limits' : 'Détails et limites'}</summary>
+                      <div class="detail-content">
+                        <p>{en ? pd.contextEn : pd.contextFr}</p>
+                        <p class="pd-provenance">{pdSource.title} · {pd.evidenceSection}</p>
+                        {#if pdSource.doi}
+                          <a class="doi-link" href={'https://doi.org/' + pdSource.doi} target="_blank" rel="noopener noreferrer">DOI : {pdSource.doi}</a>
+                        {/if}
+                      </div>
+                    </details>
+                  </article>
+                {/each}
+              </div>
+            {/if}
           </section>
         {/each}
       </div>
     {:else if results.withoutTargets.length}
       <section class="missing-targets" data-testid="tdm-no-target-results">
         <h2>{en ? 'No referenced therapeutic target yet' : 'Aucune cible thérapeutique référencée pour le moment'}</h2>
-        <p>{en ? 'These medications appear in the reviewed CHU Limoges documents, but no validated numeric target has been added.' : 'Ces molécules figurent dans les documents consultés du CHU de Limoges, mais aucune cible numérique qualifiée n’a encore été ajoutée.'}</p>
+        <p>{en ? 'A sampling-time document is linked only when verified; an assay or prescription form is not substituted for sampling instructions.' : 'Seuls les documents officiels sur les temps de prélèvement sont proposés, lorsqu’ils ont été vérifiés ; aucune fiche de dosage ou ordonnance n’est présentée à leur place.'}</p>
         <ul>
           {#each results.withoutTargets.slice(0, 8) as entry (entry.id)}
             <li data-testid="tdm-manual-entry"><strong>{entry.name}</strong>
-              <a href={entry.originalUrl} target="_blank" rel="noopener noreferrer">{en ? 'CHU document' : 'Document CHU'} <ExternalLink size={13} aria-hidden="true" /></a>
+              {#if entry.samplingDocument}
+                <a data-testid="tdm-chu-sampling-link" href={entry.samplingDocument.url} target="_blank" rel="noopener noreferrer">
+                  {en ? 'CHU sampling times' : 'CHU · Temps de prélèvement'} <ExternalLink size={13} aria-hidden="true" />
+                </a>
+              {/if}
             </li>
           {/each}
         </ul>
@@ -177,6 +240,19 @@
 </div>
 
 <style>
+  .mic-entry { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-subtle); padding: .9rem 1rem; border-radius: 10px; margin: .5rem 0 1.3rem; }
+  .mic-entry label { font-weight: 600; font-size: .88rem; }
+  .mic-entry input { max-width: 130px; width: 100%; padding: .55rem .65rem; border: 1px solid var(--border-subtle); border-radius: 7px; background: var(--bg-tertiary); color: var(--text-primary); font: inherit; }
+  .mic-entry input:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
+  .mic-help, .mic-error { width: 100%; font-size: .78rem; color: var(--text-secondary); }
+  .mic-error { font-weight: 600; }
+  .chu-sampling-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .87rem; }
+  .mic-cards { display: flex; flex-direction: column; gap: .65rem; }
+  .mic-card .target-number { white-space: normal; }
+  .mic-card .target-number strong { font: 650 1.04rem/1.4 var(--font-body); }
+  .mic-calculation { background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); font-weight: 650; padding: .75rem 1.2rem; margin: 0; font-variant-numeric: tabular-nums; }
+  .mic-card .detail-content p { color: var(--text-secondary); font-size: .86rem; line-height: 1.6; }
+  .mic-card .detail-content .pd-provenance { font-size: .78rem; }
   .tdm-page { max-width: 1040px; margin: 0 auto; padding: 1.5rem 0 3rem; }
   .page-header { margin: 0 0 1.6rem; }
   .page-header h1 { font: 700 clamp(2rem, 4vw, 2.85rem)/1.16 var(--font-heading); margin: .45rem 0 .5rem; }
@@ -185,14 +261,12 @@
   .search-section > label { display: block; font-weight: 600; margin-bottom: .5rem; }
   .search-field { display: flex; gap: .7rem; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 11px; padding: .2rem .8rem; }
   .search-field:focus-within { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
-  .search-field > svg { color: var(--text-secondary); flex: 0 0 auto; }
   .search-field input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--text-primary); padding: .85rem 0; font: inherit; font-size: 1rem; outline: 0; }
   .clear-button { border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: 0 0 auto; }
   .clear-button:focus-visible, .detail-panel summary:focus-visible, .institutional-details summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 3px; }
   .drug-section { margin: 0 0 1.7rem; }
   .drug-heading { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin-bottom: .75rem; }
   .drug-heading h2 { font: 700 1.5rem var(--font-heading); margin: 0; }
-  .drug-heading span { font-size: .8rem; color: var(--text-secondary); }
   .indication-list { display: flex; flex-direction: column; gap: .65rem; }
   .indication-card { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-tertiary); overflow: hidden; }
   .target-overview { padding: 1rem 1.2rem; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(175px, .85fr) minmax(190px, 1fr); align-items: center; gap: .75rem 1rem; }
