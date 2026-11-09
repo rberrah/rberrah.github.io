@@ -38,8 +38,9 @@ const qualifiedAntibioticIds = new Set(antibioticsWithChuSamplingDocument);
 /** Return only official CHU documents describing sampling TIME for this drug.
  *  A missing result means "document not independently verified", NOT "no sampling".
  */
+/** @param {string | null | undefined} drugId */
 export function chuSamplingForDrug(drugId) {
-  return qualifiedAntibioticIds.has(drugId)
+  return qualifiedAntibioticIds.has(String(drugId ?? ''))
     ? chuSamplingDocuments.ptpAntibiotics2026
     : null;
 }
