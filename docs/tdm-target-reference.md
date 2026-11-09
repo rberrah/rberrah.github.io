@@ -39,7 +39,7 @@ Un chiffre qui échoue à ces critères doit être **retiré de l'affichage publ
 | MPA | 4 recommandations d'AUC | [Liu et al. 2025, texte intégral libre](https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/) | Recommandation 6, tableau 3 |
 | MPA cardiaque | 1 seuil exploratoire AUC ≈ 50 mg·h/L | [Woillard et al. 2015, résumé PubMed](https://pubmed.ncbi.nlm.nih.gov/26192348/) | Résultats ; sensibilité 77 %, spécificité 25 %, n = 40 |
 | Tacrolimus IR rénal | 3 protocoles liés à la période postgreffe | [Article 2025, texte intégral libre](https://pmc.ncbi.nlm.nih.gov/articles/PMC12122127/) | Tableau 1 et conditions AUC |
-| Évérolimus | 2 variantes selon la présence d'ICN | [Consensus 2016, résumé PubMed](https://pubmed.ncbi.nlm.nih.gov/26982492/) | Résumé ; le [consensus IATDMCT 2025](https://pubmed.ncbi.nlm.nih.gov/39331837/) doit aussi être considéré |
+| Évérolimus | 4 cibles selon organe (rein/cœur) et ICN | [Masuda et al., consensus IATDMCT 2025 (texte intégral libre)](https://doi.org/10.1097/FTD.0000000000001250) | Tableau 1 et recommandations par organe |
 | Vancomycine | 1 cible AUC/CMI pour infection invasive grave à SARM | [Consensus IDSA et partenaires, texte libre](https://www.idsociety.org/practice-guideline/vancomycin/) | Executive summary, hypothèse CMI = 1 |
 | Lithium | 3 intervalles en entretien adulte | [Nolen et al. 2019, texte intégral libre](https://pmc.ncbi.nlm.nih.gov/articles/PMC6688930/) | Tableau 5 et conclusion |
 
@@ -62,7 +62,7 @@ Les sources originales et les noms sont enregistrés dans `src/lib/content/tdmTa
 
 - MPA : greffe rénale, cardiaque (recommandation >36 et seuil d'étude ≈50 **distincts**), hépatique, pulmonaire ; AUC0–12h.
 - Tacrolimus : exemples **spécifiques au centre et au schéma thérapeutique** de C0 en greffe rénale à différents délais. La condition de validation par AUC pour les faibles résiduelles est explicitée.
-- Évérolimus : C0 en transplantation avec/sans ICN.
+- Évérolimus : C0 en greffe rénale et cardiaque, selon l'association à un ICN (consensus IATDMCT 2025).
 - Vancomycine : AUC24 pour infections invasives graves à SARM, dans l'hypothèse CMI = 1 mg/L ; ne pas présenter C0 15–20 comme équivalent.
 - Lithium : cibles sériques C12h de maintenance chez l'adulte et alternatives du consensus liées à réponse/tolérance.
 
