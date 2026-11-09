@@ -141,6 +141,67 @@ for (const entry of tdmTargets) {
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
 console.log('TDM per-claim audit lock: 22 bibliographic claims tied to their original sources.');
 
+// The sources are as important as the numeric claims: a changed target hyperlink or
+// DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
+const reviewedSourceIdentifiers = {
+  "mpa2025": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/",
+    "10.1631/jzus.B2400069"
+  ],
+  "mpa2015heart": [
+    "https://pubmed.ncbi.nlm.nih.gov/26192348/",
+    "10.1016/j.phrs.2015.07.012"
+  ],
+  "tac2025": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12122127/",
+    "10.1111/bcp.16098"
+  ],
+  "everolimus2025": [
+    "https://doi.org/10.1097/FTD.0000000000001250",
+    "10.1097/FTD.0000000000001250"
+  ],
+  "mpa2021": [
+    "https://research.dial.uclouvain.be/bitstreams/0c98746c-847b-4e2d-8e96-c788c25851e9/download",
+    "10.1097/FTD.0000000000000871"
+  ],
+  "valproateRcp": [
+    "https://base-donnees-publique.medicaments.gouv.fr/medicament/67025516/extrait",
+    null
+  ],
+  "valproateTdm": [
+    "https://www.elsevier-masson.fr/media/wysiwyg/PDF/FR/9782294787935_valproate_pharm.pdf",
+    null
+  ],
+  "valproateSfpt2010": [
+    "https://pubmed.ncbi.nlm.nih.gov/20699076/",
+    "10.2515/therapie/2010029"
+  ],
+  "lithiumNice": [
+    "https://www.nice.org.uk/guidance/cg185/chapter/recommendations",
+    null
+  ],
+  "linezolid2022": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC9399604/",
+    null
+  ],
+  "vancomycin2020": [
+    "https://www.idsociety.org/practice-guideline/vancomycin/",
+    "10.1093/ajhp/zxaa036"
+  ],
+  "lithium2019": [
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC6688930/",
+    "10.1111/bdi.12805"
+  ]
+};
+assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
+for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
+  assert.ok(tdmTargetSources[key], `Missing audited source ${key}`);
+  assert.equal(tdmTargetSources[key].url, url, `Unreviewed source URL for ${key}`);
+  assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
+  assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
+}
+console.log('TDM source link integrity: all 12 reviewed URLs and DOI identifiers pinned.');
+
 const blankView = searchTdmMolecules('');
 assert.equal(blankView.groups.length, 0, 'No unsolicited full catalogue on initial load');
 assert.equal(blankView.withoutTargets.length, 0);
