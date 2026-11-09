@@ -97,6 +97,14 @@
                       {#if source.doi}
                         <a class="doi-link" href={'https://doi.org/' + source.doi} target="_blank" rel="noopener noreferrer">DOI : {source.doi} <ExternalLink size={13} aria-hidden="true" /></a>
                       {/if}
+                      {#if source.newerConsensusUrl}
+                        <p class="updated-guideline">
+                          {en ? 'More recent consensus: recheck this numerical range before clinical use.' : 'Consensus plus récent : vérifier cette valeur avant toute utilisation clinique.'}
+                          <a href={source.newerConsensusUrl} target="_blank" rel="noopener noreferrer">
+                            {source.newerConsensusTitle} <ExternalLink size={13} aria-hidden="true" />
+                          </a>
+                        </p>
+                      {/if}
 
                       {#if item.alternatives.length}
                         <div class="other-sources" data-testid="tdm-other-sources">
@@ -205,6 +213,8 @@
   .detail-content dt { font-weight: 650; font-size: .78rem; margin-bottom: .25rem; }
   .detail-content dd { margin: 0; color: var(--text-secondary); font-size: .85rem; line-height: 1.55; overflow-wrap: anywhere; }
   .reference-location { display: block; margin-top: .35rem; }
+  .updated-guideline { color: var(--text-secondary); font-size: .82rem; line-height: 1.5; padding: .65rem .8rem; border-left: 2px solid var(--border-subtle); margin: .75rem 0; }
+  .updated-guideline a { display: inline-flex; gap: .3rem; align-items: center; margin-left: .35rem; }
   .doi-link { display: inline-flex; align-items: center; gap: .25rem; font-size: .78rem; overflow-wrap: anywhere; }
   .other-sources { margin-top: 1.15rem; padding-top: .8rem; border-top: 1px solid var(--border-subtle); }
   .other-sources h4 { margin: .15rem 0 .8rem; font: 650 1rem var(--font-body); }
