@@ -94,6 +94,8 @@ assert.equal(searchManualCatalog({query: 'linézolide'}).length, 1);
 assert.equal(searchManualCatalog({query: 'amitriptyline'}).length, 1);
 assert.equal(searchManualCatalog({query: 'ibrutinib'}).length, 1);
 assert.equal(searchManualCatalog({query: 'tacrolimus'}).length, 1);
+assert.equal(searchManualCatalog({query: 'valproate'}).length, 1);
+assert.equal(searchManualCatalog({query: 'MMF'}).length, 1);
 assert.equal(searchManualCatalog({family: 'antibiotics'}).length, 36);
 assert.equal(searchManualCatalog({family: 'antidepressants'}).length, 26);
 assert.ok(tdmManualCatalog.every((entry) => Boolean(manualCatalogSources[entry.sourceId])));
