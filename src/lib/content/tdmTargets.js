@@ -1104,7 +1104,7 @@ export const tdmTargets = [
     "unit": "mg/L",
     "relation": "range",
     "min": 3,
-    "max": 35,
+    "max": 36,
     "status": "review",
     "source": "oxcarb2018",
     "matrixFr": "Sérum/plasma",
