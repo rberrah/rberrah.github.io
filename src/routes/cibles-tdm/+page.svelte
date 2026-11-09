@@ -194,11 +194,9 @@
   .society-card { border: 1px solid var(--border-subtle); border-radius: 9px; padding: 1rem; }
   .society-card h3 { font: 600 1rem var(--font-body); line-height: 1.5; margin: .3rem 0; }
   .society-card h3 a { display: inline; }
-  .society-card h3 svg { display: inline; vertical-align: baseline; }
   .society-org { font-weight: 700; letter-spacing: .06em; font-size: .75rem; margin: 0; }
   .society-card > p:last-child, .review-date { font-size: .85rem; color: var(--text-secondary); }
   .reference { display: inline-flex; align-items: flex-start; gap: .45rem; line-height: 1.45; font-size: .83rem; overflow-wrap: anywhere; }
-  .reference svg { flex-shrink: 0; margin-top: .12rem; }
   .method-note { padding-top: 1.6rem; margin: 2rem auto; max-width: 860px; border-top: 1px solid var(--border-subtle); }
   .method-note h2 { font-family: var(--font-heading); }
   .method-note p { color: var(--text-secondary); }
