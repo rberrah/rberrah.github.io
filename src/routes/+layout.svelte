@@ -36,6 +36,7 @@
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
+    { href: '/cibles-tdm', key: 'tdm-targets', label: $language === 'en' ? 'Therapeutic target guide' : 'Guide des cibles thérapeutiques' },
     { href: '/ml', key: 'ml', label: $language === 'en' ? 'ML for TDM' : 'ML pour le TDM' },
     { href: '/translator', key: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles' },
     { href: '/pk', key: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK' },
@@ -59,7 +60,7 @@
     { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
-    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
+    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'tdm-targets', 'ml', 'other-tools'] },
     { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'cross-domains', 'multiomics', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['search', 'glossary', 'references', 'about', 'main-site'] }
   ]);
@@ -96,6 +97,7 @@
     '/exemple/': { fr: 'Exemples de modèles PK/PD — PMx Explain', en: 'PK/PD model examples — PMx Explain' },
     '/exercices/': { fr: 'Exercices de pharmacométrie et PK/PD — PMx Explain', en: 'Pharmacometrics and PK/PD exercises — PMx Explain' },
     '/tdm/': { fr: 'Suivi thérapeutique et MIPD — PMx Explain', en: 'Therapeutic drug monitoring and MIPD — PMx Explain' },
+    '/cibles-tdm/': { fr: 'Cibles thérapeutiques et référentiel TDM — PMx Explain', en: 'TDM therapeutic targets reference — PMx Explain' },
     '/ml/': { fr: 'Machine learning et pharmacométrie — PMx Explain', en: 'Machine learning and pharmacometrics — PMx Explain' },
     '/pk/': { fr: 'Modèles pharmacocinétiques — PMx Explain', en: 'Pharmacokinetic models — PMx Explain' },
     '/pd/': { fr: 'Modèles pharmacodynamiques — PMx Explain', en: 'Pharmacodynamic models — PMx Explain' },
