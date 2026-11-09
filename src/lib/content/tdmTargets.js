@@ -266,7 +266,13 @@ export function searchTdmTargets({ query = '', drug = 'all', indication = 'all' 
   const exactDrugIds = needle ? tdmDrugs.filter((item) =>
     [item.fr, item.en, ...item.aliases].some((name) => normalizeTdmSearch(name) === needle)
   ).map((item) => item.id) : [];
+  // Prefer matching the indication label over an incidental mention in a clinical note.
+  const indicationIds = needle && !exactDrugIds.length
+    ? tdmTargets.filter((entry) => [entry.indicationFr, entry.indicationEn]
+      .some((label) => normalizeTdmSearch(label).includes(needle))).map((entry) => entry.id)
+    : [];
   return tdmTargets.filter((entry) => {
+    if (indicationIds.length && !indicationIds.includes(entry.id)) return false;
     if (exactDrugIds.length && !exactDrugIds.includes(entry.drug)) return false;
     if (drug !== 'all' && entry.drug !== drug) return false;
     if (indication !== 'all' && entry.indication !== indication) return false;
