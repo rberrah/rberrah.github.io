@@ -67,14 +67,13 @@ export const tdmTargetSources = {
     access: 'open_full_text', evidenceSection: 'Table 1 (immediate-release tacrolimus), notes and AUC condition',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
-  everolimus2016: {
-    title: 'Everolimus TDM (2016) · Consensus international — à compléter par le consensus 2025',
-    url: 'https://pubmed.ncbi.nlm.nih.gov/26982492/',
-    year: 2016, organization: 'International TDM consensus',
-    access: 'open_abstract', evidenceSection: 'Abstract / recommendations for C₀ with and without CNI',
-    verifiedOn: TDM_REFERENCE_REVIEW_DATE,
-    newerConsensusUrl: 'https://pubmed.ncbi.nlm.nih.gov/39331837/',
-    newerConsensusTitle: 'Masuda et al. (2025), deuxième consensus IATDMCT'
+  everolimus2025: {
+    title: 'Masuda et al. (2025) · Deuxième consensus IATDMCT sur l’évérolimus',
+    url: 'https://doi.org/10.1097/FTD.0000000000001250',
+    doi: '10.1097/FTD.0000000000001250',
+    year: 2025, organization: 'IATDMCT / Immunosuppressive Drugs Scientific Committee',
+    access: 'open_full_text', evidenceSection: 'Table 1 and kidney/heart-transplantation recommendations',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   vancomycin2020: {
     title: 'ASHP/IDSA/PIDS/SIDP (2020) · Consensus vancomycine',
@@ -182,22 +181,40 @@ export const tdmTargets = [
     evidenceFr: 'Exemple de protocole, non universel.', evidenceEn: 'Example centre protocol, not universal.'
   },
   {
-    id: 'everolimus-cni', drug: 'everolimus', indication: 'transplant',
-    indicationFr: 'Transplantation · avec inhibiteur de calcineurine', indicationEn: 'Transplant · with calcineurin inhibitor',
+    id: 'everolimus-kidney-cni', drug: 'everolimus', indication: 'kidney',
+    indicationFr: 'Greffe rénale · avec ICN à exposition réduite', indicationEn: 'Kidney transplant · reduced-exposure CNI',
     metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total', matrixEn: 'Whole blood',
-    relation: 'range', min: 3, max: 8, status: 'guideline', source: 'everolimus2016',
-    contextFr: 'Association à un inhibiteur de calcineurine et/ou autres immunosuppresseurs ; interpréter selon la méthode analytique.',
-    contextEn: 'Concomitant calcineurin inhibitor and/or other immunosuppressants; account for assay method.',
-    evidenceFr: 'Consensus TDM.', evidenceEn: 'TDM consensus.'
+    relation: 'range', min: 3, max: 8, status: 'guideline', source: 'everolimus2025',
+    contextFr: 'Évérolimus avec inhibiteur de calcineurine à exposition réduite ; la méthode analytique doit être prise en compte.',
+    contextEn: 'Everolimus with reduced-exposure calcineurin inhibitor; analytical assay matters.',
+    evidenceFr: 'Consensus IATDMCT 2025, greffe rénale.', evidenceEn: 'IATDMCT 2025 consensus, kidney transplant.'
   },
   {
-    id: 'everolimus-no-cni', drug: 'everolimus', indication: 'transplant',
-    indicationFr: 'Transplantation · sans inhibiteur de calcineurine', indicationEn: 'Transplant · without calcineurin inhibitor',
+    id: 'everolimus-kidney-no-cni', drug: 'everolimus', indication: 'kidney',
+    indicationFr: 'Greffe rénale · sans ICN', indicationEn: 'Kidney transplant · CNI-free',
     metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total', matrixEn: 'Whole blood',
-    relation: 'range', min: 6, max: 10, status: 'guideline', source: 'everolimus2016',
-    contextFr: 'Schéma sans inhibiteur de calcineurine ; non interchangeable avec la cible en association.',
-    contextEn: 'Calcineurin-inhibitor-free regimen; not interchangeable with combination target.',
-    evidenceFr: 'Consensus TDM.', evidenceEn: 'TDM consensus.'
+    relation: 'range', min: 6, max: 10, status: 'guideline', source: 'everolimus2025',
+    contextFr: 'Schéma sans ICN décrit dans le tableau 1 ; ne pas confondre avec la greffe cardiaque sans ICN.',
+    contextEn: 'CNI-free regimen from Table 1; not the same target as CNI-free heart transplantation.',
+    evidenceFr: 'Consensus IATDMCT 2025, greffe rénale.', evidenceEn: 'IATDMCT 2025 consensus, kidney transplant.'
+  },
+  {
+    id: 'everolimus-heart-cni', drug: 'everolimus', indication: 'heart',
+    indicationFr: 'Greffe cardiaque · avec ICN réduit', indicationEn: 'Heart transplant · reduced-exposure CNI',
+    metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total', matrixEn: 'Whole blood',
+    relation: 'range', min: 3, max: 8, status: 'guideline', source: 'everolimus2025',
+    contextFr: 'Cible de l’évérolimus avec ICN réduit ; un schéma quadruple peut avoir une cible différente (3–6 ng/mL).',
+    contextEn: 'Everolimus with reduced CNI; a quadruple regimen may have a different target (3–6 ng/mL).',
+    evidenceFr: 'Consensus IATDMCT 2025, greffe cardiaque.', evidenceEn: 'IATDMCT 2025 consensus, heart transplant.'
+  },
+  {
+    id: 'everolimus-heart-no-cni', drug: 'everolimus', indication: 'heart',
+    indicationFr: 'Greffe cardiaque · sans ICN, avec MPA et corticoïdes', indicationEn: 'Heart transplant · CNI-free, with MPA and steroids',
+    metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total', matrixEn: 'Whole blood',
+    relation: 'range', min: 5, max: 10, status: 'guideline', source: 'everolimus2025',
+    contextFr: 'Schéma sans ICN associant MPA et glucocorticoïdes ; le consensus recommande d’éviter C₀ <5 ng/mL.',
+    contextEn: 'CNI-free regimen combined with MPA and glucocorticoids; the consensus recommends avoiding C₀ below 5 ng/mL.',
+    evidenceFr: 'Consensus IATDMCT 2025, greffe cardiaque.', evidenceEn: 'IATDMCT 2025 consensus, heart transplant.'
   },
   {
     id: 'vancomycin-mrsa', drug: 'vancomycin', indication: 'infection',
