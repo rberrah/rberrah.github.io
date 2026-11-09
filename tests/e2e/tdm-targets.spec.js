@@ -7,9 +7,9 @@ test('TDM target guide searches aliases and preserves distinct source statuses',
   const cards = page.getByTestId('tdm-target-card');
 
   await search.fill('mycophenolate');
-  await expect(cards).toHaveCount(5);
+  await expect(cards).toHaveCount(6);
   await search.fill('MPA');
-  await expect(cards).toHaveCount(5);
+  await expect(cards).toHaveCount(6);
   await search.fill('cardiaque');
   await expect(cards).toHaveCount(4);
   await page.getByTestId('tdm-target-drug').selectOption('mpa');
@@ -21,8 +21,9 @@ test('TDM target guide searches aliases and preserves distinct source statuses',
   await search.fill('');
   await page.getByTestId('tdm-target-drug').selectOption('mpa');
   await page.getByTestId('tdm-target-indication').selectOption('kidney');
-  await expect(cards).toHaveCount(1);
-  await expect(page.getByText('30–60', { exact: true })).toBeVisible();
+  await expect(cards).toHaveCount(2);
+  await expect(page.getByTestId('tdm-comparisons')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-provenance')).toHaveCount(2);
 });
 
 test('TDM target guide supports English and mobile search', async ({ page }) => {
@@ -34,4 +35,26 @@ test('TDM target guide supports English and mobile search', async ({ page }) => 
   await expect(page.getByText('3–8', { exact: true })).toHaveCount(2);
   await expect(page.getByText('6–10', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /Explore the separate MIPD model library/ })).toBeVisible();
+});
+
+test('CHU Limoges manual records are linked, without invented cefepime targets', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('céfépime');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
+  await expect(page.getByText('Aucune cible numérique qualifiée dans ce guide')).toBeVisible();
+  const official = page.getByRole('link', { name: /Document officiel du CHU/ });
+  await expect(official).toHaveAttribute('href', /DocumentNew.aspx\?idDoc=41157/);
+});
+
+test('MPA and valproate compare different authoritative sources without a preferred universal target', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('valproate');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-comparisons')).toBeVisible();
+  await expect(page.getByText('40–100', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('50–100', { exact: true })).toHaveCount(1);
+  await page.getByTestId('tdm-target-search').fill('mycophenolate');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(6);
+  await expect(page.getByText('IATDMCT / Immunosuppressive Drugs Scientific Committee · 2021')).toBeVisible();
 });
