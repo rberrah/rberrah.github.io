@@ -139,7 +139,7 @@
             <tbody>
               {#each comparison.entries as entry (entry.id)}
                 <tr>
-                  <td><a href={entry.source.url} target="_blank" rel="noopener noreferrer">{entry.source.organization} · {entry.source.year}</a><div class="comparison-kind">{entry.status === 'study' ? (en ? 'Study / review' : 'Étude / revue') : (en ? 'Guideline / consensus' : 'Recommandation / consensus')}</div></td>
+                  <td><a href={entry.source.url} target="_blank" rel="noopener noreferrer">{entry.source.organization} · {entry.source.year}</a><div class="comparison-kind">{entry.status === 'study' ? (en ? 'Study' : 'Étude') : entry.status === 'review' ? (en ? 'Literature review' : 'Revue scientifique') : entry.status === 'regulatory' ? (en ? 'Product label' : 'RCP officiel') : (en ? 'Guideline / consensus' : 'Recommandation / consensus')}</div></td>
                   <td class="comparison-value">{en ? entry.valueEn : entry.valueFr} <small>{comparison.unit}</small></td>
                   <td>{en ? entry.contextEn : entry.contextFr}<div class="comparison-kind">{en ? entry.matrixEn : entry.matrixFr}</div></td>
                 </tr>
@@ -176,7 +176,11 @@
             </div>
             <span class="source-type">{item.status === 'study'
               ? (en ? 'Study / local protocol' : 'Étude / protocole')
-              : (en ? 'Guideline / consensus' : 'Recommandation / consensus')}</span>
+              : item.status === 'review'
+                ? (en ? 'Literature review' : 'Revue scientifique')
+                : item.status === 'regulatory'
+                  ? (en ? 'Official product label' : 'RCP officiel')
+                  : (en ? 'Guideline / consensus' : 'Recommandation / consensus')}</span>
           </div>
           <div class="value-line">
             <div class="value"><strong>{formatTdmTarget(item, en ? 'en' : 'fr')}</strong><span>{item.unit}</span></div>
