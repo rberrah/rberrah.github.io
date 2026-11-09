@@ -32,6 +32,7 @@ for (const target of tdmTargets) {
   assert.match(source.url, /^https:\/\//);
   assert.ok(source.title && Number.isInteger(source.year));
   assert.ok(source.organization && source.evidenceSection, `Source has no claim locator: ${target.id}`);
+  assert.ok(source.citation && source.citation.length < 70, `Missing concise primary citation: ${target.id}`);
   assert.ok(['open_full_text', 'open_abstract'].includes(source.access), `Source access not audited: ${target.id}`);
   assert.equal(source.verifiedOn, TDM_REFERENCE_REVIEW_DATE, `Source not freshly reviewed: ${target.id}`);
   assert.ok(!source.url.endsWith('/recommandations/'), `Numeric source must target a specific publication: ${target.id}`);
@@ -104,6 +105,40 @@ assert.ok(tdmManualCatalog.filter((entry) => entry.status === 'request_form_only
   manualCatalogSources[entry.sourceId].type === 'request_form'));
 assert.ok(tdmManualCatalog.filter((entry) => !tdmTargets.some((target) => target.drug === entry.drugKey)).length > 50);
 
+
+const reviewedNumericClaims = new Map([
+  ["mpa-kidney-auc", ["mpa2025","range",30,60]],
+  ["mpa-kidney-auc-iatdmct-2021", ["mpa2021","range",30,60]],
+  ["mpa-heart-auc", ["mpa2025","above",36,null]],
+  ["mpa-heart-auc-study", ["mpa2015heart","approx",50,null]],
+  ["mpa-liver-auc", ["mpa2025","range",30,60]],
+  ["mpa-lung-auc", ["mpa2025","range",22.73,40.46]],
+  ["tac-kidney-early", ["tac2025","range",8,10]],
+  ["tac-kidney-mid", ["tac2025","range",5,7]],
+  ["tac-kidney-late", ["tac2025","range",3,5]],
+  ["everolimus-kidney-cni", ["everolimus2025","range",3,8]],
+  ["everolimus-kidney-no-cni", ["everolimus2025","range",6,10]],
+  ["everolimus-heart-cni", ["everolimus2025","range",3,8]],
+  ["everolimus-heart-no-cni", ["everolimus2025","range",5,10]],
+  ["vancomycin-mrsa", ["vancomycin2020","range",400,600]],
+  ["valproate-epilepsy-rcp", ["valproateRcp","range",40,100]],
+  ["valproate-epilepsy-tdm-review", ["valproateTdm","range",50,100]],
+  ["valproate-epilepsy-sfpt-2010", ["valproateSfpt2010","range",50,100]],
+  ["linezolid-trough-consensus", ["linezolid2022","range",2,8]],
+  ["lithium-maintenance", ["lithium2019","range",0.6,0.8]],
+  ["lithium-nice-first-line", ["lithiumNice","range",0.6,0.8]],
+  ["lithium-tolerability", ["lithium2019","range",0.4,0.6]],
+  ["lithium-response", ["lithium2019","range",0.8,1]]
+]);
+assert.equal(reviewedNumericClaims.size, 22);
+assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
+assert.equal(Object.keys(tdmTargetSources).length, 12, 'Any new source requires review');
+for (const entry of tdmTargets) {
+  assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
+  assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
+}
+assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
+console.log('TDM per-claim audit lock: 22 bibliographic claims tied to their original sources.');
 
 const blankView = searchTdmMolecules('');
 assert.equal(blankView.groups.length, 0, 'No unsolicited full catalogue on initial load');
