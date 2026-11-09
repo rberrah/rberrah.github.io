@@ -50,7 +50,7 @@ test('CHU Limoges manual records are linked, without invented cefepime targets',
 test('MPA and valproate compare different authoritative sources without a preferred universal target', async ({ page }) => {
   await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
   await page.getByTestId('tdm-target-search').fill('valproate');
-  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(3);
   await expect(page.getByTestId('tdm-comparisons')).toBeVisible();
   await expect(page.getByText('40–100', { exact: true })).toHaveCount(1);
   await expect(page.getByText('50–100', { exact: true })).toHaveCount(1);
