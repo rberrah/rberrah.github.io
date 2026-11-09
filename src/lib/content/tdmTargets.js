@@ -152,6 +152,8 @@ export const tdmTargetSources = {
     access: 'open_full_text',
     evidenceSection: "Section 7.3.2.7.2: plasma digoxin concentration 0.5–0.9 ng/mL in heart failure",
     verifiedOn: TDM_REFERENCE_REVIEW_DATE,
+    newerConsensusUrl: 'https://www.jacc.org/doi/full/10.1016/j.jacc.2021.12.012',
+    newerConsensusTitle: 'AHA/ACC/HFSA 2022: risques des concentrations élevées, notamment ≥1,2 ng/mL',
   },
   mpa2025: {
     citation: 'Liu et al. · 2025',
@@ -1202,7 +1204,7 @@ export const tdmTargets = [
     "indication": "heart",
     "indicationFr": "Insuffisance cardiaque · adulte",
     "indicationEn": "Heart failure · adult",
-    "metric": "C₀",
+    "metric": "Concentration après distribution",
     "unit": "ng/mL",
     "relation": "range",
     "min": 0.5,
