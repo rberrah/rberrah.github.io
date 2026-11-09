@@ -1,36 +1,96 @@
 // Curated bibliographic targets for the PMx Explain educational reference.
 // This catalogue is deliberately separate from the executable MIPD-Engine model library.
 // Scientific author review: PENDING. Do not use as a clinical dosing protocol.
+// The numeric source must contain the numeric claim itself, not merely discuss TDM.
+// Access means the claim is visible in full text or an open bibliographic abstract.
+export const TDM_REFERENCE_REVIEW_DATE = '2026-11-09';
+export const tdmInstitutionalResources = [
+  {
+    id: 'sfpt-stp',
+    organization: 'SFPT',
+    titleFr: 'SFPT · Groupe Suivi thérapeutique pharmacologique et personnalisation des traitements',
+    titleEn: 'SFPT · Therapeutic drug monitoring and treatment personalization working group',
+    url: 'https://www.sfpt-fr.org/groupes-de-travail/stp-personnalisation-des-traitements',
+    scopeFr: 'Référence institutionnelle prioritaire pour le STP ; cette page ne donne pas de cible chiffrée.',
+    scopeEn: 'Priority French TDM institutional resource; this page does not specify a numeric target.'
+  },
+  {
+    id: 'sft-stp',
+    organization: 'SFT',
+    titleFr: 'SFT · Fiche pharmacien « Traitement immunosuppresseur en transplantation rénale » (2022)',
+    titleEn: 'SFT · Pharmacist information sheet on kidney transplant immunosuppression (2022)',
+    url: 'https://www.transplantation-francophone.org/wp-content/uploads/Traitement-immunosuppresseur-en-transplantation-renale-Fiche-pharmacien.pdf',
+    scopeFr: 'Pages 4–5 : choix de C₀ pour les anticalcineurines/mTOR et AUC₀–₁₂h pour le mycophénolate ; aucune cible numérique dans cette fiche.',
+    scopeEn: 'Pages 4–5: trough monitoring for CNI/mTOR and MPA AUC₀–₁₂h; no numeric target range stated in this sheet.'
+  },
+  {
+    id: 'sfpt-book',
+    organization: 'SFPT',
+    titleFr: 'SFPT · Suivi Thérapeutique Pharmacologique : Pour la personnalisation des traitements médicamenteux (2025)',
+    titleEn: 'SFPT · Therapeutic drug monitoring handbook (2025)',
+    url: 'https://www.sfpt-fr.org/?catid=78&id=2145%3Apublication-du-livre-suivi-th%C3%A9rapeutique-pharmacologique-pour-la-personnalisation-des-traitements-m%C3%A9dicamenteux&view=article',
+    scopeFr: 'Ouvrage de référence pertinent, mais contenu intégral payant : pas utilisé pour attribuer les chiffres tant que les passages ne sont pas consultables.',
+    scopeEn: 'Relevant handbook but full content is paid: not used to attribute numeric values without accessible passages.'
+  },
+  {
+    id: 'sft-iatdmct',
+    organization: 'SFT / IATDMCT',
+    titleFr: 'SFT · Comité scientifique des immunosuppresseurs de l’IATDMCT',
+    titleEn: 'SFT · IATDMCT Immunosuppressive Drugs Scientific Committee',
+    url: 'https://www.transplantation-francophone.org/partenaires-reseaux/societes-savantes/immunosuppressive-drugs-scientific-committee-iatdmct/',
+    scopeFr: 'Présentation des consensus tacrolimus, MPA et évérolimus ; cette page n’est pas elle-même la preuve chiffrée.',
+    scopeEn: 'Links to tacrolimus, MPA and everolimus consensus work; this page does not itself establish a numeric target.'
+  }
+];
+
 export const tdmTargetSources = {
   mpa2025: {
-    title: 'Liu et al. (2025) · Practice guideline for MPA TDM in solid-organ transplantation',
-    url: 'https://doi.org/10.1631/jzus.B2400069',
-    year: 2025
+    title: 'Liu et al. (2025) · Recommandations MPA en transplantation d’organes solides',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/',
+    doi: '10.1631/jzus.B2400069',
+    year: 2025, organization: 'Practice guideline / international',
+    access: 'open_full_text', evidenceSection: 'Recommendation 6, Table 3 (AUC₀–₁₂h)',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   mpa2015heart: {
-    title: 'Woillard et al. (2015) · Mycophenolate PK and exposure–effect in heart transplant recipients',
+    title: 'Woillard et al. (2015) · PK et exposition–rejet après transplantation cardiaque',
     url: 'https://pubmed.ncbi.nlm.nih.gov/26192348/',
-    year: 2015
+    doi: '10.1016/j.phrs.2015.07.012',
+    year: 2015, organization: 'Original peer-reviewed cohort study',
+    access: 'open_abstract', evidenceSection: 'Abstract / Results; n=40, sensitivity 77%, specificity 25%',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   tac2025: {
-    title: 'Therapeutic drug monitoring of tacrolimus after kidney transplantation (2025) · centre-specific Table 1',
+    title: 'Tacrolimus after kidney transplantation (2025) · Exemple de protocole local',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12122127/',
-    year: 2025
+    year: 2025, organization: 'Peer-reviewed review / single-centre targets',
+    access: 'open_full_text', evidenceSection: 'Table 1 (immediate-release tacrolimus), notes and AUC condition',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   everolimus2016: {
-    title: 'Therapeutic Drug Monitoring of Everolimus: A Consensus Report (2016)',
+    title: 'Everolimus TDM (2016) · Consensus international — à compléter par le consensus 2025',
     url: 'https://pubmed.ncbi.nlm.nih.gov/26982492/',
-    year: 2016
+    year: 2016, organization: 'International TDM consensus',
+    access: 'open_abstract', evidenceSection: 'Abstract / recommendations for C₀ with and without CNI',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE,
+    newerConsensusUrl: 'https://pubmed.ncbi.nlm.nih.gov/39331837/',
+    newerConsensusTitle: 'Masuda et al. (2025), deuxième consensus IATDMCT'
   },
   vancomycin2020: {
-    title: 'ASHP/IDSA/PIDS/SIDP vancomycin monitoring consensus (2020)',
+    title: 'ASHP/IDSA/PIDS/SIDP (2020) · Consensus vancomycine',
     url: 'https://www.idsociety.org/practice-guideline/vancomycin/',
-    year: 2020
+    doi: '10.1093/ajhp/zxaa036',
+    year: 2020, organization: 'ASHP / IDSA / PIDS / SIDP',
+    access: 'open_full_text', evidenceSection: 'Executive summary, AUC24 400–600 for serious MRSA at MIC 1 mg/L',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   lithium2019: {
-    title: 'ISBD/IGSLI Task Force · Optimal lithium levels in bipolar maintenance (2019)',
-    url: 'https://doi.org/10.1111/bdi.12805',
-    year: 2019
+    title: 'Nolen et al. (2019) · Consensus ISBD/IGSLI sur le lithium',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6688930/',
+    doi: '10.1111/bdi.12805',
+    year: 2019, organization: 'ISBD / IGSLI expert task force',
+    access: 'open_full_text', evidenceSection: 'Table 5 and conclusion (adult maintenance, 12 ± 1 h samples)',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
   }
 };
 
@@ -70,10 +130,10 @@ export const tdmTargets = [
     indicationFr: 'Greffe cardiaque', indicationEn: 'Heart transplant',
     metric: 'AUC₀–₁₂h', unit: 'mg·h/L', matrixFr: 'Plasma, MPA total', matrixEn: 'Plasma, total MPA',
     relation: 'approx', min: 50, max: null, status: 'study', source: 'mpa2015heart',
-    contextFr: 'Point de coupure proposé par une étude exposition–rejet ; ne constitue pas une cible universellement validée.',
-    contextEn: 'Cut-point proposed in an exposure–rejection study; not a universally validated target.',
-    evidenceFr: 'Résultat d’une étude, à distinguer des recommandations.',
-    evidenceEn: 'Study-derived finding; distinct from a practice guideline.'
+    contextFr: 'Seuil ROC exploratoire (40 adultes transplantés cardiaques ; sensibilité 77 %, spécificité 25 %), non validé comme cible thérapeutique de consensus.',
+    contextEn: 'Exploratory ROC cut-point (40 adult heart recipients; sensitivity 77%, specificity 25%), not a consensus-validated therapeutic target.',
+    evidenceFr: 'Étude observationnelle ; valeur à distinguer des recommandations.',
+    evidenceEn: 'Observational study finding; distinct from a practice guideline.'
   },
   {
     id: 'mpa-liver-auc', drug: 'mpa', indication: 'liver',
