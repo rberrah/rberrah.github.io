@@ -7,6 +7,7 @@ import { tdmDrugs, normalizeTdmSearch } from './tdmTargets.js';
 // We link to original sources rather than republishing protected instructions.
 // Review/date: 2026-11-09.
 export const manualCatalogUpdated = '2026-11-09';
+/** @type {Record<string, {title: string, url: string, date: string, type: string, noteFr: string, noteEn: string}>} */
 export const manualCatalogSources = {
   antimicrobialProtocol: {
     title: 'CHU de Limoges · PTP PREA 0059 C, antibiotiques dosés et temps de prélèvement',
