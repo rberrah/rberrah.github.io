@@ -34,6 +34,9 @@ for (const target of tdmTargets) {
 assert.equal(normalizeTdmSearch('MYCOPHÉNOLATE'), 'mycophenolate');
 assert.equal(searchTdmTargets({ query: 'mycophenolate' }).length, 5);
 assert.equal(searchTdmTargets({ query: 'MMF' }).length, 5);
+assert.equal(searchTdmTargets({ query: 'MPA' }).length, 5);
+assert.equal(searchTdmTargets({ query: 'tacrolimus' }).length, 3);
+assert.equal(searchTdmTargets({ query: 'lithium' }).length, 3);
 assert.equal(searchTdmTargets({ query: 'cardiaque' }).length, 2);
 assert.equal(searchTdmTargets({ query: 'heart' }).length, 2);
 assert.equal(searchTdmTargets({ query: 'évérolimus' }).length, 2);
