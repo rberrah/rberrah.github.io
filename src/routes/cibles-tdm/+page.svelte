@@ -73,8 +73,8 @@
                     <p class="target-number"><strong>{formatTdmTarget(primary, en ? 'en' : 'fr')}</strong> <span>{item.unit}</span></p>
                     <div class="source-actions">
                       <a class="main-source" href={source.url} target="_blank" rel="noopener noreferrer"
-                        aria-label={(en ? 'Original source: ' : 'Source originale : ') + source.organization + ' ' + source.year}>
-                        {source.organization} · {source.year} <ExternalLink size={14} aria-hidden="true" />
+                        aria-label={(en ? 'Original source: ' : 'Source originale : ') + source.citation}>
+                        {source.citation} <ExternalLink size={14} aria-hidden="true" />
                       </a>
                       {#if primary.status === 'study'}
                         <span class="study-note">{en ? 'Local protocol / study' : 'Étude / protocole local'}</span>
@@ -107,7 +107,7 @@
                               <div class="alternative-head">
                                 <strong>{formatTdmTarget(alternative, en ? 'en' : 'fr')} {alternative.unit}</strong>
                                 <a href={altSource.url} target="_blank" rel="noopener noreferrer">
-                                  {altSource.organization} · {altSource.year} <ExternalLink size={13} aria-hidden="true" />
+                                  {altSource.citation} <ExternalLink size={13} aria-hidden="true" />
                                 </a>
                               </div>
                               <p>{en ? alternative.contextEn : alternative.contextFr}</p>
