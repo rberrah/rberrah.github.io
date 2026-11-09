@@ -2,7 +2,7 @@
   import { resolve } from '$app/paths';
   import { Search, BookOpen, ArrowRight, ExternalLink } from '@lucide/svelte';
   import { language } from '#lib/stores/language.js';
-  import { tdmDrugs, tdmTargets, tdmTargetSources, searchTdmTargets, formatTdmTarget } from '#lib/content/tdmTargets.js';
+  import { tdmDrugs, tdmTargets, tdmTargetSources, tdmInstitutionalResources, TDM_REFERENCE_REVIEW_DATE, searchTdmTargets, formatTdmTarget } from '#lib/content/tdmTargets.js';
 
   const base = resolve('/').replace(/\/$/, '');
   let query = $state('');
@@ -101,13 +101,42 @@
             <div><dt>{en ? 'Context / limitations' : 'Contexte / limites'}</dt><dd>{en ? item.contextEn : item.contextFr}</dd></div>
             <div><dt>{en ? 'Level of evidence' : 'Niveau de preuve'}</dt><dd>{en ? item.evidenceEn : item.evidenceFr}</dd></div>
           </dl>
+          <div class="provenance" data-testid="tdm-target-provenance">
+            <p><strong>{en ? 'Exact numeric source' : 'Source exacte de la valeur'} :</strong> {source.organization} · {source.year}</p>
+            <p><strong>{en ? 'Where to find the number' : 'Où trouver la valeur'} :</strong> {source.evidenceSection}</p>
+            <p><strong>{en ? 'Access' : 'Accessibilité'} :</strong> {source.access === 'open_full_text'
+              ? (en ? 'Open full text' : 'Texte intégral en accès libre')
+              : (en ? 'Open abstract (full article may require subscription)' : 'Résumé accessible (article intégral éventuellement payant)')}</p>
+          </div>
           <a class="reference" href={source.url} target="_blank" rel="noopener noreferrer">
             <BookOpen size={16} aria-hidden="true" /> {source.title} <ExternalLink size={14} aria-hidden="true" />
           </a>
+          {#if source.newerConsensusUrl}
+            <p class="followup-reference">{en ? 'Updated consensus also available' : 'Consensus plus récent à consulter'} :
+              <a href={source.newerConsensusUrl} target="_blank" rel="noopener noreferrer">{source.newerConsensusTitle}</a>
+            </p>
+          {/if}
         </article>
       {/each}
     </div>
   {/if}
+</section>
+
+<section class="societies" aria-labelledby="society-references-title">
+  <h2 id="society-references-title">{en ? 'Priority French scientific societies' : 'Sociétés savantes françaises prioritaires'}</h2>
+  <p>{en
+    ? 'SFT and SFPT references are checked first. Institutional resources below explain the context of TDM. They do not necessarily publish a numerical target; each numeric card above cites the publication that explicitly supports its value.'
+    : 'La SFT et la SFPT sont vérifiées en premier. Les documents institutionnels ci-dessous expliquent le contexte du STP, mais ne donnent pas nécessairement de cible numérique : chaque fiche chiffrée ci-dessus cite la publication apportant directement la valeur.'}</p>
+  <div class="society-grid">
+    {#each tdmInstitutionalResources as society (society.id)}
+      <article class="society-card">
+        <p class="society-org">{society.organization}</p>
+        <h3><a href={society.url} target="_blank" rel="noopener noreferrer">{en ? society.titleEn : society.titleFr} <ExternalLink size={13} aria-hidden="true"/></a></h3>
+        <p>{en ? society.scopeEn : society.scopeFr}</p>
+      </article>
+    {/each}
+  </div>
+  <p class="review-date">{en ? 'Last bibliographic link and claim review' : 'Dernière vérification des sources et des valeurs'} : {TDM_REFERENCE_REVIEW_DATE} · {en ? 'Scientific author approval pending.' : 'Approbation scientifique par l’auteur en attente.'}</p>
 </section>
 
 <section class="method-note">
@@ -150,6 +179,20 @@
   dl > div { margin-bottom: .75rem; }
   dt { font-weight: 600; font-size: .8rem; margin-bottom: .15rem; }
   dd { margin: 0; font-size: .91rem; line-height: 1.55; color: var(--text-secondary); }
+  .provenance { margin: .75rem 0 .9rem; padding: .7rem .8rem; border-left: 2px solid var(--border-subtle); background: var(--bg-secondary); font-size: .8rem; color: var(--text-secondary); line-height: 1.5; }
+  .provenance p { margin: .2rem 0; }
+  .provenance strong { color: var(--text-primary); }
+  .followup-reference { margin: .7rem 0 0; font-size: .8rem; color: var(--text-secondary); }
+  .societies { margin: 2.4rem auto 0; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); }
+  .societies h2 { font-family: var(--font-heading); }
+  .societies > p { max-width: 900px; color: var(--text-secondary); }
+  .society-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .society-card { border: 1px solid var(--border-subtle); border-radius: 9px; padding: 1rem; }
+  .society-card h3 { font: 600 1rem var(--font-body); line-height: 1.5; margin: .3rem 0; }
+  .society-card h3 a { display: inline; }
+  .society-card h3 svg { display: inline; vertical-align: baseline; }
+  .society-org { font-weight: 700; letter-spacing: .06em; font-size: .75rem; margin: 0; }
+  .society-card > p:last-child, .review-date { font-size: .85rem; color: var(--text-secondary); }
   .reference { display: inline-flex; align-items: flex-start; gap: .45rem; line-height: 1.45; font-size: .83rem; overflow-wrap: anywhere; }
   .reference svg { flex-shrink: 0; margin-top: .12rem; }
   .method-note { padding-top: 1.6rem; margin: 2rem auto; max-width: 860px; border-top: 1px solid var(--border-subtle); }
@@ -157,5 +200,5 @@
   .method-note p { color: var(--text-secondary); }
   .back-link { display: inline-flex; align-items: center; gap: .5rem; margin-top: .7rem; }
   .empty { text-align: center; padding: 2rem; border: 1px solid var(--border-subtle); border-radius: 12px; }
-  @media (max-width: 760px) { .filters, .target-list { grid-template-columns: 1fr; } .reference-hero h1 { font-size: 2rem; } .target-card { padding: 1rem; } }
+  @media (max-width: 760px) { .filters, .target-list, .society-grid { grid-template-columns: 1fr; } .reference-hero h1 { font-size: 2rem; } .target-card { padding: 1rem; } }
 </style>
