@@ -307,8 +307,8 @@ assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRc
 assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
 assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 4);
 assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 3);
-assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 1);
-assert.equal(searchTdmMolecules('cefepime').groups.length, 0);
+assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 0);
+assert.equal(searchTdmMolecules('cefepime').groups.length, 1);
 assert.equal(searchTdmMolecules('not-a-molecule-xyz').groups.length, 0);
 console.log('TDM compact UI grouping: molecule-only search, coherent indications and source details validated.');
 
