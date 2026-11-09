@@ -61,8 +61,9 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   tac2025: {
-    title: 'Tacrolimus after kidney transplantation (2025) · Exemple de protocole local',
+    title: 'van Gelder et al. (2025) · Tacrolimus, C₀ et AUC en greffe rénale (protocole local)',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12122127/',
+    doi: '10.1111/bcp.16098',
     year: 2025, organization: 'Peer-reviewed review / single-centre targets',
     access: 'open_full_text', evidenceSection: 'Table 1 (immediate-release tacrolimus), notes and AUC condition',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
