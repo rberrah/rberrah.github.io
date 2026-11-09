@@ -77,6 +77,43 @@ export const tdmTargetSources = {
     access: 'open_full_text', evidenceSection: 'Table 1 and kidney/heart-transplantation recommendations',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
+  mpa2021: {
+    title: 'Bergan et al. (2021) · Consensus IATDMCT pour le MPA',
+    url: 'https://research.dial.uclouvain.be/bitstreams/0c98746c-847b-4e2d-8e96-c788c25851e9/download',
+    doi: '10.1097/FTD.0000000000000871',
+    year: 2021, organization: 'IATDMCT / Immunosuppressive Drugs Scientific Committee',
+    access: 'open_full_text',
+    evidenceSection: 'p. 161, Summary of recommended MPA target concentration ranges — Kidney transplantation, points 1–3',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
+  valproateRcp: {
+    title: 'ANSM / Base de données publique des médicaments · RCP valproate',
+    url: 'https://base-donnees-publique.medicaments.gouv.fr/medicament/67025516/extrait',
+    year: 2026, organization: 'ANSM / official French SmPC',
+    access: 'open_full_text', evidenceSection: 'Rubriques 4.2 et 5.2 : fourchette sérique 40–100 mg/L en épilepsie',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
+  valproateTdm: {
+    title: 'Suivi thérapeutique pharmacologique du valproate · Revue française',
+    url: 'https://www.sciencedirect.com/science/article/pii/S0040595716306837',
+    year: 2017, organization: 'Peer-reviewed French pharmacology review',
+    access: 'open_abstract', evidenceSection: 'Résumé : fourchette 50–100 mg/L ; STP recommandé',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
+  lithiumNice: {
+    title: 'NICE CG185 · Bipolar disorder: assessment and management',
+    url: 'https://www.nice.org.uk/guidance/cg185/chapter/recommendations',
+    year: 2025, organization: 'NICE / United Kingdom clinical guideline',
+    access: 'open_full_text', evidenceSection: 'Recommendations 1.10.15 and 1.10.16; wording originally issued 2014',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
+  linezolid2022: {
+    title: 'Expert consensus statement on TDM and individualization of linezolid (2022)',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9399604/',
+    year: 2022, organization: 'Peer-reviewed expert consensus',
+    access: 'open_full_text', evidenceSection: 'Expert panel recommendation, question 1: Ctrough 2–8 mg/L',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
   vancomycin2020: {
     title: 'ASHP/IDSA/PIDS/SIDP (2020) · Consensus vancomycine',
     url: 'https://www.idsociety.org/practice-guideline/vancomycin/',
@@ -100,6 +137,8 @@ export const tdmDrugs = [
   { id: 'tac', fr: 'Tacrolimus', en: 'Tacrolimus', aliases: ['tacrolimus', 'Prograf', 'Adport', 'FK506'] },
   { id: 'everolimus', fr: 'Évérolimus', en: 'Everolimus', aliases: ['évérolimus', 'everolimus', 'Certican', 'Zortress'] },
   { id: 'vancomycin', fr: 'Vancomycine', en: 'Vancomycin', aliases: ['vancomycine', 'vancomycin', 'vanco'] },
+  { id: 'valproate', fr: 'Acide valproïque (valproate)', en: 'Valproic acid (valproate)', aliases: ['valproate', 'valproic acid', 'acide valproique', 'acide valproïque', 'Depakine', 'Depakote', 'Depamide'] },
+  { id: 'linezolid', fr: 'Linézolide', en: 'Linezolid', aliases: ['linézolide', 'linezolid', 'zyvoxid'] },
   { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] }
 ];
 
@@ -109,6 +148,7 @@ export const tdmDrugs = [
 export const tdmTargets = [
   {
     id: 'mpa-kidney-auc', drug: 'mpa', indication: 'kidney',
+    comparisonGroup: 'mpa-kidney-auc',
     indicationFr: 'Greffe rénale', indicationEn: 'Kidney transplant',
     metric: 'AUC₀–₁₂h', unit: 'mg·h/L', matrixFr: 'Plasma, MPA total', matrixEn: 'Plasma, total MPA',
     relation: 'range', min: 30, max: 60, status: 'guideline', source: 'mpa2025',
@@ -118,7 +158,17 @@ export const tdmTargets = [
     evidenceEn: 'Strong recommendation; low certainty of evidence.'
   },
   {
+    id: 'mpa-kidney-auc-iatdmct-2021', drug: 'mpa', indication: 'kidney',
+    indicationFr: 'Greffe rénale', indicationEn: 'Kidney transplant',
+    metric: 'AUC₀–₁₂h', unit: 'mg·h/L', matrixFr: 'Plasma, MPA total', matrixEn: 'Plasma, total MPA',
+    relation: 'range', min: 30, max: 60, status: 'guideline', source: 'mpa2021',
+    comparisonGroup: 'mpa-kidney-auc', contextFr: 'Adulte, MMF avec tacrolimus ou ciclosporine A, avec ou sans glucocorticoïdes ; consensus ne définit pas de cible spécifique après un an.',
+    contextEn: 'Adults on MMF plus tacrolimus or cyclosporine A, with or without glucocorticoids; no evidence-based separate target beyond one year.',
+    evidenceFr: 'Consensus IATDMCT 2021, recommandation B/II.', evidenceEn: 'IATDMCT 2021 consensus, B/II recommendation.'
+  },
+  {
     id: 'mpa-heart-auc', drug: 'mpa', indication: 'heart',
+    comparisonGroup: 'mpa-heart-auc',
     indicationFr: 'Greffe cardiaque', indicationEn: 'Heart transplant',
     metric: 'AUC₀–₁₂h', unit: 'mg·h/L', matrixFr: 'Plasma, MPA total', matrixEn: 'Plasma, total MPA',
     relation: 'above', min: 36, max: null, status: 'guideline', source: 'mpa2025',
@@ -128,6 +178,7 @@ export const tdmTargets = [
   },
   {
     id: 'mpa-heart-auc-study', drug: 'mpa', indication: 'heart',
+    comparisonGroup: 'mpa-heart-auc',
     indicationFr: 'Greffe cardiaque', indicationEn: 'Heart transplant',
     metric: 'AUC₀–₁₂h', unit: 'mg·h/L', matrixFr: 'Plasma, MPA total', matrixEn: 'Plasma, total MPA',
     relation: 'approx', min: 50, max: null, status: 'study', source: 'mpa2015heart',
@@ -229,13 +280,53 @@ export const tdmTargets = [
     evidenceEn: 'ASHP/IDSA/PIDS/SIDP consensus; specific to serious MRSA infections.'
   },
   {
+    id: 'valproate-epilepsy-rcp', drug: 'valproate', indication: 'epilepsy',
+    comparisonGroup: 'valproate-epilepsy',
+    indicationFr: 'Épilepsie · concentration totale', indicationEn: 'Epilepsy · total concentration',
+    metric: 'Concentration totale', unit: 'mg/L', matrixFr: 'Sérum / plasma, valproate total', matrixEn: 'Serum / plasma, total valproate',
+    relation: 'range', min: 40, max: 100, status: 'guideline', source: 'valproateRcp',
+    contextFr: 'RCP français d’une spécialité de valproate ; intervalle habituel, sans caractère de cible universelle. Timing et fraction libre à considérer.',
+    contextEn: 'French product label; customary range, not a universal target. Sampling timing and free fraction need consideration.',
+    evidenceFr: 'RCP officiel, valeurs indicatives en épilepsie.', evidenceEn: 'Official SmPC, indicative epilepsy values.'
+  },
+  {
+    id: 'valproate-epilepsy-tdm-review', drug: 'valproate', indication: 'epilepsy',
+    comparisonGroup: 'valproate-epilepsy',
+    indicationFr: 'Épilepsie · concentration totale', indicationEn: 'Epilepsy · total concentration',
+    metric: 'Concentration totale', unit: 'mg/L', matrixFr: 'Sérum / plasma, valproate total', matrixEn: 'Serum / plasma, total valproate',
+    relation: 'range', min: 50, max: 100, status: 'study', source: 'valproateTdm',
+    contextFr: 'Fourchette conventionnelle décrite par une revue française ; comparer à la valeur 40–100 du RCP, sans en déduire une décision automatique.',
+    contextEn: 'Conventional range reported by a French review; compare with 40–100 in the SmPC, without automatic dosing decisions.',
+    evidenceFr: 'Revue scientifique française ; fenêtre non universellement prédictive.', evidenceEn: 'French scientific review; range is not universally predictive.'
+  },
+  {
+    id: 'linezolid-trough-consensus', drug: 'linezolid', indication: 'infection',
+    indicationFr: 'Infections traitées par linézolide', indicationEn: 'Infections treated with linezolid',
+    metric: 'C₀', unit: 'mg/L', matrixFr: 'Plasma / sérum', matrixEn: 'Plasma / serum',
+    relation: 'range', min: 2, max: 8, status: 'guideline', source: 'linezolid2022',
+    contextFr: 'Fourchette d’un consensus d’experts 2022 ; interpréter selon le type d’infection, la CMI, le dosage et la toxicité hématologique.',
+    contextEn: '2022 expert consensus range; interpret with infection type, MIC, schedule and hematological toxicity.',
+    evidenceFr: 'Consensus d’experts, recommandation question 1.', evidenceEn: 'Expert consensus, recommendation question 1.'
+  },
+  {
     id: 'lithium-maintenance', drug: 'lithium', indication: 'bipolar',
+    comparisonGroup: 'lithium-maintenance',
     indicationFr: 'Trouble bipolaire · entretien adulte', indicationEn: 'Bipolar disorder · adult maintenance',
     metric: 'C₁₂h', unit: 'mmol/L', matrixFr: 'Sérum', matrixEn: 'Serum',
     relation: 'range', min: 0.6, max: 0.8, status: 'guideline', source: 'lithium2019',
     contextFr: 'Prélèvement 12 ± 1 h après la dose du soir ; cible standard chez l’adulte.',
     contextEn: 'Sample at 12 ± 1 h after the evening dose; standard adult target.',
     evidenceFr: 'Consensus ISBD/IGSLI.', evidenceEn: 'ISBD/IGSLI consensus.'
+  },
+  {
+    id: 'lithium-nice-first-line', drug: 'lithium', indication: 'bipolar',
+    comparisonGroup: 'lithium-maintenance',
+    indicationFr: 'Trouble bipolaire · entretien adulte', indicationEn: 'Bipolar disorder · adult maintenance',
+    metric: 'C₁₂h', unit: 'mmol/L', matrixFr: 'Plasma', matrixEn: 'Plasma',
+    relation: 'range', min: 0.6, max: 0.8, status: 'guideline', source: 'lithiumNice',
+    contextFr: 'NICE : traitement par lithium prescrit pour la première fois ; cible plasmatique. La population est plus restrictive que dans le consensus ISBD/IGSLI.',
+    contextEn: 'NICE: first-time lithium treatment; plasma target. Population narrower than the ISBD/IGSLI consensus.',
+    evidenceFr: 'Recommandation NICE 1.10.15.', evidenceEn: 'NICE recommendation 1.10.15.'
   },
   {
     id: 'lithium-tolerability', drug: 'lithium', indication: 'bipolar',
