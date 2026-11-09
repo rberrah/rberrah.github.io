@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { tdmDrugs, normalizeTdmSearch } from './tdmTargets.js';
+
 // Independently curated index of named medicines found in PUBLIC CHU Limoges
 // pharmacology documents. This is NOT an export of the complete laboratory
 // manual, and inclusion does NOT imply an endorsed therapeutic interval.
@@ -103,10 +105,13 @@ export const tdmManualCatalog = [
 ];
 
 export function searchManualCatalog({query = '', family = 'all'} = {}) {
-  const needle = String(query).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  return tdmManualCatalog.filter((entry) =>
-    (family === 'all' || family === entry.family) &&
-    (!needle || [entry.name, entry.family].some((part) =>
-      part.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(needle)))
-  );
+  const needle = normalizeTdmSearch(query);
+  return tdmManualCatalog.filter((entry) => {
+    if (family !== 'all' && family !== entry.family) return false;
+    if (!needle) return true;
+    if (normalizeTdmSearch(entry.name).includes(needle)) return true;
+    const parent = entry.drugKey ? tdmDrugs.find((drug) => drug.id === entry.drugKey) : null;
+    return Boolean(parent && [parent.fr, parent.en, ...parent.aliases]
+      .some((alias) => normalizeTdmSearch(alias).includes(needle)));
+  });
 }
