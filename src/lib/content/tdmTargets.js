@@ -29,8 +29,8 @@ export const tdmInstitutionalResources = [
     titleFr: 'SFPT · Suivi Thérapeutique Pharmacologique : Pour la personnalisation des traitements médicamenteux (2025)',
     titleEn: 'SFPT · Therapeutic drug monitoring handbook (2025)',
     url: 'https://www.sfpt-fr.org/?catid=78&id=2145%3Apublication-du-livre-suivi-th%C3%A9rapeutique-pharmacologique-pour-la-personnalisation-des-traitements-m%C3%A9dicamenteux&view=article',
-    scopeFr: 'Ouvrage de référence pertinent, mais contenu intégral payant : pas utilisé pour attribuer les chiffres tant que les passages ne sont pas consultables.',
-    scopeEn: 'Relevant handbook but full content is paid: not used to attribute numeric values without accessible passages.'
+    scopeFr: 'Ouvrage collectif commercialisé ; seul l’extrait libre du chapitre 35 (tableau 35.2, valproate) est utilisé pour une cible chiffrée.',
+    scopeEn: 'The complete handbook is commercial; only the freely accessible chapter 35 excerpt (valproate, Table 35.2) supports a numerical target here.'
   },
   {
     id: 'sft-iatdmct',
@@ -43,9 +43,10 @@ export const tdmInstitutionalResources = [
   }
 ];
 
-/** @type {Record<string, {title: string, url: string, doi?: string, year: number, organization: string, access: 'open_full_text'|'open_abstract', evidenceSection: string, verifiedOn: string, newerConsensusUrl?: string, newerConsensusTitle?: string}>} */
+/** @type {Record<string, {title: string, url: string, doi?: string, year: number, organization: string, citation: string, access: 'open_full_text'|'open_abstract', evidenceSection: string, verifiedOn: string, newerConsensusUrl?: string, newerConsensusTitle?: string}>} */
 export const tdmTargetSources = {
   mpa2025: {
+    citation: 'Liu et al. · 2025',
     title: 'Liu et al. (2025) · Recommandations MPA en transplantation d’organes solides',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/',
     doi: '10.1631/jzus.B2400069',
@@ -54,6 +55,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   mpa2015heart: {
+    citation: 'Woillard et al. · 2015',
     title: 'Woillard et al. (2015) · PK et exposition–rejet après transplantation cardiaque',
     url: 'https://pubmed.ncbi.nlm.nih.gov/26192348/',
     doi: '10.1016/j.phrs.2015.07.012',
@@ -62,6 +64,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   tac2025: {
+    citation: 'van Gelder et al. · 2025',
     title: 'van Gelder et al. (2025) · Tacrolimus, C₀ et AUC en greffe rénale (protocole local)',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12122127/',
     doi: '10.1111/bcp.16098',
@@ -70,6 +73,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   everolimus2025: {
+    citation: 'IATDMCT · 2025',
     title: 'Masuda et al. (2025) · Deuxième consensus IATDMCT sur l’évérolimus',
     url: 'https://doi.org/10.1097/FTD.0000000000001250',
     doi: '10.1097/FTD.0000000000001250',
@@ -78,6 +82,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   mpa2021: {
+    citation: 'IATDMCT · 2021',
     title: 'Bergan et al. (2021) · Consensus IATDMCT pour le MPA',
     url: 'https://research.dial.uclouvain.be/bitstreams/0c98746c-847b-4e2d-8e96-c788c25851e9/download',
     doi: '10.1097/FTD.0000000000000871',
@@ -87,6 +92,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   valproateRcp: {
+    citation: 'ANSM · RCP',
     title: 'ANSM · RCP du valproate de sodium Biogaran LP 500 mg (MAJ 23/01/2025)',
     url: 'https://base-donnees-publique.medicaments.gouv.fr/medicament/67025516/extrait',
     year: 2025, organization: 'ANSM / official French SmPC',
@@ -94,6 +100,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   valproateTdm: {
+    citation: 'STP / SFPT · 2025',
     title: 'Ait Tayeb et al. (2025) · Suivi thérapeutique pharmacologique du valproate, chapitre 35',
     url: 'https://www.elsevier-masson.fr/media/wysiwyg/PDF/FR/9782294787935_valproate_pharm.pdf',
     year: 2025, organization: 'Ouvrage STP présenté par la SFPT / Elsevier Masson',
@@ -101,6 +108,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   valproateSfpt2010: {
+    citation: 'SFPT · 2010',
     title: 'Bentué-Ferrer, Tribut & Verdier (2010) · STP du valproate, groupe SFPT',
     url: 'https://pubmed.ncbi.nlm.nih.gov/20699076/',
     doi: '10.2515/therapie/2010029',
@@ -109,6 +117,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   lithiumNice: {
+    citation: 'NICE · 2025',
     title: 'NICE CG185 · Bipolar disorder: assessment and management',
     url: 'https://www.nice.org.uk/guidance/cg185/chapter/recommendations',
     year: 2025, organization: 'NICE / United Kingdom clinical guideline',
@@ -116,6 +125,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   linezolid2022: {
+    citation: 'Consensus d’experts · 2022',
     title: 'Expert consensus statement on TDM and individualization of linezolid (2022)',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9399604/',
     year: 2022, organization: 'Peer-reviewed expert consensus',
@@ -123,6 +133,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   vancomycin2020: {
+    citation: 'ASHP / IDSA · 2020',
     title: 'ASHP/IDSA/PIDS/SIDP (2020) · Consensus vancomycine',
     url: 'https://www.idsociety.org/practice-guideline/vancomycin/',
     doi: '10.1093/ajhp/zxaa036',
@@ -131,6 +142,7 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   lithium2019: {
+    citation: 'ISBD / IGSLI · 2019',
     title: 'Nolen et al. (2019) · Consensus ISBD/IGSLI sur le lithium',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6688930/',
     doi: '10.1111/bdi.12805',
