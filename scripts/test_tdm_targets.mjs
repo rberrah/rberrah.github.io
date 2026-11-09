@@ -4,6 +4,7 @@ import {
   tdmDrugs, tdmTargets, normalizeTdmSearch, searchTdmTargets, formatTdmTarget
 } from '../src/lib/content/tdmTargets.js';
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
+import { searchTdmMolecules } from '../src/lib/content/tdmSearchView.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
 
 const ids = new Set();
@@ -102,6 +103,32 @@ assert.ok(tdmManualCatalog.every((entry) => Boolean(manualCatalogSources[entry.s
 assert.ok(tdmManualCatalog.filter((entry) => entry.status === 'request_form_only').every((entry) =>
   manualCatalogSources[entry.sourceId].type === 'request_form'));
 assert.ok(tdmManualCatalog.filter((entry) => !tdmTargets.some((target) => target.drug === entry.drugKey)).length > 50);
+
+
+const blankView = searchTdmMolecules('');
+assert.equal(blankView.groups.length, 0, 'No unsolicited full catalogue on initial load');
+assert.equal(blankView.withoutTargets.length, 0);
+for (const alias of ['MPA', 'MMF', 'mycophenolate']) {
+  const view = searchTdmMolecules(alias);
+  assert.equal(view.groups.length, 1, alias);
+  assert.equal(view.groups[0].drug.id, 'mpa');
+  assert.equal(view.groups[0].indications.length, 4, 'Kidney, heart, liver and lung must group by organ');
+  const heart = view.groups[0].indications.find((row) => row.indicationFr === 'Greffe cardiaque');
+  assert.equal(heart.primary.source, 'mpa2025', 'Consensus recommendation must precede exploratory study');
+  assert.equal(heart.alternatives.length, 1, 'Other source must stay accessible in Details');
+  assert.equal(heart.alternatives[0].source, 'mpa2015heart');
+}
+const valproateView = searchTdmMolecules('valproate');
+assert.equal(valproateView.groups.length, 1);
+assert.equal(valproateView.groups[0].indications.length, 1);
+assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRcp');
+assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
+assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 4);
+assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 3);
+assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 1);
+assert.equal(searchTdmMolecules('cefepime').groups.length, 0);
+assert.equal(searchTdmMolecules('not-a-molecule-xyz').groups.length, 0);
+console.log('TDM compact UI grouping: molecule-only search, coherent indications and source details validated.');
 
 console.log(`TDM manual linked index: ${tdmManualCatalog.length} named medicines across ${Object.keys(manualCatalogSources).length} official document types.`);
 console.log(`TDM comparisons: ${comparisons.length} source-by-source groups validated.`);
