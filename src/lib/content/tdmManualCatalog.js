@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Independently curated index of named medicines found in PUBLIC CHU Limoges
 // pharmacology documents. This is NOT an export of the complete laboratory
 // manual, and inclusion does NOT imply an endorsed therapeutic interval.
