@@ -290,12 +290,15 @@ export function searchTdmTargets({ query = '', drug = 'all', indication = 'all' 
   });
 }
 
-/** @param {{relation: 'range', min: number, max: number}|{relation: 'above'|'approx', min: number, max: null}} entry
+/** @param {{relation: string, min: number, max: number|null}} entry
  *  @param {'fr'|'en'} [lang]
  */
 export function formatTdmTarget(entry, lang = 'fr') {
   const value = (/** @type {number} */ number) => new Intl.NumberFormat(lang === 'en' ? 'en' : 'fr', { maximumFractionDigits: 2 }).format(number);
-  if (entry.relation === 'range') return `${value(entry.min)}–${value(entry.max)}`;
+  if (entry.relation === 'range') {
+    if (entry.max === null) throw new Error('Range target missing upper bound');
+    return `${value(entry.min)}–${value(entry.max)}`;
+  }
   if (entry.relation === 'above') return `>${value(entry.min)}`;
   if (entry.relation === 'approx') return `≈${value(entry.min)}`;
   throw new Error(`Unknown TDM target relation: ${entry.relation}`);
