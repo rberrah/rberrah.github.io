@@ -87,17 +87,25 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   valproateRcp: {
-    title: 'ANSM / Base de données publique des médicaments · RCP valproate',
+    title: 'ANSM · RCP du valproate de sodium Biogaran LP 500 mg (MAJ 23/01/2025)',
     url: 'https://base-donnees-publique.medicaments.gouv.fr/medicament/67025516/extrait',
-    year: 2026, organization: 'ANSM / official French SmPC',
-    access: 'open_full_text', evidenceSection: 'Rubriques 4.2 et 5.2 : fourchette sérique 40–100 mg/L en épilepsie',
+    year: 2025, organization: 'ANSM / official French SmPC',
+    access: 'open_full_text', evidenceSection: 'Rubriques 4.2 et 5.2 : fourchette sérique habituelle 40–100 mg/L en épilepsie',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   valproateTdm: {
-    title: 'Suivi thérapeutique pharmacologique du valproate · Revue française',
-    url: 'https://www.sciencedirect.com/science/article/pii/S0040595716306837',
-    year: 2017, organization: 'Peer-reviewed French pharmacology review',
-    access: 'open_abstract', evidenceSection: 'Résumé : fourchette 50–100 mg/L ; STP recommandé',
+    title: 'Ait Tayeb et al. (2025) · Suivi thérapeutique pharmacologique du valproate, chapitre 35',
+    url: 'https://www.elsevier-masson.fr/media/wysiwyg/PDF/FR/9782294787935_valproate_pharm.pdf',
+    year: 2025, organization: 'Ouvrage STP présenté par la SFPT / Elsevier Masson',
+    access: 'open_full_text', evidenceSection: 'Chapitre 35, p. 239, tableau 35.2 : Cmin 50–100 mg/L',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
+  valproateSfpt2010: {
+    title: 'Bentué-Ferrer, Tribut & Verdier (2010) · STP du valproate, groupe SFPT',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/20699076/',
+    doi: '10.2515/therapie/2010029',
+    year: 2010, organization: 'Groupe STP de la SFPT · Thérapie',
+    access: 'open_abstract', evidenceSection: 'Résumé PubMed : intervalle thérapeutique 50–100 mg/L',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   lithiumNice: {
@@ -284,7 +292,7 @@ export const tdmTargets = [
     comparisonGroup: 'valproate-epilepsy',
     indicationFr: 'Épilepsie · concentration totale', indicationEn: 'Epilepsy · total concentration',
     metric: 'Concentration totale', unit: 'mg/L', matrixFr: 'Sérum / plasma, valproate total', matrixEn: 'Serum / plasma, total valproate',
-    relation: 'range', min: 40, max: 100, status: 'guideline', source: 'valproateRcp',
+    relation: 'range', min: 40, max: 100, status: 'regulatory', source: 'valproateRcp',
     contextFr: 'RCP français d’une spécialité de valproate ; intervalle habituel, sans caractère de cible universelle. Timing et fraction libre à considérer.',
     contextEn: 'French product label; customary range, not a universal target. Sampling timing and free fraction need consideration.',
     evidenceFr: 'RCP officiel, valeurs indicatives en épilepsie.', evidenceEn: 'Official SmPC, indicative epilepsy values.'
@@ -294,10 +302,20 @@ export const tdmTargets = [
     comparisonGroup: 'valproate-epilepsy',
     indicationFr: 'Épilepsie · concentration totale', indicationEn: 'Epilepsy · total concentration',
     metric: 'Concentration totale', unit: 'mg/L', matrixFr: 'Sérum / plasma, valproate total', matrixEn: 'Serum / plasma, total valproate',
-    relation: 'range', min: 50, max: 100, status: 'study', source: 'valproateTdm',
+    relation: 'range', min: 50, max: 100, status: 'review', source: 'valproateTdm',
     contextFr: 'Fourchette conventionnelle décrite par une revue française ; comparer à la valeur 40–100 du RCP, sans en déduire une décision automatique.',
-    contextEn: 'Conventional range reported by a French review; compare with 40–100 in the SmPC, without automatic dosing decisions.',
+    contextEn: '2025 reference chapter reports Cmin 50–100; compare with 40–100 in the SmPC, without automatic dosing decisions.',
     evidenceFr: 'Revue scientifique française ; fenêtre non universellement prédictive.', evidenceEn: 'French scientific review; range is not universally predictive.'
+  },
+  {
+    id: 'valproate-epilepsy-sfpt-2010', drug: 'valproate', indication: 'epilepsy',
+    comparisonGroup: 'valproate-epilepsy',
+    indicationFr: 'Épilepsie · concentration totale', indicationEn: 'Epilepsy · total concentration',
+    metric: 'Concentration totale', unit: 'mg/L', matrixFr: 'Sérum / plasma, valproate total', matrixEn: 'Serum / plasma, total valproate',
+    relation: 'range', min: 50, max: 100, status: 'review', source: 'valproateSfpt2010',
+    contextFr: 'Résumé du groupe STP SFPT 2010 ; mesure totale, intervalle historique dont la valeur prédictive de la réponse reste limitée.',
+    contextEn: '2010 SFPT TDM group abstract; total level, historical range with limited individual outcome prediction.',
+    evidenceFr: 'Revue scientifique issue du groupe STP SFPT.', evidenceEn: 'Review from the SFPT TDM working group.'
   },
   {
     id: 'linezolid-trough-consensus', drug: 'linezolid', indication: 'infection',
