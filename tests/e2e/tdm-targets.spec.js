@@ -56,14 +56,25 @@ test('Different transplant regimens remain distinct; supported mobile English se
   await expect(page.getByRole('link', { name: /MIPD model library/ })).toBeVisible();
 });
 
-test('CHU manual-only drugs give a concise linked no-target state, never fabricated numbers', async ({ page }) => {
+test('Only verified CHU sampling-time documents are shown, never lab request forms or assay pages', async ({ page }) => {
   await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
   const search = page.getByTestId('tdm-target-search');
   await search.fill('céfépime');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-mic-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveAttribute('href', /DocumentNew\.aspx\?idDoc=41157/);
+  await search.fill('avibactam');
+  await expect(page.getByTestId('tdm-mic-card')).toHaveCount(0);
   await expect(page.getByTestId('tdm-no-target-results')).toBeVisible();
   await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
-  await expect(page.getByRole('link', { name: /Document CHU/ })).toHaveAttribute('href', /DocumentNew\.aspx\?idDoc=41157/);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveAttribute('href', /DocumentNew\.aspx\?idDoc=41157/);
+  await search.fill('tacrolimus');
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+  await expect(page.locator('a[href*="idDoc=33210"]')).toHaveCount(0);
+  await search.fill('lithium');
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+  await expect(page.locator('a[href*="DetailNew.aspx"]')).toHaveCount(0);
   await search.fill('no-such-molecule-xyz');
   await expect(page.getByText(/Aucune molécule trouvée/)).toBeVisible();
   await page.getByRole('button', { name: 'Effacer la recherche' }).click();
@@ -114,4 +125,47 @@ test('Expanded anti-infective and antiseizure targets preserve indication contex
   await expect(page.getByTestId('tdm-other-sources').locator('.alternative-head strong')).toContainText('12–46');
   await search.fill('oxcarbazepine');
   await expect(page.getByTestId('tdm-target-card').getByText('3–36', { exact: true })).toBeVisible();
+});
+
+test('CMI-aware beta-lactam targets are distinct for intermittent and continuous infusion', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('méropénème');
+  await expect(page.getByTestId('tdm-mic-card')).toHaveCount(2);
+  const mic = page.getByTestId('tdm-mic-input');
+  await mic.fill('2');
+  await expect(page.getByTestId('tdm-mic-result')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCmin > 2 mg/L' })).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCss > 2 mg/L' })).toBeVisible();
+  await mic.fill('0,5');
+  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCmin > 0,5 mg/L' })).toBeVisible();
+  await mic.fill('0');
+  await expect(page.getByText('Saisissez une CMI positive en mg/L.')).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-result')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
+  await page.getByTestId('tdm-mic-card').first().locator('summary').click();
+  await expect(page.getByText(/Un prélèvement isolé ne démontre/)).toBeVisible();
+});
+
+test('MIC-aware aminoglycosides, quinolones and daptomycin preserve different PK/PD indices', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('gentamicine');
+  await page.getByTestId('tdm-mic-input').fill('0,5');
+  await expect(page.getByTestId('tdm-mic-result')).toContainText('Cmax ≥ 4–5 mg/L');
+  await search.fill('ciprofloxacine');
+  await expect(page.getByTestId('tdm-mic-result')).toContainText('fAUC₀–₂₄ ≥ 40 mg·h/L');
+  await search.fill('daptomycine');
+  await expect(page.getByTestId('tdm-mic-result')).toContainText('AUC₀–₂₄ > 333 mg·h/L');
+});
+
+test('Vancomycin does not extrapolate the AUC 400–600 window linearly to MIC above 1', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('vancomycine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-mic-card')).toHaveCount(1);
+  await page.getByTestId('tdm-mic-input').fill('1');
+  await expect(page.getByTestId('tdm-mic-result')).toContainText('AUC₀–₂₄ : 400–600 mg·h/L');
+  await page.getByTestId('tdm-mic-input').fill('2');
+  await expect(page.getByTestId('tdm-mic-result')).toContainText('Pas de recalcul linéaire');
+  await expect(page.getByTestId('tdm-target-card').getByText('400–600', { exact: true })).toBeVisible();
 });
