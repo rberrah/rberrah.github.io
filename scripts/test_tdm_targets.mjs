@@ -9,7 +9,7 @@ import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
 const validRelations = new Set(['range', 'above', 'approx']);
-const validStatuses = new Set(['guideline', 'study']);
+const validStatuses = new Set(['guideline', 'study', 'review', 'regulatory']);
 
 for (const target of tdmTargets) {
   assert.ok(!ids.has(target.id), `Duplicate target ID ${target.id}`);
@@ -58,7 +58,7 @@ assert.equal(searchTdmTargets({ query: 'évérolimus' }).length, 4);
 assert.equal(searchTdmTargets({ drug: 'everolimus', indication: 'heart' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'mpa', indication: 'kidney' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'vancomycin' }).length, 1);
-assert.equal(searchTdmTargets({ query: 'valproate' }).length, 2);
+assert.equal(searchTdmTargets({ query: 'valproate' }).length, 3);
 assert.equal(searchTdmTargets({ drug: 'linezolid' }).length, 1);
 assert.equal(searchTdmTargets({ query: 'nonexistent-drug-xyz' }).length, 0);
 
@@ -79,6 +79,7 @@ assert.equal(byGroup('mpa-kidney-auc').entries.length, 2);
 assert.equal(byGroup('mpa-kidney-auc').distinctNumericValues, false);
 assert.equal(byGroup('mpa-heart-auc').distinctNumericValues, true);
 assert.equal(byGroup('valproate-epilepsy').distinctNumericValues, true);
+assert.equal(byGroup('valproate-epilepsy').entries.length, 3);
 assert.equal(byGroup('lithium-maintenance').matrixDifference, true);
 // Incompatible drugs, indication, exposure metrics, or units cannot be compared.
 assert.throws(() => collectTdmComparisons([
