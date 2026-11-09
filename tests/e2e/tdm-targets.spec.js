@@ -69,3 +69,49 @@ test('CHU manual-only drugs give a concise linked no-target state, never fabrica
   await page.getByRole('button', { name: 'Effacer la recherche' }).click();
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
 });
+
+test('Expanded immunosuppressant references distinguish cyclosporine C0 and C2 and sirolimus regimens', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('ciclosporine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(6);
+  await expect(page.getByTestId('tdm-target-card').getByRole('link', { name: /Source originale/ }).first()).toHaveAttribute('href', /PMC13624913/);
+  await expect(page.getByText('C₂h', { exact: true })).toHaveCount(3);
+  await page.getByTestId('tdm-target-search').fill('sirolimus');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-target-card').getByText('4–12', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').getByText('12–20', { exact: true })).toBeVisible();
+});
+
+test('Expanded antidepressant targets retain analyte and newer AGNP 2026 update warning', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('venlafaxine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card').getByText('140–600', { exact: true })).toBeVisible();
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByTestId('tdm-target-card').getByText(/O-desméthylvenlafaxine/)).toBeVisible();
+  await expect(page.getByRole('link', { name: /AGNP update/ })).toHaveAttribute('href', /42392224/);
+  await search.fill('escitalopram');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card').getByText('20–40', { exact: true })).toBeVisible();
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByTestId('tdm-other-sources').locator('.alternative-head strong')).toContainText('15–80');
+});
+
+test('Expanded anti-infective and antiseizure targets preserve indication context and source differences', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('posaconazole');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-target-card').getByText('>0,7', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').getByText('>1', { exact: true })).toBeVisible();
+  await search.fill('voriconazole');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await search.fill('lévétiracétam');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card').getByText('10–40', { exact: true })).toBeVisible();
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByTestId('tdm-other-sources').locator('.alternative-head strong')).toContainText('12–46');
+  await search.fill('oxcarbazepine');
+  await expect(page.getByTestId('tdm-target-card').getByText('3–36', { exact: true })).toBeVisible();
+});
