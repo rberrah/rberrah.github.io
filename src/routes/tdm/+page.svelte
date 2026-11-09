@@ -119,6 +119,7 @@
     <div class="cta">
       <a class="btn btn-primary" href={`${tdmEngineUrl}/?lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.launch}</a>
       <a class="btn btn-outline" href="#modeles">{copy.choose}</a>
+      <a class="btn btn-outline" href={`${base}/cibles-tdm/`}>{$language === 'en' ? 'Therapeutic target guide' : 'Guide des cibles thérapeutiques'}</a>
       <a class="btn btn-outline" href={`${base}/pk/`}>{copy.create}</a>
       <a class="btn btn-outline" href={repoIssueUrl} target="_blank" rel="noopener noreferrer">{copy.propose}</a>
     </div>
