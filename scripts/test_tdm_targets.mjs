@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
-  tdmTargetSources, tdmDrugs, tdmTargets, normalizeTdmSearch, searchTdmTargets, formatTdmTarget
+  tdmTargetSources, tdmInstitutionalResources, TDM_REFERENCE_REVIEW_DATE,
+  tdmDrugs, tdmTargets, normalizeTdmSearch, searchTdmTargets, formatTdmTarget
 } from '../src/lib/content/tdmTargets.js';
 
 const ids = new Set();
@@ -27,10 +28,21 @@ for (const target of tdmTargets) {
   assert.ok(source, `Missing source: ${target.id}`);
   assert.match(source.url, /^https:\/\//);
   assert.ok(source.title && Number.isInteger(source.year));
+  assert.ok(source.organization && source.evidenceSection, `Source has no claim locator: ${target.id}`);
+  assert.ok(['open_full_text', 'open_abstract'].includes(source.access), `Source access not audited: ${target.id}`);
+  assert.equal(source.verifiedOn, TDM_REFERENCE_REVIEW_DATE, `Source not freshly reviewed: ${target.id}`);
+  assert.ok(!source.url.endsWith('/recommandations/'), `Numeric source must target a specific publication: ${target.id}`);
   assert.ok(formatTdmTarget(target, 'fr').length);
   assert.ok(formatTdmTarget(target, 'en').length);
 }
 
+assert.ok(tdmInstitutionalResources.length >= 2);
+assert.ok(tdmInstitutionalResources.some((source) => source.organization === 'SFT'));
+assert.ok(tdmInstitutionalResources.some((source) => source.organization === 'SFPT'));
+for (const source of tdmInstitutionalResources) {
+  assert.ok(source.titleFr && source.titleEn && source.scopeFr && source.scopeEn);
+  assert.match(source.url, /^https:\/\//);
+}
 assert.equal(normalizeTdmSearch('MYCOPHÉNOLATE'), 'mycophenolate');
 assert.equal(searchTdmTargets({ query: 'mycophenolate' }).length, 5);
 assert.equal(searchTdmTargets({ query: 'MMF' }).length, 5);
@@ -54,4 +66,4 @@ assert.equal(heartMpaStudy.status, 'study');
 assert.equal(heartMpaGuideline.status, 'guideline');
 assert.ok(tdmTargets.every((entry) => entry.status !== 'study' || entry.contextFr));
 
-console.log(`TDM target reference: ${tdmTargets.length} entries, ${tdmDrugs.length} drugs and ${Object.keys(tdmTargetSources).length} sources validated.`);
+console.log(`TDM target reference: ${tdmTargets.length} entries, ${tdmDrugs.length} drugs, ${Object.keys(tdmTargetSources).length} primary sources and ${tdmInstitutionalResources.length} SFT/SFPT context references validated.`);
