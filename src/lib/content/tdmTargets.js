@@ -184,7 +184,13 @@ export function normalizeTdmSearch(value) {
 
 export function searchTdmTargets({ query = '', drug = 'all', indication = 'all' } = {}) {
   const needle = normalizeTdmSearch(query);
+  // Exact drug names/aliases take precedence over incidental co-medication mentions.
+  // Otherwise typing "MPA" would also retrieve tacrolimus entries that merely mention MPA.
+  const exactDrugIds = needle ? tdmDrugs.filter((item) =>
+    [item.fr, item.en, ...item.aliases].some((name) => normalizeTdmSearch(name) === needle)
+  ).map((item) => item.id) : [];
   return tdmTargets.filter((entry) => {
+    if (exactDrugIds.length && !exactDrugIds.includes(entry.drug)) return false;
     if (drug !== 'all' && entry.drug !== drug) return false;
     if (indication !== 'all' && entry.indication !== indication) return false;
     if (!needle) return true;
