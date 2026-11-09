@@ -261,14 +261,12 @@
   .search-section > label { display: block; font-weight: 600; margin-bottom: .5rem; }
   .search-field { display: flex; gap: .7rem; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 11px; padding: .2rem .8rem; }
   .search-field:focus-within { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
-  .search-field > svg { color: var(--text-secondary); flex: 0 0 auto; }
   .search-field input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--text-primary); padding: .85rem 0; font: inherit; font-size: 1rem; outline: 0; }
   .clear-button { border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: 0 0 auto; }
   .clear-button:focus-visible, .detail-panel summary:focus-visible, .institutional-details summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 3px; }
   .drug-section { margin: 0 0 1.7rem; }
   .drug-heading { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; flex-wrap: wrap; margin-bottom: .75rem; }
   .drug-heading h2 { font: 700 1.5rem var(--font-heading); margin: 0; }
-  .drug-heading span { font-size: .8rem; color: var(--text-secondary); }
   .indication-list { display: flex; flex-direction: column; gap: .65rem; }
   .indication-card { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-tertiary); overflow: hidden; }
   .target-overview { padding: 1rem 1.2rem; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(175px, .85fr) minmax(190px, 1fr); align-items: center; gap: .75rem 1rem; }
