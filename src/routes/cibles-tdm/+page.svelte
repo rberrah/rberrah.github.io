@@ -111,6 +111,9 @@
           <a class="reference" href={source.url} target="_blank" rel="noopener noreferrer">
             <BookOpen size={16} aria-hidden="true" /> {source.title} <ExternalLink size={14} aria-hidden="true" />
           </a>
+          {#if source.doi}
+            <p class="doi-reference"><a href={`https://doi.org/${source.doi}`} target="_blank" rel="noopener noreferrer">DOI : {source.doi}</a></p>
+          {/if}
           {#if source.newerConsensusUrl}
             <p class="followup-reference">{en ? 'Updated consensus also available' : 'Consensus plus récent à consulter'} :
               <a href={source.newerConsensusUrl} target="_blank" rel="noopener noreferrer">{source.newerConsensusTitle}</a>
@@ -182,6 +185,7 @@
   .provenance { margin: .75rem 0 .9rem; padding: .7rem .8rem; border-left: 2px solid var(--border-subtle); background: var(--bg-secondary); font-size: .8rem; color: var(--text-secondary); line-height: 1.5; }
   .provenance p { margin: .2rem 0; }
   .provenance strong { color: var(--text-primary); }
+  .doi-reference { font-size: .79rem; margin: .5rem 0; overflow-wrap: anywhere; }
   .followup-reference { margin: .7rem 0 0; font-size: .8rem; color: var(--text-secondary); }
   .societies { margin: 2.4rem auto 0; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); }
   .societies h2 { font-family: var(--font-heading); }
