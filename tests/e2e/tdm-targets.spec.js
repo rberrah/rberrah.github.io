@@ -18,7 +18,7 @@ test('MPA and MMF aliases show one molecule and four indication cards, with stud
   const heart = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: 'Greffe cardiaque' }) });
   await expect(heart.getByText('>36', { exact: true })).toBeVisible();
   await expect(heart.getByRole('link', { name: /Source originale/ })).toHaveAttribute('href', /pmc\.ncbi\.nlm\.nih\.gov/);
-  await expect(heart.getByTestId('tdm-other-sources')).toHaveCount(0);
+  await expect(heart.getByTestId('tdm-other-sources')).toBeHidden();
   await heart.locator('summary').click();
   await expect(heart.getByTestId('tdm-other-sources')).toBeVisible();
   await expect(heart.getByText('≈50', { exact: false })).toBeVisible();
@@ -37,7 +37,7 @@ test('Valproate displays one primary RCP target; SFPT values and limitations are
   await expect(card).toHaveCount(1);
   await expect(card.getByText('40–100', { exact: true })).toBeVisible();
   await expect(card.getByRole('link', { name: /Source originale/ })).toHaveAttribute('href', /base-donnees-publique\.medicaments\.gouv\.fr/);
-  await expect(card.getByTestId('tdm-other-sources')).toHaveCount(0);
+  await expect(card.getByTestId('tdm-other-sources')).toBeHidden();
   await card.locator('summary').click();
   await expect(card.getByTestId('tdm-other-sources')).toBeVisible();
   await expect(card.getByTestId('tdm-other-sources').getByText(/50–100/)).toHaveCount(2);
