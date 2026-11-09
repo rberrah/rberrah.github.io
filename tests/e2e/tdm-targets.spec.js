@@ -143,7 +143,7 @@ test('CMI-aware beta-lactam targets are distinct for intermittent and continuous
   await expect(page.getByTestId('tdm-mic-result')).toHaveCount(0);
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
   await page.getByTestId('tdm-mic-card').first().locator('summary').click();
-  await expect(page.getByText(/Un prélèvement isolé ne démontre/)).toBeVisible();
+  await expect(page.getByText(/un prélèvement isolé ne démontre/i)).toBeVisible();
 });
 
 test('MIC-aware aminoglycosides, quinolones and daptomycin preserve different PK/PD indices', async ({ page }) => {
