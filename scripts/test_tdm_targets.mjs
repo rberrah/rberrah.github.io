@@ -98,6 +98,9 @@ assert.equal(searchTdmTargets({ drug: 'aripiprazole' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'risperidone' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'asenapine' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'brivaracetam' }).length, 1);
+assert.ok(tdmTargetSources.oxcarb2018.newerConsensusUrl.includes('42392224'),
+  'All 2018 AED historical references must signal the newer 2026 consensus.');
+
 assert.equal(searchTdmTargets({ drug: 'clobazam' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'topiramate' }).length, 1);
 assert.equal(tdmTargets.find((r) => r.id === 'aed-clonazepam-norway2018').unit, 'ng/mL');
