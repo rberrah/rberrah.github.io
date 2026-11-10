@@ -75,6 +75,13 @@ assert.equal(searchTdmTargets({ drug: 'teicoplanin' }).length, 2);
 assert.equal(searchTdmTargets({ query: 'Targocid' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'busulfan' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'clozapine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'flucytosine' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'itraconazole' }).length, 2);
+assert.equal(searchTdmTargets({ query: 'Sporanox' }).length, 2);
+assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').min, 50);
+assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').metric, 'Cmax (prélèvement post-dose)');
+assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-combined-ia-idsa').metric, 'C₀ (somme des deux analytes)');
+assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-parent-ukhsa').metric, 'C₀ (itraconazole seul)');
 assert.equal(formatTdmTarget(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a')), '85–95');
 assert.equal(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a').metric, 'AUC cumulée');
 assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-hplc').matrixFr, 'Sérum · HPLC');
@@ -82,7 +89,7 @@ assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-fpia').matrixFr
 assert.equal(tdmEvidenceForDrug('teicoplanin').byTier[0].id, 'regulatory');
 assert.equal(tdmEvidenceForDrug('busulfan').byTier[0].id, 'society');
 assert.equal(tdmEvidenceForDrug('busulfan').exposure.tagFr, 'AUC cumulée prioritaire');
-for (const [id, category] of [['teicoplanin','antibiotics'],['clozapine','psychotropics'],['busulfan','oncology']]) {
+for (const [id, category] of [['teicoplanin','antibiotics'],['clozapine','psychotropics'],['busulfan','oncology'],['flucytosine','antifungals'],['itraconazole','antifungals']]) {
   assert.ok(tdmBrowseCategories.find((item) => item.id === category).medicines.some((item) => item.id === id));
 }
 assert.equal(searchTdmTargets({ query: 'nonexistent-drug-xyz' }).length, 0);
@@ -209,18 +216,22 @@ const reviewedNumericClaims = new Map([
   ["teicoplanin-severe-fpia", ["teicoplaninANSM2026","range",30,40]],
   ["clozapine-maintenance-reference", ["clozapineRCPA2024","range",350,600]],
   ["busulfan-iei-protocol-a", ["busulfanEBMT2026","range",85,95]],
-  ["busulfan-iei-protocol-c", ["busulfanEBMT2026","range",60,70]]
+  ["busulfan-iei-protocol-c", ["busulfanEBMT2026","range",60,70]],
+  ["flucytosine-trough-ukhsa", ["ukhsaMycology","range",20,40]],
+  ["flucytosine-peak-ukhsa", ["ukhsaMycology","range",50,100]],
+  ["itraconazole-parent-ukhsa", ["ukhsaMycology","above",0.5,null]],
+  ["itraconazole-combined-ia-idsa", ["itraconazoleIDSA2016","above",1.5,null]]
 ]);
-assert.equal(reviewedNumericClaims.size, 80);
+assert.equal(reviewedNumericClaims.size, 84);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 28, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 28, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 30, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 30, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 80 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 84 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -297,6 +308,14 @@ const reviewedSourceIdentifiers = {
   "busulfanEBMT2026": [
     "https://doi.org/10.1038/s41409-026-02906-0",
     "10.1038/s41409-026-02906-0"
+  ],
+  "ukhsaMycology": [
+    "https://www.gov.uk/government/publications/mycology-reference-laboratory-mrl-service-user-handbook/mycology-reference-laboratory-service-user-handbook",
+    null
+  ],
+  "itraconazoleIDSA2016": [
+    "https://www.idsociety.org/practice-guideline/aspergillosis",
+    "10.1093/cid/ciw326"
   ]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
@@ -306,7 +325,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 28 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 30 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
