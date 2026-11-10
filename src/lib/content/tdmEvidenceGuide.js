@@ -65,6 +65,15 @@ export const regulatoryLabelsByDrug = Object.freeze({
   ]
 });
 
+export const societyReferencesByDrug = Object.freeze({
+  tac: [
+    { label: 'IATDMCT · Brunet et al. 2019 — 2e consensus tacrolimus',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/31045868/',
+      scopeFr: 'Consensus international (Marquet, Woillard et Monchaud co-auteurs) : cibles C₀ selon organe/risque et place de l’AUC dans des situations ciblées. Ne remplace pas les valeurs d’un protocole 2025.',
+      scopeEn: 'International consensus (Marquet, Woillard and Monchaud among authors): indication/risk-specific trough targets and selective AUC-based monitoring; not the same as a 2025 centre protocol.' }
+  ]
+});
+
 export const limogesResearchByDrug = Object.freeze({
   tac: [
     { label: 'Marquet · 2025 — Getting Tacrolimus Dosing Right',
@@ -159,6 +168,14 @@ export function tdmEvidenceForDrug(drugId) {
   const seen = new Set();
   const byTier = tdmEvidencePriority.map(({ id, fr, en }) => {
     const papers = publications.filter((item) => item.tier === id);
+    if (id === 'society') {
+      for (const paper of societyReferencesByDrug[drugId] || []) {
+        if (seen.has(paper.url)) continue;
+        papers.push({ id: paper.url, citation: paper.label, url: paper.url,
+          tier: id, noteFr: paper.scopeFr, noteEn: paper.scopeEn });
+        seen.add(paper.url);
+      }
+    }
     if (id === 'regulatory') {
       for (const label of regulatoryLabelsByDrug[drugId] || []) {
         if (seen.has(label.url)) continue;
