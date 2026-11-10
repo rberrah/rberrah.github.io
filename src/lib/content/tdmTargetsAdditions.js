@@ -1,6 +1,7 @@
 // Evidence-reviewed additions, kept separate from the original 75 audited claims.
 // These are educational, indication-specific published references, not prescriptions.
 // Reviewed 2026-11-10. See docs/tdm-extension-audit-2026-11-10.md.
+/** @type {Record<string, { title: string, citation: string, url: string, doi?: string, year: number, organization: string, access: 'open_full_text'|'open_abstract', evidenceSection: string, verifiedOn: string, newerConsensusUrl?: string, newerConsensusTitle?: string }>} */
 export const additionalTdmSources = {
   teicoplaninANSM2026: {
     title: 'ANSM · RCP teicoplanine (mesures résiduelles selon méthode analytique)',
