@@ -1,3 +1,4 @@
+import { chuDocumentOnlyDrugs } from './tdmChuDocumentOnlyDrugs.js';
 import { additionalAntiseizureDrugs, additionalAntiseizureTargets } from './tdmAntiseizureExpansion2018.js';
 import { extraAntidepressantDrugs, extraAntidepressantTargets } from './tdmAntidepressantExpansion2026.js';
 import { psychiatryTdmSources, psychiatryTdmDrugs, psychiatryTdmTargets } from './tdmPsychiatryExpansion2026.js';
@@ -369,7 +370,8 @@ export const tdmDrugs = [
   ...psychiatryTdmDrugs,
   ...nonStandardTdmDrugs,
   ...extraAntidepressantDrugs,
-  ...additionalAntiseizureDrugs
+  ...additionalAntiseizureDrugs,
+  ...chuDocumentOnlyDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
