@@ -17,6 +17,10 @@ export const tdmEvidencePriority = Object.freeze([
 
 // Only labels confirmed to exist at these exact URLs, with their scope.
 export const regulatoryLabelsByDrug = Object.freeze({
+  teicoplanin: [{ authority: 'ANSM', label: 'Téicoplanine · RCP, concentrations résiduelles selon HPLC/FPIA',
+    url: 'https://base-donnees-publique.medicaments.gouv.fr/medicament/64196782/extrait',
+    scopeFr: 'RCP rubrique 4.2 : méthodes HPLC/FPIA et infections sévères ; ne pas interchanger les valeurs.',
+    scopeEn: 'SmPC section 4.2: assay-dependent HPLC/FPIA ranges in severe infections, not interchangeable.' }],
   tac: [
     { authority: 'ANSM', label: 'Prograf 1 mg · RCP français, tacrolimus immédiat',
       url: 'https://base-donnees-publique.medicaments.gouv.fr/medicament/61217812/extrait',
@@ -66,6 +70,10 @@ export const regulatoryLabelsByDrug = Object.freeze({
 });
 
 export const societyReferencesByDrug = Object.freeze({
+  busulfan: [{ label: 'EBMT/ESID · 2026 — busulfan et conditionnement des IEI',
+    url: 'https://doi.org/10.1038/s41409-026-02906-0',
+    scopeFr: 'AUC cumulées des seuls protocoles A/C d’allogreffe pour IEI, non transposables à toutes les greffes.',
+    scopeEn: 'Cumulative AUC for IEI-specific HSCT protocols A/C, not all transplant regimens.' }],
   tac: [
     { label: 'IATDMCT · Brunet et al. 2019 — 2e consensus tacrolimus',
       url: 'https://pubmed.ncbi.nlm.nih.gov/31045868/',
@@ -100,6 +108,14 @@ export const limogesResearchByDrug = Object.freeze({
 });
 
 export const exposureMarkerByDrug = Object.freeze({
+  busulfan: {
+    tagFr: 'AUC cumulée prioritaire', tagEn: 'Cumulative AUC preferred',
+    titleFr: 'Busulfan : suivi de l’exposition cumulative pendant le conditionnement',
+    titleEn: 'Busulfan: cumulative exposure monitoring during conditioning',
+    detailFr: 'Le suivi du busulfan s’appuie sur l’AUC cumulée du conditionnement et des objectifs spécifiques au protocole et à la population ; la C₀ ne la remplace pas. Les chiffres présentés concernent les déficits immunitaires innés (IEI).',
+    detailEn: 'Busulfan is monitored using total conditioning AUC with regimen- and population-specific targets, not trough as an AUC surrogate. These numbers concern inborn errors of immunity.',
+    sourceUrl: 'https://doi.org/10.1038/s41409-026-02906-0', sourceLabel: 'EBMT/ESID · 2026'
+  },
   mpa: {
     tagFr: 'AUC privilégiée', tagEn: 'AUC preferred',
     titleFr: 'Exposition au MPA : AUC₀–₁₂ prioritaire',
@@ -147,9 +163,9 @@ export const exposureMarkerByDrug = Object.freeze({
   }
 });
 
-const societyId = new Set(['everolimus2025','mpa2021','valproateSfpt2010',
+const societyId = new Set(['busulfanEBMT2026','everolimus2025','mpa2021','valproateSfpt2010',
   'icuTdm2020','thaiKT2026','vancomycin2020']);
-const regulatoryId = new Set(['valproateRcp','phenytoinFDA','fdaZortress2026']);
+const regulatoryId = new Set(['teicoplaninANSM2026','valproateRcp','phenytoinFDA','fdaZortress2026']);
 const limogesId = new Set(['mpa2015heart','levetiLimoges2022']);
 
 export function classifyTdmSource(sourceId) {
