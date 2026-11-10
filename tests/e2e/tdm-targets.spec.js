@@ -443,3 +443,22 @@ test('New AED molecules appear under antiseizure collapsible family, not antidep
   await expect(group.getByRole('button', { name: 'Topiramate' })).toBeVisible();
   await expect(group.getByRole('button', { name: 'Lacosamide' })).toBeVisible();
 });
+
+
+test('CHU documentary filter shows exactly the previously verified names, not laboratory certification', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const directory = page.getByTestId('tdm-medicine-directory');
+  const filter = page.getByTestId('tdm-chu-directory-filter');
+  await expect(filter).not.toBeChecked();
+  await filter.check();
+  const families = directory.getByTestId('tdm-medicine-family');
+  await expect(families).toHaveCount(7);
+  await expect(directory.getByText(/sans garantie de dosage actuel/)).toBeVisible();
+  const antibiotiques = families.filter({ hasText: 'Antibiotiques' });
+  await expect(antibiotiques.locator('summary')).toContainText('36');
+  await antibiotiques.locator('summary').click();
+  await expect(antibiotiques.getByRole('button', { name: 'Amikacine' })).toBeVisible();
+  await expect(antibiotiques.getByRole('button', { name: 'Téicoplanine' })).toHaveCount(0);
+  await filter.uncheck();
+  await expect(families).toHaveCount(9);
+});
