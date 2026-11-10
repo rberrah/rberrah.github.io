@@ -59,11 +59,14 @@ for (const [dimension,different] of syntheticTdmDimensions) {
 assert.equal(agnp2026Update.year,2026);
 assert.equal(agnp2026Update.ranges,160);
 assert.equal(agnp2026Update.revisedDrugRanges,88);
-assert.equal(agnp2026ReviewSummary().confirmed_2026_numeric_values,0);
+assert.equal(agnp2026ReviewSummary().confirmed_2026_numeric_values,9);
+assert.equal(agnp2026ReviewSummary().all_agnp2026_rows_registered,9);
 assert.equal(agnp2026ReviewSummary().automatic_replacements,0);
 assert.ok(agnp2026ReviewQueue.length>=25,'Historical psychiatric/epilepsy audit queue cannot silently shrink');
 for(const entry of agnp2026ReviewQueue) {
-  assert.equal(entry.agnp2026NumericalRangeVerified,false);
+  assert.equal(entry.agnp2026NumericalRangeVerified,entry.verified2026ReferenceIds.length>0);
+  assert.equal(entry.verified2026ReferenceIds.length,
+    tdmTargets.filter((row)=>row.drug===entry.drugId&&row.source==='agnpConsensus2026').length);
   assert.equal(entry.clinicalInterpretationAllowed,false);
   assert.ok(entry.historicalReferenceIds.length>0);
   for(const targetId of entry.historicalReferenceIds) {
@@ -128,6 +131,34 @@ assert.equal(chuCoverage.structured_scientific_readiness.numericReferenceClaims,
 assert.equal(chuCoverage.complete_institutional_assay_export_available,false);
 assert.equal(chuCoverage.human_scientific_approval_of_full_catalogue,false);
 console.log('TDM structured readiness: missing analytic semantics and human sign-off exposed, not silently inferred.');
+
+
+// Direct full text AGNP 2026 Table 5 checked: each therapeutic range and
+// exact sample time is distinct from laboratory alert levels, and pre-2026
+// ranges are preserved rather than silently overwritten.
+const verified2026Rows=tdmTargets.filter((row)=>row.source==='agnpConsensus2026');
+assert.equal(verified2026Rows.length,9);
+assert.deepEqual(verified2026Rows.map((row)=>row.id),["agnp2026-haloperidol-schizophrenia-2026","agnp2026-clozapine-schizophrenia-2026","agnp2026-trazodone-depression-2026","agnp2026-levomilnacipran-depression-2026","agnp2026-desvenlafaxine-depression-2026","agnp2026-lacosamide-epilepsy-2026","agnp2026-lamotrigine-epilepsy-2026","agnp2026-levetiracetam-epilepsy-2026","agnp2026-tranylcypromine-depression-peak-2026"]);
+assert.deepEqual(verified2026Rows.map((row)=>[row.min,row.max]),[[1,5],[350,600],[650,1500],[30,90],[85,380],[1,12],[3,15],[6,46],[60,400]]);
+assert.deepEqual(verified2026Rows.map((row)=>row.samplingTime),
+  ['12h','12h','12h','24h','24h','12h','12h','12h','2-3h_peak']);
+assert.deepEqual(verified2026Rows.map((row)=>row.agnp2026TdmRecommendationLevel),
+  [1,1,2,3,2,3,2,4,4]);
+assert.ok(verified2026Rows.every((row)=>row.status==='guideline'));
+assert.ok(verified2026Rows.every((row)=>row.reviewStatus==='primary_source_row_verified_pending_human_approval'));
+assert.ok(verified2026Rows.every((row)=>row.analyteBasis==='parent_total'));
+assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length,2);
+assert.ok(searchTdmMolecules('haloperidol').groups[0].indications.some((row)=>row.primary.source==='antipsychoticJoint2020'));
+assert.ok(searchTdmMolecules('haloperidol').groups[0].indications.some((row)=>row.primary.source==='agnpConsensus2026'));
+assert.equal(tdmTargets.find((row)=>row.id==='aps-haloperidol-schizophrenia-2020').max,10);
+assert.equal(tdmTargets.find((row)=>row.id==='agnp2026-haloperidol-schizophrenia-2026').max,5);
+assert.equal(tdmTargets.find((row)=>row.id==='agnp2026-tranylcypromine-depression-peak-2026').metric,
+  'Cmax (2–3 h après dose)');
+assert.equal(tdmTargets.find((row)=>row.id==='ad-tranylcypromine-mdd-extension-2025').relation,'at_most');
+assert.ok(agnp2026ReviewForDrug('haloperidol').agnp2026NumericalRangeVerified);
+assert.ok(!agnp2026ReviewForDrug('clonazepam').agnp2026NumericalRangeVerified);
+assert.equal(agnp2026ReviewForDrug('vancomycin'),null);
+assert.equal(agnp2026ReviewSummary().automatic_replacements,0);
 
 const pkCoverage = tdmPharmacologyCoverage();
 assert.equal(pkCoverage.drugs, 132);
@@ -238,7 +269,7 @@ assert.equal(searchTdmMolecules('ibrutinib').withoutTargets[0].pharmacology.revi
 console.log('TDM PK/PD profiles: 132 covered, class and molecule indices/route sources audited, no automatic dose scaling.');
 
 assert.equal(chuCoverage.curated_drugs, 132);
-assert.equal(chuCoverage.bibliographic_numeric_entries, 131);
+assert.equal(chuCoverage.bibliographic_numeric_entries, 140);
 assert.equal(chuCoverage.verified_chu_document_names, 74);
 assert.equal(chuCoverage.manual_names_indexed, 74, 'All 74 reviewed CHU document names must remain discoverable');
 assert.equal(chuCoverage.evidence_types.listed_as_dosed_in_protocol, 36);
@@ -308,7 +339,7 @@ assert.equal(searchTdmTargets({ drug: 'linezolid' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'teicoplanin' }).length, 2);
 assert.equal(searchTdmTargets({ query: 'Targocid' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'busulfan' }).length, 2);
-assert.equal(searchTdmTargets({ drug: 'clozapine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'clozapine' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'flucytosine' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'itraconazole' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'aripiprazole' }).length, 2);
@@ -326,14 +357,14 @@ assert.ok(tdmBrowseCategories.find((g) => g.id === 'antiseizure').medicines.some
 
 assert.equal(searchTdmTargets({ drug: 'agomelatine' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'bupropion' }).length, 2);
-assert.equal(searchTdmTargets({ drug: 'tranylcypromine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'tranylcypromine' }).length, 2);
 assert.equal(formatTdmTarget(tdmTargets.find((row) => row.id === 'ad-tranylcypromine-mdd-extension-2025')), '≤50');
 assert.equal(tdmTargets.find((row) => row.id === 'ad-agomelatine-mdd-extension-2025').metric, 'Cmax à 1–2 h après prise');
 assert.equal(tdmTargets.find((row) => row.id === 'ad-bupropion-hydroxy-mdd-extension-2025').min, 850);
 
 assert.equal(searchTdmTargets({ drug: 'methotrexate' }).length, 0, 'HD-MTX has safety thresholds, not a therapeutic window');
 assert.equal(searchTdmMolecules('méthotrexate').groups[0].safetySignals.length, 4);
-assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length, 1);
+assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length, 2);
 assert.ok(tdmTargetSources.antipsychoticJoint2020.newerConsensusUrl.includes('42392224'));
 assert.equal(tdmTargets.find((r) => r.id === 'aps-risperidone-schizophrenia-2020').metric, 'C₀ (somme active)');
 assert.equal(tdmTargets.find((r) => r.id === 'aps-flupentixol-schizophrenia-2020').metric, 'C₀ (isomère cis)');
@@ -551,18 +582,27 @@ const reviewedNumericClaims = new Map([
   ["aed-sulthiame-norway2018", ["oxcarb2018","range",2,10]],
   ["aed-topiramate-norway2018", ["oxcarb2018","range",2,10]],
   ["aed-zonisamide-norway2018", ["oxcarb2018","range",10,38]],
-  ["aed-clobazam-active-metabolite-norway2018", ["oxcarb2018","range",0.3,3]]
+  ["aed-clobazam-active-metabolite-norway2018", ["oxcarb2018","range",0.3,3]],
+  ["agnp2026-haloperidol-schizophrenia-2026", ["agnpConsensus2026","range",1,5]],
+  ["agnp2026-clozapine-schizophrenia-2026", ["agnpConsensus2026","range",350,600]],
+  ["agnp2026-trazodone-depression-2026", ["agnpConsensus2026","range",650,1500]],
+  ["agnp2026-levomilnacipran-depression-2026", ["agnpConsensus2026","range",30,90]],
+  ["agnp2026-desvenlafaxine-depression-2026", ["agnpConsensus2026","range",85,380]],
+  ["agnp2026-lacosamide-epilepsy-2026", ["agnpConsensus2026","range",1,12]],
+  ["agnp2026-lamotrigine-epilepsy-2026", ["agnpConsensus2026","range",3,15]],
+  ["agnp2026-levetiracetam-epilepsy-2026", ["agnpConsensus2026","range",6,46]],
+  ["agnp2026-tranylcypromine-depression-peak-2026", ["agnpConsensus2026","range",60,400]]
 ]);
-assert.equal(reviewedNumericClaims.size, 131);
+assert.equal(reviewedNumericClaims.size, 140);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 32, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 32, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 33, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 33, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 131 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 140 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -655,7 +695,8 @@ const reviewedSourceIdentifiers = {
   "antipsychoticJoint2020": [
     "https://www.psychiatrist.com/pdf/blood-levels-to-optimize-antipsychotic-treatment-in-clinical-practice-a-joint-consensus-statement-of-the-american-society-of-clinical-psychopharmacology-and-the-therapeutic-drug-monitoring-task-force/",
     "10.4088/JCP.19cs13169"
-  ]
+  ],
+  "agnpConsensus2026": ["https://doi.org/10.1055/a-2860-7861", "10.1055/a-2860-7861"]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
 for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
@@ -664,7 +705,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 32 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 33 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 32);
@@ -677,7 +718,7 @@ assert.equal(searchTdmMolecules('voriconazole').groups[0].indications.length, 1)
 assert.equal(searchTdmMolecules('amitriptyline').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('doxépine').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('venlafaxine').groups[0].indications.length, 1);
-assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications.length, 1);
+assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications.length, 2);
 assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications[0].alternatives.length, 1);
 assert.equal(searchTdmMolecules('escitalopram').groups[0].indications[0].alternatives.length, 1);
 assert.equal(searchTdmMolecules('phenobarbital').groups[0].indications.length, 1);
