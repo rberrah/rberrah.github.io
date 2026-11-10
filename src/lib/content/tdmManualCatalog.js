@@ -83,6 +83,7 @@ const antidepressantNames = [
 ];
 
 const knownKeys = {
+  'Agomélatine': 'agomelatine',
   'Acide valproïque': 'valproate', 'Lithium': 'lithium',
   'Mycophénolate': 'mpa', 'Tacrolimus': 'tac', 'Évérolimus': 'everolimus',
   'Linézolide': 'linezolid', 'Vancomycine': 'vancomycin',
