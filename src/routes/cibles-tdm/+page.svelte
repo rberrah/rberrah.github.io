@@ -7,6 +7,7 @@
   import { searchTdmMolecules } from '#lib/content/tdmSearchView.js';
   import { tdmBrowseCategories } from '#lib/content/tdmBrowseCategories.js';
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
+  import { tdmSafetyReferences } from '#lib/content/tdmSafetySignals.js';
 
   const base = resolve('/').replace(/\/$/, '');
   const suggestions = [...new Set([
@@ -127,6 +128,11 @@
                       {#if primary.status === 'study'}
                         <span class="study-note">{en ? 'Local protocol / study' : 'Étude / protocole local'}</span>
                       {/if}
+                      {#if primary.status === 'review' && source.newerConsensusUrl}
+                        <span class="study-note" data-testid="tdm-historical-warning">
+                          {en ? 'Earlier reference: updated consensus to verify' : 'Référence antérieure : consensus récent à vérifier'}
+                        </span>
+                      {/if}
                     </div>
                   </div>
 
@@ -220,6 +226,29 @@
                   </article>
                 {/each}
               </div>
+            {/if}
+
+            {#if group.safetySignals.length}
+              <section class="timed-alerts" data-testid="tdm-timed-safety-section">
+                <h3>{en ? 'Time-dependent safety thresholds (not therapeutic targets)' : 'Seuils de sécurité selon le temps (pas des cibles thérapeutiques)'}</h3>
+                <p class="safety-context">{en
+                  ? 'These published thresholds are situations for clinical assessment, not automated treatment decisions. Time is measured from infusion START. The regimen, renal function and symptoms are essential; methotrexate measured after glucarpidase may be affected by analytical interference.'
+                  : 'Ces repères bibliographiques nécessitent un avis clinique : ils ne déclenchent aucune décision automatique. Le temps est compté depuis le DÉBUT de la perfusion. Le protocole, la fonction rénale et la clinique sont indispensables ; après glucarpidase, certaines méthodes de dosage peuvent subir des interférences.'}</p>
+                <div class="safety-rows">
+                  {#each group.safetySignals as signal (signal.id)}
+                    {@const safetySource = tdmSafetyReferences[signal.source]}
+                    <article class="safety-row" data-testid="tdm-timed-safety-row">
+                      <span>{en ? signal.labelEn : signal.labelFr}</span>
+                      <strong>{signal.relation === 'above' ? '>' : '≥'}{signal.value} {signal.unit}</strong>
+                      <span>{en ? 'Conditional glucarpidase consideration, especially with renal impairment' : 'Discussion conditionnelle de glucarpidase, notamment si atteinte rénale'}</span>
+                      <a href={safetySource.url} target="_blank" rel="noopener noreferrer">{safetySource.citation} <ExternalLink size={13} aria-hidden="true" /></a>
+                    </article>
+                  {/each}
+                </div>
+                <p class="safety-context">{en
+                  ? 'European consensus 2024, Table 1 §5.2; these thresholds are not a universal toxicity cutoff, nor a leucovorin rescue table.'
+                  : 'Consensus européen 2024, tableau 1 §5.2 : ce ne sont ni des seuils universels de toxicité, ni un nomogramme de sauvetage par acide folinique.'}</p>
+              </section>
             {/if}
 
             {#if group.evidence.exposure || group.evidence.byTier.length}
@@ -365,6 +394,15 @@
   .source-actions { display: flex; flex-direction: column; gap: .2rem; align-items: flex-start; }
   .main-source { display: inline-flex; gap: .3rem; align-items: center; font-size: .84rem; line-height: 1.5; overflow-wrap: anywhere; }
   .study-note { font-size: .72rem; color: var(--text-secondary); }
+  .timed-alerts { margin-top: .8rem; border: 1px solid var(--border-subtle); border-radius: 10px; padding: 1rem 1.2rem; background: var(--bg-secondary); }
+  .timed-alerts h3 { font: 650 1.02rem/1.4 var(--font-body); margin: 0 0 .5rem; }
+  .safety-context { color: var(--text-secondary); font-size: .84rem; line-height: 1.6; margin: .4rem 0 .8rem; }
+  .safety-rows { display: grid; gap: .35rem; }
+  .safety-row { display: grid; grid-template-columns: minmax(95px,.7fr) minmax(105px,.7fr) minmax(200px,1.6fr) minmax(155px,1fr); gap: .6rem; align-items: center; border-bottom: 1px solid var(--border-subtle); padding: .55rem .15rem; font-size: .8rem; }
+  .safety-row:last-child { border-bottom: 0; }
+  .safety-row strong { font-variant-numeric: tabular-nums; }
+  .safety-row a { display: inline-flex; align-items: center; gap: .25rem; }
+  @media (max-width: 720px) { .safety-row { grid-template-columns: 1fr 1fr; } }
   .detail-panel { border-top: 1px solid var(--border-subtle); }
   .detail-panel summary { cursor: pointer; padding: .65rem 1.2rem; font-size: .85rem; font-weight: 600; color: var(--text-secondary); }
   .detail-panel summary span { font-weight: 400; }
