@@ -4,7 +4,7 @@
 PR empilée sur #226 puis #225, sans changement dans MIPD Engine.
 Ajout de **15 nouvelles molécules antiépileptiques** et **16 lignes de concentration de référence**.
 Les **7 molécules déjà présentes** dans la catégorie antiépileptique sont conservées ; total de famille : **22**.
-Catalogue cumulé sur les trois PR après fusion : **125 molécules recherchables, 131 cibles bibliographiques fixes, 32 sources numériques, 41 contextes CMI et 4 signaux de sécurité HD-MTX**.
+Catalogue cumulé sur les trois PR après fusion : **132 identifiants canoniques, 131 cibles bibliographiques fixes, 32 sources numériques, 41 contextes CMI et 4 signaux de sécurité HD-MTX**.
 
 ## Source chiffrée
 [Reimers et al. 2018, DOI 10.2147/DDDT.S154388](https://doi.org/10.2147/DDDT.S154388), **tableau 1**, en texte intégral public via [PDF](https://www.tandfonline.com/doi/pdf/10.2147/DDDT.S154388). L'article présente la révision de plages de laboratoires norvégiens ; la plupart ne proviennent pas de corrélations prospectives solides concentration-réponse. Les prélèvements correspondent à des **concentrations sériques pré-dose à l'équilibre**, généralement 12–24 h après la dernière prise.
@@ -53,3 +53,15 @@ Le rapport sépare `listed_as_dosed_in_protocol` (36 antibiotiques), `group_exam
 Important : **74/74 noms documentaires trouvables ≠ 74 tests réalisés en interne ≠ exhaustivité actuelle du laboratoire**. Le script met également en évidence les entrées sans cible bibliographique qualifiée : cette absence ne signifie pas qu'une cible devrait nécessairement exister.
 
 Pour certifier l'exhaustivité : récupérer auprès du laboratoire un export actuel autorisé (identifiant d'examen, analyte, matrice, méthode, statut interne/externalisé, date de mise à jour, URL de fiche), faire une jointure par identifiants et vérifier manuellement les écarts.
+
+## Sept identifiants supplémentaires sans cible chiffrée
+
+L'ancien sommaire CHU affichait déjà **amoxapine, iproniazide, lidocaïne, bupivacaïne, ropivacaïne, mépivacaïne et ibrutinib**, mais sans identifiants moléculaires canoniques. Ils reçoivent maintenant des ID stables, sont reliés au document déjà recensé et **restent explicitement sans cible thérapeutique fixe**.
+
+Cela fait passer les *identifiants canoniques* de **125 à 132**, sans augmenter artificiellement le nombre de molécules nouvelles pour l'utilisateur ; ces sept noms étaient déjà accessibles par le manuel.
+
+## Filtre documentaire sur la page d’accueil
+
+Une case à cocher permet de n’afficher que les molécules **mentionnées dans les sept documents publics CHU vérifiés** (74 noms, dont 36 antibiotiques explicitement listés comme dosés). Elle est désactivée par défaut pour conserver l'ensemble du référentiel.
+
+Le libellé signale expressément qu’**être cité dans un document CHU ne garantit ni un dosage actuellement réalisé ni une cible thérapeutique validée**. Le statut d’externalisation de l’ibrutinib et les simples demandes d’adaptation des immunosuppresseurs restent distincts.
