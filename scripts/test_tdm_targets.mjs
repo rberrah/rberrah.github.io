@@ -61,6 +61,12 @@ for (const profile of Object.values(tdmPharmacologyProfiles)) {
 assert.equal(tdmPharmacologyForDrug('nonexistent-drug'), null);
 assert.equal(tdmPharmacologyForDrug('cefepime').index.key, 'fT_MIC');
 assert.equal(tdmPharmacologyForDrug('cefepime').practical.key, 'Cmin_or_Css');
+assert.match(tdmPharmacologyForDrug('cefepime').administration.modeFr, /prolongée ou continue/);
+assert.match(tdmPharmacologyForDrug('vancomycin').administration.modeEn, /continuous IV infusion/);
+assert.match(tdmPharmacologyForDrug('tac').administration.modeFr, /libération immédiate ou prolongée/);
+assert.match(tdmPharmacologyForDrug('mpa').administration.modeFr, /MMF IV chez l’adulte/);
+assert.match(tdmPharmacologyForDrug('methotrexate').administration.modeFr, /début de la perfusion/);
+
 assert.equal(tdmPharmacologyForDrug('amikacin').index.key, 'AUC_MIC_and_Cmax_MIC');
 assert.equal(tdmPharmacologyForDrug('amikacin').practical.key, 'peak_and_late');
 assert.equal(tdmPharmacologyForDrug('ciprofloxacin').index.key, 'fAUC_MIC');
