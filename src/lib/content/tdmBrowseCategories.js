@@ -4,6 +4,7 @@
 // entry remains searchable; lack of a numeric target is shown explicitly.
 import { tdmDrugs } from './tdmTargets.js';
 import { psychiatryTdmDrugs } from './tdmPsychiatryExpansion2026.js';
+import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
 import { tdmManualCatalog } from './tdmManualCatalog.js';
 
 const categoryDefinitions = Object.freeze([
@@ -67,7 +68,8 @@ for (const drug of tdmDrugs) {
   const group = categoryFor(drug, exam);
   classified.get(group).set(drug.id, {
     id: drug.id, fr: drug.fr, en: drug.en, query: drug.fr,
-    fromReviewedChuDocuments: Boolean(exam), chuEvidenceStatus: chuEvidenceStatus(exam)
+    fromReviewedChuDocuments: Boolean(exam), chuEvidenceStatus: chuEvidenceStatus(exam),
+    historicallyAssayedAtChu: Boolean(historicalChuAssayForDrug(drug.id))
   });
 }
 for (const exam of tdmManualCatalog) {
