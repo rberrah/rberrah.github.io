@@ -57,14 +57,14 @@
   {#if hasQuery}
     {#if results.groups.some((group) => group.pdTargets.length > 0)}
       <section class="mic-entry" data-testid="tdm-mic-input-section" aria-label={en ? 'MIC-dependent pharmacodynamic target' : 'Objectif pharmacodynamique selon la CMI'}>
-        <label for="tdm-mic-input">{en ? 'MIC of the isolated pathogen (mg/L) · optional' : 'CMI du germe isolé (mg/L) · facultative'}</label>
+        <label for="tdm-mic-input">{en ? 'Reference MIC for PK/PD (mg/L) · optional' : 'CMI de référence PK/PD (mg/L) · facultative'}</label>
         <input id="tdm-mic-input" data-testid="tdm-mic-input" type="text" inputmode="decimal"
           spellcheck="false" autocomplete="off" bind:value={micInput}
           placeholder={en ? 'e.g. 0.5 or 0,5' : 'Ex. 0,5 ou 0.5'} />
         {#if micInput.trim() && micValue === null}
           <span class="mic-error" role="status">{en ? 'Enter a positive MIC in mg/L.' : 'Saisissez une CMI positive en mg/L.'}</span>
         {:else}
-          <span class="mic-help">{en ? 'Class-level ICU objectives. MIC testing method, infection site and free vs total concentrations matter.' : 'Objectifs de classe en réanimation : méthode de CMI, site infectieux et fraction libre à vérifier.'}</span>
+          <span class="mic-help">{en ? 'Class-level objectives, not dosing prescriptions. The reference MIC may differ from the measured isolate MIC (2026 consensus: susceptibility breakpoint/ECOFF). Check site and unbound exposure.' : 'Repères PK/PD, pas des prescriptions : la CMI de référence peut différer de la CMI mesurée (consensus 2026 : seuil de sensibilité/ECOFF). Vérifier le site infectieux et la fraction libre.'}</span>
         {/if}
       </section>
     {/if}
