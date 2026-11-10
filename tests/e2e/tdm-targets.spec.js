@@ -135,7 +135,7 @@ test('CMI-aware beta-lactam targets are distinct for intermittent and continuous
   await mic.fill('2');
   await expect(page.getByTestId('tdm-mic-result')).toHaveCount(2);
   await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCmin > 2 mg/L' })).toBeVisible();
-  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCss > 2 mg/L' })).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCss ≥ 8 mg/L' })).toBeVisible();
   await mic.fill('0,5');
   await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCmin > 0,5 mg/L' })).toBeVisible();
   await mic.fill('0');
@@ -143,7 +143,9 @@ test('CMI-aware beta-lactam targets are distinct for intermittent and continuous
   await expect(page.getByTestId('tdm-mic-result')).toHaveCount(0);
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
   await page.getByTestId('tdm-mic-card').first().locator('summary').click();
-  await expect(page.getByText(/un prélèvement isolé ne démontre/i)).toBeVisible();
+  await expect(page.getByText(/une fCmin > CMI ne constitue un substitut/i)).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-card').first().getByText(/ECOFF/)).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-card').first().getByRole('link', { name: /Source PK\/PD originale/ })).toHaveAttribute('href', /beta-lactam-antibiotic-dose-individualization-in-acutely-ill-patients/);
 });
 
 test('MIC-aware aminoglycosides, quinolones and daptomycin preserve different PK/PD indices', async ({ page }) => {
@@ -168,4 +170,18 @@ test('Vancomycin does not extrapolate the AUC 400–600 window linearly to MIC a
   await page.getByTestId('tdm-mic-input').fill('2');
   await expect(page.getByTestId('tdm-mic-result')).toContainText('Pas de recalcul linéaire');
   await expect(page.getByTestId('tdm-target-card').getByText('400–600', { exact: true })).toBeVisible();
+});
+
+test('TB reference concentrations are distinguished from CMI-dependent objectives and link only CHU sampling times', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('isoniazide');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card').getByText('3–6', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveAttribute('href', /DocumentNew[.]aspx[?]idDoc=41157/);
+  await search.fill('rifampicine');
+  await expect(page.getByTestId('tdm-target-card').getByText('8–24', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').getByText('C₂h (pic approximatif)', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
 });

@@ -114,6 +114,8 @@ assert.ok(tdmManualCatalog.filter((entry) => !tdmTargets.some((target) => target
 
 
 const reviewedNumericClaims = new Map([
+  ["isoniazid-tb-peak", ["tbTdmMeta2023","range",3,6]],
+  ["rifampicin-tb-peak", ["tbTdmMeta2023","range",8,24]],
   ["csa-kidney-c0-0", ["thaiKT2026","range",150,300]],
   ["csa-kidney-c0-3", ["thaiKT2026","range",100,200]],
   ["csa-kidney-c0-6", ["thaiKT2026","range",80,150]],
@@ -182,16 +184,16 @@ const reviewedNumericClaims = new Map([
   ["lithium-tolerability", ["lithium2019","range",0.4,0.6]],
   ["lithium-response", ["lithium2019","range",0.8,1]]
 ]);
-assert.equal(reviewedNumericClaims.size, 67);
+assert.equal(reviewedNumericClaims.size, 69);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 23, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 23, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 24, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 24, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 67 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 69 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -207,6 +209,7 @@ const reviewedSourceIdentifiers = {
   "phenytoinFDA": ["https://dailymed-beta.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=f339f9e4-b289-4efe-82b9-46c57d1dc277&type=display", null],
   "phenobarbNHS": ["https://laboratories.newcastle-hospitals.nhs.uk/test-directory/phenobarbitone-serum/", null],
   "digoxinAHA2013": ["https://www.jacc.org/doi/10.1016/j.jacc.2013.05.019", "10.1016/j.jacc.2013.05.019"],
+  "tbTdmMeta2023": ["https://pmc.ncbi.nlm.nih.gov/articles/PMC10622255/", null],
   "mpa2025": [
     "https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/",
     "10.1631/jzus.B2400069"
@@ -263,7 +266,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 23 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 24 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
@@ -379,13 +382,32 @@ for (const invalid of ['', '0', '-1', 'NaN', 'Infinity', '1e5', '1,2,3', '1025']
 }
 const pdByKind = (kind) => antibioticPdTargets.find((entry) => entry.kind === kind);
 assert.equal(formatMicCalculation(pdByKind('beta_trough'), 2, 'fr'), 'Repère : fCmin > 2 mg/L');
-assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 2, 'fr'), 'À l’état stable : fCss > 2 mg/L');
+assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 2, 'fr'), 'À l’état stable : fCss ≥ 8 mg/L (4 × CMI)');
 assert.equal(formatMicCalculation(pdByKind('peak_ratio'), 0.5, 'fr'), 'Cmax ≥ 4–5 mg/L');
 assert.equal(formatMicCalculation(pdByKind('free_auc_ratio'), 0.5, 'fr'), 'fAUC₀–₂₄ ≥ 40 mg·h/L');
 assert.equal(formatMicCalculation(pdByKind('total_auc_ratio'), 0.5, 'fr'), 'AUC₀–₂₄ > 333 mg·h/L');
 assert.equal(formatMicCalculation(pdByKind('vancomycin_mic1'), 1, 'fr'), 'AUC₀–₂₄ : 400–600 mg·h/L (CMI = 1 mg/L)');
 assert.match(formatMicCalculation(pdByKind('vancomycin_mic1'), 2, 'fr'), /Pas de recalcul linéaire/);
 assert.equal(formatMicCalculation(pdByKind('beta_trough'), 0), null);
+
+assert.equal(searchTdmMolecules('isoniazid').groups[0].indications.length, 1);
+assert.equal(searchTdmMolecules('rifampicin').groups[0].indications.length, 1);
+assert.equal(tdmTargets.find((row) => row.id === 'isoniazid-tb-peak').metric, 'C₂h (pic approximatif)');
+assert.equal(tdmTargets.find((row) => row.id === 'rifampicin-tb-peak').status, 'review');
+assert.equal(chuSamplingForDrug('isoniazid')?.code, 'PTP PREA 0059 C');
+assert.equal(chuSamplingForDrug('rifampicin')?.code, 'PTP PREA 0059 C');
+assert.equal(antibioticPdForDrug('cefepime')[0].source.doi, '10.1002/phar.70181');
+assert.equal(antibioticPdForDrug('cefepime')[1].source.doi, '10.1002/phar.2842');
+assert.equal(antibioticPdForDrug('cefepime')[0].source.citation.includes('2026'), true);
+assert.match(antibioticPdForDrug('cefepime')[0].contextFr, /ECOFF/);
+assert.match(antibioticPdForDrug('cefepime')[0].contextFr, /preuves très faible/);
+assert.match(antibioticPdForDrug('cefepime')[0].contextFr, /4×CMI/);
+assert.match(antibioticPdForDrug('cefepime')[1].criterionFr, /4 × CMI/);
+assert.equal(antibioticPdForDrug('cefepime')[1].source.url, 'https://accpjournals.onlinelibrary.wiley.com/doi/10.1002/phar.2842');
+assert.equal(antibioticPdForDrug('amikacin')[0].source, undefined,
+  'Aminoglycosides retain their independently checked 2020 ICU source, not beta-lactam guidance');
+assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 0.5, 'fr'), 'À l’état stable : fCss ≥ 2 mg/L (4 × CMI)');
+
 console.log('TDM antibiotic MIC objectives: 41 source-scoped contexts, 36 CHU sampling-time links, calculator and safety gates validated.');
 
 console.log(`TDM manual linked index: ${tdmManualCatalog.length} named medicines across ${Object.keys(manualCatalogSources).length} official document types.`);
