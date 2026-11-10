@@ -238,3 +238,53 @@ test('English category navigation and regulatory links remain responsive on mobi
   await expect(page.getByTestId('tdm-mic-card')).toHaveCount(2);
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
 });
+
+
+test('ANSM teicoplanin targets are assay-specific and never mixed between HPLC and FPIA', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('Targocid');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('15–30', { exact: true })).toBeVisible();
+  await expect(page.getByText('30–40', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /HPLC/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /FPIA/ })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').first().getByRole('link', { name: /Source originale/ }))
+    .toHaveAttribute('href', /base-donnees-publique[.]medicaments[.]gouv[.]fr/);
+});
+
+test('Busulfan uses regimen-specific cumulative AUC, not per-dose or trough targets', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('busulfan');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('85–95', { exact: true })).toBeVisible();
+  await expect(page.getByText('60–70', { exact: true })).toBeVisible();
+  await expect(page.getByText('AUC cumulée', { exact: true })).toHaveCount(2);
+  await expect(page.getByTestId('tdm-exposure-tag')).toContainText('AUC cumulée');
+  await page.getByTestId('tdm-target-card').first().locator('summary').click();
+  await expect(page.getByText(/AUC totale cumulée du conditionnement/).first()).toBeVisible();
+});
+
+test('Clozapine remains a single analyte-specific reference with updated consensus warning', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('clozaril');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('350–600', { exact: true })).toBeVisible();
+  await page.getByTestId('tdm-target-card').first().locator('summary').click();
+  await expect(page.getByText(/norclozapine is distinct/i)).toBeVisible();
+  await expect(page.getByRole('link', { name: /AGNP 2026/ })).toHaveAttribute('href', /42392224/);
+});
+
+test('Expanded drugs are discoverable inside existing closed-by-default family browser', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(9);
+  for (const [family, medicine] of [
+    ['Antibiotiques', 'Téicoplanine'],
+    ['Autres psychotropes', 'Clozapine'],
+    ['Oncologie', 'Busulfan']
+  ]) {
+    const section = page.getByTestId('tdm-medicine-family').filter({ hasText: family });
+    await section.locator('summary').click();
+    await expect(section.getByRole('button', { name: medicine })).toBeVisible();
+    await section.locator('summary').click();
+  }
+});
