@@ -16,6 +16,10 @@ export const tdmPkReferences = Object.freeze({
   mycophenolate2025: {citation:'Recommandations MPA · 2025', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/', section:'Question 3 / recommandation 2 : AUC préférable à C0', tier:'society'},
   tacrolimus2019: {citation:'IATDMCT tacrolimus · 2019', url:'https://pubmed.ncbi.nlm.nih.gov/31045868/', section:'Consensus STP tacrolimus, relation C0 et AUC, contextes de greffe', tier:'society'},
   tacrolimusSmPC: {citation:'RCP Prograf IV · SmPC', url:'https://www.medicines.org.uk/emc/product/205/smpc', section:'§4.2, voie IV perfusion et relais oral', tier:'regulatory'},
+  tacrolimusFDAProportional: {citation:'FDA / DailyMed · Prograf', url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=7f667de1-9dfa-4bd6-8ba0-15ee2d78873b', section:'§12.3 : AUC/Cmax approximativement dose-proportionnelles à 3, 7, 10 mg PO dose unique, n=18 volontaires sains à jeun', tier:'regulatory'},
+  mpaDoseNonlinear2026: {citation:'Mohamed et al. · Clinical Pharmacokinetics 2026', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12960313/', section:'Dose Proportionality : β=0,513 (IC90% 0,324–0,702), MMF 250–1000 mg deux fois/jour, n=84 greffés rénaux avec tacrolimus', tier:'other'},
+  neoralFDAProportional: {citation:'FDA / DailyMed · Neoral', url:'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=94461af3-11f1-4670-95d4-2965b9538ae3', section:'§12.3 : relation dose-AUC linéaire dans la plage thérapeutique de la formulation microémulsion ; biodisponibilité Neoral ≠ Sandimmune', tier:'regulatory'},
+  neoralOralSmPC: {citation:'RCP Neoral solution orale · 2026', url:'https://www.medicines.org.uk/emc/product/5300/smpc', section:'§3 et §4.2 : solution orale microémulsion, mode d’administration', tier:'regulatory'},
   everolimus2016: {citation:'IATDMCT évérolimus · 2016', url:'https://pubmed.ncbi.nlm.nih.gov/26982492/', section:'C0 sang total, relation AUC et PK approximativement linéaire', tier:'society'},
   sirolimusEMA: {citation:'EMA · Rapamune', url:'https://www.ema.europa.eu/en/medicines/human/EPAR/rapamune', section:'Présentation orale, comprimé et solution buvable', tier:'regulatory'},
   cellceptEMA: {citation:'EMA · CellCept', url:'https://www.ema.europa.eu/en/medicines/human/EPAR/cellcept', section:'Gélule, comprimé, solution orale ; perfusion IV adulte', tier:'regulatory'},
@@ -160,8 +164,8 @@ assign(['mpa'],{
     'MPA trough poorly predicts AUC; do not substitute. Consider unbound drug in hypoalbuminaemia.','mycophenolate2025'),
   administration:routes(['PO','IV'],'cellceptEMA','mmf_product_specific','MMF oral ; MMF IV chez l’adulte. L’EC-MPS oral n’est pas une forme IV.','Oral MMF; IV MMF in adults. Oral enteric-coated MPA is not an IV formulation.'),
   proportionality:dose('complex','Non garantie','Not reliably proportional',
-    'MPA : cycle entérohépatique, variations de biodisponibilité, albumine/MPAG et co-traitements. La relation AUC/dose doit être évaluée pour formulation et patient.',
-    'MPA: enterohepatic recirculation, bioavailability, albumin/MPAG and interacting immunosuppressants; verify patient- and formulation-specific exposure.','mycophenolate2025')
+    'MPA sous MMF : dans 84 greffés rénaux avec tacrolimus (250–1 000 mg ×2/j), la pente log(AUC₀–₁₂)–log(dose) était 0,513 (IC90 % 0,324–0,702). Un doublement de dose correspondait à un facteur d’AUC moyen estimé de 1,43, NON 2 ; estimation de cohorte, jamais prédiction individuelle. Cycle entérohépatique, absorption et albumine restent variables.',
+    'MPA under MMF: in 84 kidney recipients with tacrolimus (250–1000 mg twice daily), log(AUC0–12) vs log(dose) slope was 0.513 (90% CI 0.324–0.702). A dose doubling corresponds to an estimated population AUC ratio 1.43, NOT 2; never an individual prediction. Enterohepatic recycling, absorption and albumin vary.','mpaDoseNonlinear2026')
 },'drug_reviewed');
 assign(['tac'],{
   index:indexed('AUC_interval','AUCτ (exposition complète)','AUCτ (total exposure)',
@@ -171,9 +175,9 @@ assign(['tac'],{
     'C0 sang total à l’horaire adapté (LI versus LP) ; AUC/LSS en cas de discordance, interaction ou question pharmacométrique.',
     'Whole-blood trough at formulation-appropriate timing (IR vs prolonged release); AUC/LSS for discordance, interactions or selected questions.','tacrolimus2019'),
   administration:routes(['PO','IV'],'tacrolimusSmPC','tacrolimus_formulation_specific','Voie orale à libération immédiate ou prolongée selon spécialité ; IV en perfusion encadrée','Immediate- or prolonged-release oral forms by product; controlled IV infusion'),
-  proportionality:dose('complex','Non garantie sans réévaluation','Not guaranteed without reassessment',
-    'CYP3A4/5, hématocrite, interactions, aliments et formulation influencent la dose–exposition ; un doublement arithmétique de dose n’est pas une règle validée.',
-    'CYP3A4/5, haematocrit, interactions, food and formulation affect exposure; do not presume dose doubling doubles AUC.','tacrolimus2019')
+  proportionality:dose('conditional_linear','Approx. proportionnelle, sous conditions','Approximately proportional, conditional',
+    'Le RCP FDA décrit une AUC approximativement proportionnelle après 3, 7 et 10 mg PO à jeun chez 18 volontaires. En greffe, CYP3A4/5, hématocrite, interactions, alimentation, état clinique et formulation modifient CL/F : ×2 dose ne garantit donc jamais ×2 AUC individuellement.',
+    'FDA label reports roughly dose-proportional AUC after 3, 7 and 10 mg single oral doses in 18 fasted volunteers. In transplantation, CYP3A4/5, haematocrit, interactions, food, illness and formulations alter CL/F; 2× dose therefore does not reliably mean 2× patient AUC.','tacrolimusFDAProportional')
 },'drug_reviewed');
 assign(['cyclosporine'],{
   index:indexed('AUC_interval','AUC (ou C2 validée selon greffe)','AUC (or validated C2 by transplant)',
@@ -182,8 +186,10 @@ assign(['cyclosporine'],{
   practical:routine('Cmin_or_C2','C0 ou C2 selon protocole','Trough or C2 per protocol',
     'Préciser horaire C2 exactement 2 h après prise si utilisé ; modèle et spécialité conditionnent l’interprétation.',
     'C2 requires accurately documented 2 h postdose time; formulation and model affect interpretation.','tacrolimus2019'),
-  administration:{codes:[],sourceId:null,scope:'unreviewed'},
-  proportionality:unknownDose
+  administration:routes(['PO'],'neoralOralSmPC','neoral_microemulsion_oral','Neoral : capsules / solution microémulsion ; ne pas assimiler sans STP à Sandimmune','Neoral microemulsion capsules / solution; do not assume interchangeability with Sandimmune without TDM'),
+  proportionality:dose('conditional_linear','Linéaire pour Neoral, sous conditions','Linear for Neoral, conditional',
+    'FDA Neoral : relation AUC–dose linéaire dans la plage thérapeutique de la formulation microémulsion. Ce résultat ne démontre ni une équivalence avec Sandimmune ni une proportionnalité chez tout patient lorsque F ou CL varie.',
+    'FDA Neoral: linear dose–AUC relation within the therapeutic range of the microemulsion formulation. It does not establish interchangeability with Sandimmune or individual proportionality if F or CL changes.','neoralFDAProportional')
 },'drug_reviewed');
 assign(['everolimus'],{
   index:indexed('Cmin','C0 (bon reflet de l’AUC)','Trough (good AUC proxy)',
