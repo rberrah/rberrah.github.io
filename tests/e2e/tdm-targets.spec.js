@@ -305,9 +305,10 @@ test('Itraconazole does not conflate parent-only and parent-plus-metabolite trou
   await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
   await page.getByTestId('tdm-target-search').fill('sporanox');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
-  await expect(page.getByText('>0,5', { exact: true })).toBeVisible();
+  await expect(page.getByText('>1', { exact: true })).toBeVisible();
   await expect(page.getByText('>1,5', { exact: true })).toBeVisible();
   const combined = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /somme itraconazole/ }) });
+  await expect(page.getByRole('heading', { name: /Histoplasmose pulmonaire/ })).toBeVisible();
   await combined.locator('summary').click();
   await expect(combined.getByText(/SOMME des deux analytes/)).toBeVisible();
   await expect(combined.getByRole('link', { name: /DOI/ })).toHaveAttribute('href', /10[.]1093\/cid\/ciw326/);
