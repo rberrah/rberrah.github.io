@@ -25,4 +25,10 @@ Le document [PTP PREA 0059 C, 26/05/2026, deux pages](https://chu-limoges.manuel
 
 Les fiches de laboratoire, formulaires de prescription et pages de dosage ne sont **pas** substitués à un document officiel sur les temps de prélèvement. **Aucun autre PDF de temps de prélèvement n'a été suffisamment vérifié** pour les autres molécules dans ce sous-ensemble public : elles restent sans lien CHU jusqu'à obtention du document pertinent.
 
+## Deux antituberculeux du catalogue CHU ajoutés
+
+La [revue systématique et méta-analyse des concentrations antituberculeuses](https://pmc.ncbi.nlm.nih.gov/articles/PMC10622255/) (tableau 1, publié en 2023) reprend les fourchettes de **pic habituel** **3–6 mg/L pour l'isoniazide** et **8–24 mg/L pour la rifampicine**, pour les schémas quotidiens de référence. Les deux sont affichées comme des *repères de concentration à environ 2 h*, **pas** comme des cibles de concentration résiduelle, des recommandations de dose, ou des seuils prouvés pour un patient particulier. Le [PDF CHU PTP PREA 0059 C](https://chu-limoges.manuelprelevement.fr/DocumentNew.aspx?idDoc=41157), p. 1, indique Cmax à 2 h pour ces deux molécules et T8 h supplémentaire possible pour la rifampicine.
+
+**Bilan bibliographique après extension : 69 lignes fixes + 41 objectifs PK/PD dépendants de la CMI (25 antibiotiques).** Plusieurs de ces 110 lignes correspondent à différentes conditions d'un même médicament. Les inhibiteurs de bêta-lactamases et molécules sans seuil scientifiquement utilisable ne reçoivent pas de valeur inventée.
+
 **À poursuivre :** obtenir un export autorisé des examens du service et les documents individuels de *temps* de prélèvement pour immunosuppresseurs, antiépileptiques, lithium et psychotropes. Distinguer systématiquement « analyse disponible au CHU » de « cible bibliographique documentée ». Ne pas inventer de seuil fixe pour les inhibiteurs de bêta-lactamases (tazobactam, avibactam) sans cible propre vérifiée.
