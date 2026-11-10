@@ -6,6 +6,7 @@ import {
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
 import { searchTdmMolecules, groupTdmReferenceEntries } from '../src/lib/content/tdmSearchView.js';
 import { agnp2026Update, agnp2026ReviewQueue, agnp2026ReviewSummary, agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
+import { generateTdmPilotSnapshot, validateTdmPilotSnapshot } from './export_tdm_pilot_snapshot.mjs';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
@@ -77,6 +78,41 @@ assert.equal(agnp2026ReviewForDrug('vancomycin'),null);
 assert.ok(searchTdmMolecules('clonazepam').groups[0].agnpReview);
 assert.equal(searchTdmMolecules('vancomycin').groups[0].agnpReview,null);
 console.log('TDM safeguards: analyte and sampling isolation; AGNP 2026 historical review queue without invented numerical updates.');
+
+const pilotSnapshot=generateTdmPilotSnapshot();
+assert.equal(validateTdmPilotSnapshot(pilotSnapshot),true);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.drugId),
+  ['tac','mpa','vancomycin']);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.target.id),
+  ['tac-kidney-mid','mpa-kidney-auc','vancomycin-mrsa']);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.target.value),
+  [{relation:'range',min:5,max:7},{relation:'range',min:30,max:60},
+   {relation:'range',min:400,max:600}]);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.exposureMeasure),
+  ['C0','AUC0_12','AUC24']);
+assert.ok(pilotSnapshot.references.every((row)=>row.eligibility.status==='not_interpretable'));
+assert.ok(pilotSnapshot.references.every((row)=>row.eligibility.modelMapping==='UNMAPPED'));
+assert.ok(pilotSnapshot.references.every((row)=>row.eligibility.automaticDoseAdjustmentAllowed===false));
+assert.equal(pilotSnapshot.references[0].target.evidenceStatus,'study',
+  'Tacrolimus local study window must not masquerade as a guideline');
+assert.equal(pilotSnapshot.references[1].analyte,'mpa_parent_total');
+assert.equal(pilotSnapshot.references[2].mic?.method,'broth_microdilution');
+assert.equal(pilotSnapshot.references[2].mic?.assumption,true);
+assert.equal(validateTdmPilotSnapshot({
+  ...pilotSnapshot,
+  references:pilotSnapshot.references.map((row,i)=>i===0
+    ? {...row,eligibility:{...row.eligibility,clinicalInterpretationAllowed:true}}
+    : row)
+}),false,'Escalating interpretation must fail validation');
+assert.equal(validateTdmPilotSnapshot({
+  ...pilotSnapshot,
+  references:pilotSnapshot.references.map((row,i)=>i===1
+    ? {...row,target:{...row.target,value:{relation:'range',min:30,max:600}}}
+    : row)
+}),false,'Altered numeric target must fail integrity hash');
+assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,patientDataIncluded:true}),false);
+assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,sha256:'0'.repeat(64)}),false);
+console.log('TDM pilot snapshot: source-locked tacrolimus/MPA/vancomycin, SHA256-guarded, 0 interpretable and 0 automatic doses.');
 
 const pkCoverage = tdmPharmacologyCoverage();
 assert.equal(pkCoverage.drugs, 132);
