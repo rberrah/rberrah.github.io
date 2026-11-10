@@ -1,5 +1,6 @@
 // Historical assay evidence, never a claim of current CHU Limoges availability.
 // Verified 2026-11-10, NOT part of the current authorized CHU exam manual export.
+/** @type {Record<string, {status: string, period: string, reference: string, url: string, fr: string, en: string}>} */
 export const historicalChuAssayEvidence = Object.freeze({
   clozapine: {
     status: 'historically_assayed',
@@ -10,6 +11,7 @@ export const historicalChuAssayEvidence = Object.freeze({
     en: 'A Health Data Hub study documents clozapine assays performed at Limoges University Hospital in 2010–2022. This historical evidence does not confirm current availability.'
   }
 });
+/** @param {string} drugId */
 export function historicalChuAssayForDrug(drugId) {
   return historicalChuAssayEvidence[drugId] || null;
 }
