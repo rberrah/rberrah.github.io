@@ -3,6 +3,7 @@
 // ranges have not yet been verified molecule by molecule. Visible UI warning is mandatory.
 // Not evidence that these drugs are assayed at CHU Limoges.
 // Source review: 2026-11-10. See docs/tdm-expansion-psychiatry-2026-11-10.md.
+/** @type {Record<string, { title: string, citation: string, url: string, doi?: string, year: number, organization: string, access: 'open_full_text'|'open_abstract', evidenceSection: string, verifiedOn: string, newerConsensusUrl?: string, newerConsensusTitle?: string }>} */
 export const psychiatryTdmSources = {
   antipsychoticJoint2020: {
     title: 'Schoretsanitis et al. (2020) · Joint antipsychotic TDM consensus (ASCP/AGNP)',
