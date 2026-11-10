@@ -1,3 +1,4 @@
+import { additionalAntiseizureDrugs, additionalAntiseizureTargets } from './tdmAntiseizureExpansion2018.js';
 import { extraAntidepressantDrugs, extraAntidepressantTargets } from './tdmAntidepressantExpansion2026.js';
 import { psychiatryTdmSources, psychiatryTdmDrugs, psychiatryTdmTargets } from './tdmPsychiatryExpansion2026.js';
 import { nonStandardTdmDrugs } from './tdmSafetySignals.js';
@@ -126,7 +127,7 @@ export const tdmTargetSources = {
     url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5811172/",
     year: 2018, organization: "Peer-reviewed clinical reference proposal",
     access: 'open_full_text',
-    evidenceSection: "Oxcarbazepine section: active 10-hydroxycarbazepine/licarbazepine (MHD) reference intervals",
+    evidenceSection: "Table 1: national serum reference intervals for anti-seizure medications; Oxcarbazepine section distinguishes MHD",
     verifiedOn: TDM_REFERENCE_REVIEW_DATE,
   },
   phenytoinFDA: {
@@ -367,7 +368,8 @@ export const tdmDrugs = [
   ...additionalTdmDrugs,
   ...psychiatryTdmDrugs,
   ...nonStandardTdmDrugs,
-  ...extraAntidepressantDrugs
+  ...extraAntidepressantDrugs,
+  ...additionalAntiseizureDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
@@ -1582,7 +1584,8 @@ export const tdmTargets = [
   },
   ...additionalTdmTargets,
   ...psychiatryTdmTargets,
-  ...extraAntidepressantTargets
+  ...extraAntidepressantTargets,
+  ...additionalAntiseizureTargets
 ];
 
 /** @param {unknown} value */
