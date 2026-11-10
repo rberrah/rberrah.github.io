@@ -12,7 +12,7 @@ La revue priorise, par condition clinique comparable : **sociétés savantes (SF
 ### P0 — Interdire les regroupements analytiques non sûrs
 La fonction `groupTdmReferenceEntries()` utilise l’identité **médicament, indication, libellés, métrique, unité, matrice, analyte, base libre/totale, formulation, méthode et horaire**. Lorsqu’une dimension documentée diffère, les références restent deux cartes, pas une fausse « source alternative » d’une cible interchangeable.
 
-**Limite restante** : les catalogues historiques contiennent encore principalement de l’information *libre* (phrase sur analyte/voie), pas systématiquement les champs sémantiques `analyteId`, `formulationId`, `assayMethod`, etc. La sécurité complète exige de les remplir/valider pour les 131 références avant toute correspondance automatique. Une dimension absente n’est jamais une preuve d’équivalence.
+**Limite restante** : les catalogues historiques contiennent encore principalement de l’information *libre* (phrase sur analyte/voie), pas systématiquement les champs sémantiques `analyteId`, `formulationId`, `assayMethod`, etc. La sécurité complète exige de les remplir/valider pour les **140 références** (131 historiques, 9 AGNP 2026) avant toute correspondance automatique. Une dimension absente n’est jamais une preuve d’équivalence.
 
 ### P0 — AGNP 2026 : audit plutôt que remplacement aveugle
 [Hart et al., AGNP 2026](https://pubmed.ncbi.nlm.nih.gov/42392224/), publié le **2 juillet 2026**, rapporte **160 références**, dont **30 médicaments ajoutés** et **88 plages révisées** ; il propose également une formule pour les concentrations attendues sous dose recommandée. Ce total est celui de la publication, **pas** un nombre de molécules dont nous aurions vérifié les nouvelles plages.
@@ -21,7 +21,7 @@ L’article ne peut être utilisé pour attribuer numériquement une cible avant
 
 `node scripts/report_tdm_agnp_2026.mjs --json`
 
-produit la liste structurée des anciennes références 2018/2020/2025 présentes dans le guide pour **réconciliation primaire**. Chaque fiche concernée présente un avertissement avec source PubMed. Aucune valeur AGNP 2026 n’a été ajoutée automatiquement.
+produit la liste structurée des anciennes références 2018/2020/2025 présentes dans le guide pour **réconciliation primaire**. Chaque fiche concernée présente un avertissement avec source PubMed. Aucune valeur AGNP 2026 n’a été ajoutée automatiquement. **Complément PR #231 :** neuf valeurs ont été transcrites après lecture manuelle du tableau 5, avec indication, analyte et temps, tout en conservant les données historiques. Elles restent **non approuvées pour une interprétation clinique**. Voir [la réconciliation primaire](tdm-agnp-2026-primary-reconciliation-2026-11-11.md).
 
 ### P1 — Proportionnalité dose–AUC
 La relation `AUCτ = F × dose / CL` ne suffit pas à autoriser un calcul posologique individuel. Une preuve d’exposition proportionnelle doit spécifier **la dose/plage, la voie, la formulation, la population, l’état stable ou la dose unique, CL/F et la fraction libre/totale**. Les cas de voriconazole, phénytoïne, valproate et gabapentine démontrent les pièges d’extrapolation.
