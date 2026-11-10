@@ -19,6 +19,15 @@
   let en = $derived($language === 'en');
   let results = $derived(searchTdmMolecules(query));
   let hasQuery = $derived(Boolean(query.trim()));
+  // CHU filter means only "appears in seven reviewed public documents";
+  // it never certifies active internal testing or clinical target endorsement.
+  let onlyChuDocumented = $state(false);
+  let visibleCategories = $derived(onlyChuDocumented
+    ? tdmBrowseCategories.map((category) => ({
+        ...category,
+        medicines: category.medicines.filter((drug) => drug.fromReviewedChuDocuments)
+      })).filter((category) => category.medicines.length > 0)
+    : tdmBrowseCategories);
   let micInput = $state('');
   let micValue = $derived(parseMic(micInput));
 </script>
@@ -61,8 +70,14 @@
       aria-label={en ? 'Browse medicines by category' : 'Explorer les molécules par famille'}>
       <h2>{en ? 'Browse by medicine family' : 'Parcourir par famille de médicaments'}</h2>
       <p>{en ? 'Expand a family, then select a molecule. The presence of a molecule does not imply a validated target or a CHU assay.' : 'Ouvrez une famille puis choisissez une molécule. Sa présence ne signifie pas nécessairement qu’une cible est validée ou qu’un dosage est réalisé au CHU.'}</p>
+      <label class="chu-directory-filter">
+        <input type="checkbox" bind:checked={onlyChuDocumented} data-testid="tdm-chu-directory-filter" />
+        <span>{en
+          ? 'Only names found in the reviewed CHU documents (not proof of currently performed tests)'
+          : 'Uniquement les molécules citées dans les documents publics CHU vérifiés (sans garantie de dosage actuel)'}</span>
+      </label>
       <div class="category-list">
-        {#each tdmBrowseCategories as category (category.id)}
+        {#each visibleCategories as category (category.id)}
           <details class="medicine-family" data-testid="tdm-medicine-family">
             <summary>{en ? category.en : category.fr} <span>{category.medicines.length}</span></summary>
             <div class="family-drugs">
@@ -370,6 +385,9 @@
   .mic-entry input:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
   .mic-help, .mic-error { width: 100%; font-size: .78rem; color: var(--text-secondary); }
   .mic-error { font-weight: 600; }
+  .chu-directory-filter { display: flex; align-items: flex-start; gap: .55rem; margin: .85rem 0; font-size: .83rem; color: var(--text-secondary); line-height: 1.45; cursor: pointer; }
+  .chu-directory-filter input { margin-top: .18rem; accent-color: var(--accent-pk); }
+  .chu-directory-filter input:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 3px; }
   .chu-sampling-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .87rem; }
   .mic-cards { display: flex; flex-direction: column; gap: .65rem; }
   .mic-card .target-number { white-space: normal; }
