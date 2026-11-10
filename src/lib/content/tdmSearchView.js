@@ -6,6 +6,7 @@ import { searchManualCatalog } from './tdmManualCatalog.js';
 import { antibioticPdForDrug } from './tdmAntibioticPd.js';
 import { chuSamplingForDrug } from './tdmChuSampling.js';
 import { tdmEvidenceForDrug } from './tdmEvidenceGuide.js';
+import { tdmSafetySignalsForDrug } from './tdmSafetySignals.js';
 
 export function searchTdmMolecules(query = '') {
   const needle = normalizeTdmSearch(query);
@@ -35,8 +36,8 @@ export function searchTdmMolecules(query = '') {
         indications.get(key).alternatives.push(entry);
       }
     }
-    return { drug, indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
-  }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0);
+    return { drug, indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
+  }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0 || group.safetySignals.length > 0);
 
   const alreadyListed = new Set(groups.map((group) => group.drug.id));
   const withoutTargets = searchManualCatalog({ query }).filter((entry) =>
