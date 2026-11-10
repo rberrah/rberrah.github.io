@@ -472,6 +472,7 @@ test('Beta-lactam PK/PD card separates optimal fT>MIC from practical trough and 
   await expect(pk.getByTestId('tdm-pk-index')).toContainText('fT>CMI');
   await expect(pk.getByTestId('tdm-pk-sample')).toContainText('Cmin');
   await expect(pk.getByTestId('tdm-pk-routes')).toContainText('IV');
+  await expect(pk.getByTestId('tdm-pk-admin-mode')).toContainText('prolongée ou continue');
   await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('Conditionnellement');
   await pk.getByTestId('tdm-pk-details').locator('summary').click();
   await expect(pk.getByText(/La résiduelle libre peut étayer/)).toBeVisible();
@@ -498,6 +499,7 @@ test('Vori and phenytoin show nonlinear dose/AUC and MPA shows AUC preferred ove
   await search.fill('voriconazole');
   await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Non : PK non linéaire');
   await expect(page.getByTestId('tdm-pk-routes')).toContainText('PO · IV');
+  await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('dose de charge');
   await page.getByTestId('tdm-pk-details').locator('summary').click();
   await expect(page.getByText(/2,5 fois/)).toBeVisible();
   await search.fill('phénytoïne');
