@@ -558,3 +558,27 @@ test('Linear PK is formulation- and context-specific: tacrolimus FDA, Neoral FDA
   await page.getByTestId('tdm-pk-details').locator('summary').click();
   await expect(page.getByText(/0,513.*1,43/)).toBeVisible();
 });
+
+
+test('Gabapentin and pregabalin have opposite oral dose proportionality; digoxin needs postdistribution sampling', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('gabapentine');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('absorption orale saturable');
+  await expect(page.getByTestId('tdm-pk-routes')).toContainText('PO');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/≈60 % à 900 mg\/j/)).toBeVisible();
+
+  await search.fill('prégabaline');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('sous conditions');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/biodisponibilité ≥90 % indépendante de la dose/)).toBeVisible();
+
+  await search.fill('lévétiracétam');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('plage étudiée');
+
+  await search.fill('digoxine');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('après distribution');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('≥6 h');
+  await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('biodisponibilité différente');
+});
