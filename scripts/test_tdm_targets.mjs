@@ -71,6 +71,20 @@ assert.equal(searchTdmTargets({ drug: 'mpa', indication: 'kidney' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'vancomycin' }).length, 1);
 assert.equal(searchTdmTargets({ query: 'valproate' }).length, 3);
 assert.equal(searchTdmTargets({ drug: 'linezolid' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'teicoplanin' }).length, 2);
+assert.equal(searchTdmTargets({ query: 'Targocid' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'busulfan' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'clozapine' }).length, 1);
+assert.equal(formatTdmTarget(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a')), '85–95');
+assert.equal(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a').metric, 'AUC cumulée');
+assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-hplc').matrixFr, 'Sérum · HPLC');
+assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-fpia').matrixFr, 'Sérum · FPIA');
+assert.equal(tdmEvidenceForDrug('teicoplanin').byTier[0].id, 'regulatory');
+assert.equal(tdmEvidenceForDrug('busulfan').byTier[0].id, 'society');
+assert.equal(tdmEvidenceForDrug('busulfan').exposure.tagFr, 'AUC cumulée prioritaire');
+for (const [id, category] of [['teicoplanin','antibiotics'],['clozapine','psychotropics'],['busulfan','oncology']]) {
+  assert.ok(tdmBrowseCategories.find((item) => item.id === category).medicines.some((item) => item.id === id));
+}
 assert.equal(searchTdmTargets({ query: 'nonexistent-drug-xyz' }).length, 0);
 
 const renalMpa = tdmTargets.find((item) => item.id === 'mpa-kidney-auc');
@@ -190,18 +204,23 @@ const reviewedNumericClaims = new Map([
   ["lithium-maintenance", ["lithium2019","range",0.6,0.8]],
   ["lithium-nice-first-line", ["lithiumNice","range",0.6,0.8]],
   ["lithium-tolerability", ["lithium2019","range",0.4,0.6]],
-  ["lithium-response", ["lithium2019","range",0.8,1]]
+  ["lithium-response", ["lithium2019","range",0.8,1]],
+  ["teicoplanin-severe-hplc", ["teicoplaninANSM2026","range",15,30]],
+  ["teicoplanin-severe-fpia", ["teicoplaninANSM2026","range",30,40]],
+  ["clozapine-maintenance-reference", ["clozapineRCPA2024","range",350,600]],
+  ["busulfan-iei-protocol-a", ["busulfanEBMT2026","range",85,95]],
+  ["busulfan-iei-protocol-c", ["busulfanEBMT2026","range",60,70]]
 ]);
-assert.equal(reviewedNumericClaims.size, 75);
+assert.equal(reviewedNumericClaims.size, 80);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 25, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 25, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 28, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 28, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 75 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 80 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -266,6 +285,18 @@ const reviewedSourceIdentifiers = {
   "lithium2019": [
     "https://pmc.ncbi.nlm.nih.gov/articles/PMC6688930/",
     "10.1111/bdi.12805"
+  ],
+  "teicoplaninANSM2026": [
+    "https://base-donnees-publique.medicaments.gouv.fr/medicament/64196782/extrait",
+    null
+  ],
+  "clozapineRCPA2024": [
+    "https://www.rcpa.edu.au/Manuals/RCPA-Manual/Pathology-Tests/C/Clozapine",
+    null
+  ],
+  "busulfanEBMT2026": [
+    "https://doi.org/10.1038/s41409-026-02906-0",
+    "10.1038/s41409-026-02906-0"
   ]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
@@ -275,7 +306,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 25 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 28 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
