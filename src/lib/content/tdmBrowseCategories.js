@@ -5,6 +5,7 @@
 import { tdmDrugs } from './tdmTargets.js';
 import { psychiatryTdmDrugs } from './tdmPsychiatryExpansion2026.js';
 import { extraAntidepressantDrugs } from './tdmAntidepressantExpansion2026.js';
+import { additionalAntiseizureDrugs } from './tdmAntiseizureExpansion2018.js';
 import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
 import { tdmManualCatalog } from './tdmManualCatalog.js';
 
@@ -22,7 +23,7 @@ const categoryDefinitions = Object.freeze([
 ]);
 
 const antifungalIds = new Set(['voriconazole', 'posaconazole', 'flucytosine', 'itraconazole']);
-const antiseizureIds = new Set(['valproate','carbamazepine','lamotrigine','oxcarbazepine',
+const antiseizureIds = new Set([...additionalAntiseizureDrugs.map((drug) => drug.id), 'valproate','carbamazepine','lamotrigine','oxcarbazepine',
   'levetiracetam','phenytoin','phenobarbital']);
 const transplantationIds = new Set(['mpa','tac','everolimus','cyclosporine','sirolimus']);
 const cardiologyIds = new Set(['digoxin']);
