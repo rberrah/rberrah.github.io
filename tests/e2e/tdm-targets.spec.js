@@ -179,7 +179,7 @@ test('TB reference concentrations are distinguished from CMI-dependent objective
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
   await expect(page.getByTestId('tdm-target-card').getByText('3–6', { exact: true })).toBeVisible();
   await expect(page.getByTestId('tdm-mic-card')).toHaveCount(0);
-  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveAttribute('href', /DocumentNew.aspx\\?idDoc=41157/);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveAttribute('href', /DocumentNew[.]aspx[?]idDoc=41157/);
   await search.fill('rifampicine');
   await expect(page.getByTestId('tdm-target-card').getByText('8–24', { exact: true })).toBeVisible();
   await expect(page.getByTestId('tdm-target-card').getByText('C₂h (pic approximatif)', { exact: true })).toBeVisible();
