@@ -11,6 +11,7 @@ import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../
 import { tdmSafetySignals, tdmSafetyReferences } from '../src/lib/content/tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from '../src/lib/content/tdmChuAssayProvenance.js';
 import { report as chuCoverage } from './report_tdm_coverage.mjs';
+import { tdmPharmacologyProfiles, tdmPharmacologyForDrug, tdmPharmacologyCoverage, tdmPkReferences } from '../src/lib/content/tdmPharmacologyProfiles.js';
 
 import {
   antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
@@ -19,6 +20,76 @@ import {
 import {
   chuSamplingDocuments, antibioticsWithChuSamplingDocument, chuSamplingForDrug
 } from '../src/lib/content/tdmChuSampling.js';
+
+
+const pkCoverage = tdmPharmacologyCoverage();
+assert.equal(pkCoverage.drugs, 132);
+assert.equal(Object.keys(tdmPharmacologyProfiles).length, tdmDrugs.length,
+  'Every canonical molecule must have a pharmacology record, even when unreviewed');
+assert.deepEqual(new Set(Object.keys(tdmPharmacologyProfiles)), new Set(tdmDrugs.map((d) => d.id)));
+assert.equal(pkCoverage.safe_automatic_scaling_count, 0,
+  'No molecule is allowed to trigger a blind twofold dose scaling');
+assert.ok(pkCoverage.with_index > 40 && pkCoverage.with_index < 132,
+  'Reviewed indices must be useful, but not extrapolated to every drug');
+assert.ok(pkCoverage.with_documented_routes > 20 && pkCoverage.with_documented_routes < 132,
+  'Drug/formulation-specific routes must not be invented for the whole catalogue');
+assert.ok(pkCoverage.with_reviewed_dose_behavior >= 20);
+for (const profile of Object.values(tdmPharmacologyProfiles)) {
+  assert.ok(profile.drug && profile.index && profile.practical && profile.administration && profile.proportionality);
+  assert.equal(profile.proportionality.directRatioPermitted, false);
+  assert.ok(['conditional_linear','nonlinear','complex','unassessed'].includes(profile.proportionality.kind));
+  assert.ok(['unassessed','class_reviewed','drug_reviewed'].includes(profile.review));
+  assert.ok(Array.isArray(profile.administration.codes));
+  assert.equal(new Set(profile.administration.codes).size, profile.administration.codes.length);
+  assert.ok(profile.administration.codes.every((code) => ['PO','IV','IM','INH','SC','TOP'].includes(code)));
+  for (const sourceId of [
+    profile.index.sourceId, profile.practical.sourceId,
+    profile.administration.sourceId, profile.proportionality.sourceId
+  ]) if (sourceId !== null) {
+    assert.ok(tdmPkReferences[sourceId]?.url.startsWith('https://'),
+      'Every populated PK dimension needs a URL source: '+profile.drug+'/'+sourceId);
+  }
+  if (profile.administration.codes.length) {
+    assert.ok(profile.administration.sourceId, 'Documented routes require a source: '+profile.drug);
+    assert.notEqual(profile.administration.scope, 'unreviewed');
+  }
+  if (profile.review === 'unassessed') {
+    assert.equal(profile.index.key, 'unknown');
+    assert.equal(profile.proportionality.kind, 'unassessed');
+  }
+}
+assert.equal(tdmPharmacologyForDrug('nonexistent-drug'), null);
+assert.equal(tdmPharmacologyForDrug('cefepime').index.key, 'fT_MIC');
+assert.equal(tdmPharmacologyForDrug('cefepime').practical.key, 'Cmin_or_Css');
+assert.equal(tdmPharmacologyForDrug('amikacin').index.key, 'AUC_MIC_and_Cmax_MIC');
+assert.equal(tdmPharmacologyForDrug('amikacin').practical.key, 'peak_and_late');
+assert.equal(tdmPharmacologyForDrug('ciprofloxacin').index.key, 'fAUC_MIC');
+assert.equal(tdmPharmacologyForDrug('vancomycin').index.key, 'AUC24_MIC');
+assert.equal(tdmPharmacologyForDrug('vancomycin').practical.key, 'auc_bayesian');
+assert.equal(tdmPharmacologyForDrug('linezolid').index.key, 'AUC_MIC');
+assert.equal(tdmPharmacologyForDrug('teicoplanin').practical.key, 'Cmin');
+assert.equal(tdmPharmacologyForDrug('tac').index.key, 'AUC_interval');
+assert.equal(tdmPharmacologyForDrug('tac').practical.key, 'Cmin');
+assert.equal(tdmPharmacologyForDrug('mpa').index.key, 'AUC_interval');
+assert.equal(tdmPharmacologyForDrug('mpa').proportionality.kind, 'complex');
+assert.equal(tdmPharmacologyForDrug('everolimus').index.key, 'Cmin');
+assert.equal(tdmPharmacologyForDrug('everolimus').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('voriconazole').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('phenytoin').proportionality.kind, 'nonlinear');
+assert.deepEqual(tdmPharmacologyForDrug('voriconazole').administration.codes, ['PO','IV']);
+assert.deepEqual(tdmPharmacologyForDrug('mpa').administration.codes, ['PO','IV']);
+assert.deepEqual(tdmPharmacologyForDrug('amoxicillin').administration.codes, ['PO','IV']);
+assert.equal(tdmPharmacologyForDrug('amoxicillin').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('agomelatine').index.key, 'Cmax_reference');
+assert.equal(tdmPharmacologyForDrug('methotrexate').index.key, 'time_indexed');
+assert.equal(tdmPharmacologyForDrug('busulfan').index.key, 'AUC_cumulative');
+assert.equal(tdmPharmacologyForDrug('ibrutinib').review, 'unassessed');
+assert.equal(tdmPharmacologyForDrug('ibrutinib').administration.codes.length, 0);
+assert.equal(searchTdmMolecules('MPA').groups[0].pharmacology.index.key, 'AUC_interval');
+assert.equal(searchTdmMolecules('cefepime').groups[0].pharmacology.index.key, 'fT_MIC');
+assert.equal(searchTdmMolecules('phenytoin').groups[0].pharmacology.proportionality.kind, 'nonlinear');
+assert.equal(searchTdmMolecules('ibrutinib').withoutTargets[0].pharmacology.review, 'unassessed');
+console.log('TDM PK/PD profiles: 132 covered, class and molecule indices/route sources audited, no automatic dose scaling.');
 
 assert.equal(chuCoverage.curated_drugs, 132);
 assert.equal(chuCoverage.bibliographic_numeric_entries, 131);
