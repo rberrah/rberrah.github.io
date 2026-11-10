@@ -10,6 +10,7 @@ import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryL
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
 import { tdmSafetySignals, tdmSafetyReferences } from '../src/lib/content/tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from '../src/lib/content/tdmChuAssayProvenance.js';
+import { report as chuCoverage } from './report_tdm_coverage.mjs';
 
 import {
   antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
@@ -18,6 +19,18 @@ import {
 import {
   chuSamplingDocuments, antibioticsWithChuSamplingDocument, chuSamplingForDrug
 } from '../src/lib/content/tdmChuSampling.js';
+
+assert.equal(chuCoverage.curated_drugs, 125);
+assert.equal(chuCoverage.bibliographic_numeric_entries, 131);
+assert.equal(chuCoverage.verified_chu_document_names, 74);
+assert.equal(chuCoverage.manual_names_indexed, 74, 'All 74 reviewed CHU document names must remain discoverable');
+assert.equal(chuCoverage.evidence_types.listed_as_dosed_in_protocol, 36);
+assert.equal(chuCoverage.evidence_types.request_form_only, 5);
+assert.equal(chuCoverage.evidence_types.external_referral, 1);
+assert.equal(chuCoverage.all_chu_document_names_indexed, true);
+assert.ok(chuCoverage.scientifically_unresolved_chu_names.every((entry) =>
+  entry.provenance && entry.name), 'Every missing reference must retain CHU-document provenance');
+console.log('CHU TDM documentary coverage: 74/74 names indexed with status and target/missing-target classification.');
 
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
