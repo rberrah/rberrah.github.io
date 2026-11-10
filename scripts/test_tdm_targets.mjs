@@ -91,6 +91,19 @@ assert.equal(tdmPharmacologyForDrug('everolimus').index.key, 'Cmin');
 assert.equal(tdmPharmacologyForDrug('everolimus').proportionality.kind, 'conditional_linear');
 assert.equal(tdmPharmacologyForDrug('voriconazole').proportionality.kind, 'nonlinear');
 assert.equal(tdmPharmacologyForDrug('phenytoin').proportionality.kind, 'nonlinear');
+
+assert.equal(tdmPharmacologyForDrug('gabapentin').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('gabapentin').proportionality.sourceId, 'neurontinFDA');
+assert.match(tdmPharmacologyForDrug('gabapentin').proportionality.noteFr, /absorption|biodisponibilité/);
+assert.equal(tdmPharmacologyForDrug('pregabalin').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('pregabalin').proportionality.sourceId, 'lyricaFDA');
+assert.deepEqual(tdmPharmacologyForDrug('pregabalin').administration.codes, ['PO']);
+assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.sourceId, 'levetiracetamFDA');
+assert.equal(tdmPharmacologyForDrug('digoxin').practical.key, 'post_distribution_or_trough');
+assert.equal(tdmPharmacologyForDrug('digoxin').administration.scope, 'oral_vs_iv_nonbioequivalent');
+assert.match(tdmPharmacologyForDrug('digoxin').practical.noteFr, /6 h après/);
+
 assert.equal(tdmPharmacologyForDrug('valproate').proportionality.kind, 'complex');
 assert.ok(tdmPharmacologyForDrug('valproate').proportionality.noteFr.includes('valproate libre'));
 assert.equal(tdmPharmacologyForDrug('carbamazepine').proportionality.kind, 'complex');
