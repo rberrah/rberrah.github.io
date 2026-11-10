@@ -289,7 +289,7 @@
       : 'Cibles bibliographiques, non protocole posologique. Vérifier indication, matrice et horaire de prélèvement avant toute interprétation.'}</p>
     <details class="institutional-details">
       <summary>{en ? 'Reference policy and scientific societies' : 'Référentiels et sociétés savantes'}</summary>
-      <p>{en ? 'SFT and SFPT references are prioritized when they provide numerical targets. Otherwise, source-linked recommendations and studies are used. The CHU Limoges manual indexes assays, not therapeutic targets.' : 'La SFT et la SFPT sont privilégiées lorsqu’elles publient des valeurs chiffrées. Sinon, les cibles proviennent des recommandations et études explicitement citées. Le manuel du CHU de Limoges recense des examens, pas des cibles thérapeutiques.'}</p>
+      <p>{en ? 'Priority: SFT/SFPT/IATDMCT scientific consensus → ANSM/EMA/FDA product labels → Limoges pharmacology research → other publications. Clinical context and formulation always govern target selection; CHU sampling documents do not define targets.' : 'Priorité : consensus SFT/SFPT/IATDMCT → RCP ANSM/EMA/FDA → publications de pharmacologie du CHU de Limoges → autres études. Les indications et formulations priment sur le rang de la source ; les documents CHU de prélèvement ne définissent pas les cibles.'}</p>
       <ul>
         {#each tdmInstitutionalResources as item (item.id)}
           <li><a href={item.url} target="_blank" rel="noopener noreferrer">{item.organization} · {en ? item.titleEn : item.titleFr}</a></li>
