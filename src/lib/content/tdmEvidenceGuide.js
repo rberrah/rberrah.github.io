@@ -163,7 +163,7 @@ export const exposureMarkerByDrug = Object.freeze({
   }
 });
 
-const societyId = new Set(['itraconazoleIDSA2016','busulfanEBMT2026','everolimus2025','mpa2021','valproateSfpt2010',
+const societyId = new Set(['itraconazoleIDSA2025','itraconazoleIDSA2016','busulfanEBMT2026','everolimus2025','mpa2021','valproateSfpt2010',
   'icuTdm2020','thaiKT2026','vancomycin2020']);
 const regulatoryId = new Set(['teicoplaninANSM2026','valproateRcp','phenytoinFDA','fdaZortress2026']);
 const limogesId = new Set(['mpa2015heart','levetiLimoges2022']);
