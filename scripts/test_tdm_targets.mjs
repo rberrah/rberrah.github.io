@@ -20,7 +20,7 @@ import {
   chuSamplingDocuments, antibioticsWithChuSamplingDocument, chuSamplingForDrug
 } from '../src/lib/content/tdmChuSampling.js';
 
-assert.equal(chuCoverage.curated_drugs, 125);
+assert.equal(chuCoverage.curated_drugs, 132);
 assert.equal(chuCoverage.bibliographic_numeric_entries, 131);
 assert.equal(chuCoverage.verified_chu_document_names, 74);
 assert.equal(chuCoverage.manual_names_indexed, 74, 'All 74 reviewed CHU document names must remain discoverable');
@@ -34,6 +34,7 @@ console.log('CHU TDM documentary coverage: 74/74 names indexed with status and t
 
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
+assert.equal(drugIds.size, tdmDrugs.length, 'Canonical drug identifiers must be unique');
 const validRelations = new Set(['range', 'above', 'approx', 'target', 'at_most']);
 const validStatuses = new Set(['guideline', 'study', 'review', 'regulatory', 'institutional']);
 
@@ -166,6 +167,18 @@ assert.equal(searchManualCatalog({query: 'céfépime'}).length, 1);
 assert.equal(searchManualCatalog({query: 'linézolide'}).length, 1);
 assert.equal(searchManualCatalog({query: 'amitriptyline'}).length, 1);
 assert.equal(searchManualCatalog({query: 'agomelatine'})[0].drugKey, 'agomelatine');
+for (const [name, id] of [
+  ['Amoxapine','amoxapine'],['Iproniazide','iproniazid'],
+  ['Lidocaïne','lidocaine'],['Bupivacaïne','bupivacaine'],
+  ['Ropivacaïne','ropivacaine'],['Mépivacaïne','mepivacaine'],
+  ['Ibrutinib','ibrutinib']
+]) {
+  assert.equal(searchManualCatalog({query: name})[0].drugKey, id,
+    'A CHU-only drug needs a canonical ID even when no numeric target exists');
+  assert.equal(searchTdmMolecules(name).withoutTargets.length, 1,
+    'Unqualified manual evidence must appear without a fabricated target');
+  assert.equal(searchTdmTargets({drug: id}).length, 0);
+}
 assert.equal(searchManualCatalog({query: 'ibrutinib'}).length, 1);
 assert.equal(searchManualCatalog({query: 'tacrolimus'}).length, 1);
 assert.equal(searchManualCatalog({query: 'valproate'}).length, 1);
