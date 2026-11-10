@@ -5,6 +5,7 @@ import { tdmDrugs, tdmTargets, normalizeTdmSearch } from './tdmTargets.js';
 import { searchManualCatalog } from './tdmManualCatalog.js';
 import { antibioticPdForDrug } from './tdmAntibioticPd.js';
 import { chuSamplingForDrug } from './tdmChuSampling.js';
+import { tdmEvidenceForDrug } from './tdmEvidenceGuide.js';
 
 export function searchTdmMolecules(query = '') {
   const needle = normalizeTdmSearch(query);
@@ -34,7 +35,7 @@ export function searchTdmMolecules(query = '') {
         indications.get(key).alternatives.push(entry);
       }
     }
-    return { drug, indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id) };
+    return { drug, indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
   }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0);
 
   const alreadyListed = new Set(groups.map((group) => group.drug.id));
