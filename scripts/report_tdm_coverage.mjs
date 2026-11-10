@@ -9,6 +9,7 @@ import { tdmSafetySignals } from '../src/lib/content/tdmSafetySignals.js';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmPharmacologyCoverage } from '../src/lib/content/tdmPharmacologyProfiles.js';
 import { agnp2026ReviewSummary } from '../src/lib/content/tdmAgnpReview2026.js';
+import { semanticReadinessReport } from './report_tdm_semantic_readiness.mjs';
 
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
 const fixedIds = new Set(tdmTargets.map((row) => row.drug));
@@ -52,6 +53,7 @@ export const report = {
   curated_drugs: uniqueDrugCount,
   pharmacology_evidence_coverage: tdmPharmacologyCoverage(),
   agnp2026_historical_reconciliation: agnp2026ReviewSummary(),
+  structured_scientific_readiness: Object.fromEntries(Object.entries(semanticReadinessReport).filter(([k])=>k!=='claims')),
   complete_institutional_assay_export_available: false,
   human_scientific_approval_of_full_catalogue: false,
   publication_ready_for_automatic_clinical_interpretation: false,
