@@ -41,3 +41,15 @@ Caveats incontournables :
 - Source précisée : tableau 1 pour l'ensemble et rubrique Oxcarbazepine pour MHD.
 - Le sommaire antiépileptique est replié par défaut, comme les autres catégories.
 - Tests de verrouillage des **131** valeurs source/relation/bornes, séparation clobazam/metabolite, S-licarbazépine, unité clonazépam, navigation FR/EN.
+
+## Audit de couverture documentaire CHU automatisable
+
+`node scripts/report_tdm_coverage.mjs` décrit les molécules, les cibles fixes ou liées à la CMI, les signaux de sécurité, et les 74 noms extraits des 7 documents CHU déjà vérifiés.
+
+`node scripts/report_tdm_coverage.mjs --json` produit la matrice complète sur la sortie standard. Aucune donnée patient, aucune requête réseau et aucune nouvelle cible numérique.
+
+Le rapport sépare `listed_as_dosed_in_protocol` (36 antibiotiques), `group_exam_page`, `individual_exam_page`, `request_form_only` (5 immunosuppresseurs) et `external_referral` (ibrutinib).
+
+Important : **74/74 noms documentaires trouvables ≠ 74 tests réalisés en interne ≠ exhaustivité actuelle du laboratoire**. Le script met également en évidence les entrées sans cible bibliographique qualifiée : cette absence ne signifie pas qu'une cible devrait nécessairement exister.
+
+Pour certifier l'exhaustivité : récupérer auprès du laboratoire un export actuel autorisé (identifiant d'examen, analyte, matrice, méthode, statut interne/externalisé, date de mise à jour, URL de fiche), faire une jointure par identifiants et vérifier manuellement les écarts.
