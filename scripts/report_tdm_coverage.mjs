@@ -7,6 +7,8 @@ import { tdmManualCatalog, manualCatalogSources } from '../src/lib/content/tdmMa
 import { antibioticPdTargets } from '../src/lib/content/tdmAntibioticPd.js';
 import { tdmSafetySignals } from '../src/lib/content/tdmSafetySignals.js';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
+import { tdmPharmacologyCoverage } from '../src/lib/content/tdmPharmacologyProfiles.js';
+import { agnp2026ReviewSummary } from '../src/lib/content/tdmAgnpReview2026.js';
 
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
 const fixedIds = new Set(tdmTargets.map((row) => row.drug));
@@ -48,6 +50,11 @@ export const report = {
   schema: 'pmx.tdm.coverage-audit.v1',
   limitation: 'Partial PUBLIC CHU documents (not an authorized complete export or evidence of current test availability)',
   curated_drugs: uniqueDrugCount,
+  pharmacology_evidence_coverage: tdmPharmacologyCoverage(),
+  agnp2026_historical_reconciliation: agnp2026ReviewSummary(),
+  complete_institutional_assay_export_available: false,
+  human_scientific_approval_of_full_catalogue: false,
+  publication_ready_for_automatic_clinical_interpretation: false,
   bibliographic_numeric_entries: tdmTargets.length,
   drugs_with_fixed_reference: fixedIds.size,
   antibiotic_mic_contexts: antibioticPdTargets.length,
