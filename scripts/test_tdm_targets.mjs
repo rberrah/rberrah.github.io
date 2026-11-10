@@ -21,7 +21,7 @@ import {
 
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
-const validRelations = new Set(['range', 'above', 'approx', 'target']);
+const validRelations = new Set(['range', 'above', 'approx', 'target', 'at_most']);
 const validStatuses = new Set(['guideline', 'study', 'review', 'regulatory', 'institutional']);
 
 for (const target of tdmTargets) {
@@ -83,6 +83,13 @@ assert.equal(searchTdmTargets({ drug: 'itraconazole' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'aripiprazole' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'risperidone' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'asenapine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'agomelatine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'bupropion' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'tranylcypromine' }).length, 1);
+assert.equal(formatTdmTarget(tdmTargets.find((row) => row.id === 'ad-tranylcypromine-mdd-extension-2025')), '≤50');
+assert.equal(tdmTargets.find((row) => row.id === 'ad-agomelatine-mdd-extension-2025').metric, 'Cmax à 1–2 h après prise');
+assert.equal(tdmTargets.find((row) => row.id === 'ad-bupropion-hydroxy-mdd-extension-2025').min, 850);
+
 assert.equal(searchTdmTargets({ drug: 'methotrexate' }).length, 0, 'HD-MTX has safety thresholds, not a therapeutic window');
 assert.equal(searchTdmMolecules('méthotrexate').groups[0].safetySignals.length, 4);
 assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length, 1);
@@ -138,6 +145,7 @@ assert.equal(new Set(tdmManualCatalog.map((entry) => entry.id)).size, 74);
 assert.equal(searchManualCatalog({query: 'céfépime'}).length, 1);
 assert.equal(searchManualCatalog({query: 'linézolide'}).length, 1);
 assert.equal(searchManualCatalog({query: 'amitriptyline'}).length, 1);
+assert.equal(searchManualCatalog({query: 'agomelatine'})[0].drugKey, 'agomelatine');
 assert.equal(searchManualCatalog({query: 'ibrutinib'}).length, 1);
 assert.equal(searchManualCatalog({query: 'tacrolimus'}).length, 1);
 assert.equal(searchManualCatalog({query: 'valproate'}).length, 1);
@@ -265,9 +273,18 @@ const reviewedNumericClaims = new Map([
   ["aps-melperone-schizophrenia-2020", ["antipsychoticJoint2020","range",30,100]],
   ["aps-pimozide-schizophrenia-2020", ["antipsychoticJoint2020","range",15,20]],
   ["aps-asenapine-schizophrenia-2020", ["antipsychoticJoint2020","range",1,5]],
-  ["aps-aripiprazole-active-moiety-2020", ["antipsychoticJoint2020","range",150,500]]
+  ["aps-aripiprazole-active-moiety-2020", ["antipsychoticJoint2020","range",150,500]],
+  ["ad-agomelatine-mdd-extension-2025", ["antidepressant2025","range",7,300]],
+  ["ad-trazodone-mdd-extension-2025", ["antidepressant2025","range",700,1000]],
+  ["ad-desvenlafaxine-mdd-extension-2025", ["antidepressant2025","range",85,380]],
+  ["ad-levomilnacipran-mdd-extension-2025", ["antidepressant2025","range",80,120]],
+  ["ad-reboxetine-mdd-extension-2025", ["antidepressant2025","range",60,350]],
+  ["ad-vilazodone-mdd-extension-2025", ["antidepressant2025","range",15,45]],
+  ["ad-bupropion-mdd-extension-2025", ["antidepressant2025","range",10,100]],
+  ["ad-tranylcypromine-mdd-extension-2025", ["antidepressant2025","at_most",50,null]],
+  ["ad-bupropion-hydroxy-mdd-extension-2025", ["antidepressant2025","range",850,1500]]
 ]);
-assert.equal(reviewedNumericClaims.size, 106);
+assert.equal(reviewedNumericClaims.size, 115);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
 assert.equal(Object.keys(tdmTargetSources).length, 32, 'Any new source requires review');
 assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 32, 'Every numeric reference needs a distinct citation label');
@@ -276,7 +293,7 @@ for (const entry of tdmTargets) {
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 106 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 115 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -381,7 +398,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
 console.log('TDM source link integrity: all 32 reviewed URLs and DOI identifiers pinned.');
 
 
-assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
+assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 32);
 assert.ok(tdmTargetSources.antidepressant2025.newerConsensusUrl?.includes('42392224'),
   'Require explicit referral to the newer 2026 AGNP consensus for unresolved updates');
 assert.equal(searchTdmMolecules('ciclosporine').groups[0].indications.length, 6);
