@@ -359,8 +359,8 @@ export const tdmDrugs = [
   { id: 'vancomycin', fr: 'Vancomycine', en: 'Vancomycin', aliases: ['vancomycine', 'vancomycin', 'vanco'] },
   { id: 'valproate', fr: 'Acide valproïque (valproate)', en: 'Valproic acid (valproate)', aliases: ['valproate', 'valproic acid', 'acide valproique', 'acide valproïque', 'Depakine', 'Depakote', 'Depamide'] },
   { id: 'linezolid', fr: 'Linézolide', en: 'Linezolid', aliases: ['linézolide', 'linezolid', 'zyvoxid'] },
-  { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] }
-  ,...additionalTdmDrugs
+  { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] },
+  ...additionalTdmDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
@@ -1572,8 +1572,8 @@ export const tdmTargets = [
     contextFr: 'Option du consensus chez l’adulte en entretien ; discussion clinique requise.',
     contextEn: 'Adult-maintenance consensus alternative; clinical assessment required.',
     evidenceFr: 'Consensus conditionnel ISBD/IGSLI.', evidenceEn: 'Conditional ISBD/IGSLI consensus.'
-  }
-  ,...additionalTdmTargets
+  },
+  ...additionalTdmTargets
 ];
 
 /** @param {unknown} value */
