@@ -3,6 +3,25 @@
 // Reviewed 2026-11-10. See docs/tdm-extension-audit-2026-11-10.md.
 /** @type {Record<string, { title: string, citation: string, url: string, doi?: string, year: number, organization: string, access: 'open_full_text'|'open_abstract', evidenceSection: string, verifiedOn: string, newerConsensusUrl?: string, newerConsensusTitle?: string }>} */
 export const additionalTdmSources = {
+  flucytosineUKHSA: {
+    title: 'UKHSA · National Mycology Reference Laboratory, service user handbook',
+    citation: 'UKHSA · flucytosine',
+    url: 'https://www.gov.uk/government/publications/mycology-reference-laboratory-mrl-service-user-handbook/mycology-reference-laboratory-service-user-handbook',
+    year: 2023, organization: 'UK Health Security Agency · Mycology Reference Laboratory',
+    access: 'open_full_text',
+    evidenceSection: 'Interpretation of assay results, Flucytosine: trough 20–40 mg/L; oral peak 2 h or IV peak 30 min: 50–100 mg/L',
+    verifiedOn: '2026-11-10'
+  },
+  itraconazoleIDSA2016: {
+    title: 'IDSA · Practice Guidelines for the Diagnosis and Management of Aspergillosis (2016)',
+    citation: 'IDSA · aspergillose 2016',
+    url: 'https://www.idsociety.org/practice-guideline/aspergillosis',
+    doi: '10.1093/cid/ciw326',
+    year: 2016, organization: 'Infectious Diseases Society of America',
+    access: 'open_full_text',
+    evidenceSection: 'Triazole Drug Interactions and Therapeutic Drug Monitoring; Itraconazole section: combined itraconazole/hydroxyitraconazole trough >1.5 µg/mL',
+    verifiedOn: '2026-11-10'
+  },
   teicoplaninANSM2026: {
     title: 'ANSM · RCP teicoplanine (mesures résiduelles selon méthode analytique)',
     citation: 'ANSM · téicoplanine RCP',
@@ -36,6 +55,10 @@ export const additionalTdmSources = {
 };
 
 export const additionalTdmDrugs = [
+  { id: 'flucytosine', fr: 'Flucytosine (5-fluorocytosine)', en: 'Flucytosine (5-fluorocytosine)',
+    aliases: ['flucytosine', '5-fluorocytosine', 'ancotil', '5-fc'] },
+  { id: 'itraconazole', fr: 'Itraconazole', en: 'Itraconazole',
+    aliases: ['itraconazole', 'sporanox'] },
   { id: 'teicoplanin', fr: 'Téicoplanine', en: 'Teicoplanin',
     aliases: ['teicoplanine', 'téicoplanine', 'teicoplanin', 'targocid'] },
   { id: 'clozapine', fr: 'Clozapine', en: 'Clozapine',
@@ -45,6 +68,39 @@ export const additionalTdmDrugs = [
 ];
 
 export const additionalTdmTargets = [
+  {
+    id: 'flucytosine-trough-ukhsa', drug: 'flucytosine', indication: 'fungal-infection',
+    indicationFr: 'Infection fongique · prélèvement avant dose', indicationEn: 'Fungal infection · predose sampling',
+    metric: 'C₀', unit: 'mg/L', matrixFr: 'Sérum · flucytosine', matrixEn: 'Serum · flucytosine',
+    relation: 'range', min: 20, max: 40, status: 'institutional', source: 'flucytosineUKHSA',
+    contextFr: 'Référence du laboratoire national britannique UKHSA : prélever immédiatement avant la dose. Les cibles et la sécurité dépendent notamment de la fonction rénale et du schéma thérapeutique. Pas de conversion avec le pic.',
+    contextEn: 'UKHSA national reference laboratory interval: collect immediately before the next dose. Consider renal function and regimen; do not substitute the post-dose peak.',
+    evidenceFr: 'Recommandation institutionnelle UKHSA, intervalle résiduel ; pas un consensus universel.',
+    evidenceEn: 'UKHSA laboratory advice, predose range; not a universal consensus.'
+  },
+  {
+    id: 'flucytosine-peak-ukhsa', drug: 'flucytosine', indication: 'fungal-infection',
+    indicationFr: 'Infection fongique · pic 2 h per os / 30 min IV',
+    indicationEn: 'Fungal infection · peak 2 h oral / 30 min IV',
+    metric: 'Cmax (prélèvement post-dose)', unit: 'mg/L', matrixFr: 'Sérum · flucytosine', matrixEn: 'Serum · flucytosine',
+    relation: 'range', min: 50, max: 100, status: 'institutional', source: 'flucytosineUKHSA',
+    contextFr: 'Référence UKHSA : prélèvement à 2 h après une dose orale ou 30 min après une dose intraveineuse. Le dépassement de 100 mg/L expose à une toxicité ; ne pas appliquer cette fourchette à une C₀.',
+    contextEn: 'UKHSA laboratory: sample 2 hours after oral dosing or 30 minutes after IV dosing. Levels above 100 mg/L may be toxic; this is not a trough target.',
+    evidenceFr: 'Recommandation institutionnelle UKHSA ; timing et voie d’administration requis.',
+    evidenceEn: 'UKHSA laboratory recommendation; timing and route essential.'
+  },
+  {
+    id: 'itraconazole-combined-ia-idsa', drug: 'itraconazole', indication: 'aspergillosis',
+    indicationFr: 'Aspergillose · somme itraconazole + hydroxy-itraconazole',
+    indicationEn: 'Aspergillosis · itraconazole + hydroxy-itraconazole sum',
+    metric: 'C₀ (somme des deux analytes)', unit: 'mg/L',
+    matrixFr: 'Sérum / plasma · itraconazole + hydroxy-itraconazole', matrixEn: 'Serum / plasma · itraconazole + hydroxy-itraconazole',
+    relation: 'above', min: 1.5, max: null, status: 'guideline', source: 'itraconazoleIDSA2016',
+    contextFr: 'IDSA 2016, aspergillose : cible d’efficacité dérivée principalement des données de prophylaxie. Seuil supérieur à 1,5 µg/mL pour la SOMME des deux analytes, soit >1,5 mg/L. Ne pas confondre avec la cible de la molécule mère seule ; formulations et interactions modifient l’exposition.',
+    contextEn: 'IDSA 2016 aspergillosis guidance, largely based on prophylaxis: combined parent + hydroxy-itraconazole trough >1.5 µg/mL (= mg/L). Not applicable to parent-only concentration. Formulation and interactions matter.',
+    evidenceFr: 'IDSA 2016, section Itraconazole et suivi thérapeutique des triazolés ; preuve principalement observationnelle.',
+    evidenceEn: 'IDSA 2016, Itraconazole and azole TDM sections; largely observational evidence.'
+  }
   {
     id: 'teicoplanin-severe-hplc', drug: 'teicoplanin', indication: 'severe-infection',
     indicationFr: 'Endocardite / infection sévère · dosage HPLC',
