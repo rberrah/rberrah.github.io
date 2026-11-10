@@ -4,7 +4,8 @@ import {
   tdmDrugs, tdmTargets, normalizeTdmSearch, searchTdmTargets, formatTdmTarget
 } from '../src/lib/content/tdmTargets.js';
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
-import { searchTdmMolecules } from '../src/lib/content/tdmSearchView.js';
+import { searchTdmMolecules, groupTdmReferenceEntries } from '../src/lib/content/tdmSearchView.js';
+import { agnp2026Update, agnp2026ReviewQueue, agnp2026ReviewSummary, agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
@@ -21,6 +22,61 @@ import {
   chuSamplingDocuments, antibioticsWithChuSamplingDocument, chuSamplingForDrug
 } from '../src/lib/content/tdmChuSampling.js';
 
+
+// Guard against a clinically dangerous alternative: same indication + metric
+// + unit but different analyte, matrix, formulation, assay or sampling time.
+const syntheticTdmBase = {
+  ...tdmTargets.find((row)=>row.id==='mpa-kidney-auc'),
+  indicationFr:'Synthetic clinical label', indicationEn:'Synthetic clinical label',
+  id:'synthetic-parent', matrixFr:'Plasma · parent', matrixEn:'Plasma · parent',
+  analyteId:'parent', analyteBasis:'total', formulationId:'oral_ir',
+  assayMethod:'LC-MS/MS', samplingTime:'C0'
+};
+const syntheticTdmPeer = {...syntheticTdmBase, id:'synthetic-parent-other-paper', source:'mpa2021'};
+const syntheticTdmDimensions = [
+  ['analyteId','hydroxy-metabolite'],
+  ['analyteBasis','free'],
+  ['matrixFr','Sérum · parent'],
+  ['matrixEn','Serum · parent'],
+  ['formulationId','oral_lp'],
+  ['assayMethod','immunoassay'],
+  ['samplingTime','C2'],
+  ['indication','liver'],
+  ['metric','C2'],
+  ['unit','ng/mL']
+];
+assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer]).length,1);
+assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer])[0].alternatives.length,1);
+for (const [dimension,different] of syntheticTdmDimensions) {
+  const groups = groupTdmReferenceEntries([
+    syntheticTdmBase, {...syntheticTdmPeer, [dimension]:different}
+  ]);
+  assert.equal(groups.length,2,
+    'Different '+dimension+' must never appear as silent alternative measurements');
+}
+assert.equal(agnp2026Update.year,2026);
+assert.equal(agnp2026Update.ranges,160);
+assert.equal(agnp2026Update.revisedDrugRanges,88);
+assert.equal(agnp2026ReviewSummary().confirmed_2026_numeric_values,0);
+assert.equal(agnp2026ReviewSummary().automatic_replacements,0);
+assert.ok(agnp2026ReviewQueue.length>=25,'Historical psychiatric/epilepsy audit queue cannot silently shrink');
+for(const entry of agnp2026ReviewQueue) {
+  assert.equal(entry.agnp2026NumericalRangeVerified,false);
+  assert.equal(entry.clinicalInterpretationAllowed,false);
+  assert.ok(entry.historicalReferenceIds.length>0);
+  for(const targetId of entry.historicalReferenceIds) {
+    const target=tdmTargets.find((row)=>row.id===targetId);
+    assert.equal(target.drug,entry.drugId);
+    assert.ok(tdmTargetSources[target.source].year<2026);
+  }
+}
+assert.ok(agnp2026ReviewForDrug('haloperidol')?.historicalReferenceIds.length);
+assert.ok(agnp2026ReviewForDrug('clonazepam')?.historicalReferenceIds.length);
+assert.ok(agnp2026ReviewForDrug('agomelatine')?.historicalReferenceIds.length);
+assert.equal(agnp2026ReviewForDrug('vancomycin'),null);
+assert.ok(searchTdmMolecules('clonazepam').groups[0].agnpReview);
+assert.equal(searchTdmMolecules('vancomycin').groups[0].agnpReview,null);
+console.log('TDM safeguards: analyte and sampling isolation; AGNP 2026 historical review queue without invented numerical updates.');
 
 const pkCoverage = tdmPharmacologyCoverage();
 assert.equal(pkCoverage.drugs, 132);
