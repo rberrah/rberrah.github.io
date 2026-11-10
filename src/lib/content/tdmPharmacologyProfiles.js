@@ -20,6 +20,7 @@ export const tdmPkReferences = Object.freeze({
   mpaDoseNonlinear2026: {citation:'Mohamed et al. · Clinical Pharmacokinetics 2026', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12960313/', section:'Dose Proportionality : β=0,513 (IC90% 0,324–0,702), MMF 250–1000 mg deux fois/jour, n=84 greffés rénaux avec tacrolimus', tier:'other'},
   neoralFDAProportional: {citation:'FDA / DailyMed · Neoral', url:'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=94461af3-11f1-4670-95d4-2965b9538ae3', section:'§12.3 : relation dose-AUC linéaire dans la plage thérapeutique de la formulation microémulsion ; biodisponibilité Neoral ≠ Sandimmune', tier:'regulatory'},
   neoralOralSmPC: {citation:'RCP Neoral solution orale · 2026', url:'https://www.medicines.org.uk/emc/product/5300/smpc', section:'§3 et §4.2 : solution orale microémulsion, mode d’administration', tier:'regulatory'},
+  cyclosporineGuideline2026: {citation:'Recommandations greffe rénale · 2026', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC13624913/', section:'Chapitre 4, §1.2 : surveillance CsA C0 ou C2 ; C2 meilleur corrélat AUC0–4 selon protocole, efficacité comparative non démontrée', tier:'society'},
   neurontinFDA: {citation:'FDA / DailyMed · Neurontin', url:'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=97935fd9-1d4a-43b6-a5d9-de994591187b&type=display', section:'§12.3 : biodisponibilité orale décroissante avec la dose (900 mg/j F ≈60 % ; 2400 mg/j F≈34 %), absorption saturable', tier:'regulatory'},
   pregabalinANSM: {citation:'ANSM · RCP prégabaline · 2026', url:'https://base-donnees-publique.medicaments.gouv.fr/medicament/69656583/extrait', section:'§5.2 : F orale ≥90 % indépendante de la dose, linéarité PK, élimination rénale', tier:'regulatory'},
   lyricaFDA: {citation:'FDA / DailyMed · Lyrica', url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=d4734e7d-5079-455e-8ff5-8f4539c998a9', section:'§12.3 : AUC linéaire 25–300 mg dose unique / 75–900 mg/j doses multiples, formes orales standard', tier:'regulatory'},
@@ -187,11 +188,11 @@ assign(['tac'],{
 assign(['cyclosporine'],{
   index:indexed('AUC_interval','AUC (ou C2 validée selon greffe)','AUC (or validated C2 by transplant)',
     'L’AUC décrit l’exposition ; C2 peut mieux refléter l’absorption que C0 dans certains protocoles, sans être interchangeable universellement.',
-    'AUC captures exposure; C2 may reflect absorption in some protocols but is not universally interchangeable with trough.','tacrolimus2019'),
+    'AUC captures exposure; C2 may reflect absorption in some protocols but is not universally interchangeable with trough.','cyclosporineGuideline2026'),
   practical:routine('Cmin_or_C2','C0 ou C2 selon protocole','Trough or C2 per protocol',
     'Préciser horaire C2 exactement 2 h après prise si utilisé ; modèle et spécialité conditionnent l’interprétation.',
-    'C2 requires accurately documented 2 h postdose time; formulation and model affect interpretation.','tacrolimus2019'),
-  administration:routes(['PO'],'neoralOralSmPC','neoral_microemulsion_oral','Neoral : capsules / solution microémulsion ; ne pas assimiler sans STP à Sandimmune','Neoral microemulsion capsules / solution; do not assume interchangeability with Sandimmune without TDM'),
+    'C2 requires accurately documented 2 h postdose time; formulation and model affect interpretation.','cyclosporineGuideline2026'),
+  administration:routes(['PO'],'neoralFDAProportional','neoral_microemulsion_oral','Neoral : capsules / solution microémulsion ; ne pas assimiler sans STP à Sandimmune','Neoral microemulsion capsules / solution; do not assume interchangeability with Sandimmune without TDM'),
   proportionality:dose('conditional_linear','Linéaire pour Neoral, sous conditions','Linear for Neoral, conditional',
     'FDA Neoral : relation AUC–dose linéaire dans la plage thérapeutique de la formulation microémulsion. Ce résultat ne démontre ni une équivalence avec Sandimmune ni une proportionnalité chez tout patient lorsque F ou CL varie.',
     'FDA Neoral: linear dose–AUC relation within the therapeutic range of the microemulsion formulation. It does not establish interchangeability with Sandimmune or individual proportionality if F or CL changes.','neoralFDAProportional')
