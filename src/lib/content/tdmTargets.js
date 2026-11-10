@@ -130,6 +130,8 @@ export const tdmTargetSources = {
     access: 'open_full_text',
     evidenceSection: "Table 1: national serum reference intervals for anti-seizure medications; Oxcarbazepine section distinguishes MHD",
     verifiedOn: TDM_REFERENCE_REVIEW_DATE,
+    newerConsensusUrl: 'https://pubmed.ncbi.nlm.nih.gov/42392224/',
+    newerConsensusTitle: 'AGNP 2026 · tableau 5 : vérifier les nouvelles plages molécule par molécule'
   },
   phenytoinFDA: {
     title: "FDA / DailyMed · Dilantin-125 prescribing information",
