@@ -313,3 +313,54 @@ test('Itraconazole does not conflate parent-only and parent-plus-metabolite trou
   await expect(combined.getByText(/SOMME des deux analytes/)).toBeVisible();
   await expect(combined.getByRole('link', { name: /DOI/ })).toHaveAttribute('href', /10[.]1093\/cid\/ciw326/);
 });
+
+
+test('Antipsychotics expose older ranges with 2026 update warning and explicit active moieties', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('aripiprazole');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('100–350', { exact: true })).toBeVisible();
+  await expect(page.getByText('150–500', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-historical-warning')).toHaveCount(2);
+  const combined = page.getByTestId('tdm-target-card').filter({ has: page.getByText('150–500', { exact: true }) });
+  await combined.locator('summary').click();
+  await expect(combined.getByText(/déhydroaripiprazole/).first()).toBeVisible();
+  await expect(combined.getByRole('link', { name: /AGNP 2026/ })).toHaveAttribute('href', /42392224/);
+
+  await search.fill('rispéridone');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByText(/9-OH-rispéridone/).first()).toBeVisible();
+});
+
+test('Methotrexate safety signals are time-anchored and never rendered as a therapeutic window', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('méthotrexate');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-timed-safety-section')).toBeVisible();
+  await expect(page.getByTestId('tdm-timed-safety-row')).toHaveCount(4);
+  await expect(page.getByTestId('tdm-timed-safety-row').first()).toContainText('H24');
+  await expect(page.getByTestId('tdm-timed-safety-row').first()).toContainText('>50 µmol/L');
+  await expect(page.getByText(/DÉBUT de la perfusion/)).toBeVisible();
+  await expect(page.getByText(/pas des cibles thérapeutiques/)).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-input')).toHaveCount(0);
+});
+
+test('New antipsychotics and HD-MTX appear in the correct expandable family, without CHU sampling link inventions', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const directory = page.getByTestId('tdm-medicine-directory');
+  const psychiatry = directory.getByTestId('tdm-medicine-family').filter({ hasText: 'Autres psychotropes' });
+  await psychiatry.locator('summary').click();
+  await expect(psychiatry.getByRole('button', { name: 'Halopéridol' })).toBeVisible();
+  await psychiatry.getByRole('button', { name: 'Halopéridol' }).click();
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+  await page.getByTestId('tdm-target-search').clear();
+  const oncology = directory.getByTestId('tdm-medicine-family').filter({ hasText: 'Oncologie' });
+  await oncology.locator('summary').click();
+  await oncology.getByRole('button', { name: 'Méthotrexate (haute dose)' }).click();
+  await expect(page.getByTestId('tdm-timed-safety-row')).toHaveCount(4);
+});
