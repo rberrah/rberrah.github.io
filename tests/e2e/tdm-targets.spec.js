@@ -507,7 +507,7 @@ test('Vori and phenytoin show nonlinear dose/AUC and MPA shows AUC preferred ove
   await search.fill('MPA');
   await expect(page.getByTestId('tdm-pk-index')).toContainText('AUC₀–₁₂');
   await expect(page.getByTestId('tdm-pk-sample')).toContainText('prélèvements limités');
-  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Non garantie');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('sous-proportionnelle');
   await search.fill('évérolimus');
   await expect(page.getByTestId('tdm-pk-index')).toContainText('C0');
   await expect(page.getByTestId('tdm-pk-linearity')).toContainText('linéaire');
@@ -535,4 +535,26 @@ test('PK/PD reference matrix is correctly localised in English', async ({ page }
   await expect(pk.getByText('Documented administration')).toBeVisible();
   await expect(pk.getByText('2× dose → 2× AUC?')).toBeVisible();
   await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('No: nonlinear PK');
+});
+
+
+test('Linear PK is formulation- and context-specific: tacrolimus FDA, Neoral FDA, and sublinear MMF cohort', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('tacrolimus');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('proportionnelle');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/3, 7 et 10 mg PO à jeun/)).toBeVisible();
+  await expect(page.getByText(/ne garantit donc jamais ×2 AUC/)).toBeVisible();
+
+  await search.fill('ciclosporine');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Neoral');
+  await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('microémulsion');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/biodisponibilité Neoral/i).first()).toBeVisible();
+
+  await search.fill('MPA');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('sous-proportionnelle');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/0,513.*1,43/)).toBeVisible();
 });
