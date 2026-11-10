@@ -1,6 +1,6 @@
-# PMx Explain — référentiel bibliographique des cibles TDM (pilote)
+# PMx Explain — référentiel bibliographique des cibles TDM
 
-**Statut au 9 novembre 2026 : PR pilote, revue scientifique de l'auteur en attente.**
+**État au 10 novembre 2026 : référentiel pédagogique enrichi ; approbation clinique humaine des cibles et liens toujours nécessaire.**
 
 ## Périmètre et indépendance
 
@@ -8,16 +8,28 @@ Le guide accessible à `/pharmacometrie/cibles-tdm/` est un index de **référen
 
 L'ajout d'un médicament ne signifie pas que ses cibles sont universelles, valides dans toutes les populations ou transposables à tous les dosages analytiques.
 
-## Doctrine documentaire : priorité SFT / SFPT, sans attribution abusive
+## Hiérarchie de vérification des références (10/11/2026)
 
-**Ordre de recherche prioritaire** : SFT (Société francophone de transplantation) et SFPT (Société française de pharmacologie et de thérapeutique, groupe STP-PT). Si ces sociétés ne proposent pas de **valeur numérique explicite pour le contexte donné**, rechercher l'IATDMCT, les autres sociétés savantes compétentes, une recommandation de pratique clinique avec niveau de preuve, puis des études originales évaluées par des pairs. Le rang institutionnel n'autorise jamais à inventer un chiffre ni à extrapoler un seuil d'un autre organe.
+**Ordre de recherche et de justification**, à appliquer **pour une indication, une formulation, une métrique et une population comparables** :
 
-La priorité SFT/SFPT est **méthodologique**, pas une affirmation qu'elles ont publié toutes les cibles. Exemples vérifiés le 9/11/2026 :
+1. **Sociétés savantes** : SFT, SFPT (STP-PT), IATDMCT, et consensus spécialisés compétents. Ne jamais attribuer à une société une valeur absente de ses publications originales. En particulier, une fiche de la SFT expliquant C₀ ou AUC n’est pas un tableau chiffré de cible.
+2. **Documents réglementaires RCP / SmPC / FDA labels** : ANSM (France), EMA (Europe), FDA (États-Unis). Lier la **formulation exacte**, les rubriques pertinentes et les limites d’indication. Un RCP qui recommande une surveillance C₀ ne démontre **pas** la supériorité clinique de C₀ sur AUC et ne justifie aucune cible AUC numérique non publiée.
+3. **Publications de pharmacologie du CHU de Limoges** : notamment Pierre Marquet, Jean-Baptiste Woillard et Caroline Monchaud, dès lors que l’article primaire est vérifiable. Distinguer une proposition méthodologique ou un résultat exploratoire d’une recommandation clinique validée.
+4. **Autres études, revues, guides et protocoles de centres** : utiliser seulement si contexte, mesure, source et niveau de preuve sont explicites.
 
-- **SFT, fiche pharmacien greffe rénale (2022), pp. 4–5** : recommande la mesure résiduelle des anticalcineurines et des inhibiteurs de la mTOR, et l'AUC 0–12 h du MPA ; ne fournit **pas** les bornes numériques du guide. [PDF officiel](https://www.transplantation-francophone.org/wp-content/uploads/Traitement-immunosuppresseur-en-transplantation-renale-Fiche-pharmacien.pdf).
-- **SFPT, groupe STP-PT** : ressource institutionnelle sur la place du STP, sans tableau de cibles chiffrées sur sa page de présentation. [Page officielle](https://www.sfpt-fr.org/groupes-de-travail/stp-personnalisation-des-traitements).
-- **SFPT, ouvrage de référence 2025** : pertinent pour la relecture experte, mais l'intégralité est payante ; ses chiffres ne doivent pas être cités sans accès au passage précis et possibilité de vérification par l'utilisateur. [Notice SFPT](https://www.sfpt-fr.org/?catid=78&id=2145%3Apublication-du-livre-suivi-th%C3%A9rapeutique-pharmacologique-pour-la-personnalisation-des-traitements-m%C3%A9dicamenteux&view=article).
-- **SFT / IATDMCT** : la page de la SFT cite les consensus spécifiques tacrolimus, MPA et évérolimus. Pour une valeur chiffrée, lier directement l'article de consensus, non cette page générale. [Comité scientifique](https://www.transplantation-francophone.org/partenaires-reseaux/societes-savantes/immunosuppressive-drugs-scientific-committee-iatdmct/).
+La hiérarchie est **documentaire, pas une règle aveugle d’affichage des chiffres**. Une recommandation spécifique, fondée et récente reste prioritaire sur un article exploratoire d’un rang institutionnel plus élevé. Deux intervalles discordants d’indication ou de formulation différentes ne sont jamais fusionnés.
+
+Les liens réglementaires associés au tacrolimus, MMF/MPA, évérolimus, valproate et phénytoïne sont consultables dans **« AUC / C₀ et références complémentaires »**, fermé par défaut. Les liens directs vers l'article justifiant le chiffre restent visibles immédiatement au niveau de la cible. Le sommaire repliable des familles de médicaments apparaît sur la page **avant** la recherche.
+
+### AUC versus concentrations ponctuelles en transplantation
+
+- **Mycophénolate (MPA)** : AUC₀–₁₂ est recommandée comme meilleur indicateur de l’exposition ; C₀ corrèle médiocrement à l’AUC. [Liu et al. 2025, recommandations 2 et 4](https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/), [SFT, fiche pharmacien](https://www.transplantation-francophone.org/wp-content/uploads/Traitement-immunosuppresseur-en-transplantation-renale-Fiche-pharmacien.pdf).
+- **Tacrolimus** : AUC est une mesure plus complète de l’exposition, tandis que C₀ reste la pratique standard recommandée et le proxy le plus utilisé. La stratégie **AUC intermittente + C₀ individualisée** est notamment discutée par [Marquet 2025](https://pubmed.ncbi.nlm.nih.gov/39357034/) et [Woillard, Monchaud et al. 2023](https://pubmed.ncbi.nlm.nih.gov/36508648/). Pas d’essai randomisé démontrant définitivement le bénéfice clinique d’un passage universel à AUC. Les cibles AUC ponctuelles **160/120/80 ng·h/mL** ajoutées pour tacrolimus immédiat correspondent **uniquement** au protocole de transplantation rénale exposé dans le [tableau 1 de van Gelder 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC12122127/), avec ses cibles C₀ correspondantes et co-traitements.
+- **Ciclosporine** : AUC₀–₄ décrit l’absorption et C₂ peut être un meilleur indicateur de cette exposition que C₀, sans démonstration universelle d'une meilleure issue clinique. Le mode de suivi dépend de l’organe et du protocole.
+- **Évérolimus / sirolimus** : AUC quantifie l’exposition totale, **mais** les référentiels cliniques et les RCP disponibles utilisent surtout C₀, en fonction de l’association, de l’organe et de la méthode.
+- **Labels réglementaires vérifiés** : [ANSM Prograf](https://base-donnees-publique.medicaments.gouv.fr/medicament/61217812/extrait), [EMA Envarsus](https://www.ema.europa.eu/en/documents/product-information/envarsus-epar-product-information_en.pdf), [FDA tacrolimus immédiat](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=213f6047-f897-48a7-b78a-45d7124f2f16), [ANSM CellCept](https://base-donnees-publique.medicaments.gouv.fr/medicament/62173094/extrait), [EMA CellCept](https://www.ema.europa.eu/en/documents/product-information/cellcept-epar-product-information_en.pdf), [FDA Zortress](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e082a024-7850-400b-a5c2-2a140612562a). L’ANSM / EMA / FDA ne sont pas présentés comme sources de toutes les cibles AUC de consensus.
+
+**SFPT 2025** : l’ouvrage intégral est commercial, **mais le chapitre valproate 35 (tableau 35.2) est disponible en [extrait de l’éditeur](https://www.elsevier-masson.fr/media/wysiwyg/PDF/FR/9782294787935_valproate_pharm.pdf)** ; les chiffres correspondants sont explicitement attribués à cet extrait, sans qualifier tout le livre de texte libre.
 
 Une publication utilisée comme **preuve numérique** doit fournir : identifiant stable (DOI/PMID ou URL institutionnelle), lien atteignant au minimum un résumé accessible qui contient explicitement la valeur, nom de la section/tableau, vérification d'accès, date de dernière vérification et classification de preuve. Préférer un texte intégral libre. Signaler si le contenu est limité au résumé ; ne pas présenter le full text comme libre s'il ne l'est pas.
 
@@ -32,7 +44,7 @@ Une publication utilisée comme **preuve numérique** doit fournir : identifiant
 
 Un chiffre qui échoue à ces critères doit être **retiré de l'affichage public** jusqu'à clarification. Une valeur avec résumé seul peut être conservée en tant que proposition d'étude identifiée, si le résumé contient le chiffre et ses réserves.
 
-## Table de provenance de la première sélection
+## Table de provenance historique de la première sélection (non exhaustive)
 
 | Molécule | Lignes | Publication et accès à l'assertion | Emplacement |
 | --- | --- | --- | --- |
