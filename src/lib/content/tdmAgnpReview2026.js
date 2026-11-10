@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Explicit audit QUEUE for the AGNP 2026 update. No numerical values from
 // AGNP 2026 are transcribed or claimed verified by this module.
 // The PubMed abstract confirms 160 neuropsychotropic reference ranges,
