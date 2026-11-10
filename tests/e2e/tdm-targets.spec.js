@@ -288,3 +288,27 @@ test('Expanded drugs are discoverable inside existing closed-by-default family b
     await section.locator('summary').click();
   }
 });
+
+
+test('Flucytosine pre-dose and post-dose targets keep their sampling times separate', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('ancotil');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('20–40', { exact: true })).toBeVisible();
+  await expect(page.getByText('50–100', { exact: true })).toBeVisible();
+  const peak = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /pic 2 h per os/ }) });
+  await peak.locator('summary').click();
+  await expect(peak.getByText(/2 h après une dose orale ou 30 min après une dose intraveineuse/)).toBeVisible();
+});
+
+test('Itraconazole does not conflate parent-only and parent-plus-metabolite troughs', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('sporanox');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('>0,5', { exact: true })).toBeVisible();
+  await expect(page.getByText('>1,5', { exact: true })).toBeVisible();
+  const combined = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /somme itraconazole/ }) });
+  await combined.locator('summary').click();
+  await expect(combined.getByText(/SOMME des deux analytes/)).toBeVisible();
+  await expect(combined.getByRole('link', { name: /DOI/ })).toHaveAttribute('href', /10[.]1093\/cid\/ciw326/);
+});
