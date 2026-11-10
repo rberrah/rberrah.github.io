@@ -7,6 +7,7 @@ export const nonStandardTdmDrugs = [
   { id: 'methotrexate', fr: 'Méthotrexate (haute dose)', en: 'High-dose methotrexate',
     aliases: ['methotrexate', 'méthotrexate', 'MTX', 'HDMTX', 'HD-MTX', 'méthotrexatémie'] }
 ];
+/** @type {Record<string, { citation: string, title: string, url: string, evidenceSection: string, year: number, role: string, verifiedOn: string }>} */
 export const tdmSafetyReferences = {
   europeanHdMtx2024: {
     citation: 'Consensus européen HD-MTX · 2024',
@@ -35,6 +36,7 @@ export const tdmSafetySignals = [
     kind: 'glucarpidase_consideration',
     labelFr: 'H48 après début de perfusion', labelEn: '48 h from start of infusion' }
 ];
+/** @param {string} drugId */
 export function tdmSafetySignalsForDrug(drugId) {
   return tdmSafetySignals.filter((signal) => signal.drug === drugId);
 }
