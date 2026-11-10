@@ -144,7 +144,7 @@ test('CMI-aware beta-lactam targets are distinct for intermittent and continuous
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
   await page.getByTestId('tdm-mic-card').first().locator('summary').click();
   await expect(page.getByText(/une fCmin > CMI ne constitue un substitut/i)).toBeVisible();
-  await expect(page.getByText(/ECOFF/)).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-card').first().getByText(/ECOFF/)).toBeVisible();
   await expect(page.getByTestId('tdm-mic-card').first().getByRole('link', { name: /Source PK\/PD originale/ })).toHaveAttribute('href', /beta-lactam-antibiotic-dose-individualization-in-acutely-ill-patients/);
 });
 
