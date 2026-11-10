@@ -8,6 +8,8 @@ import { searchTdmMolecules } from '../src/lib/content/tdmSearchView.js';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
+import { tdmSafetySignals, tdmSafetyReferences } from '../src/lib/content/tdmSafetySignals.js';
+
 import {
   antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
   parseMic, formatMicCalculation, antibioticPdForDrug, antibioticPdReference, antibioticPdSource
@@ -77,6 +79,17 @@ assert.equal(searchTdmTargets({ drug: 'busulfan' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'clozapine' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'flucytosine' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'itraconazole' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'aripiprazole' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'risperidone' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'asenapine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'methotrexate' }).length, 0, 'HD-MTX has safety thresholds, not a therapeutic window');
+assert.equal(searchTdmMolecules('méthotrexate').groups[0].safetySignals.length, 4);
+assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length, 1);
+assert.ok(tdmTargetSources.antipsychoticJoint2020.newerConsensusUrl.includes('42392224'));
+assert.equal(tdmTargets.find((r) => r.id === 'aps-risperidone-schizophrenia-2020').metric, 'C₀ (somme active)');
+assert.equal(tdmTargets.find((r) => r.id === 'aps-flupentixol-schizophrenia-2020').metric, 'C₀ (isomère cis)');
+assert.equal(tdmTargets.find((r) => r.id === 'aps-aripiprazole-active-moiety-2020').min, 150);
+
 assert.equal(searchTdmTargets({ query: 'Sporanox' }).length, 2);
 assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').min, 50);
 assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').metric, 'Cmax (prélèvement post-dose)');
@@ -135,6 +148,15 @@ assert.ok(tdmManualCatalog.filter((entry) => entry.status === 'request_form_only
   manualCatalogSources[entry.sourceId].type === 'request_form'));
 assert.ok(tdmManualCatalog.filter((entry) => !tdmTargets.some((target) => target.drug === entry.drugKey)).length > 20);
 
+
+
+// Time-dependent safety signals MUST NOT become entries in the therapeutic target registry.
+assert.equal(tdmSafetySignals.length, 4);
+assert.ok(tdmSafetySignals.every((item) => !tdmTargets.some((entry) => entry.id === item.id)));
+assert.deepEqual(tdmSafetySignals.map((item) => item.timeHoursAfterInfusionStart), [24,36,42,48]);
+assert.deepEqual(tdmSafetySignals.map((item) => item.value), [50,30,10,5]);
+assert.ok(tdmSafetySignals.every((item) => item.kind === 'glucarpidase_consideration' && item.unit === 'µmol/L'));
+assert.equal(tdmSafetyReferences.europeanHdMtx2024.url, 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11446969/');
 
 const reviewedNumericClaims = new Map([
   ["tac-kidney-early-auc", ["tac2025","target",160,null]],
@@ -220,18 +242,40 @@ const reviewedNumericClaims = new Map([
   ["flucytosine-trough-ukhsa", ["ukhsaMycology","range",20,40]],
   ["flucytosine-peak-ukhsa", ["ukhsaMycology","range",50,100]],
   ["itraconazole-parent-histo-idsa2025", ["itraconazoleIDSA2025","above",1,null]],
-  ["itraconazole-combined-ia-idsa", ["itraconazoleIDSA2016","above",1.5,null]]
+  ["itraconazole-combined-ia-idsa", ["itraconazoleIDSA2016","above",1.5,null]],
+  ["aps-fluphenazine-schizophrenia-2020", ["antipsychoticJoint2020","range",1,10]],
+  ["aps-haloperidol-schizophrenia-2020", ["antipsychoticJoint2020","range",1,10]],
+  ["aps-olanzapine-schizophrenia-2020", ["antipsychoticJoint2020","range",20,80]],
+  ["aps-perazine-schizophrenia-2020", ["antipsychoticJoint2020","range",100,230]],
+  ["aps-perphenazine-schizophrenia-2020", ["antipsychoticJoint2020","range",0.6,2.4]],
+  ["aps-aripiprazole-schizophrenia-2020", ["antipsychoticJoint2020","range",100,350]],
+  ["aps-chlorpromazine-schizophrenia-2020", ["antipsychoticJoint2020","range",30,300]],
+  ["aps-flupentixol-schizophrenia-2020", ["antipsychoticJoint2020","range",0.5,5]],
+  ["aps-paliperidone-schizophrenia-2020", ["antipsychoticJoint2020","range",20,60]],
+  ["aps-quetiapine-schizophrenia-2020", ["antipsychoticJoint2020","range",100,500]],
+  ["aps-risperidone-schizophrenia-2020", ["antipsychoticJoint2020","range",20,60]],
+  ["aps-sertindole-schizophrenia-2020", ["antipsychoticJoint2020","range",50,100]],
+  ["aps-ziprasidone-schizophrenia-2020", ["antipsychoticJoint2020","range",50,200]],
+  ["aps-brexpiprazole-schizophrenia-2020", ["antipsychoticJoint2020","range",40,140]],
+  ["aps-chlorprothixene-schizophrenia-2020", ["antipsychoticJoint2020","range",20,300]],
+  ["aps-iloperidone-schizophrenia-2020", ["antipsychoticJoint2020","range",5,10]],
+  ["aps-loxapine-schizophrenia-2020", ["antipsychoticJoint2020","range",5,10]],
+  ["aps-lurasidone-schizophrenia-2020", ["antipsychoticJoint2020","range",15,40]],
+  ["aps-melperone-schizophrenia-2020", ["antipsychoticJoint2020","range",30,100]],
+  ["aps-pimozide-schizophrenia-2020", ["antipsychoticJoint2020","range",15,20]],
+  ["aps-asenapine-schizophrenia-2020", ["antipsychoticJoint2020","range",1,5]],
+  ["aps-aripiprazole-active-moiety-2020", ["antipsychoticJoint2020","range",150,500]]
 ]);
-assert.equal(reviewedNumericClaims.size, 84);
+assert.equal(reviewedNumericClaims.size, 106);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 31, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 31, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 32, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 32, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 84 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 106 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -320,6 +364,10 @@ const reviewedSourceIdentifiers = {
   "itraconazoleIDSA2025": [
     "https://www.idsociety.org/practice-guideline/histoplasmosis/",
     null
+  ],
+  "antipsychoticJoint2020": [
+    "https://www.psychiatrist.com/pdf/blood-levels-to-optimize-antipsychotic-treatment-in-clinical-practice-a-joint-consensus-statement-of-the-american-society-of-clinical-psychopharmacology-and-the-therapeutic-drug-monitoring-task-force/",
+    "10.4088/JCP.19cs13169"
   ]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
@@ -329,7 +377,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 31 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 32 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
@@ -383,6 +431,9 @@ assert.ok(allGroups.every((group) => group.medicines.length && group.fr && group
 const listedKeys = allGroups.flatMap((group) => group.medicines.map((entry) => entry.id));
 assert.equal(listedKeys.length, new Set(listedKeys).size, 'Each molecule should appear in exactly one category');
 assert.ok(tdmDrugs.every((drug) => listedKeys.includes(drug.id)), 'All searchable drugs need a family');
+assert.ok(tdmBrowseCategories.find((group) => group.id === 'psychotropics').medicines.some((d) => d.id === 'haloperidol'));
+assert.ok(tdmBrowseCategories.find((group) => group.id === 'oncology').medicines.some((d) => d.id === 'methotrexate'));
+
 assert.ok(tdmManualCatalog.every((entry) => listedKeys.includes(entry.drugKey) || listedKeys.includes(entry.id)),
   'All reviewed CHU assay names must be discoverable in the directory');
 assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 37),
