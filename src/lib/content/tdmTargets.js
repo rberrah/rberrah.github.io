@@ -1,3 +1,4 @@
+import { extraAntidepressantDrugs, extraAntidepressantTargets } from './tdmAntidepressantExpansion2026.js';
 import { psychiatryTdmSources, psychiatryTdmDrugs, psychiatryTdmTargets } from './tdmPsychiatryExpansion2026.js';
 import { nonStandardTdmDrugs } from './tdmSafetySignals.js';
 import { additionalTdmDrugs, additionalTdmSources, additionalTdmTargets } from './tdmTargetsAdditions.js';
@@ -365,7 +366,8 @@ export const tdmDrugs = [
   { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] },
   ...additionalTdmDrugs,
   ...psychiatryTdmDrugs,
-  ...nonStandardTdmDrugs
+  ...nonStandardTdmDrugs,
+  ...extraAntidepressantDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
@@ -1579,7 +1581,8 @@ export const tdmTargets = [
     evidenceFr: 'Consensus conditionnel ISBD/IGSLI.', evidenceEn: 'Conditional ISBD/IGSLI consensus.'
   },
   ...additionalTdmTargets,
-  ...psychiatryTdmTargets
+  ...psychiatryTdmTargets,
+  ...extraAntidepressantTargets
 ];
 
 /** @param {unknown} value */
@@ -1626,6 +1629,7 @@ export function formatTdmTarget(entry, lang = 'fr') {
   }
   if (entry.relation === 'target') return value(entry.min);
   if (entry.relation === 'above') return `>${value(entry.min)}`;
+  if (entry.relation === 'at_most') return `≤${value(entry.min)}`;
   if (entry.relation === 'approx') return `≈${value(entry.min)}`;
   throw new Error(`Unknown TDM target relation: ${entry.relation}`);
 }
