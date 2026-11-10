@@ -76,6 +76,14 @@ assert.equal(tdmPharmacologyForDrug('everolimus').index.key, 'Cmin');
 assert.equal(tdmPharmacologyForDrug('everolimus').proportionality.kind, 'conditional_linear');
 assert.equal(tdmPharmacologyForDrug('voriconazole').proportionality.kind, 'nonlinear');
 assert.equal(tdmPharmacologyForDrug('phenytoin').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('valproate').proportionality.kind, 'complex');
+assert.ok(tdmPharmacologyForDrug('valproate').proportionality.noteFr.includes('valproate libre'));
+assert.equal(tdmPharmacologyForDrug('carbamazepine').proportionality.kind, 'complex');
+assert.match(tdmPharmacologyForDrug('carbamazepine').proportionality.noteFr, /auto-induction/);
+assert.equal(tdmPharmacologyForDrug('rifampicin').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('rifampicin').index.key, 'AUC_MIC');
+assert.equal(tdmPharmacologyForDrug('rifampicin').proportionality.sourceId, 'rifampicinPK2016');
+
 assert.deepEqual(tdmPharmacologyForDrug('voriconazole').administration.codes, ['PO','IV']);
 assert.deepEqual(tdmPharmacologyForDrug('mpa').administration.codes, ['PO','IV']);
 assert.deepEqual(tdmPharmacologyForDrug('amoxicillin').administration.codes, ['PO','IV']);
