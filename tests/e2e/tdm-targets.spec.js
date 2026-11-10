@@ -462,3 +462,75 @@ test('CHU documentary filter shows exactly the previously verified names, not la
   await filter.uncheck();
   await expect(families).toHaveCount(9);
 });
+
+
+test('Beta-lactam PK/PD card separates optimal fT>MIC from practical trough and conditional dose linearity', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('cefepime');
+  const pk = page.getByTestId('tdm-pk-summary');
+  await expect(pk).toHaveCount(1);
+  await expect(pk.getByTestId('tdm-pk-index')).toContainText('fT>CMI');
+  await expect(pk.getByTestId('tdm-pk-sample')).toContainText('Cmin');
+  await expect(pk.getByTestId('tdm-pk-routes')).toContainText('IV');
+  await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('Conditionnellement');
+  await pk.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(pk.getByText(/La résiduelle libre peut étayer/)).toBeVisible();
+  await expect(pk.getByText(/AUCτ = F × dose \/ CL/)).toBeVisible();
+  await expect(pk.getByRole('link', {name:/ACCP.*2026/}).first()).toHaveAttribute('href', /PMC13392062/);
+});
+
+test('Vancomycin uses AUC rather than trough-only; aminoglycoside has AUC/peak and safety trough', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('vancomycine');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('AUC₀–₂₄');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('AUC bayésienne');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/résiduel seul déconseillée/)).toBeVisible();
+  await search.fill('amikacine');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('Cmax/CMI');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('Pic post-perfusion');
+});
+
+test('Vori and phenytoin show nonlinear dose/AUC and MPA shows AUC preferred over C0', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('voriconazole');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Non : PK non linéaire');
+  await expect(page.getByTestId('tdm-pk-routes')).toContainText('PO · IV');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/2,5 fois/)).toBeVisible();
+  await search.fill('phénytoïne');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('métabolisme saturable');
+  await search.fill('MPA');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('AUC₀–₁₂');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('prélèvements limités');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Non garantie');
+  await search.fill('évérolimus');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('C0');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('linéaire');
+});
+
+test('CHU-only molecules show unassessed PK/PD without guessed routes or dosing rules', async ({ page }) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('ibrutinib');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-manual-entry')).toContainText('non documentés');
+  await page.getByTestId('tdm-target-search').fill('méthotrexate');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('H24/H36/H42/H48');
+  await expect(page.getByTestId('tdm-pk-routes')).toContainText('IV');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('À documenter');
+});
+
+test('PK/PD reference matrix is correctly localised in English', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('voriconazole');
+  const pk = page.getByTestId('tdm-pk-summary');
+  await expect(pk.getByText('Relevant PK/PD index')).toBeVisible();
+  await expect(pk.getByText('Practical sampling')).toBeVisible();
+  await expect(pk.getByText('Documented administration')).toBeVisible();
+  await expect(pk.getByText('2× dose → 2× AUC?')).toBeVisible();
+  await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('No: nonlinear PK');
+});
