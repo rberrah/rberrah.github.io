@@ -23,7 +23,7 @@ export const betaLactam2026Source = Object.freeze({
   title: 'Consensus Guidance for Beta-Lactam Antibiotic Dose Individualization in Acutely Ill Patients',
   url: 'https://www.idsociety.org/practice-guideline/beta-lactam-antibiotic-dose-individualization-in-acutely-ill-patients/',
   doi: '10.1002/phar.70181',
-  evidenceSection: 'Table 1 and section 3.2 (minimum 100% fT>MIC, conditional/very-low certainty); section 3.3 (MIC, susceptibility breakpoint and ECOFF)',
+  evidenceSection: 'Table 1 and section 3.2 (minimum 100% fT>MIC, conditional/very-low certainty); section 5.3 (MIC, susceptibility breakpoint and ECOFF)',
   scopeFr: 'Patients présentant une affection aiguë ; recommandation conditionnelle, preuves très faibles. Objectif renforcé 100 % fT>4×CMI possible dans certains sites de faible diffusion, pas systématique.',
   scopeEn: 'Acutely ill patients; conditional recommendation, very low certainty. Higher 100% fT>4×MIC may be appropriate at poorly penetrated sites, not routinely.'
 });
@@ -35,7 +35,7 @@ export const prolongedInfusion2023Source = Object.freeze({
   doi: '10.1002/phar.2842',
   evidenceSection: 'Consensus statement V.5 / section 3.5.1: continuous infusion at least 4×MIC at steady state; not an efficacy guarantee',
   scopeFr: 'Perfusion continue ; recommandation de concentration libre au plateau ≥4×CMI, distincte du minimum historique >CMI de 2020.',
-  scopeEn: 'Continuous infusion: unbound steady-state concentration at least 4×MIC; distinct from the older 2020 >MIC baseline.'
+  scopeEn: 'Continuous infusion: unbound steady-state concentration at least 4×MIC; distinct from the older 2020 >MIC baseline. The August 2026 focused update reassessed clinical outcomes of prolonged infusion, without replacing this numeric target.'
 });
 
 export const betaLactamIds = Object.freeze([
@@ -71,7 +71,7 @@ export const antibioticPdTargets = Object.freeze([
       criterionEn: 'Suggested minimum: unbound concentration > MIC for 100% of the interval',
       contextFr: 'Consensus international 2026 : recommandation conditionnelle et certitude des preuves très faible. Une fCmin > CMI ne constitue un substitut que si la résiduelle est réellement le minimum. Pour les isolats sensibles, le consensus privilégie comme CMI de référence la plus grande valeur entre le seuil de sensibilité et l’ECOFF, et non systématiquement la CMI mesurée. Une cible 100 % fT>4×CMI peut être discutée si la diffusion au site infectieux est faible (ex. méningite), mais n’est pas universelle. Vérifier fraction libre et toxicité.',
       contextEn: '2026 international consensus: conditional recommendation, very-low certainty. Unbound trough > MIC is a surrogate only if it is the true interval minimum. For susceptible isolates, the reference MIC is the higher of the susceptibility breakpoint and ECOFF, not necessarily the measured isolate MIC. 100% fT>4×MIC may be appropriate for low tissue penetration (e.g. meningitis), not routinely. Consider free fraction and toxicity.',
-      evidenceSection: 'Table 1 and §3.2, 100% fT>MIC conditional minimum; §3.3 MIC selection; potential 100% fT>4×MIC for poorly penetrated sites',
+      evidenceSection: 'Table 1 and §3.2, 100% fT>MIC conditional minimum; §5.3 MIC selection; potential 100% fT>4×MIC for poorly penetrated sites',
       source: betaLactam2026Source,
       status: 'consensus-class'
     },
