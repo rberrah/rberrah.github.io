@@ -383,7 +383,7 @@ assign(['carbamazepine'],{
     'Clearance increases during therapy; early and post-induction troughs are not directly comparable.','carbamazepineFDA'),
   administration:routes(['PO'],'carbamazepineFDA','tegretol_oral_specific'),
   proportionality:dose('complex','Non stable : auto-induction','Time-dependent: autoinduction',
-    'La carbamazépine induit son propre métabolisme en plusieurs semaines : la relation dose–AUC dépend du temps après initiation/modification de dose.',
+    'La carbamazépine provoque une auto-induction de son métabolisme en plusieurs semaines : la relation dose–AUC dépend du temps après initiation/modification de dose.',
     'Carbamazepine induces its own metabolism over weeks: dose–AUC depends on time since start or adjustment.','carbamazepineFDA')
 },'drug_reviewed');
 assign(['rifampicin'],{
