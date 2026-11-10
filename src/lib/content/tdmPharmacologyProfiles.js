@@ -163,7 +163,7 @@ assign(['mpa'],{
     'C0 de MPA corrèle médiocrement avec AUC ; ne pas substituer directement. Fraction libre en hypoalbuminémie à apprécier.',
     'MPA trough poorly predicts AUC; do not substitute. Consider unbound drug in hypoalbuminaemia.','mycophenolate2025'),
   administration:routes(['PO','IV'],'cellceptEMA','mmf_product_specific','MMF oral ; MMF IV chez l’adulte. L’EC-MPS oral n’est pas une forme IV.','Oral MMF; IV MMF in adults. Oral enteric-coated MPA is not an IV formulation.'),
-  proportionality:dose('complex','Non garantie','Not reliably proportional',
+  proportionality:dose('nonlinear','Non : sous-proportionnelle dans une cohorte','No: subproportional in one cohort',
     'MPA sous MMF : dans 84 greffés rénaux avec tacrolimus (250–1 000 mg ×2/j), la pente log(AUC₀–₁₂)–log(dose) était 0,513 (IC90 % 0,324–0,702). Un doublement de dose correspondait à un facteur d’AUC moyen estimé de 1,43, NON 2 ; estimation de cohorte, jamais prédiction individuelle. Cycle entérohépatique, absorption et albumine restent variables.',
     'MPA under MMF: in 84 kidney recipients with tacrolimus (250–1000 mg twice daily), log(AUC0–12) vs log(dose) slope was 0.513 (90% CI 0.324–0.702). A dose doubling corresponds to an estimated population AUC ratio 1.43, NOT 2; never an individual prediction. Enterohepatic recycling, absorption and albumin vary.','mpaDoseNonlinear2026')
 },'drug_reviewed');
