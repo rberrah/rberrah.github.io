@@ -80,6 +80,9 @@ assert.equal(tdmPharmacologyForDrug('tac').proportionality.sourceId, 'tacrolimus
 assert.match(tdmPharmacologyForDrug('tac').proportionality.noteFr, /3, 7 et 10 mg/);
 assert.equal(tdmPharmacologyForDrug('cyclosporine').proportionality.kind, 'conditional_linear');
 assert.equal(tdmPharmacologyForDrug('cyclosporine').proportionality.sourceId, 'neoralFDAProportional');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').index.sourceId, 'cyclosporineGuideline2026');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').practical.sourceId, 'cyclosporineGuideline2026');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').administration.sourceId, 'neoralFDAProportional');
 assert.match(tdmPharmacologyForDrug('cyclosporine').administration.modeFr, /Neoral/);
 assert.equal(tdmPharmacologyForDrug('mpa').proportionality.sourceId, 'mpaDoseNonlinear2026');
 assert.match(tdmPharmacologyForDrug('mpa').proportionality.noteFr, /0,513/);
