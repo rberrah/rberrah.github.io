@@ -21,6 +21,17 @@ async function downloadSpec(page) {
   return JSON.parse(await readFile(await file.path(), 'utf8'));
 }
 
+test('Home points to the separate, source-backed TDM Guide as well as MIPD Engine', async ({ page }) => {
+  await page.goto('/?lang=fr');
+  await expect(page.locator('.objectives a[href="/cibles-tdm/"]')).toContainText('Consulter les cibles TDM');
+  await expect(page.locator('.objectives a[href="/tdm/"]')).toContainText('Analyser une exposition');
+  if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
+  await page.getByTestId('goal-analyze').locator('summary').click();
+  await expect(page.getByTestId('goal-analyze').getByRole('link', { name: 'Guide des cibles thérapeutiques' })).toHaveAttribute('href', '/cibles-tdm');
+  await page.goto('/?lang=en');
+  await expect(page.locator('.objectives a[href="/cibles-tdm/"]')).toContainText('Browse TDM target references');
+});
+
 test('Explorer exposes six workshops; PK and Advanced have distinct palettes', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   await expect(page.locator('.canvas .node')).toHaveCount(2);

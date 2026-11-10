@@ -37,6 +37,12 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
+      await expect(page.getByTestId('portal-tdm-guide-link'))
+        .toHaveAttribute('href', '/pharmacometrie/cibles-tdm/?lang=en');
+      await expect(page.locator('.pathways').getByRole('link', { name: 'MIPD Engine', exact: true }))
+        .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
+      await expect(page.locator('.pathways').getByText(/In PD\/infectiology, explore exposure, MIC/))
+        .toBeVisible();
       await expect(page.locator('.project-grid h3')).toHaveText(['MIPD Engine', 'Multiomics', 'TacDDI', 'MissedDose']);
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open MIPD Engine' }))
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');

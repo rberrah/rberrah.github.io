@@ -16,6 +16,7 @@
     { icon: FlaskConical, fr: 'Explorer une expérience', en: 'Explore an experiment', href: '/laboratoires/' },
     { icon: Blocks, fr: 'Construire un modèle', en: 'Build a model', href: '/pk/' },
     { icon: ChartNoAxesCombined, fr: 'Analyser une exposition', en: 'Analyze an exposure', href: '/tdm/' },
+    { icon: ChartNoAxesCombined, fr: 'Consulter les cibles TDM', en: 'Browse TDM target references', href: '/cibles-tdm/' },
     { icon: GraduationCap, fr: 'Préparer un cours', en: 'Prepare a lesson', href: '/laboratoires/?lab=distribution&teacher=1&hide=1' },
     { icon: Blocks, fr: 'Explorer l’écosystème', en: 'Explore the ecosystem', href: '/ecosystem/' }
   ];
