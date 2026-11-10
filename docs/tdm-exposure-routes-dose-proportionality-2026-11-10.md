@@ -29,6 +29,9 @@ Une variation de clairance rénale/hépatique, une DDI, une modification aliment
 | Évérolimus | **C0 bien corrélée à l’AUC** | C0 sang total | PO | PK généralement linéaire sous conditions |
 | Voriconazole | **C0 routine** | C0 | PO/IV | **NON**, métabolisme saturable ; 200→300 mg q12h PO ~AUC ×2,5 |
 | Phénytoïne | C0 totale/libre | résiduelle après équilibre | PO dans RCP consulté | **NON**, élimination saturable, +10 % de dose possiblement disproportionné |
+| Valproate | C0 totale ou libre | résiduel et fraction libre si liaison altérée | PO, spécialité Depakote étudiée | **Concentration totale non proportionnelle** par liaison saturable ; libre plus linéaire |
+| Carbamazépine | C0 parent ; 10,11-époxyde selon contexte | résiduel à l’équilibre | PO dans spécialité consultée | **Non stable** : auto-induction de la clairance |
+| Rifampicine | AUC/CMI (et Cmax complémentaire) | AUC par prélèvements horodatés | PO dans études TB | **NON** : extraction saturable et auto-induction, exposition parfois plus que proportionnelle |
 | Agomélatine | **Cmax** de référence historique | pic 1–2 h | voie non vérifiée dans cette fiche | non évalué |
 | Busulfan | **AUC cumulée** | LSS AUC autour des perfusions | IV dans protocole étudié | non évalué |
 | MTX haute dose | **Concentration horodatée** pour élimination retardée | H24/H36/H42/H48 depuis début de perfusion | IV haute dose | non évalué ; aucun seuil assimilé à une cible thérapeutique |
@@ -60,3 +63,8 @@ Les modes d’administration issus d’un **papier de réanimation** sont étiqu
 - Aucun changement au dépôt MIPD Engine ; contrat d’export/consommation pourra réutiliser les mêmes IDs et les sources verrouillées.
 
 **À revoir scientifiquement** : doses et intervalles réellement linéaires par spécialité, routes autorisées pays/formulation, contextes pédiatriques, modalités de perfusion continue, perte de stabilité in vitro et provenance des cibles non numériques. La qualification CI ne tient pas lieu de validation pharmacologique humaine.
+
+### Trois exceptions PK supplémentaires
+- **Valproate** : [FDA / DailyMed Depakote](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=08a65cf4-7749-4ceb-6895-8f4805e2b01f), propriétés PK : les concentrations **totales** augmentent moins que proportionnellement à la dose par saturation de la liaison protéique, tandis que la **fraction libre** se comporte plus linéairement. Une correction automatique fondée sur le valproate total serait trompeuse en hypoalbuminémie.
+- **Carbamazépine** : [Tegretol FDA](https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20234S17LBL.PDF), auto-induction du métabolisme, demi-vie changeante et comportement dépendant de la durée de traitement.
+- **Rifampicine** : [modèle semi-mécaniste, Denti et al.](https://pubmed.ncbi.nlm.nih.gov/26552972/) et [revue STP antituberculeux](https://pmc.ncbi.nlm.nih.gov/articles/PMC7935699/), extraction hépatique saturable **et** auto-induction au fil des jours. Une dose plus forte peut générer une AUC plus que proportionnelle alors que les concentrations diminuent au cours de l’induction.
