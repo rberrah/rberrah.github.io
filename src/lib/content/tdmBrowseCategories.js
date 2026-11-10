@@ -3,6 +3,7 @@
 // selected CHU documents are NOT a complete CHU laboratory export. Every
 // entry remains searchable; lack of a numeric target is shown explicitly.
 import { tdmDrugs } from './tdmTargets.js';
+import { psychiatryTdmDrugs } from './tdmPsychiatryExpansion2026.js';
 import { tdmManualCatalog } from './tdmManualCatalog.js';
 
 const categoryDefinitions = Object.freeze([
@@ -23,9 +24,9 @@ const antiseizureIds = new Set(['valproate','carbamazepine','lamotrigine','oxcar
   'levetiracetam','phenytoin','phenobarbital']);
 const transplantationIds = new Set(['mpa','tac','everolimus','cyclosporine','sirolimus']);
 const cardiologyIds = new Set(['digoxin']);
-const psychotropicIds = new Set(['lithium','clozapine']);
+const psychotropicIds = new Set(['lithium', 'clozapine', ...psychiatryTdmDrugs.map((drug) => drug.id)]);
 const additionalAntibioticIds = new Set(['teicoplanin']);
-const oncologyIds = new Set(['busulfan']);
+const oncologyIds = new Set(['busulfan', 'methotrexate']);
 const manualFamilyCategories = {
   antibiotics: 'antibiotics',
   antidepressants: 'antidepressants',
@@ -41,6 +42,15 @@ for (const exam of tdmManualCatalog) {
 }
 
 const classified = new Map(categoryDefinitions.map((category) => [category.id, new Map()]));
+// Being named in a CHU document does not always mean a local assay is performed.
+const chuEvidenceStatus = (entry) => {
+  if (!entry) return 'not_documented';
+  if (entry.status === 'request_form_only') return 'request_form_only';
+  if (entry.status === 'outsourced_exam') return 'external_referral';
+  if (entry.sourceId === 'antimicrobialProtocol') return 'listed_as_dosed';
+  if (['single_exam', 'group_exam', 'named_in_document'].includes(entry.status)) return 'exam_document';
+  return 'not_documented';
+};
 const categoryFor = (drug, entry) => {
   if (transplantationIds.has(drug.id)) return 'immunosuppressants';
   if (antiseizureIds.has(drug.id)) return 'antiseizure';
@@ -57,7 +67,7 @@ for (const drug of tdmDrugs) {
   const group = categoryFor(drug, exam);
   classified.get(group).set(drug.id, {
     id: drug.id, fr: drug.fr, en: drug.en, query: drug.fr,
-    fromReviewedChuDocuments: Boolean(exam)
+    fromReviewedChuDocuments: Boolean(exam), chuEvidenceStatus: chuEvidenceStatus(exam)
   });
 }
 for (const exam of tdmManualCatalog) {
@@ -65,7 +75,7 @@ for (const exam of tdmManualCatalog) {
   const group = manualFamilyCategories[exam.family] || 'other';
   classified.get(group).set(exam.id, {
     id: exam.id, fr: exam.name, en: exam.name, query: exam.name,
-    fromReviewedChuDocuments: true
+    fromReviewedChuDocuments: true, chuEvidenceStatus: chuEvidenceStatus(exam)
   });
 }
 
