@@ -400,3 +400,46 @@ test('Bupropion parent and hydroxybupropion remain two distinct analytes; upper-
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
   await expect(page.getByText('≤50', { exact: true })).toBeVisible();
 });
+
+
+test('Antiseizure extension keeps clobazam parent and active metabolite distinct', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('clobazam');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('0,03–0,3', { exact: true })).toBeVisible();
+  await expect(page.getByText('0,3–3', { exact: true })).toBeVisible();
+  const metabolite = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /N-desméthylclobazam/ }) });
+  await metabolite.locator('summary').click();
+  await expect(metabolite.getByText(/CYP2C19/)).toBeVisible();
+});
+
+test('Historical Norwegian AED ranges and analytes are individually discoverable', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('eslicarbazepine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('3–26', { exact: true })).toBeVisible();
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByText(/S-licarbazepine/).first()).toBeVisible();
+
+  await search.fill('clonazepam');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('13–38', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card')).toContainText('ng/mL');
+
+  await search.fill('topiramate');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('2–10', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+});
+
+test('New AED molecules appear under antiseizure collapsible family, not antidepressants', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const group = page.getByTestId('tdm-medicine-family').filter({ hasText: 'Antiépileptiques' });
+  await group.locator('summary').click();
+  await expect(group.getByRole('button', { name: 'Brivaracétam' })).toBeVisible();
+  await expect(group.getByRole('button', { name: 'Topiramate' })).toBeVisible();
+  await expect(group.getByRole('button', { name: 'Lacosamide' })).toBeVisible();
+});
