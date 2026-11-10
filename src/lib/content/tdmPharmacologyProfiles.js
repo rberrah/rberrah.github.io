@@ -44,8 +44,8 @@ const dose = (kind, fr, en, noteFr, noteEn, sourceId = null) =>
   ({kind, fr, en, noteFr, noteEn, sourceId, directRatioPermitted: false});
 // Only studied/administered routes, NOT an exhaustive national marketing-authorisation list.
 // routeScope explicitly distinguishes route in an ICU PK/PD paper from an authorised SmPC.
-const routes = (codes, sourceId, scope = 'documented_context') =>
-  ({codes, sourceId, scope});
+const routes = (codes, sourceId, scope = 'documented_context', modeFr = null, modeEn = null) =>
+  ({codes, sourceId, scope, modeFr, modeEn});
 const unknownIndex = indexed('unknown','Non établi','Not established',
   'Aucun indice dominant n’a été évalué pour cette entrée : la présence dans le répertoire ne vaut pas validation PK/PD.',
   'No dominant index has been assessed for this entry; listing is not PK/PD validation.',null);
@@ -80,7 +80,7 @@ assign(betaLactamIds,{
   practical: routine('Cmin_or_Css','Cmin (intermittent) ou Css (continu)','Trough (intermittent) or Css (continuous)',
     'La résiduelle libre peut étayer 100 % fT>CMI lorsque le schéma est intermittent ; en perfusion continue, une Css libre au plateau est plus directement interprétable. Dose de charge, stabilité chimique et site doivent être vérifiés.',
     'Free trough supports 100% fT>MIC with intermittent dosing; unbound steady-state Css is more direct for continuous infusion. Check loading, stability and site.','beta2026'),
-  administration: routes(['IV'],'beta2026','studied_systemic_infusion'),
+  administration: routes(['IV'],'beta2026','studied_systemic_infusion','Intermittente, prolongée ou continue selon stabilité et protocole','Intermittent, extended or continuous infusion subject to product stability and protocol'),
   proportionality: conditionallyLinear
 });
 assign(aminoglycosideIds,{
@@ -90,7 +90,7 @@ assign(aminoglycosideIds,{
   practical: routine('peak_and_late','Pic post-perfusion + prélèvement tardif','Post-infusion peak + later sample',
     'Pic prélevé selon la durée d’infusion, deuxième prélèvement informatif pour estimer l’AUC ; la résiduelle sert à la sécurité.',
     'Post-infusion peak plus an informative late sample for AUC; trough for safety.','antibacterial2020'),
-  administration: routes(['IV'],'antibacterial2020','studied_systemic_infusion'),
+  administration: routes(['IV'],'antibacterial2020','studied_systemic_infusion','Perfusion IV et intervalle espacé dans les schémas étudiés','IV infusion with extended dosing intervals in studied regimens'),
   proportionality: dose('conditional_linear','Conditionnellement proportionnelle','Conditionally proportional',
     'Élimination principalement rénale : AUC proportionnelle à la dose seulement si clairance, volume et fonction rénale restent stables ; en soins intensifs cela doit être réévalué.',
     'Predominantly renal clearance: AUC scaling assumes stable clearance and renal function; reassess during critical illness.','antibacterial2020')
@@ -134,7 +134,7 @@ assign(['vancomycin'],{
   practical:routine('auc_bayesian','AUC bayésienne (1–2 prélèvements)','Bayesian AUC (1–2 samples)',
     'Prélèvements horodatés avec modèle, idéalement post-distribution et résiduel ; cible 15–20 mg/L en résiduel seul déconseillée pour SARM invasif.',
     'Timed samples, preferably postdistribution and trough; trough-only 15–20 mg/L not recommended in invasive MRSA.','vancomycin2020'),
-  administration:routes(['IV'],'vancomycin2020','serious_systemic_mrsa'),
+  administration:routes(['IV'],'vancomycin2020','serious_systemic_mrsa','Perfusion IV intermittente ou continue ; suivi d’AUC adapté','Intermittent or continuous IV infusion with corresponding AUC monitoring'),
   proportionality:dose('conditional_linear','Conditionnellement proportionnelle','Conditionally proportional',
     'L’AUC dépend surtout de la clairance rénale : un rapport de dose n’est envisageable que si fonction rénale et régime sont stables ; ne pas appliquer avec insuffisance rénale aiguë.',
     'Exposure depends strongly on renal clearance; a simple ratio assumes stable renal function and regimen, never acute kidney injury.','vancomycin2020')
@@ -158,7 +158,7 @@ assign(['mpa'],{
   practical:routine('limited_sampling_auc','AUC par stratégie de prélèvements limités','Limited-sampling estimated AUC',
     'C0 de MPA corrèle médiocrement avec AUC ; ne pas substituer directement. Fraction libre en hypoalbuminémie à apprécier.',
     'MPA trough poorly predicts AUC; do not substitute. Consider unbound drug in hypoalbuminaemia.','mycophenolate2025'),
-  administration:routes(['PO','IV'],'cellceptEMA','mmf_product_specific'),
+  administration:routes(['PO','IV'],'cellceptEMA','mmf_product_specific','MMF oral ; MMF IV chez l’adulte. L’EC-MPS oral n’est pas une forme IV.','Oral MMF; IV MMF in adults. Oral enteric-coated MPA is not an IV formulation.'),
   proportionality:dose('complex','Non garantie','Not reliably proportional',
     'MPA : cycle entérohépatique, variations de biodisponibilité, albumine/MPAG et co-traitements. La relation AUC/dose doit être évaluée pour formulation et patient.',
     'MPA: enterohepatic recirculation, bioavailability, albumin/MPAG and interacting immunosuppressants; verify patient- and formulation-specific exposure.','mycophenolate2025')
@@ -170,7 +170,7 @@ assign(['tac'],{
   practical:routine('Cmin','C0 en routine ; AUC si pertinente','Routine trough; AUC when indicated',
     'C0 sang total à l’horaire adapté (LI versus LP) ; AUC/LSS en cas de discordance, interaction ou question pharmacométrique.',
     'Whole-blood trough at formulation-appropriate timing (IR vs prolonged release); AUC/LSS for discordance, interactions or selected questions.','tacrolimus2019'),
-  administration:routes(['PO','IV'],'tacrolimusSmPC','tacrolimus_formulation_specific'),
+  administration:routes(['PO','IV'],'tacrolimusSmPC','tacrolimus_formulation_specific','Voie orale à libération immédiate ou prolongée selon spécialité ; IV en perfusion encadrée','Immediate- or prolonged-release oral forms by product; controlled IV infusion'),
   proportionality:dose('complex','Non garantie sans réévaluation','Not guaranteed without reassessment',
     'CYP3A4/5, hématocrite, interactions, aliments et formulation influencent la dose–exposition ; un doublement arithmétique de dose n’est pas une règle validée.',
     'CYP3A4/5, haematocrit, interactions, food and formulation affect exposure; do not presume dose doubling doubles AUC.','tacrolimus2019')
@@ -204,7 +204,7 @@ assign(['sirolimus'],{
   practical:routine('Cmin','C0 à l’équilibre','Steady-state trough',
     'Demi-vie longue ; attendre l’équilibre et distinguer changement de formulation/comprimé/solution.',
     'Long half-life; allow steady state and distinguish formulation changes.','sirolimusEMA'),
-  administration:routes(['PO'],'sirolimusEMA','product_authorised'),
+  administration:routes(['PO'],'sirolimusEMA','product_authorised','Solution orale et comprimés : exposition pas toujours équivalente sans STP','Oral solution and tablets: exposure may differ after formulation switch'),
   proportionality:dose('complex','Non garantie selon formulation','Not guaranteed across formulations',
     'La biodisponibilité diffère entre solution et comprimés, et dépend des interactions CYP3A/P-gp. Même dose ne garantit pas même AUC après changement de formulation.',
     'Bioavailability differs between oral solution and tablets; CYP3A/P-gp interactions. Same dose across formulations does not guarantee the same AUC.','sirolimusEMA')
@@ -218,7 +218,7 @@ assign(['voriconazole'],{
   practical:routine('Cmin','C0 avant prise suivante','Predose trough',
     'Horodatage et interaction CYP2C19/CYP3A ; réévaluation après changement de dose ou de traitement.',
     'Time-stamped sample, CYP2C19/CYP3A interactions; reassess after dose or medication changes.','antibacterial2020'),
-  administration:routes(['PO','IV'],'voriconazoleEMA','product_authorised'),
+  administration:routes(['PO','IV'],'voriconazoleEMA','product_authorised','Formes orale et IV avec dose de charge selon schéma, sans règle de conversion automatique','Oral and IV formulations with regimen-specific loading; no automatic conversion'),
   proportionality:dose('nonlinear','Non : PK non linéaire','No: nonlinear PK',
     'Saturation du métabolisme (RCP ANSM) : passer de 200 à 300 mg PO deux fois/jour augmente en moyenne l’AUCτ d’environ 2,5 fois, pas 1,5 fois.',
     'Metabolic saturation (French SmPC): 200 to 300 mg PO twice daily raises mean AUCτ about 2.5-fold, not 1.5-fold.','voriconazoleRcp')
@@ -286,7 +286,7 @@ assign(['busulfan'],{
   practical:routine('limited_sampling_auc','AUC par prélèvements horodatés','AUC from timed PK sampling',
     'Les concentrations et temps exacts après perfusion sont nécessaires à l’estimation et au cumul du schéma.',
     'Timed concentrations around infusions are required to estimate and sum regimen exposure.','busulfan2026'),
-  administration:routes(['IV'],'busulfan2026','conditioning_iv_protocol'),
+  administration:routes(['IV'],'busulfan2026','conditioning_iv_protocol','Conditionnement IV étudié ; calcul d’AUC cumulée sur toutes les doses du schéma','Studied IV conditioning regimen; cumulative AUC across all scheduled doses'),
   proportionality:unknownDose
 },'drug_reviewed');
 assign(['methotrexate'],{
@@ -296,7 +296,7 @@ assign(['methotrexate'],{
   practical:routine('timed_concentration','Série de prélèvements horodatés','Series of time-stamped levels',
     'Interpréter avec fonction rénale, leucovorine, protocole et éventuelle interférence analytique après glucarpidase.',
     'Interpret with renal function, rescue regimen, protocol and possible post-glucarpidase assay interference.','hdMtx2024'),
-  administration:routes(['IV'],'hdMtx2024','hdmtx_infusion_only'),
+  administration:routes(['IV'],'hdMtx2024','hdmtx_infusion_only','Perfusion IV haute dose : temps calculés depuis le début de la perfusion','High-dose IV infusion: sample times measured from infusion start'),
   proportionality:unknownDose
 },'drug_reviewed');
 
@@ -406,7 +406,7 @@ assign(['amoxicillin'],{
     'RCP Clamoxyl : AUC/Cmax dose-proportionnelles après 250–3000 mg per os, chez volontaires ; cela ne démontre pas l’équivalence dose PO/IV ni la stabilité du CL en réanimation.',
     'Clamoxyl SmPC: oral AUC/Cmax dose proportional within 250–3000 mg in the studied setting; does not prove PO/IV interchangeability or stable CL in ICU.','amoxicillinANSM')
 },'drug_reviewed');
-assign(['sirolimus'],{administration:routes(['PO'],'sirolimusEMA','product_authorised')},'drug_reviewed');
+assign(['sirolimus'],{administration:routes(['PO'],'sirolimusEMA','product_authorised','Solution orale et comprimés : exposition pas toujours équivalente sans STP','Oral solution and tablets: exposure may differ after formulation switch')},'drug_reviewed');
 
 export const tdmPharmacologyProfiles = Object.freeze(allProfiles);
 export function tdmPharmacologyForDrug(id) {
