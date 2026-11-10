@@ -1,9 +1,10 @@
+import { additionalTdmDrugs, additionalTdmSources, additionalTdmTargets } from './tdmTargetsAdditions.js';
 // Curated bibliographic targets for the PMx Explain educational reference.
 // This catalogue is deliberately separate from the executable MIPD-Engine model library.
 // Scientific author review: PENDING. Do not use as a clinical dosing protocol.
 // The numeric source must contain the numeric claim itself, not merely discuss TDM.
 // Access means the claim is visible in full text or an open bibliographic abstract.
-export const TDM_REFERENCE_REVIEW_DATE = '2026-11-09';
+export const TDM_REFERENCE_REVIEW_DATE = '2026-11-10';
 export const tdmInstitutionalResources = [
   {
     id: 'sfpt-stp',
@@ -279,7 +280,8 @@ export const tdmTargetSources = {
     year: 2019, organization: 'ISBD / IGSLI expert task force',
     access: 'open_full_text', evidenceSection: 'Table 5 and conclusion (adult maintenance, 12 ± 1 h samples)',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
-  }
+  },
+  ...additionalTdmSources
 };
 
 export const tdmDrugs = [
@@ -358,6 +360,7 @@ export const tdmDrugs = [
   { id: 'valproate', fr: 'Acide valproïque (valproate)', en: 'Valproic acid (valproate)', aliases: ['valproate', 'valproic acid', 'acide valproique', 'acide valproïque', 'Depakine', 'Depakote', 'Depamide'] },
   { id: 'linezolid', fr: 'Linézolide', en: 'Linezolid', aliases: ['linézolide', 'linezolid', 'zyvoxid'] },
   { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] }
+  ,...additionalTdmDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
@@ -1570,6 +1573,7 @@ export const tdmTargets = [
     contextEn: 'Adult-maintenance consensus alternative; clinical assessment required.',
     evidenceFr: 'Consensus conditionnel ISBD/IGSLI.', evidenceEn: 'Conditional ISBD/IGSLI consensus.'
   }
+  ,...additionalTdmTargets
 ];
 
 /** @param {unknown} value */
