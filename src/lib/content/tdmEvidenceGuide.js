@@ -181,6 +181,13 @@ export function tdmEvidenceForDrug(drugId) {
       seen.add(paper.url);
       return true;
     });
+    if (id === 'regulatory') {
+      const rankAuthority = (paper) => {
+        const name = (paper.citation || '') + ' ' + (paper.organization || '');
+        return /ANSM/i.test(name) ? 0 : /EMA/i.test(name) ? 1 : /FDA/i.test(name) ? 2 : 3;
+      };
+      uniquePapers.sort((a, b) => rankAuthority(a) - rankAuthority(b));
+    }
     return { id, fr, en, papers: uniquePapers };
   }).filter((entry) => entry.papers.length);
   return { exposure: exposureMarkerByDrug[drugId] || null, byTier };
