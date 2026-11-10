@@ -20,6 +20,11 @@ export const tdmPkReferences = Object.freeze({
   mpaDoseNonlinear2026: {citation:'Mohamed et al. · Clinical Pharmacokinetics 2026', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12960313/', section:'Dose Proportionality : β=0,513 (IC90% 0,324–0,702), MMF 250–1000 mg deux fois/jour, n=84 greffés rénaux avec tacrolimus', tier:'other'},
   neoralFDAProportional: {citation:'FDA / DailyMed · Neoral', url:'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=94461af3-11f1-4670-95d4-2965b9538ae3', section:'§12.3 : relation dose-AUC linéaire dans la plage thérapeutique de la formulation microémulsion ; biodisponibilité Neoral ≠ Sandimmune', tier:'regulatory'},
   neoralOralSmPC: {citation:'RCP Neoral solution orale · 2026', url:'https://www.medicines.org.uk/emc/product/5300/smpc', section:'§3 et §4.2 : solution orale microémulsion, mode d’administration', tier:'regulatory'},
+  neurontinFDA: {citation:'FDA / DailyMed · Neurontin', url:'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=97935fd9-1d4a-43b6-a5d9-de994591187b&type=display', section:'§12.3 : biodisponibilité orale décroissante avec la dose (900 mg/j F ≈60 % ; 2400 mg/j F≈34 %), absorption saturable', tier:'regulatory'},
+  pregabalinANSM: {citation:'ANSM · RCP prégabaline · 2026', url:'https://base-donnees-publique.medicaments.gouv.fr/medicament/69656583/extrait', section:'§5.2 : F orale ≥90 % indépendante de la dose, linéarité PK, élimination rénale', tier:'regulatory'},
+  lyricaFDA: {citation:'FDA / DailyMed · Lyrica', url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=d4734e7d-5079-455e-8ff5-8f4539c998a9', section:'§12.3 : AUC linéaire 25–300 mg dose unique / 75–900 mg/j doses multiples, formes orales standard', tier:'regulatory'},
+  levetiracetamFDA: {citation:'FDA / DailyMed · lévétiracétam', url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0a987d59-560f-4650-96ec-31aec81953b5', section:'§12.3 : PK linéaire de 500 à 5000 mg, F orale ~100 %, comprimé / solution', tier:'regulatory'},
+  digoxinFDA: {citation:'FDA / DailyMed · digoxine', url:'https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=42d079a7-def1-4220-b71f-db2651966ffe&type=display', section:'§2.5–2.6 : résiduelle ou ≥6 h après dernière dose, PO/IV biodisponibilités distinctes', tier:'regulatory'},
   everolimus2016: {citation:'IATDMCT évérolimus · 2016', url:'https://pubmed.ncbi.nlm.nih.gov/26982492/', section:'C0 sang total, relation AUC et PK approximativement linéaire', tier:'society'},
   sirolimusEMA: {citation:'EMA · Rapamune', url:'https://www.ema.europa.eu/en/medicines/human/EPAR/rapamune', section:'Présentation orale, comprimé et solution buvable', tier:'regulatory'},
   cellceptEMA: {citation:'EMA · CellCept', url:'https://www.ema.europa.eu/en/medicines/human/EPAR/cellcept', section:'Gélule, comprimé, solution orale ; perfusion IV adulte', tier:'regulatory'},
@@ -403,6 +408,58 @@ assign(['rifampicin'],{
   proportionality:dose('nonlinear','Non : auto-induction et saturation','No: autoinduction and saturation',
     'Une hausse de dose peut augmenter l’AUC de façon plus que proportionnelle ; la clairance augmente aussi au fil des jours par auto-induction. Résultats dépendants de la dose et du temps.',
     'Dose escalation can increase AUC more than proportionally while clearance also rises over days through autoinduction. Response is dose- and time-dependent.','rifampicinPK2016')
+},'drug_reviewed');
+
+// Epilepsy/pain counterexample: gabapentin has saturable ORAL uptake, unlike
+// near-completely absorbed, dose-proportional pregabalin. This is not an
+// inference from one to the other, and these are not automatic dosing rules.
+assign(['gabapentin'],{
+  index:indexed('Cmin_reference','C0 de référence (indication à préciser)','Reference trough (indication-specific)',
+    'La concentration résiduelle sérique possède des intervalles historiques en épilepsie ; elle n’est pas un indice universel de réponse pour toute douleur neuropathique.',
+    'Serum trough ranges are historical in epilepsy; not a universal efficacy index for every neuropathic pain indication.','epilepsy2018'),
+  practical:routine('Cmin','C0 pré-dose, horaires à préciser','Predose trough, specify time',
+    'Interpréter avec formulation, délai, fonction rénale et indication ; ne pas substituer une valeur de pic.',
+    'Interpret with formulation, timing, kidney function and indication; do not substitute a peak.','epilepsy2018'),
+  administration:routes(['PO'],'neurontinFDA','neurontin_oral','Gélules, comprimés et solution buvable de gabapentine immédiate (Neurontin)','Immediate-release Neurontin capsules, tablets and oral solution'),
+  proportionality:dose('nonlinear','Non : absorption orale saturable','No: saturable oral absorption',
+    'FDA Neurontin : la biodisponibilité décroît lorsque la dose augmente (≈60 % à 900 mg/j ; ≈34 % à 2 400 mg/j en 3 prises). La dose ×2 ne double donc pas nécessairement l’AUC orale, même si l’élimination rénale du composé absorbé reste largement linéaire.',
+    'FDA Neurontin: oral bioavailability falls at higher doses (~60% at 900 mg/day; ~34% at 2400 mg/day in three doses). Doubling oral dose need not double AUC even though systemic renal elimination is largely linear.','neurontinFDA')
+},'drug_reviewed');
+assign(['pregabalin'],{
+  index:indexed('Cmin_reference','C0 de référence historique (épilepsie)','Historical trough reference (epilepsy)',
+    'La C0 est une référence TDM dans certaines situations, sans preuve qu’elle soit le meilleur prédicteur clinique pour tous les patients.',
+    'A trough reference is used in selected contexts; not proven the best efficacy predictor for all patients.','epilepsy2018'),
+  practical:routine('Cmin','C0 pré-dose à l’équilibre','Steady-state predose trough',
+    'Ne pas confondre avec Cmax ; la fonction rénale influe directement sur l’exposition.',
+    'Do not confuse with Cmax; renal function strongly influences exposure.','epilepsy2018'),
+  administration:routes(['PO'],'pregabalinANSM','pregabalin_oral_ir','Voie orale, forme immédiate (gélules) ; forme LP à considérer séparément','Oral immediate-release capsules; extended-release formulations require separate review'),
+  proportionality:dose('conditional_linear','Oui, sous conditions (forme LI)','Yes, conditional (IR formulation)',
+    'RCP ANSM : biodisponibilité ≥90 % indépendante de la dose. FDA Lyrica : AUC linéaire après 25–300 mg dose unique et 75–900 mg/j doses multiples ; reste dépendante de la fonction rénale et de la formulation.',
+    'ANSM: oral bioavailability ≥90% independent of dose. FDA Lyrica: linear AUC for 25–300 mg single doses and 75–900 mg/day multiple doses; renal function and formulation still matter.','lyricaFDA')
+},'drug_reviewed');
+assign(['levetiracetam'],{
+  index:indexed('Cmin_reference','C0 de référence (épilepsie)','Reference trough (epilepsy)',
+    'L’intervalle de concentration résiduelle est un repère d’épilepsie, sans imposer le STP systématique chez tous les patients.',
+    'Predose reference interval in epilepsy; does not mandate routine TDM in every patient.','epilepsy2018'),
+  practical:routine('Cmin','C0 pré-dose','Predose trough',
+    'L’équilibre est généralement atteint rapidement ; vérifier fonction rénale, forme et horaire de prélèvement.',
+    'Steady state is generally reached rapidly; verify kidney function, formulation and sampling timing.','levetiracetamFDA'),
+  administration:routes(['PO'],'levetiracetamFDA','oral_tablets_solution','Comprimé et solution buvable ; perfusion IV à vérifier dans une spécialité distincte','Tablets and oral solution; IV infusion requires separate product-specific review'),
+  proportionality:dose('conditional_linear','Linéaire dans la plage étudiée','Linear in studied range',
+    'FDA : PK linéaire de 500 à 5 000 mg, biodisponibilité orale environ 100 % ; adaptation proportionnelle de l’AUC suppose une fonction rénale et une formulation inchangées.',
+    'FDA: linear pharmacokinetics over 500–5000 mg and ~100% oral bioavailability; proportional AUC presumes unchanged kidney function and formulation.','levetiracetamFDA')
+},'drug_reviewed');
+assign(['digoxin'],{
+  index:indexed('post_distribution_concentration','Concentration sérique après distribution','Postdistribution serum concentration',
+    'Une concentration trop précoce ne reflète pas l’équilibre sang–tissus ; le pic précoce ne doit pas être utilisé comme niveau thérapeutique usuel.',
+    'An early level precedes serum-tissue equilibration; immediate postdose peak must not be used as routine TDM concentration.','digoxinFDA'),
+  practical:routine('post_distribution_or_trough','C0 ou prélèvement ≥6 h après dose','Trough or ≥6 h after dose',
+    'FDA : prélever juste avant la prochaine dose, ou au moins 6 h après la dernière prise ; le résultat dépend du moment et n’est pas à interpréter isolément.',
+    'FDA: sample before the next dose or at least 6 h after last intake; sampling time affects the result and isolated levels must not guide dosing alone.','digoxinFDA'),
+  administration:routes(['PO','IV'],'digoxinFDA','oral_vs_iv_nonbioequivalent','Comprimé PO et injection IV : biodisponibilité différente, conversion non directe','Oral tablets and IV injection have different bioavailability; no direct dose equivalence'),
+  proportionality:dose('conditional_linear','Conditionnelle : élimination rénale','Conditional: renal elimination',
+    'En supposant la clairance rénale et la biodisponibilité constantes, AUC ∝ dose ; la voie PO/IV, la fonction rénale, les interactions P-gp et les troubles ioniques imposent de réévaluer la relation dose–exposition.',
+    'Under stable renal clearance and bioavailability, AUC ∝ dose; PO/IV route, kidney function, P-gp interactions and electrolytes require reassessment.','digoxinFDA')
 },'drug_reviewed');
 
 // Regulatory-strength product examples: do not infer route interchangeability.
