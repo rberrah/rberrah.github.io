@@ -375,3 +375,28 @@ test('Clozapine historical CHU evidence is shown without asserting present-day a
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
   await expect(page.getByTestId('tdm-chu-historical-assay')).toHaveAttribute('href', /health-data-hub[.]fr/);
 });
+
+
+test('Agomelatine uses 1–2 h peak, not trough, and is linked to the documented CHU name', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('Agomélatine');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('7–300', { exact: true })).toBeVisible();
+  await expect(page.getByText('Cmax à 1–2 h après prise')).toBeVisible();
+  await expect(page.getByTestId('tdm-historical-warning')).toHaveCount(1);
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByText(/TDM de niveau 4/)).toBeVisible();
+});
+
+test('Bupropion parent and hydroxybupropion remain two distinct analytes; upper-only targets are not ranges', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('bupropion');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('10–100', { exact: true })).toBeVisible();
+  await expect(page.getByText('850–1 500', { exact: true })).toBeVisible();
+  await search.fill('tranylcypromine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('≤50', { exact: true })).toBeVisible();
+});
