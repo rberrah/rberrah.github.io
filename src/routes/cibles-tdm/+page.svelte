@@ -150,6 +150,11 @@
                     <strong>{group.pharmacology.administration.codes.length
                       ? group.pharmacology.administration.codes.join(' · ')
                       : (en ? 'Product-specific SmPC review needed' : 'RCP de la spécialité à vérifier')}</strong>
+                    {#if group.pharmacology.administration.modeFr}
+                      <span class="pk-administration-mode" data-testid="tdm-pk-admin-mode">
+                        {en ? group.pharmacology.administration.modeEn : group.pharmacology.administration.modeFr}
+                      </span>
+                    {/if}
                   </div>
                   <div class="pk-profile-item" data-testid="tdm-pk-linearity">
                     <span class="pk-profile-label">{en ? '2× dose → 2× AUC?' : 'Dose ×2 → AUC ×2 ?'}</span>
@@ -181,6 +186,9 @@
                           ? (en
                             ? 'Routes reported in the referenced context; this is not an exhaustive list of currently marketed product formulations.'
                             : 'Voies décrites dans la source citée : cette liste ne recense pas toutes les formes commercialisées.')
+                          + (group.pharmacology.administration.modeFr
+                            ? ' ' + (en ? group.pharmacology.administration.modeEn : group.pharmacology.administration.modeFr)
+                            : '')
                           : (en ? 'No verified route in this catalogue. Consult the product-specific SmPC.' : 'Aucune voie vérifiée dans ce catalogue : consulter le RCP de la spécialité.')}</dd>
                       </div>
                     </dl>
@@ -442,6 +450,7 @@
   .pk-profile-item:last-child { border-right: none; }
   .pk-profile-label { font: 600 .73rem/1.45 var(--font-body); color: var(--text-secondary); }
   .pk-profile-item strong { font: 650 .92rem/1.35 var(--font-body); overflow-wrap: anywhere; }
+  .pk-administration-mode { font-size: .76rem; color: var(--text-secondary); line-height: 1.45; }
   .pk-profile-details { border-top: 1px solid var(--border-subtle); }
   .pk-profile-details > summary { font-size: .82rem; font-weight: 600; padding: .55rem 1rem; cursor: pointer; color: var(--text-secondary); }
   .pk-profile-details > summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: -2px; }
