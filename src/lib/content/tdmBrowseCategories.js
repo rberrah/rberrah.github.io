@@ -4,6 +4,7 @@
 // entry remains searchable; lack of a numeric target is shown explicitly.
 import { tdmDrugs } from './tdmTargets.js';
 import { psychiatryTdmDrugs } from './tdmPsychiatryExpansion2026.js';
+import { extraAntidepressantDrugs } from './tdmAntidepressantExpansion2026.js';
 import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
 import { tdmManualCatalog } from './tdmManualCatalog.js';
 
@@ -25,6 +26,7 @@ const antiseizureIds = new Set(['valproate','carbamazepine','lamotrigine','oxcar
   'levetiracetam','phenytoin','phenobarbital']);
 const transplantationIds = new Set(['mpa','tac','everolimus','cyclosporine','sirolimus']);
 const cardiologyIds = new Set(['digoxin']);
+const extraAntidepressantIds = new Set(extraAntidepressantDrugs.map((drug) => drug.id));
 const psychotropicIds = new Set(['lithium', 'clozapine', ...psychiatryTdmDrugs.map((drug) => drug.id)]);
 const additionalAntibioticIds = new Set(['teicoplanin']);
 const oncologyIds = new Set(['busulfan', 'methotrexate']);
@@ -56,6 +58,7 @@ const categoryFor = (drug, entry) => {
   if (transplantationIds.has(drug.id)) return 'immunosuppressants';
   if (antiseizureIds.has(drug.id)) return 'antiseizure';
   if (antifungalIds.has(drug.id)) return 'antifungals';
+  if (extraAntidepressantIds.has(drug.id)) return 'antidepressants';
   if (cardiologyIds.has(drug.id)) return 'cardiology';
   if (psychotropicIds.has(drug.id)) return 'psychotropics';
   if (additionalAntibioticIds.has(drug.id)) return 'antibiotics';
