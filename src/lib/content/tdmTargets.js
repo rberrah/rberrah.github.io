@@ -165,6 +165,16 @@ export const tdmTargetSources = {
     evidenceSection: 'Tableau 1 : concentrations de pic de référence, rifampicine 8–24 et isoniazide 3–6 mg/L ; valeurs historiques et non fenêtres individualisées démontrées',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
+  fdaZortress2026: {
+    title: 'Zortress (everolimus), US FDA prescribing information: therapeutic drug monitoring, kidney and liver transplant',
+    citation: 'FDA · Zortress 2026',
+    url: 'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e082a024-7850-400b-a5c2-2a140612562a',
+    year: 2026,
+    organization: 'FDA / DailyMed (US product label, Zortress)',
+    access: 'open_full_text',
+    evidenceSection: 'Sections 2.4–2.6: everolimus C0 3–8 ng/mL with reduced cyclosporine in kidney or reduced tacrolimus in liver; tacrolimus liver C0 3–5 ng/mL by month 2–12',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE,
+  },
   mpa2025: {
     citation: 'Liu et al. · 2025',
     title: 'Liu et al. (2025) · Recommandations MPA en transplantation d’organes solides',
@@ -1345,6 +1355,72 @@ export const tdmTargets = [
     evidenceEn: 'Weak recommendation; moderate certainty.'
   },
   {
+    id: "tac-kidney-early-auc", drug: 'tac', indication: 'kidney',
+    indicationFr: "Greffe rénale · moins de 6 semaines", indicationEn: "Kidney transplant · under 6 weeks",
+    metric: 'AUC₀–₁₂', unit: 'ng·h/mL', matrixFr: 'Sang total · tacrolimus à libération immédiate',
+    matrixEn: 'Whole blood · immediate-release tacrolimus',
+    relation: 'target', min: 160, max: null, status: 'study', source: 'tac2025',
+    contextFr: "Tacrolimus immédiat (2 prises/j), avec MPA ± prednisone et induction basiliximab. Cible AUC₀–₁₂ du centre publiée avec C₀ 8–10 ng/mL. Valeur ponctuelle issue d’un protocole, non intervalle universel.",
+    contextEn: "Immediate-release tacrolimus twice daily with MPA ± prednisone and basiliximab. Published centre AUC0–12 target paired with C0 8–10 ng/mL, not a universal interval.",
+    evidenceFr: 'van Gelder et al., BJCP 2025, tableau 1 · objectifs AUC ponctuels du centre ; pas de preuve randomisée de supériorité clinique.',
+    evidenceEn: 'van Gelder et al., BJCP 2025, Table 1 · centre-defined AUC targets; no randomized superiority evidence.'
+  },
+  {
+    id: "tac-kidney-mid-auc", drug: 'tac', indication: 'kidney',
+    indicationFr: "Greffe rénale · 6 semaines à 6 mois", indicationEn: "Kidney transplant · 6 weeks to 6 months",
+    metric: 'AUC₀–₁₂', unit: 'ng·h/mL', matrixFr: 'Sang total · tacrolimus à libération immédiate',
+    matrixEn: 'Whole blood · immediate-release tacrolimus',
+    relation: 'target', min: 120, max: null, status: 'study', source: 'tac2025',
+    contextFr: "Tacrolimus immédiat (2 prises/j), avec MPA ± prednisone et induction basiliximab. Cible AUC₀–₁₂ propre au centre ; C₀ de 5–7 ng/mL n’est qu’un indicateur indirect de cette exposition.",
+    contextEn: "Immediate-release tacrolimus twice daily with MPA ± prednisone, basiliximab. Centre-specific AUC0–12 target; C0 5–7 ng/mL is an indirect exposure surrogate.",
+    evidenceFr: 'van Gelder et al., BJCP 2025, tableau 1 · objectifs AUC ponctuels du centre ; pas de preuve randomisée de supériorité clinique.',
+    evidenceEn: 'van Gelder et al., BJCP 2025, Table 1 · centre-defined AUC targets; no randomized superiority evidence.'
+  },
+  {
+    id: "tac-kidney-late-auc", drug: 'tac', indication: 'kidney',
+    indicationFr: "Greffe rénale · après 6 mois", indicationEn: "Kidney transplant · after 6 months",
+    metric: 'AUC₀–₁₂', unit: 'ng·h/mL', matrixFr: 'Sang total · tacrolimus à libération immédiate',
+    matrixEn: 'Whole blood · immediate-release tacrolimus',
+    relation: 'target', min: 80, max: null, status: 'study', source: 'tac2025',
+    contextFr: "Tacrolimus immédiat avec MPA ± prednisone. Cible AUC₀–₁₂ du centre ; si C₀ <5 ng/mL, l’article conditionne l’acceptation à AUC₀–₁₂ >75 ng·h/mL. Ni la valeur ponctuelle ni C₀ ne sont universelles.",
+    contextEn: "Immediate-release tacrolimus with MPA ± prednisone. Centre AUC0–12 point target; if C0 <5 ng/mL, the article requires AUC0–12 >75 ng·h/mL. Not universal.",
+    evidenceFr: 'van Gelder et al., BJCP 2025, tableau 1 · objectifs AUC ponctuels du centre ; pas de preuve randomisée de supériorité clinique.',
+    evidenceEn: 'van Gelder et al., BJCP 2025, Table 1 · centre-defined AUC targets; no randomized superiority evidence.'
+  },
+  {
+    id: 'everolimus-kidney-csa-fda', drug: 'everolimus', indication: 'kidney',
+    indicationFr: 'Greffe rénale · ciclosporine à dose réduite (label FDA)',
+    indicationEn: 'Kidney transplant · reduced cyclosporine (FDA label)',
+    metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total · méthode LC-MS/MS',
+    matrixEn: 'Whole blood · LC-MS/MS method',
+    relation: 'range', min: 3, max: 8, status: 'regulatory', source: 'fdaZortress2026',
+    contextFr: 'Label FDA Zortress en transplantation rénale : faible à moyen risque immunologique, induction basiliximab, ciclosporine réduite et corticoïdes. Ne pas étendre à tous les schémas sans ICN.',
+    contextEn: 'FDA Zortress label for lower/moderate-risk kidney transplant with basiliximab induction, reduced cyclosporine and steroids. Not a CNI-free target.',
+    evidenceFr: 'RCP américain, rubrique 2.4 (Zortress), C₀ par LC-MS/MS.', evidenceEn: 'US product label, section 2.4, C0 by LC-MS/MS.'
+  },
+  {
+    id: 'everolimus-liver-tac-fda', drug: 'everolimus', indication: 'liver',
+    indicationFr: 'Greffe hépatique · avec tacrolimus réduit (FDA)',
+    indicationEn: 'Liver transplant · reduced tacrolimus (FDA)',
+    metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total · méthode LC-MS/MS',
+    matrixEn: 'Whole blood · LC-MS/MS method',
+    relation: 'range', min: 3, max: 8, status: 'regulatory', source: 'fdaZortress2026',
+    contextFr: 'Label FDA Zortress : introduction au moins 30 jours après transplantation hépatique, tacrolimus à exposition réduite et corticoïdes. Adaptation selon risques, méthode et biopsies.',
+    contextEn: 'FDA Zortress: start at least 30 days after liver transplant with reduced tacrolimus and steroids. Adjust to assay and clinical status.',
+    evidenceFr: 'Label FDA Zortress, rubriques 1.2 et 2.4 ; pas une cible pour tous les organes.', evidenceEn: 'FDA Zortress label, sections 1.2 and 2.4; not an all-organ target.'
+  },
+  {
+    id: 'tac-liver-everolimus-fda', drug: 'tac', indication: 'liver',
+    indicationFr: 'Greffe hépatique · avec évérolimus (FDA, mois 2–12)',
+    indicationEn: 'Liver transplant · with everolimus (FDA, months 2–12)',
+    metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total · tacrolimus à libération immédiate',
+    matrixEn: 'Whole blood · immediate-release tacrolimus',
+    relation: 'range', min: 3, max: 5, status: 'regulatory', source: 'fdaZortress2026',
+    contextFr: 'Label FDA Zortress : tacrolimus réduit avec évérolimus dans la greffe hépatique ; cible 3–5 ng/mL dès 3 semaines après début de Zortress (environ mois 2), jusqu’au mois 12. Données limitées au-delà ; ne pas appliquer sans évérolimus.',
+    contextEn: 'FDA Zortress label: reduced tacrolimus with everolimus in liver transplant; 3–5 ng/mL about three weeks after Zortress start (around month 2), through month 12. Limited later evidence; not applicable without everolimus.',
+    evidenceFr: 'Label FDA Zortress, rubrique 2.6 : cible du tacrolimus en co-traitement.', evidenceEn: 'FDA Zortress label, section 2.6: coadministered tacrolimus target.'
+  },
+  {
     id: 'tac-kidney-early', drug: 'tac', indication: 'kidney',
     indicationFr: 'Greffe rénale · moins de 6 semaines', indicationEn: 'Kidney transplant · under 6 weeks',
     metric: 'C₀', unit: 'ng/mL', matrixFr: 'Sang total', matrixEn: 'Whole blood',
@@ -1538,6 +1614,7 @@ export function formatTdmTarget(entry, lang = 'fr') {
     if (entry.max === null) throw new Error('Range target missing upper bound');
     return `${value(entry.min)}–${value(entry.max)}`;
   }
+  if (entry.relation === 'target') return value(entry.min);
   if (entry.relation === 'above') return `>${value(entry.min)}`;
   if (entry.relation === 'approx') return `≈${value(entry.min)}`;
   throw new Error(`Unknown TDM target relation: ${entry.relation}`);
