@@ -11,7 +11,7 @@ export const agnpVerifiedTdmSources = Object.freeze({
     doi: '10.1055/a-2860-7861',
     year: 2026,
     organization: 'AGNP TDM task force · Pharmacopsychiatry',
-    access: 'open_full_text',
+    access: /** @type {'open_full_text'} */ ('open_full_text'),
     evidenceSection: 'Table 5: original individual drug rows, sampling times, therapeutic reference ranges and distinct laboratory alerts',
     verifiedOn: '2026-11-11'
   }
