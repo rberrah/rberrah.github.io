@@ -83,6 +83,13 @@ const antidepressantNames = [
 ];
 
 const knownKeys = {
+  'Amoxapine': 'amoxapine',
+  'Iproniazide': 'iproniazid',
+  'Lidocaïne': 'lidocaine',
+  'Bupivacaïne': 'bupivacaine',
+  'Ropivacaïne': 'ropivacaine',
+  'Mépivacaïne': 'mepivacaine',
+  'Ibrutinib': 'ibrutinib',
   'Agomélatine': 'agomelatine',
   'Acide valproïque': 'valproate', 'Lithium': 'lithium',
   'Mycophénolate': 'mpa', 'Tacrolimus': 'tac', 'Évérolimus': 'everolimus',
