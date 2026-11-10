@@ -7,6 +7,7 @@ import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
 import { searchTdmMolecules, groupTdmReferenceEntries } from '../src/lib/content/tdmSearchView.js';
 import { agnp2026Update, agnp2026ReviewQueue, agnp2026ReviewSummary, agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
 import { generateTdmPilotSnapshot, validateTdmPilotSnapshot } from './export_tdm_pilot_snapshot.mjs';
+import { semanticReadinessReport, semanticReadinessRows } from './report_tdm_semantic_readiness.mjs';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
@@ -113,6 +114,20 @@ assert.equal(validateTdmPilotSnapshot({
 assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,patientDataIncluded:true}),false);
 assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,sha256:'0'.repeat(64)}),false);
 console.log('TDM pilot snapshot: source-locked tacrolimus/MPA/vancomycin, SHA256-guarded, 0 interpretable and 0 automatic doses.');
+
+assert.equal(semanticReadinessReport.totalCuratedDrugs,tdmDrugs.length);
+assert.equal(semanticReadinessReport.numericReferenceClaims,tdmTargets.length);
+assert.equal(semanticReadinessRows.length,tdmTargets.length);
+assert.equal(semanticReadinessReport.humanApprovedClaims,0);
+assert.equal(semanticReadinessReport.eligibleForAutomaticClinicalInterpretation,0);
+assert.equal(semanticReadinessReport.unresolvedByField.analyteId,tdmTargets.length,
+  'Published prose is not machine-readable parent/metabolite identity');
+assert.ok(semanticReadinessRows.some((r)=>r.agnp2026ComparisonPending));
+assert.ok(semanticReadinessRows.every((r)=>r.eligibleForAutomaticClinicalInterpretation===false));
+assert.equal(chuCoverage.structured_scientific_readiness.numericReferenceClaims,tdmTargets.length);
+assert.equal(chuCoverage.complete_institutional_assay_export_available,false);
+assert.equal(chuCoverage.human_scientific_approval_of_full_catalogue,false);
+console.log('TDM structured readiness: missing analytic semantics and human sign-off exposed, not silently inferred.');
 
 const pkCoverage = tdmPharmacologyCoverage();
 assert.equal(pkCoverage.drugs, 132);
