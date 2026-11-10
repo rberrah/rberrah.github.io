@@ -8,6 +8,7 @@ import { chuSamplingForDrug } from './tdmChuSampling.js';
 import { tdmEvidenceForDrug } from './tdmEvidenceGuide.js';
 import { tdmSafetySignalsForDrug } from './tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
+import { tdmPharmacologyForDrug } from './tdmPharmacologyProfiles.js';
 
 export function searchTdmMolecules(query = '') {
   const needle = normalizeTdmSearch(query);
@@ -43,14 +44,14 @@ export function searchTdmMolecules(query = '') {
         indications.get(key).alternatives.push(entry);
       }
     }
-    return { drug, indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id), historicalChuAssay: historicalChuAssayForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
+    return { drug, pharmacology: tdmPharmacologyForDrug(drug.id), indications: Array.from(indications.values()), pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id), historicalChuAssay: historicalChuAssayForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
   }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0 || group.safetySignals.length > 0);
 
   const alreadyListed = new Set(groups.map((group) => group.drug.id));
   const withoutTargets = searchManualCatalog({ query }).filter((entry) =>
     !entry.drugKey || !alreadyListed.has(entry.drugKey)
   ).map((entry) => ({
-    ...entry, samplingDocument: chuSamplingForDrug(entry.drugKey)
+    ...entry, pharmacology: tdmPharmacologyForDrug(entry.drugKey), samplingDocument: chuSamplingForDrug(entry.drugKey)
   }));
 
   return { groups, withoutTargets };
