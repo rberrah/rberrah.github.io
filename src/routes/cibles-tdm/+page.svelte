@@ -307,8 +307,8 @@
   .medicine-directory > p { font-size: .84rem; color: var(--text-secondary); margin: 0 0 .8rem; }
   .category-list { display: grid; gap: .55rem; }
   .medicine-family { border: 1px solid var(--border-subtle); background: var(--bg-tertiary); border-radius: 9px; overflow: hidden; }
-  .medicine-family summary { display: flex; justify-content: space-between; gap: .6rem; align-items: center; cursor: pointer; padding: .83rem 1rem; font-weight: 600; font-size: .94rem; }
-  .medicine-family summary > span { font-size: .81rem; color: var(--text-secondary); }
+  .medicine-family summary { display: list-item; list-style-position: inside; cursor: pointer; padding: .83rem 1rem; font-weight: 600; font-size: .94rem; }
+  .medicine-family summary > span { float: right; font-size: .81rem; color: var(--text-secondary); }
   .medicine-family summary:focus-visible, .evidence-details summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: -2px; }
   .family-drugs { display: flex; flex-wrap: wrap; gap: .42rem; padding: .6rem .85rem .9rem; border-top: 1px solid var(--border-subtle); }
   .family-drugs button { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 6px; padding: .44rem .65rem; color: var(--text-primary); font: inherit; font-size: .85rem; cursor: pointer; }
