@@ -22,6 +22,10 @@ export const tdmPkReferences = Object.freeze({
   voriconazoleRcp: {citation:'ANSM · RCP voriconazole', url:'https://base-donnees-publique.medicaments.gouv.fr/medicament/69816080/extrait', section:'§5.2, saturation métabolique et augmentation plus que proportionnelle de l’AUC', tier:'regulatory'},
   voriconazoleEMA: {citation:'EMA · VFEND', url:'https://www.ema.europa.eu/fr/medicines/human/EPAR/vfend', section:'Formes orales et IV', tier:'regulatory'},
   phenytoinFDA: {citation:'FDA / DailyMed · Dilantin', url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=f1d41925-3be0-42a8-86f8-181569399c5b', section:'Metabolism, saturation du CYP2C9/2C19 ; dose +10 % peut beaucoup augmenter le taux', tier:'regulatory'},
+  valproateFDA: {citation:'FDA / DailyMed · Depakote', url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=08a65cf4-7749-4ceb-6895-8f4805e2b01f', section:'§12, liaison protéique saturable : concentrations totales non proportionnelles, PK libre linéaire', tier:'regulatory'},
+  carbamazepineFDA: {citation:'FDA · Tegretol label', url:'https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20234S17LBL.PDF', section:'Pharmacokinetics, auto-induction de clairance pendant plusieurs semaines', tier:'regulatory'},
+  rifampicinPK2016: {citation:'Denti et al. · rifampicine PK · 2016', url:'https://pubmed.ncbi.nlm.nih.gov/26552972/', section:'Modèle PK semi-mécaniste, auto-induction et extraction hépatique saturable', tier:'other'},
+  rifampicinTDM2021: {citation:'Anti-TB TDM review · 2021', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC7935699/', section:'Exposition rifampicine, AUC et concentration, effet de dose et temps', tier:'other'},
   amoxicillinANSM: {citation:'ANSM · RCP Clamoxyl', url:'https://base-donnees-publique.medicaments.gouv.fr/medicament/62607530/extrait', section:'§4.2 oral et relais IV ; §5.2 proportionnalité AUC 250–3000 mg PO', tier:'regulatory'},
   busulfan2026: {citation:'EBMT / ESID · 2026', url:'https://doi.org/10.1038/s41409-026-02906-0', section:'AUC cumulée de conditionnement selon protocole', tier:'society'},
   psychiatry2020: {citation:'ASCP / AGNP · 2020', url:'https://doi.org/10.4088/JCP.19cs13169', section:'Tableau 2 : résiduelles historiques antipsychotiques, à réviser AGNP 2026', tier:'society'},
@@ -355,6 +359,45 @@ assign(olderAntipsychotics,{
   administration:{codes:[],sourceId:null,scope:'unreviewed'},
   proportionality:unknownDose
 },'class_reviewed');
+
+// Nonlinearity is analyte-, regimen- and time-specific: never mark all
+// antiepileptics or all antibiotics as linear from a class assumption.
+assign(['valproate'],{
+  index:indexed('Cmin_total_or_free','C0 totale ou libre selon liaison protéique','Total or unbound trough by protein binding',
+    'La concentration totale est un marqueur imparfait quand albumine et liaison sont modifiées ; la concentration libre correspond davantage à la fraction active.',
+    'Total drug is an imperfect proxy when albumin and binding change; unbound drug better reflects active exposure.','valproateFDA'),
+  practical:routine('Cmin','C0 totale, fraction libre si besoin','Total trough, unbound if needed',
+    'Documenter l’albumine, le prélèvement et les co-médications ; une concentration totale dans la fenêtre n’exclut pas une exposition libre excessive.',
+    'Document albumin, timing and co-medications; a total concentration in range may conceal excessive free exposure.','valproateFDA'),
+  administration:routes(['PO'],'valproateFDA','depakote_oral_specific'),
+  proportionality:dose('complex','Totale non linéaire ; libre plus linéaire','Total nonlinear; unbound more linear',
+    'FDA : liaison protéique saturable ; la concentration totale augmente moins que proportionnellement à la dose, alors que la cinétique du valproate libre est décrite comme linéaire. Ne pas appliquer un ratio de dose à la concentration totale.',
+    'FDA: saturable protein binding yields a less-than-proportional total level, while unbound valproate kinetics are described as linear. Do not scale total levels using a simple ratio.','valproateFDA')
+},'drug_reviewed');
+assign(['carbamazepine'],{
+  index:indexed('Cmin_parent','C0 carbamazépine (métabolite à considérer)','Carbamazepine trough (consider metabolite)',
+    'Carbamazépine parent surveillée, mais le 10,11-époxyde contribue à l’effet et peut être modifié indépendamment.',
+    'Parent trough monitored, but active 10,11-epoxide may vary independently.','carbamazepineFDA'),
+  practical:routine('Cmin','C0 à l’équilibre après auto-induction','Steady-state trough after autoinduction',
+    'La clairance augmente sous traitement : ne pas interpréter de la même manière une concentration aux premiers jours et après stabilisation.',
+    'Clearance increases during therapy; early and post-induction troughs are not directly comparable.','carbamazepineFDA'),
+  administration:routes(['PO'],'carbamazepineFDA','tegretol_oral_specific'),
+  proportionality:dose('complex','Non stable : auto-induction','Time-dependent: autoinduction',
+    'La carbamazépine induit son propre métabolisme en plusieurs semaines : la relation dose–AUC dépend du temps après initiation/modification de dose.',
+    'Carbamazepine induces its own metabolism over weeks: dose–AUC depends on time since start or adjustment.','carbamazepineFDA')
+},'drug_reviewed');
+assign(['rifampicin'],{
+  index:indexed('AUC_MIC','AUC₀–₂₄/CMI (antituberculeux)','AUC24/MIC (tuberculosis)',
+    'L’exposition AUC contribue à l’activité antituberculeuse et peut nécessiter des prélèvements individuels ; Cmax est complémentaire.',
+    'AUC exposure contributes to TB activity; Cmax is complementary and sampling may need individualisation.','rifampicinTDM2021'),
+  practical:routine('auc_timed','AUC par prélèvements horodatés','AUC from time-stamped samples',
+    'L’auto-induction rend essentielle la date de traitement et les temps réels des prélèvements.',
+    'Autoinduction means treatment day and actual sample times are essential.','rifampicinTDM2021'),
+  administration:routes(['PO'],'rifampicinTDM2021','studied_oral_tb'),
+  proportionality:dose('nonlinear','Non : auto-induction et saturation','No: autoinduction and saturation',
+    'Une hausse de dose peut augmenter l’AUC de façon plus que proportionnelle ; la clairance augmente aussi au fil des jours par auto-induction. Résultats dépendants de la dose et du temps.',
+    'Dose escalation can increase AUC more than proportionally while clearance also rises over days through autoinduction. Response is dose- and time-dependent.','rifampicinPK2016')
+},'drug_reviewed');
 
 // Regulatory-strength product examples: do not infer route interchangeability.
 assign(['amoxicillin'],{
