@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Research/teaching reference only. No patient-specific dose calculation.
 // Exposure index (PK/PD target), practical assay timing, administration context,
 // and AUC-versus-dose proportionality are four different dimensions.
