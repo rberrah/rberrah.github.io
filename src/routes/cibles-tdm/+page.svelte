@@ -8,6 +8,7 @@
   import { tdmBrowseCategories } from '#lib/content/tdmBrowseCategories.js';
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
   import { tdmSafetyReferences } from '#lib/content/tdmSafetySignals.js';
+  import { tdmPkReferences } from '#lib/content/tdmPharmacologyProfiles.js';
 
   const base = resolve('/').replace(/\/$/, '');
   const suggestions = [...new Set([
@@ -132,6 +133,87 @@
                 </a>
               {/if}
             </div>
+
+            {#if group.pharmacology}
+              <section class="pk-profile" data-testid="tdm-pk-summary" aria-label={en ? 'Exposure and dose proportionality' : 'Indicateur PK/PD et proportionnalité de dose'}>
+                <div class="pk-profile-grid">
+                  <div class="pk-profile-item" data-testid="tdm-pk-index">
+                    <span class="pk-profile-label">{en ? 'Relevant PK/PD index' : 'Indicateur PK/PD pertinent'}</span>
+                    <strong>{en ? group.pharmacology.index.en : group.pharmacology.index.fr}</strong>
+                  </div>
+                  <div class="pk-profile-item" data-testid="tdm-pk-sample">
+                    <span class="pk-profile-label">{en ? 'Practical sampling' : 'Prélèvement pratique'}</span>
+                    <strong>{en ? group.pharmacology.practical.en : group.pharmacology.practical.fr}</strong>
+                  </div>
+                  <div class="pk-profile-item" data-testid="tdm-pk-routes">
+                    <span class="pk-profile-label">{en ? 'Documented administration' : 'Administration documentée'}</span>
+                    <strong>{group.pharmacology.administration.codes.length
+                      ? group.pharmacology.administration.codes.join(' · ')
+                      : (en ? 'Product-specific SmPC review needed' : 'RCP de la spécialité à vérifier')}</strong>
+                  </div>
+                  <div class="pk-profile-item" data-testid="tdm-pk-linearity">
+                    <span class="pk-profile-label">{en ? '2× dose → 2× AUC?' : 'Dose ×2 → AUC ×2 ?'}</span>
+                    <strong>{en ? group.pharmacology.proportionality.en : group.pharmacology.proportionality.fr}</strong>
+                  </div>
+                </div>
+                <details class="pk-profile-details" data-testid="tdm-pk-details">
+                  <summary>{en ? 'Interpretation conditions and original sources' : 'Conditions d’interprétation et sources originales'}</summary>
+                  <div class="pk-profile-explainer">
+                    <p>{en
+                      ? 'An efficacy PK/PD index is not always a directly measured trough or peak. Route and formulation are product-specific. No proportional dose adjustment is generated here.'
+                      : 'L’indice PK/PD d’efficacité n’est pas nécessairement la C0 ou le pic mesuré. Voies et formulations dépendent de la spécialité. Aucun calcul automatique de dose n’est proposé.'}</p>
+                    <dl>
+                      <div>
+                        <dt>{en ? 'Efficacy / exposure index' : 'Indice d’efficacité / exposition'}</dt>
+                        <dd>{en ? group.pharmacology.index.noteEn : group.pharmacology.index.noteFr}</dd>
+                      </div>
+                      <div>
+                        <dt>{en ? 'Sampling interpretation' : 'Interprétation du prélèvement'}</dt>
+                        <dd>{en ? group.pharmacology.practical.noteEn : group.pharmacology.practical.noteFr}</dd>
+                      </div>
+                      <div>
+                        <dt>{en ? 'Dose–AUC relationship' : 'Relation dose–AUC'}</dt>
+                        <dd>{en ? group.pharmacology.proportionality.noteEn : group.pharmacology.proportionality.noteFr}</dd>
+                      </div>
+                      <div>
+                        <dt>{en ? 'Administration context' : 'Contexte d’administration'}</dt>
+                        <dd>{group.pharmacology.administration.codes.length
+                          ? (en
+                            ? 'Routes reported in the referenced context; this is not an exhaustive list of currently marketed product formulations.'
+                            : 'Voies décrites dans la source citée : cette liste ne recense pas toutes les formes commercialisées.')
+                          : (en ? 'No verified route in this catalogue. Consult the product-specific SmPC.' : 'Aucune voie vérifiée dans ce catalogue : consulter le RCP de la spécialité.')}</dd>
+                      </div>
+                    </dl>
+                    <ul class="pk-sources">
+                      {#each [
+                        {nameFr:'Indice',nameEn:'Index',id:group.pharmacology.index.sourceId},
+                        {nameFr:'Prélèvement',nameEn:'Sampling',id:group.pharmacology.practical.sourceId},
+                        {nameFr:'Administration',nameEn:'Administration',id:group.pharmacology.administration.sourceId},
+                        {nameFr:'Proportionnalité',nameEn:'Dose proportionality',id:group.pharmacology.proportionality.sourceId}
+                      ] as evidence, i (i)}
+                        {#if evidence.id && tdmPkReferences[evidence.id]}
+                          <li>
+                            <span>{en ? evidence.nameEn : evidence.nameFr} :</span>
+                            <a href={tdmPkReferences[evidence.id].url} target="_blank" rel="noopener noreferrer">
+                              {tdmPkReferences[evidence.id].citation} <ExternalLink size={12} aria-hidden="true" />
+                            </a>
+                            <span class="pk-source-section">{tdmPkReferences[evidence.id].section}</span>
+                          </li>
+                        {/if}
+                      {/each}
+                    </ul>
+                    {#if group.pharmacology.review !== 'drug_reviewed'}
+                      <p class="pk-unreviewed">{en
+                        ? 'This item relies partly on class-level or historical evidence, or lacks a drug-specific assessment.'
+                        : 'Cette entrée repose en partie sur des données de classe/historiques, ou reste à documenter molécule par molécule.'}</p>
+                    {/if}
+                    <p class="pk-ratio-rule">{en
+                      ? 'For linear steady-state PK: AUCτ = F × dose / CL. Any twofold-AUC argument requires unchanged clearance, bioavailability, route, sampling interval and clinical state.'
+                      : 'En PK linéaire à l’état stable : AUCτ = F × dose / CL. Une règle de proportionnalité suppose une clairance, une biodisponibilité, une voie, un intervalle et un état clinique inchangés.'}</p>
+                  </div>
+                </details>
+              </section>
+            {/if}
             <div class="indication-list">
               {#each group.indications as item (item.id)}
                 {@const primary = item.primary}
@@ -317,7 +399,7 @@
         <p>{en ? 'A sampling-time document is linked only when verified; an assay or prescription form is not substituted for sampling instructions.' : 'Seuls les documents officiels sur les temps de prélèvement sont proposés, lorsqu’ils ont été vérifiés ; aucune fiche de dosage ou ordonnance n’est présentée à leur place.'}</p>
         <ul>
           {#each results.withoutTargets.slice(0, 8) as entry (entry.id)}
-            <li data-testid="tdm-manual-entry"><strong>{entry.name}</strong>
+            <li data-testid="tdm-manual-entry"><strong>{entry.name}</strong><span class="pk-unknown-inline">{en ? 'PK/PD, routes and linearity: not established' : 'PK/PD, voies et linéarité : non documentés'}</span>
               {#if entry.samplingDocument}
                 <a data-testid="tdm-chu-sampling-link" href={entry.samplingDocument.url} target="_blank" rel="noopener noreferrer">
                   {en ? 'CHU sampling times' : 'CHU · Temps de prélèvement'} <ExternalLink size={13} aria-hidden="true" />
@@ -354,6 +436,29 @@
 </div>
 
 <style>
+  .pk-profile { border: 1px solid var(--border-subtle); background: var(--bg-secondary); border-radius: 10px; overflow: hidden; margin: .35rem 0 .85rem; }
+  .pk-profile-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0; }
+  .pk-profile-item { display: flex; flex-direction: column; gap: .35rem; padding: .85rem 1rem; min-width: 0; border-right: 1px solid var(--border-subtle); }
+  .pk-profile-item:last-child { border-right: none; }
+  .pk-profile-label { font: 600 .73rem/1.45 var(--font-body); color: var(--text-secondary); }
+  .pk-profile-item strong { font: 650 .92rem/1.35 var(--font-body); overflow-wrap: anywhere; }
+  .pk-profile-details { border-top: 1px solid var(--border-subtle); }
+  .pk-profile-details > summary { font-size: .82rem; font-weight: 600; padding: .55rem 1rem; cursor: pointer; color: var(--text-secondary); }
+  .pk-profile-details > summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: -2px; }
+  .pk-profile-explainer { padding: .65rem 1rem 1rem; border-top: 1px solid var(--border-subtle); font-size: .84rem; line-height: 1.55; }
+  .pk-profile-explainer > p { margin: 0 0 .8rem; color: var(--text-secondary); }
+  .pk-profile-explainer dl { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem 1rem; margin: .7rem 0; }
+  .pk-profile-explainer dt { font-weight: 650; margin-bottom: .2rem; }
+  .pk-profile-explainer dd { margin: 0; }
+  .pk-sources { display: flex; flex-direction: column; gap: .45rem; padding: .7rem 0 .3rem; border-top: 1px solid var(--border-subtle); list-style: none; }
+  .pk-sources li { display: flex; flex-wrap: wrap; gap: .2rem .5rem; }
+  .pk-sources a { display: inline-flex; align-items: center; gap: .25rem; }
+  .pk-source-section { color: var(--text-secondary); }
+  .pk-profile-explainer .pk-ratio-rule { font-size: .8rem; padding-top: .7rem; border-top: 1px solid var(--border-subtle); }
+  .pk-unknown-inline { color: var(--text-secondary); font-size: .8rem; }
+  @media (max-width: 850px) { .pk-profile-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .pk-profile-item:nth-child(2) { border-right: 0; } .pk-profile-item:nth-child(-n+2) { border-bottom: 1px solid var(--border-subtle); } }
+  @media (max-width: 520px) { .pk-profile-grid, .pk-profile-explainer dl { grid-template-columns: minmax(0,1fr); } .pk-profile-item { border-right: 0; border-bottom: 1px solid var(--border-subtle); padding: .65rem .85rem; } .pk-profile-item:last-child { border-bottom: 0; } }
+
   .medicine-directory { margin: .3rem 0 1.7rem; }
   .medicine-directory h2 { font: 650 1.1rem var(--font-heading); margin: 0 0 .35rem; }
   .medicine-directory > p { font-size: .84rem; color: var(--text-secondary); margin: 0 0 .8rem; }
