@@ -57,7 +57,7 @@ const unknownDose = dose('unassessed','À documenter','Not assessed',
   'Dose–AUC proportionality has not been established here. Do not calculate a new dose by simple ratio.');
 const defaultProfile = (id) => ({
   drug: id, index: unknownIndex, practical: unknownRoutine,
-  administration: {codes:[], sourceId:null, scope:'unreviewed'},
+  administration: {codes:[], sourceId:null, scope:'unreviewed', modeFr:null, modeEn:null},
   proportionality: unknownDose,
   review: 'unassessed'
 });
