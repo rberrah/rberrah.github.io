@@ -171,3 +171,17 @@ test('Vancomycin does not extrapolate the AUC 400–600 window linearly to MIC a
   await expect(page.getByTestId('tdm-mic-result')).toContainText('Pas de recalcul linéaire');
   await expect(page.getByTestId('tdm-target-card').getByText('400–600', { exact: true })).toBeVisible();
 });
+
+test('TB reference concentrations are distinguished from CMI-dependent objectives and link only CHU sampling times', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('isoniazide');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card').getByText('3–6', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveAttribute('href', /DocumentNew.aspx\\?idDoc=41157/);
+  await search.fill('rifampicine');
+  await expect(page.getByTestId('tdm-target-card').getByText('8–24', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').getByText('C₂h (pic approximatif)', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
+});
