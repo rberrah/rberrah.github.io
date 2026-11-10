@@ -15,6 +15,29 @@ export const antibioticPdSource = Object.freeze({
   scopeEn: 'Adults in critical care; drug-class targets, not universal or patient-specific French dosing recommendations.'
 });
 
+// Later society-endorsed guidelines are used for the beta-lactam primary objectives.
+// The older 2020 paper remains the source for other antibiotic classes, preserving
+// their own evidence contexts rather than silently applying beta-lactam targets.
+export const betaLactam2026Source = Object.freeze({
+  citation: 'ACCP / ESCMID / IDSA / IATDMCT · 2026',
+  title: 'Consensus Guidance for Beta-Lactam Antibiotic Dose Individualization in Acutely Ill Patients',
+  url: 'https://www.idsociety.org/practice-guideline/beta-lactam-antibiotic-dose-individualization-in-acutely-ill-patients/',
+  doi: '10.1002/phar.70181',
+  evidenceSection: 'Table 1 and section 3.2 (minimum 100% fT>MIC, conditional/very-low certainty); section 3.3 (MIC, susceptibility breakpoint and ECOFF)',
+  scopeFr: 'Patients présentant une affection aiguë ; recommandation conditionnelle, preuves très faibles. Objectif renforcé 100 % fT>4×CMI possible dans certains sites de faible diffusion, pas systématique.',
+  scopeEn: 'Acutely ill patients; conditional recommendation, very low certainty. Higher 100% fT>4×MIC may be appropriate at poorly penetrated sites, not routinely.'
+});
+
+export const prolongedInfusion2023Source = Object.freeze({
+  citation: 'ACCP / BSAC / ESCMID / IDSA · 2023',
+  title: 'International consensus recommendations for the use of prolonged-infusion beta-lactam antibiotics',
+  url: 'https://accpjournals.onlinelibrary.wiley.com/doi/10.1002/phar.2842',
+  doi: '10.1002/phar.2842',
+  evidenceSection: 'Consensus statement V.5 / section 3.5.1: continuous infusion at least 4×MIC at steady state; not an efficacy guarantee',
+  scopeFr: 'Perfusion continue ; recommandation de concentration libre au plateau ≥4×CMI, distincte du minimum historique >CMI de 2020.',
+  scopeEn: 'Continuous infusion: unbound steady-state concentration at least 4×MIC; distinct from the older 2020 >MIC baseline.'
+});
+
 export const betaLactamIds = Object.freeze([
   'amoxicillin', 'aztreonam', 'cefazolin', 'cefepime', 'cefotaxime',
   'ceftaroline', 'ceftazidime', 'ceftobiprole', 'ceftolozane',
@@ -29,9 +52,9 @@ export const fluoroquinoloneIds = Object.freeze([
 /**
  * One row is one class-derived scenario, NOT one new independent drug-specific study.
  * kind:
- * - beta_trough: criterion 100% fT>MIC (Cmin,free > MIC as surrogate only
+ * - beta_trough: 2026 conditional minimum 100% fT>MIC (Cmin,free > MIC as surrogate only
  *   when it really is the minimum over the dosing interval).
- * - beta_continuous: free Css > MIC (steady-state continuous infusion).
+ * - beta_continuous: 2023 prolonged-infusion consensus, free Css >= 4x MIC (steady-state infusion).
  * - peak_ratio: Cmax / MIC >= 8–10 (aminoglycosides).
  * - free_auc_ratio: fAUC24 / MIC >= 80 (fluoroquinolone ICU reference).
  * - total_auc_ratio: AUC24 / MIC > 666 (daptomycin conditional reference).
@@ -44,11 +67,12 @@ export const antibioticPdTargets = Object.freeze([
       labelFr: 'Réanimation adulte · perfusion intermittente ou prolongée',
       labelEn: 'Adult ICU · intermittent or extended infusion',
       metric: '100 % fT>CMI', unit: '% du temps de l’intervalle',
-      criterionFr: 'Concentration libre au-dessus de la CMI pendant tout l’intervalle',
-      criterionEn: 'Unbound concentration above MIC throughout the dosing interval',
-      contextFr: 'Objectif PK/PD de classe proposé en réanimation. Une résiduelle libre > CMI n’est un substitut valable que si elle représente réellement le minimum de concentration ; un prélèvement isolé ne démontre pas l’atteinte sur tout l’intervalle. Comparer la CMI mesurée, sa méthode et la fraction libre.',
-      contextEn: 'ICU class-level PK/PD proposal. An unbound trough > MIC is a surrogate only if it is the true interval minimum; one sample does not prove full-interval attainment. MIC method and free fraction matter.',
-      evidenceSection: 'Table 4, Beta-lactams: 100% fT>MIC; text mentions more aggressive 2–5×MIC targets as possible, not universal',
+      criterionFr: 'Minimum proposé : concentration libre > CMI sur 100 % de l’intervalle',
+      criterionEn: 'Suggested minimum: unbound concentration > MIC for 100% of the interval',
+      contextFr: 'Consensus international 2026 : recommandation conditionnelle et certitude des preuves très faible. Une fCmin > CMI ne constitue un substitut que si la résiduelle est réellement le minimum. Pour les isolats sensibles, le consensus privilégie comme CMI de référence la plus grande valeur entre le seuil de sensibilité et l’ECOFF, et non systématiquement la CMI mesurée. Une cible 100 % fT>4×CMI peut être discutée si la diffusion au site infectieux est faible (ex. méningite), mais n’est pas universelle. Vérifier fraction libre et toxicité.',
+      contextEn: '2026 international consensus: conditional recommendation, very-low certainty. Unbound trough > MIC is a surrogate only if it is the true interval minimum. For susceptible isolates, the reference MIC is the higher of the susceptibility breakpoint and ECOFF, not necessarily the measured isolate MIC. 100% fT>4×MIC may be appropriate for low tissue penetration (e.g. meningitis), not routinely. Consider free fraction and toxicity.',
+      evidenceSection: 'Table 1 and §3.2, 100% fT>MIC conditional minimum; §3.3 MIC selection; potential 100% fT>4×MIC for poorly penetrated sites',
+      source: betaLactam2026Source,
       status: 'consensus-class'
     },
     {
@@ -56,11 +80,12 @@ export const antibioticPdTargets = Object.freeze([
       labelFr: 'Réanimation adulte · perfusion continue',
       labelEn: 'Adult ICU · continuous infusion',
       metric: 'fCss>CMI', unit: 'mg/L (concentration libre)',
-      criterionFr: 'Concentration libre stable supérieure à la CMI',
-      criterionEn: 'Steady-state unbound concentration above the MIC',
-      contextFr: 'Objectif de classe pour perfusion continue à l’état stable. Si le laboratoire mesure la concentration totale, ne pas la comparer directement à la CMI sans estimer ou mesurer la fraction libre.',
-      contextEn: 'ICU class-level continuous-infusion target at steady state. Do not equate total-drug assay concentration to the unbound MIC threshold.',
-      evidenceSection: 'Table 4, Beta-lactams: continuous infusion Css>MIC; unbound drug emphasized in pharmacodynamic section',
+      criterionFr: 'Concentration libre au plateau ≥ 4 × CMI (perfusion continue)',
+      criterionEn: 'Steady-state unbound concentration ≥ 4 × MIC (continuous infusion)',
+      contextFr: 'Consensus international sur les perfusions prolongées (2023) : objectif recommandé en perfusion continue à l’état stable, plus exigeant que l’ancien seuil >CMI de 2020. Ne pas assimiler un résultat TOTAL à la fraction LIBRE. Le consensus 2026 conserve un minimum général 100 % fT>CMI et demande d’interpréter la CMI avec le seuil de sensibilité/ECOFF. Surveiller l’accumulation et la neurotoxicité.',
+      contextEn: '2023 international prolonged-infusion consensus recommends a continuous-infusion target at least 4×MIC, more stringent than the 2020 >MIC baseline. TOTAL drug assay is not UNBOUND drug. 2026 consensus maintains a general minimum of 100% fT>MIC and recommends considering the susceptibility breakpoint/ECOFF. Monitor accumulation and neurotoxicity.',
+      evidenceSection: 'Statement V.5 / §3.5.1: for continuous infusion, 100% fT>MIC with steady-state concentrations at least four times the MIC',
+      source: prolongedInfusion2023Source,
       status: 'consensus-class'
     }
   ]),
@@ -137,7 +162,7 @@ export function formatMicCalculation(target, mic, lang = 'fr') {
     case 'beta_trough':
       return (lang === 'fr' ? 'Repère : fCmin > ' : 'Surrogate: unbound Cmin > ') + value + ' mg/L';
     case 'beta_continuous':
-      return (lang === 'fr' ? 'À l’état stable : fCss > ' : 'At steady state: unbound Css > ') + value + ' mg/L';
+      return (lang === 'fr' ? 'À l’état stable : fCss ≥ ' : 'At steady state: unbound Css ≥ ') + number(4 * mic) + ' mg/L (4 × CMI)';
     case 'peak_ratio':
       return 'Cmax ≥ ' + number(8 * mic) + '–' + number(10 * mic) + ' mg/L';
     case 'free_auc_ratio':
