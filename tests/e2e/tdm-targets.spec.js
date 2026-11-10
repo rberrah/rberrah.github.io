@@ -476,7 +476,7 @@ test('Beta-lactam PK/PD card separates optimal fT>MIC from practical trough and 
   await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('Conditionnellement');
   await pk.getByTestId('tdm-pk-details').locator('summary').click();
   await expect(pk.getByText(/La résiduelle libre peut étayer/)).toBeVisible();
-  await expect(pk.getByText(/AUCτ = F × dose \/ CL/)).toBeVisible();
+  await expect(pk.getByText(/AUCτ = F × dose \/ CL/).last()).toBeVisible();
   await expect(pk.getByRole('link', {name:/ACCP.*2026/}).first()).toHaveAttribute('href', /PMC13392062/);
 });
 
