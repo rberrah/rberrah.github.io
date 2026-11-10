@@ -582,3 +582,22 @@ test('Gabapentin and pregabalin have opposite oral dose proportionality; digoxin
   await expect(page.getByTestId('tdm-pk-sample')).toContainText('≥6 h');
   await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('biodisponibilité différente');
 });
+
+
+test('AGNP 2026 banner identifies old psychiatric values without claiming replacement', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('halopéridol');
+  const review=page.getByTestId('tdm-agnp-2026-pending');
+  await expect(review).toBeVisible();
+  await expect(review).toContainText('consensus AGNP 2026');
+  await expect(review).toContainText('pas encore été vérifiées ni substituées');
+  await expect(review.getByRole('link')).toHaveAttribute('href','https://pubmed.ncbi.nlm.nih.gov/42392224/');
+  await search.fill('clonazépam');
+  await expect(page.getByTestId('tdm-agnp-2026-pending')).toBeVisible();
+  await search.fill('vancomycine');
+  await expect(page.getByTestId('tdm-agnp-2026-pending')).toHaveCount(0);
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('haloperidol');
+  await expect(page.getByTestId('tdm-agnp-2026-pending')).toContainText('molecule-specific updated range has not been verified');
+});
