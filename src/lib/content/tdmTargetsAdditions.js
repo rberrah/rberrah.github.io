@@ -9,7 +9,16 @@ export const additionalTdmSources = {
     url: 'https://www.gov.uk/government/publications/mycology-reference-laboratory-mrl-service-user-handbook/mycology-reference-laboratory-service-user-handbook',
     year: 2023, organization: 'UK Health Security Agency · Mycology Reference Laboratory',
     access: 'open_full_text',
-    evidenceSection: 'Interpretation of assay results: Flucytosine trough 20–40 and peak 50–100 mg/L; Itraconazole (parent) trough >0.5 mg/L',
+    evidenceSection: 'Interpretation of assay results: Flucytosine trough 20–40 and peak 50–100 mg/L; Itraconazole (analyte unspecified in 2023 handbook) trough >0.5 mg/L, NOT used as a target here',
+    verifiedOn: '2026-11-10'
+  },
+  itraconazoleIDSA2025: {
+    title: 'IDSA · Histoplasmosis in Adults, Children, and Pregnant Individuals (2025 TDM recommendations)',
+    citation: 'IDSA · histoplasmose 2025',
+    url: 'https://www.idsociety.org/practice-guideline/histoplasmosis/',
+    year: 2025, organization: 'Infectious Diseases Society of America',
+    access: 'open_full_text',
+    evidenceSection: 'Mild/moderate acute pulmonary histoplasmosis, TDM remarks: itraconazole component >1 mg/L and <3–4 mg/L by chromatographic assay, distinct from hydroxyitraconazole',
     verifiedOn: '2026-11-10'
   },
   itraconazoleIDSA2016: {
@@ -90,16 +99,16 @@ export const additionalTdmTargets = [
     evidenceEn: 'UKHSA laboratory recommendation; timing and route essential.'
   },
   {
-    id: 'itraconazole-parent-ukhsa', drug: 'itraconazole', indication: 'fungal-infection',
-    indicationFr: 'Infection fongique · itraconazole seul (UKHSA)',
-    indicationEn: 'Fungal infection · parent itraconazole only (UKHSA)',
+    id: 'itraconazole-parent-histo-idsa2025', drug: 'itraconazole', indication: 'histoplasmosis',
+    indicationFr: 'Histoplasmose pulmonaire légère/modérée · itraconazole seul (IDSA 2025)',
+    indicationEn: 'Mild/moderate pulmonary histoplasmosis · parent itraconazole only (IDSA 2025)',
     metric: 'C₀ (itraconazole seul)', unit: 'mg/L',
-    matrixFr: 'Sérum / plasma · itraconazole seul', matrixEn: 'Serum / plasma · parent itraconazole only',
-    relation: 'above', min: 0.5, max: null, status: 'institutional', source: 'ukhsaMycology',
-    contextFr: 'Repère du laboratoire national de mycologie UKHSA (>0,5 mg/L, avant la dose). Différent du seuil IDSA pour la somme itraconazole + hydroxy-itraconazole ; ne pas comparer directement. Un taux trop élevé peut aussi être toxique.',
-    contextEn: 'UKHSA reference laboratory predose guide: parent itraconazole >0.5 mg/L. Distinct from IDSA parent + hydroxy-itraconazole combined threshold; never compare directly. Excess exposure may be toxic.',
-    evidenceFr: 'Guide analytique institutionnel britannique UKHSA ; fenêtre spécifique à l’analyte.',
-    evidenceEn: 'UKHSA institutional laboratory guide; analyte-specific reference.'
+    matrixFr: 'Sérum / plasma · itraconazole seul, chromatographie', matrixEn: 'Serum / plasma · parent itraconazole only, chromatography',
+    relation: 'above', min: 1, max: null, status: 'guideline', source: 'itraconazoleIDSA2025',
+    contextFr: 'IDSA 2025, histoplasmose pulmonaire légère/modérée nécessitant itraconazole : taux résiduel de la molécule mère >1 mg/L par chromatographie. Les valeurs >3–4 mg/L peuvent exposer à plus de toxicité ; ne pas transformer ce plafond approximatif en intervalle strict. Le métabolite hydroxy-itraconazole n’est pas inclus.',
+    contextEn: 'IDSA 2025 mild/moderate pulmonary histoplasmosis: chromatographic parent-itraconazole trough >1 mg/L. Levels above approximately 3–4 mg/L may increase toxicity; the upper limit is approximate, not a strict window. Hydroxyitraconazole is excluded.',
+    evidenceFr: 'IDSA 2025, section TDM/remarks de l’histoplasmose, objectif de la molécule mère >1 mg/L ; seuil supérieur approximatif.',
+    evidenceEn: 'IDSA 2025 histoplasmosis TDM remarks: parent-only >1 mg/L, approximate upper safety consideration.'
   },
   {
     id: 'itraconazole-combined-ia-idsa', drug: 'itraconazole', indication: 'aspergillosis',
