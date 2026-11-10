@@ -345,6 +345,9 @@ assert.deepEqual(regulatoryLabelsByDrug.tac.map((label) => label.authority), ['A
 assert.ok(regulatoryLabelsByDrug.mpa.some((label) => label.authority === 'EMA'));
 assert.ok(regulatoryLabelsByDrug.everolimus.some((label) => label.authority === 'FDA'));
 const tacEvidence = tdmEvidenceForDrug('tac');
+assert.equal(tacEvidence.byTier[0].id, 'society');
+assert.ok(tacEvidence.byTier[0].papers.some((p) => p.url === 'https://pubmed.ncbi.nlm.nih.gov/31045868/'),
+  'Tacrolimus must link the original IATDMCT 2019 second consensus before RCP and Limoges research');
 assert.match(tacEvidence.exposure.detailFr, /C₀/);
 assert.ok(tacEvidence.byTier.some((tier) => tier.id === 'regulatory'));
 assert.deepEqual(tacEvidence.byTier.find((tier) => tier.id === 'regulatory').papers.slice(0,2)
