@@ -7,6 +7,7 @@ import { tdmDrugs } from './tdmTargets.js';
 import { betaLactamIds, aminoglycosideIds, fluoroquinoloneIds } from './tdmAntibioticPd.js';
 
 export const TDM_PK_REVIEW_DATE = '2026-11-10';
+/** @type {Readonly<Record<string, {citation:string, url:string, section:string, tier:'society'|'regulatory'|'other'}>>} */
 export const tdmPkReferences = Object.freeze({
   beta2026: {citation:'ACCP / ESCMID / IDSA / IATDMCT · 2026', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC13392062/', section:'§3.2 et §5.3, cible 100 % fT>CMI et place de la CMI/ECOFF', tier:'society'},
   antibacterial2020: {citation:'ESICM / ESCMID / IATDMCT / ISAC · 2020', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC7223855/', section:'Tableaux 1 et 4 ; classes PK/PD et prélèvements', tier:'society'},
