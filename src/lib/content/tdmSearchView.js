@@ -13,7 +13,13 @@ export function searchTdmMolecules(query = '') {
   const needle = normalizeTdmSearch(query);
   if (!needle) return { groups: [], withoutTargets: [] };
 
-  const matchedDrugs = tdmDrugs.filter((drug) =>
+  // An exact international nonproprietary name or known alias must win over
+  // incidental substrings (MPA in perampanel; venlafaxine in desvenlafaxine).
+  // Retain fuzzy matching only when no exact match exists.
+  const exactMatches = tdmDrugs.filter((drug) =>
+    [drug.fr, drug.en, ...drug.aliases].some((value) =>
+      normalizeTdmSearch(value) === needle));
+  const matchedDrugs = exactMatches.length ? exactMatches : tdmDrugs.filter((drug) =>
     [drug.fr, drug.en, ...drug.aliases].some((value) =>
       normalizeTdmSearch(value).includes(needle)));
 
