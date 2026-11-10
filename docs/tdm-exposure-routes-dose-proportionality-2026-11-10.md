@@ -1,0 +1,62 @@
+# Référentiel PK/PD et modalités d’administration des molécules TDM
+_État initial 10 novembre 2026 · fiche scientifique à valider avant fusion_
+
+## Objectif
+Afficher **quatre champs indépendants sur chaque fiche** :
+1. **Indice biologiquement/pharmacodynamiquement pertinent** : AUC/AUC–CMI, Cmax/CMI, fT>CMI, C0 ou concentration horodatée.
+2. **Prélèvement TDM praticable** : C0, C2, pic, suivi limité pour AUC, Css en perfusion continue, H24/H36/H42/H48 dans un protocole.
+3. **Voies documentées** : PO, IV… **uniquement si étayées pour la molécule et le schéma cité**. Une voie d’administration n’est pas une autorisation de substitution d’une spécialité à une autre. Une liste « IV » peut se limiter à la perfusion du consensus ICU, et n’exclut pas nécessairement des formes orales.
+4. **Proportionnalité dose–AUC** : `conditional_linear`, `nonlinear`, `complex`, `unassessed`. Aucune valeur `directRatioPermitted: true` : pas de calcul automatique de dose dans ce site pédagogique.
+
+Cette séparation évite quatre erreurs fréquentes : confondre C0 et AUC ; considérer Cmax = meilleur indice pour tous les antibiotiques ; supposer que fT>CMI double avec la dose ; confondre PK linéaire et estimation sûre d’une nouvelle dose.
+
+## Équation et conditions
+À l’état stable, **AUCτ = F × dose / CL** pour l’administration extravasculaire à PK linéaire (pour IV, F=1). Si CL, F, intervalle et méthode de comparaison sont constants, AUC est proportionnelle à la dose. Le raisonnement ne s’applique pas directement à Cmax et Cmin, ni aux indices seuils (%fT>CMI), ni aux cibles de toxicité.
+
+Une variation de clairance rénale/hépatique, une DDI, une modification alimentaire ou de biodisponibilité, une nouvelle formulation, une auto-induction, une liaison protéique saturable ou une perfusion différente invalidant ces conditions impose **un recalcul pharmacocinétique et une vérification STP**, jamais une règle de trois aveugle.
+
+## Exemples scientifiques verrouillés
+| Molécule / groupe | Indicateur privilégié | Mesure habituelle | Administration citée | Dose ×2 ⇒ AUC ×2 ? |
+| --- | --- | --- | --- | --- |
+| Bêta-lactamines | **fT>CMI** (libre) | Cmin intermittente ou Css libre en continu | IV dans recommandations aiguës | **Seulement si PK linéaire et CL stable** ; fT>CMI n’est pas proportionnel à AUC |
+| Aminosides | **AUC24/CMI et Cmax/CMI** | pic, prélèvement tardif, résiduel pour toxicité | IV en ICU | conditionnel, clairance rénale variable |
+| Fluoroquinolones | **(f)AUC24/CMI** | AUC par prélèvements chronométrés | IV en ICU | non documenté par spécialité |
+| Vancomycine (SARM invasif) | **AUC24 / CMI** | AUC bayésienne préférée à C0 seule | IV | conditionnel, pas si fonction rénale change |
+| Teicoplanine | AUC/CMI, **C0 pratique** | C0 et méthode HPLC/FPIA | IV | pas de règle chiffrée revue |
+| Linézolide | **AUC24/CMI**, C0 proxy | C0, éventuellement AUC | PO/IV | pas de règle revérifiée |
+| MPA | **AUC0–12** préférable à C0 | LSS ou MAP bayésien | PO/IV pour MMF, selon spécialité | complexe, dépend formulation et co-traitements |
+| Tacrolimus | AUC décrit mieux l’exposition, **C0 routine** | C0 selon LI/LP, AUC selon question | PO/IV selon spécialité | non garantie, CYP3A/hématocrite/formulation |
+| Évérolimus | **C0 bien corrélée à l’AUC** | C0 sang total | PO | PK généralement linéaire sous conditions |
+| Voriconazole | **C0 routine** | C0 | PO/IV | **NON**, métabolisme saturable ; 200→300 mg q12h PO ~AUC ×2,5 |
+| Phénytoïne | C0 totale/libre | résiduelle après équilibre | PO dans RCP consulté | **NON**, élimination saturable, +10 % de dose possiblement disproportionné |
+| Agomélatine | **Cmax** de référence historique | pic 1–2 h | voie non vérifiée dans cette fiche | non évalué |
+| Busulfan | **AUC cumulée** | LSS AUC autour des perfusions | IV dans protocole étudié | non évalué |
+| MTX haute dose | **Concentration horodatée** pour élimination retardée | H24/H36/H42/H48 depuis début de perfusion | IV haute dose | non évalué ; aucun seuil assimilé à une cible thérapeutique |
+
+## Sources et hiérarchie
+Chaque dimension renseignée dispose d’un identifiant de provenance vers :
+- sociétés savantes et consensus (ACCP/ESCMID/IDSA/IATDMCT 2026 ; ESICM/ESCMID/IATDMCT 2020 ; vancomycine 2020 ; transplantation/IATDMCT) ;
+- ANSM / EMA / FDA (voriconazole, amoxicilline, Dilantin, CellCept, Rapamune, Prograf) ;
+- publications complémentaires pour les référentiels historiques des psychotropes et antiépileptiques.
+
+Les modes d’administration issus d’un **papier de réanimation** sont étiquetés `studied_icu_iv` / `studied_systemic_infusion`, distincts de `product_authorised` lorsque le **RCP** a été directement consulté. Le référentiel public complet des présentations demeure à rapprocher du catalogue ANSM/EMA produit par produit ; aucune route absente n’est déduite d’une famille.
+
+### Exemples de sources
+- [Bêta-lactamines, consensus 2026](https://pmc.ncbi.nlm.nih.gov/articles/PMC13392062/) : cible 100 % fT>CMI **conditionnelle**.
+- [Position paper antibiotiques 2020](https://pmc.ncbi.nlm.nih.gov/articles/PMC7223855/) : indices, pic/C0, AUC, contexte ICU.
+- [Vancomycine, sociétés savantes 2020](https://www.idsociety.org/practice-guideline/vancomycin) : AUC, non C0 seule 15–20 mg/L pour SARM invasif.
+- [MPA 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC12456993/) : AUC plutôt que C0.
+- [Évérolimus IATDMCT](https://pubmed.ncbi.nlm.nih.gov/26982492/) : C0 bonne corrélation AUC, PK linéaire.
+- [Voriconazole ANSM](https://base-donnees-publique.medicaments.gouv.fr/medicament/69816080/extrait) : non-linéarité et exemple dose–AUC.
+- [Phénytoïne FDA](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=f1d41925-3be0-42a8-86f8-181569399c5b) : CYP saturable et disproportion de taux.
+- [Amoxicilline ANSM](https://base-donnees-publique.medicaments.gouv.fr/medicament/62607530/extrait) : proportionnalité 250–3000 mg PO **dans le contexte étudié**.
+
+## Architecture et vérification
+- Un enregistrement par molécule dans `tdmPharmacologyProfiles.js`, y compris `unassessed` pour les données non vérifiées.
+- Champs `index`, `practical`, `administration`, `proportionality`, `review` ; source par dimension.
+- 132/132 identifiants canoniques couverts, **sans combler les lacunes par des extrapolations arbitraires**.
+- Vue simple avec 4 attributs et panneau de sources rétractable pour garder une page accessible aux non-pharmacologues.
+- Tests machine : aucune règle automatique de doublement de dose, aucune voie sans référence, classification fT>CMI ≠ Cmin, C0 tacrolimus ≠ AUC, MPA AUC, phénytoïne/voriconazole nonlinéaires.
+- Aucun changement au dépôt MIPD Engine ; contrat d’export/consommation pourra réutiliser les mêmes IDs et les sources verrouillées.
+
+**À revoir scientifiquement** : doses et intervalles réellement linéaires par spécialité, routes autorisées pays/formulation, contextes pédiatriques, modalités de perfusion continue, perte de stabilité in vitro et provenance des cibles non numériques. La qualification CI ne tient pas lieu de validation pharmacologique humaine.
