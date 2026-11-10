@@ -155,6 +155,16 @@ export const tdmTargetSources = {
     newerConsensusUrl: 'https://www.jacc.org/doi/full/10.1016/j.jacc.2021.12.012',
     newerConsensusTitle: 'AHA/ACC/HFSA 2022: risques des concentrations élevées, notamment ≥1,2 ng/mL',
   },
+  tbTdmMeta2023: {
+    title: 'A systematic review and meta-analysis of first-line tuberculosis drug concentrations and treatment outcomes',
+    citation: 'Revue systématique tuberculose · 2023',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10622255/',
+    year: 2023,
+    organization: 'Revue systématique et méta-analyse des concentrations des antituberculeux',
+    access: 'open_full_text',
+    evidenceSection: 'Tableau 1 : concentrations de pic de référence, rifampicine 8–24 et isoniazide 3–6 mg/L ; valeurs historiques et non fenêtres individualisées démontrées',
+    verifiedOn: TDM_REFERENCE_REVIEW_DATE
+  },
   mpa2025: {
     citation: 'Liu et al. · 2025',
     title: 'Liu et al. (2025) · Recommandations MPA en transplantation d’organes solides',
@@ -1251,6 +1261,28 @@ export const tdmTargets = [
     "contextEn": "Suggested in 2013 ACCF/AHA guideline; 2022 guidance warns of harm at ≥1.2 ng/mL. Draw at least 6–8 h after dosing (distribution phase). Not an AF-specific target.",
     "evidenceFr": "2013 ACCF/AHA, section 7.3.2.7.2 : concentration plasmatique 0,5–0,9.",
     "evidenceEn": "2013 ACCF/AHA, §7.3.2.7.2: plasma 0.5–0.9."
+  },
+  {
+    id: 'isoniazid-tb-peak', drug: 'isoniazid', indication: 'tuberculosis',
+    indicationFr: 'Tuberculose active · traitement quotidien adulte', indicationEn: 'Active tuberculosis · adult daily regimen',
+    metric: 'C₂h (pic approximatif)', unit: 'mg/L',
+    matrixFr: 'Plasma/sérum, isoniazide', matrixEn: 'Plasma/serum, isoniazid',
+    relation: 'range', min: 3, max: 6, status: 'review', source: 'tbTdmMeta2023',
+    contextFr: 'Intervalle populationnel de concentration de pic utilisé dans les études de tuberculose. Prélèvement vers 2 h après prise orale selon le document CHU ; retard d’absorption possible, parfois prélèvement tardif complémentaire. La cible n’est pas un seuil individuel validé et dépend du schéma et de l’acétylation NAT2.',
+    contextEn: 'Population peak reference from tuberculosis studies. Approximate 2-hour oral post-dose sample per CHU document; delayed absorption may require later sample. Not an individually validated target; regimen and NAT2 acetylation matter.',
+    evidenceFr: 'Revue systématique / méta-analyse : fourchette de référence, non recommandation individualisée.',
+    evidenceEn: 'Systematic review/meta-analysis: reference interval, not an individualized prescribing recommendation.'
+  },
+  {
+    id: 'rifampicin-tb-peak', drug: 'rifampicin', indication: 'tuberculosis',
+    indicationFr: 'Tuberculose active · traitement quotidien adulte', indicationEn: 'Active tuberculosis · adult daily regimen',
+    metric: 'C₂h (pic approximatif)', unit: 'mg/L',
+    matrixFr: 'Plasma/sérum, rifampicine', matrixEn: 'Plasma/serum, rifampicin',
+    relation: 'range', min: 8, max: 24, status: 'review', source: 'tbTdmMeta2023',
+    contextFr: 'Concentration de pic de référence aux doses classiques, souvent prélevée à 2 h ; variabilité et absorption retardée possibles. Le document CHU prévoit aussi, si nécessaire, un prélèvement à 8 h. La forte dépendance de l’exposition à la dose limite les extrapolations.',
+    contextEn: 'Peak reference at conventional dosing, often sampled at 2 hours; delayed absorption can occur. CHU document also allows an optional 8-hour measurement. Exposure is dose-dependent; avoid extrapolating to high-dose regimens.',
+    evidenceFr: 'Revue systématique / méta-analyse : cible historique de référence, non intervalle universel.',
+    evidenceEn: 'Systematic review/meta-analysis: historical reference, not universal therapeutic range.'
   },
   {
     id: 'mpa-kidney-auc', drug: 'mpa', indication: 'kidney',
