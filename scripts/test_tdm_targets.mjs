@@ -347,6 +347,9 @@ assert.ok(regulatoryLabelsByDrug.everolimus.some((label) => label.authority === 
 const tacEvidence = tdmEvidenceForDrug('tac');
 assert.match(tacEvidence.exposure.detailFr, /C₀/);
 assert.ok(tacEvidence.byTier.some((tier) => tier.id === 'regulatory'));
+assert.deepEqual(tacEvidence.byTier.find((tier) => tier.id === 'regulatory').papers.slice(0,2)
+  .map((paper) => paper.citation.split(' · ')[0]), ['ANSM', 'EMA'],
+  'Inside regulatory tier, prioritize French RCP then EMA SmPC before FDA label');
 assert.ok(tacEvidence.byTier.find((tier) => tier.id === 'limoges').papers.some((p) => p.citation.includes('Woillard')));
 assert.ok(tdmEvidenceForDrug('mpa').exposure.tagFr.includes('AUC'));
 assert.ok(tdmEvidenceForDrug('everolimus').exposure.tagFr.includes('C₀'));
