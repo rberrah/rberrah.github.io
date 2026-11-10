@@ -135,7 +135,7 @@ test('CMI-aware beta-lactam targets are distinct for intermittent and continuous
   await mic.fill('2');
   await expect(page.getByTestId('tdm-mic-result')).toHaveCount(2);
   await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCmin > 2 mg/L' })).toBeVisible();
-  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCss > 2 mg/L' })).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCss ≥ 8 mg/L' })).toBeVisible();
   await mic.fill('0,5');
   await expect(page.getByTestId('tdm-mic-result').filter({ hasText: 'fCmin > 0,5 mg/L' })).toBeVisible();
   await mic.fill('0');
@@ -143,7 +143,9 @@ test('CMI-aware beta-lactam targets are distinct for intermittent and continuous
   await expect(page.getByTestId('tdm-mic-result')).toHaveCount(0);
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
   await page.getByTestId('tdm-mic-card').first().locator('summary').click();
-  await expect(page.getByText(/un prélèvement isolé ne démontre/i)).toBeVisible();
+  await expect(page.getByText(/une fCmin > CMI ne constitue un substitut/i)).toBeVisible();
+  await expect(page.getByText(/ECOFF/)).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-card').first().getByRole('link', { name: /Source PK\/PD originale/ })).toHaveAttribute('href', /beta-lactam-antibiotic-dose-individualization-in-acutely-ill-patients/);
 });
 
 test('MIC-aware aminoglycosides, quinolones and daptomycin preserve different PK/PD indices', async ({ page }) => {
