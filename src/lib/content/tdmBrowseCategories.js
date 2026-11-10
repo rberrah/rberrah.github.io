@@ -18,7 +18,7 @@ const categoryDefinitions = Object.freeze([
   { id: 'other', fr: 'Autres molécules', en: 'Other medicines' }
 ]);
 
-const antifungalIds = new Set(['voriconazole', 'posaconazole']);
+const antifungalIds = new Set(['voriconazole', 'posaconazole', 'flucytosine', 'itraconazole']);
 const antiseizureIds = new Set(['valproate','carbamazepine','lamotrigine','oxcarbazepine',
   'levetiracetam','phenytoin','phenobarbital']);
 const transplantationIds = new Set(['mpa','tac','everolimus','cyclosporine','sirolimus']);
