@@ -123,8 +123,11 @@ assert.equal(semanticReadinessReport.numericReferenceClaims,tdmTargets.length);
 assert.equal(semanticReadinessRows.length,tdmTargets.length);
 assert.equal(semanticReadinessReport.humanApprovedClaims,0);
 assert.equal(semanticReadinessReport.eligibleForAutomaticClinicalInterpretation,0);
-assert.equal(semanticReadinessReport.unresolvedByField.analyteId,tdmTargets.length,
-  'Published prose is not machine-readable parent/metabolite identity');
+assert.equal(semanticReadinessReport.unresolvedByField.analyteId,tdmTargets.length-9,
+  'Exactly nine AGNP 2026 rows have source-checked structured parent identity; historical rows remain unstructured');
+assert.equal(semanticReadinessReport.humanApprovedClaims,0);
+assert.equal(semanticReadinessReport.fullyStructuredClaims,0,
+  'Nine typed analyte/timing records still lack formulation/assay human signoff');
 assert.ok(semanticReadinessRows.some((r)=>r.agnp2026ComparisonPending));
 assert.ok(semanticReadinessRows.every((r)=>r.eligibleForAutomaticClinicalInterpretation===false));
 assert.equal(chuCoverage.structured_scientific_readiness.numericReferenceClaims,tdmTargets.length);
