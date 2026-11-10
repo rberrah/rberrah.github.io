@@ -27,7 +27,7 @@ const relevantIds = new Set([
   ...psychiatryTdmDrugs.map((drug)=>drug.id),
   ...additionalAntiseizureDrugs.map((drug)=>drug.id),
   ...extraAntidepressantDrugs.map((drug)=>drug.id),
-  'lithium','valproate','carbamazepine','lamotrigine','levetiracetam',
+  'clozapine','lithium','valproate','carbamazepine','lamotrigine','levetiracetam',
   'oxcarbazepine','phenobarbital','phenytoin','amitriptyline',
   'citalopram','clomipramine','escitalopram','fluoxetine','venlafaxine',
   'mirtazapine','paroxetine','duloxetine','fluvoxamine','tramadol'
