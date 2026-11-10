@@ -38,6 +38,7 @@ export const tdmPkReferences = Object.freeze({
   rifampicinTDM2021: {citation:'Anti-TB TDM review · 2021', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC7935699/', section:'Exposition rifampicine, AUC et concentration, effet de dose et temps', tier:'other'},
   amoxicillinANSM: {citation:'ANSM · RCP Clamoxyl', url:'https://base-donnees-publique.medicaments.gouv.fr/medicament/62607530/extrait', section:'§4.2 oral et relais IV ; §5.2 proportionnalité AUC 250–3000 mg PO', tier:'regulatory'},
   busulfan2026: {citation:'EBMT / ESID · 2026', url:'https://doi.org/10.1038/s41409-026-02906-0', section:'AUC cumulée de conditionnement selon protocole', tier:'society'},
+  agnp2026Table5: {citation:'AGNP · Hart et al. 2026', url:'https://doi.org/10.1055/a-2860-7861', section:'Tableau 5 : plages molécules/analytes et prélèvements à 12 h, 24 h ou pic 2–3 h ; alertes distinctes', tier:'society'},
   psychiatry2020: {citation:'ASCP / AGNP · 2020', url:'https://doi.org/10.4088/JCP.19cs13169', section:'Tableau 2 : résiduelles historiques antipsychotiques, à réviser AGNP 2026', tier:'society'},
   depression2025: {citation:'Schoretsanitis & Paulzen · 2025', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC12672037/', section:'Tableau 1, concentrations antidépresseurs (agomélatine : pic)', tier:'other'},
   epilepsy2018: {citation:'Reimers et al. · 2018', url:'https://pmc.ncbi.nlm.nih.gov/articles/PMC5811172/', section:'Tableau 1, valeurs résiduelles sériques historiques', tier:'other'},
@@ -371,6 +372,40 @@ assign(olderAntipsychotics,{
   administration:{codes:[],sourceId:null,scope:'unreviewed'},
   proportionality:unknownDose
 },'class_reviewed');
+
+// Individual AGNP 2026 Table 5 samples override older class-level C0 labels.
+// A fixed 12h/24h measurement is NOT automatically a true predose trough for
+// every formulation. These are reference windows, not evidence of universal STP.
+assign(['haloperidol','clozapine','trazodone','lacosamide','lamotrigine','levetiracetam'],{
+  index:indexed('C12_reference','Référence de concentration à 12 h','12-h concentration reference',
+    'Le tableau 5 AGNP 2026 donne un intervalle à 12 h après prise, avec niveau de recommandation propre à la molécule. Ce n’est pas la démonstration d’un marqueur universel de réponse.',
+    'AGNP 2026 Table 5 specifies 12 h postdose with drug-specific TDM level. This is not proof that any trough universally predicts efficacy.','agnp2026Table5'),
+  practical:routine('C12','12 h après dernière dose','12 h after last dose',
+    'Noter le délai réel, l’état stable, la formulation et l’analyte. Pour les formes injectables prolongées, vérifier la chronologie spécifique.',
+    'Record actual timing, steady state, formulation and analyte; depot formulations require their own schedule.','agnp2026Table5'),
+  administration:{codes:[],sourceId:null,scope:'unreviewed'},
+  proportionality:unknownDose
+},'drug_reviewed');
+assign(['levomilnacipran','desvenlafaxine'],{
+  index:indexed('C24_reference','Référence de concentration à 24 h','24-h concentration reference',
+    'Tableau 5 AGNP 2026 à 24 h après dose. Ne pas appliquer cette plage à un prélèvement à 12 h ni mélanger les analytes parent et somme active.',
+    'AGNP 2026 Table 5 at 24 h postdose; do not reuse for 12-h sampling or confuse parent with active-moiety sums.','agnp2026Table5'),
+  practical:routine('C24','24 h après dernière prise','24 h after last dose',
+    'Distinguer forme immédiate/prolongée, analyte et état stable ; le temps réel conditionne la comparaison.',
+    'Formulation, analyte, steady state and exact time constrain the comparison.','agnp2026Table5'),
+  administration:{codes:[],sourceId:null,scope:'unreviewed'},
+  proportionality:unknownDose
+},'drug_reviewed');
+assign(['tranylcypromine'],{
+  index:indexed('Cmax_reference','PIC Cmax à 2–3 h (pas C0)','2–3 h PEAK Cmax (not trough)',
+    'AGNP 2026 : 60–400 ng/mL au PIC 2–3 h après dose sous traitement continu. La valeur de C0 n’est PAS comparable. L’inhibition irréversible de la MAO dissocie concentration et durée d’effet.',
+    'AGNP 2026: 60–400 ng/mL PEAK at 2–3 h during continuous treatment, NOT a trough range. Irreversible MAO inhibition decouples concentration and effect duration.','agnp2026Table5'),
+  practical:routine('peak_2_3h','Pic à 2–3 h après dose','2–3 h postdose peak',
+    'Ne jamais interpréter une résiduelle avec cette plage ; vérifier le schéma continu, la dose et le délai.',
+    'Never compare trough to this peak range; confirm continuous regimen, dose and sampling time.','agnp2026Table5'),
+  administration:{codes:[],sourceId:null,scope:'unreviewed'},
+  proportionality:unknownDose
+},'drug_reviewed');
 
 // Nonlinearity is analyte-, regimen- and time-specific: never mark all
 // antiepileptics or all antibiotics as linear from a class assumption.
