@@ -140,7 +140,7 @@ export const exposureMarkerByDrug = Object.freeze({
 
 const societyId = new Set(['everolimus2025','mpa2021','valproateSfpt2010',
   'icuTdm2020','thaiKT2026','vancomycin2020']);
-const regulatoryId = new Set(['valproateRcp','phenytoinFDA']);
+const regulatoryId = new Set(['valproateRcp','phenytoinFDA','fdaZortress2026']);
 const limogesId = new Set(['mpa2015heart','levetiLimoges2022']);
 
 export function classifyTdmSource(sourceId) {
