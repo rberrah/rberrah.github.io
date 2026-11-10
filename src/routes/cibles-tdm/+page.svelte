@@ -9,6 +9,7 @@
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
   import { tdmSafetyReferences } from '#lib/content/tdmSafetySignals.js';
   import { tdmPkReferences } from '#lib/content/tdmPharmacologyProfiles.js';
+  import { agnp2026Update } from '#lib/content/tdmAgnpReview2026.js';
 
   const base = resolve('/').replace(/\/$/, '');
   const suggestions = [...new Set([
@@ -133,6 +134,16 @@
                 </a>
               {/if}
             </div>
+            {#if group.agnpReview}
+              <p class="agnp-2026-pending" data-testid="tdm-agnp-2026-pending">
+                {en
+                  ? `${group.agnpReview.historicalReferenceIds.length} older neuropsychiatric reference(s) displayed. AGNP 2026 was published, but the molecule-specific updated range has not been verified or substituted here.`
+                  : `${group.agnpReview.historicalReferenceIds.length} référence(s) historiques de neuropsychopharmacologie. Le consensus AGNP 2026 est paru, mais ses valeurs actualisées n’ont pas encore été vérifiées ni substituées pour cette molécule.`}
+                <a href={agnp2026Update.url} target="_blank" rel="noopener noreferrer">
+                  {en ? 'AGNP 2026 source' : 'Source AGNP 2026'} <ExternalLink size={13} aria-hidden="true" />
+                </a>
+              </p>
+            {/if}
 
             {#if group.pharmacology}
               <section class="pk-profile" data-testid="tdm-pk-summary" aria-label={en ? 'Exposure and dose proportionality' : 'Indicateur PK/PD et proportionnalité de dose'}>
@@ -444,6 +455,9 @@
 </div>
 
 <style>
+  .agnp-2026-pending { margin: .35rem 0 .9rem; border-inline-start: 3px solid var(--border-strong); padding: .55rem .8rem; background: var(--bg-secondary); color: var(--text-secondary); font-size: .82rem; line-height: 1.5; }
+  .agnp-2026-pending a { display: inline-flex; gap: .25rem; align-items: center; margin-left: .25rem; font-weight: 600; text-underline-offset: 3px; }
+  .agnp-2026-pending a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   .pk-profile { border: 1px solid var(--border-subtle); background: var(--bg-secondary); border-radius: 10px; overflow: hidden; margin: .35rem 0 .85rem; }
   .pk-profile-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0; }
   .pk-profile-item { display: flex; flex-direction: column; gap: .35rem; padding: .85rem 1rem; min-width: 0; border-right: 1px solid var(--border-subtle); }
