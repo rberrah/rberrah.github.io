@@ -395,7 +395,7 @@ test('Bupropion parent and hydroxybupropion remain two distinct analytes; upper-
   await search.fill('bupropion');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
   await expect(page.getByText('10–100', { exact: true })).toBeVisible();
-  await expect(page.getByTestId('tdm-target-card').filter({ hasText: /hydroxybupropion/i })).toContainText(/850.{1,2}500/);
+  await expect(page.getByTestId('tdm-target-card').filter({ hasText: /hydroxybupropion/i })).toContainText(/850–1\s*500/);
   await search.fill('tranylcypromine');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
   await expect(page.getByText('≤50', { exact: true })).toBeVisible();
