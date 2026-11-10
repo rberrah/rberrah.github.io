@@ -136,9 +136,17 @@
             </div>
             {#if group.agnpReview}
               <p class="agnp-2026-pending" data-testid="tdm-agnp-2026-pending">
-                {en
-                  ? `${group.agnpReview.historicalReferenceIds.length} older neuropsychiatric reference(s) displayed. AGNP 2026 was published, but the molecule-specific updated range has not been verified or substituted here.`
-                  : `${group.agnpReview.historicalReferenceIds.length} référence(s) historiques de neuropsychopharmacologie. Le consensus AGNP 2026 est paru, mais ses valeurs actualisées n’ont pas encore été vérifiées ni substituées pour cette molécule.`}
+                {#if group.agnpReview.agnp2026NumericalRangeVerified}
+                  <span data-testid="tdm-agnp-2026-verified">
+                    {en
+                      ? `${group.agnpReview.verified2026ReferenceIds.length} AGNP 2026 original Table 5 range(s) individually checked. Historic values remain displayed independently; final scientific approval is pending.`
+                      : `${group.agnpReview.verified2026ReferenceIds.length} plage(s) du tableau 5 AGNP 2026 recoupée(s) avec l’original. Les références historiques restent présentées séparément ; validation scientifique finale en attente.`}
+                  </span>
+                {:else}
+                  {en
+                    ? `${group.agnpReview.historicalReferenceIds.length} older neuropsychiatric reference(s) displayed. AGNP 2026 was published, but the molecule-specific updated range has not been verified or substituted here.`
+                    : `${group.agnpReview.historicalReferenceIds.length} référence(s) historiques de neuropsychopharmacologie. Le consensus AGNP 2026 est paru, mais ses valeurs actualisées n’ont pas encore été vérifiées ni substituées pour cette molécule.`}
+                {/if}
                 <a href={agnp2026Update.url} target="_blank" rel="noopener noreferrer">
                   {en ? 'AGNP 2026 source' : 'Source AGNP 2026'} <ExternalLink size={13} aria-hidden="true" />
                 </a>
