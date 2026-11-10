@@ -379,13 +379,26 @@ for (const invalid of ['', '0', '-1', 'NaN', 'Infinity', '1e5', '1,2,3', '1025']
 }
 const pdByKind = (kind) => antibioticPdTargets.find((entry) => entry.kind === kind);
 assert.equal(formatMicCalculation(pdByKind('beta_trough'), 2, 'fr'), 'Repère : fCmin > 2 mg/L');
-assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 2, 'fr'), 'À l’état stable : fCss > 2 mg/L');
+assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 2, 'fr'), 'À l’état stable : fCss ≥ 8 mg/L (4 × CMI)');
 assert.equal(formatMicCalculation(pdByKind('peak_ratio'), 0.5, 'fr'), 'Cmax ≥ 4–5 mg/L');
 assert.equal(formatMicCalculation(pdByKind('free_auc_ratio'), 0.5, 'fr'), 'fAUC₀–₂₄ ≥ 40 mg·h/L');
 assert.equal(formatMicCalculation(pdByKind('total_auc_ratio'), 0.5, 'fr'), 'AUC₀–₂₄ > 333 mg·h/L');
 assert.equal(formatMicCalculation(pdByKind('vancomycin_mic1'), 1, 'fr'), 'AUC₀–₂₄ : 400–600 mg·h/L (CMI = 1 mg/L)');
 assert.match(formatMicCalculation(pdByKind('vancomycin_mic1'), 2, 'fr'), /Pas de recalcul linéaire/);
 assert.equal(formatMicCalculation(pdByKind('beta_trough'), 0), null);
+
+assert.equal(antibioticPdForDrug('cefepime')[0].source.doi, '10.1002/phar.70181');
+assert.equal(antibioticPdForDrug('cefepime')[1].source.doi, '10.1002/phar.2842');
+assert.equal(antibioticPdForDrug('cefepime')[0].source.citation.includes('2026'), true);
+assert.match(antibioticPdForDrug('cefepime')[0].contextFr, /ECOFF/);
+assert.match(antibioticPdForDrug('cefepime')[0].contextFr, /preuves très faible/);
+assert.match(antibioticPdForDrug('cefepime')[0].contextFr, /4×CMI/);
+assert.match(antibioticPdForDrug('cefepime')[1].criterionFr, /4 × CMI/);
+assert.equal(antibioticPdForDrug('cefepime')[1].source.url, 'https://accpjournals.onlinelibrary.wiley.com/doi/10.1002/phar.2842');
+assert.equal(antibioticPdForDrug('amikacin')[0].source, undefined,
+  'Aminoglycosides retain their independently checked 2020 ICU source, not beta-lactam guidance');
+assert.equal(formatMicCalculation(pdByKind('beta_continuous'), 0.5, 'fr'), 'À l’état stable : fCss ≥ 2 mg/L (4 × CMI)');
+
 console.log('TDM antibiotic MIC objectives: 41 source-scoped contexts, 36 CHU sampling-time links, calculator and safety gates validated.');
 
 console.log(`TDM manual linked index: ${tdmManualCatalog.length} named medicines across ${Object.keys(manualCatalogSources).length} official document types.`);
