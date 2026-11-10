@@ -154,7 +154,7 @@ export function tdmEvidenceForDrug(drugId) {
   const referencedIds = [...new Set(tdmTargets.filter((row) => row.drug === drugId)
     .map((row) => row.source))];
   const publications = referencedIds.map((id) => ({
-    id, ...tdmTargetSources[id], tier: classifyTdmSource(id)
+    id, ...tdmTargetSources[id], tier: classifyTdmSource(id), noteFr: null, noteEn: null
   }));
   const seen = new Set();
   const byTier = tdmEvidencePriority.map(({ id, fr, en }) => {
