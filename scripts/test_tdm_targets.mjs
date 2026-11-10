@@ -9,6 +9,7 @@ import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
 import { tdmSafetySignals, tdmSafetyReferences } from '../src/lib/content/tdmSafetySignals.js';
+import { historicalChuAssayForDrug } from '../src/lib/content/tdmChuAssayProvenance.js';
 
 import {
   antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
@@ -432,6 +433,12 @@ const listedKeys = allGroups.flatMap((group) => group.medicines.map((entry) => e
 assert.equal(listedKeys.length, new Set(listedKeys).size, 'Each molecule should appear in exactly one category');
 assert.ok(tdmDrugs.every((drug) => listedKeys.includes(drug.id)), 'All searchable drugs need a family');
 assert.ok(tdmBrowseCategories.find((group) => group.id === 'psychotropics').medicines.some((d) => d.id === 'haloperidol'));
+assert.equal(tdmBrowseCategories.find((group) => group.id === 'psychotropics').medicines.find((d) => d.id === 'clozapine').historicallyAssayedAtChu, true);
+assert.equal(historicalChuAssayForDrug('clozapine').period, '2010–2022');
+assert.equal(historicalChuAssayForDrug('haloperidol'), null);
+assert.equal(tdmBrowseCategories.find((group) => group.id === 'antibiotics').medicines.find((d) => d.id === 'amikacin').chuEvidenceStatus, 'listed_as_dosed');
+assert.equal(tdmBrowseCategories.find((group) => group.id === 'immunosuppressants').medicines.find((d) => d.id === 'tac').chuEvidenceStatus, 'request_form_only');
+
 assert.ok(tdmBrowseCategories.find((group) => group.id === 'oncology').medicines.some((d) => d.id === 'methotrexate'));
 
 assert.ok(tdmManualCatalog.every((entry) => listedKeys.includes(entry.drugKey) || listedKeys.includes(entry.id)),
