@@ -4,6 +4,7 @@ import { extraAntidepressantDrugs, extraAntidepressantTargets } from './tdmAntid
 import { psychiatryTdmSources, psychiatryTdmDrugs, psychiatryTdmTargets } from './tdmPsychiatryExpansion2026.js';
 import { nonStandardTdmDrugs } from './tdmSafetySignals.js';
 import { additionalTdmDrugs, additionalTdmSources, additionalTdmTargets } from './tdmTargetsAdditions.js';
+import { agnpVerifiedTdmTargets, agnpVerifiedTdmSources } from './tdmAgnpVerified2026.js';
 // Curated bibliographic targets for the PMx Explain educational reference.
 // This catalogue is deliberately separate from the executable MIPD-Engine model library.
 // Scientific author review: PENDING. Do not use as a clinical dosing protocol.
@@ -289,7 +290,8 @@ export const tdmTargetSources = {
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
   },
   ...additionalTdmSources,
-  ...psychiatryTdmSources
+  ...psychiatryTdmSources,
+  ...agnpVerifiedTdmSources
 };
 
 export const tdmDrugs = [
@@ -1589,7 +1591,8 @@ export const tdmTargets = [
   ...additionalTdmTargets,
   ...psychiatryTdmTargets,
   ...extraAntidepressantTargets,
-  ...additionalAntiseizureTargets
+  ...additionalAntiseizureTargets,
+  ...agnpVerifiedTdmTargets
 ];
 
 /** @param {unknown} value */
