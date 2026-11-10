@@ -23,7 +23,9 @@ const antiseizureIds = new Set(['valproate','carbamazepine','lamotrigine','oxcar
   'levetiracetam','phenytoin','phenobarbital']);
 const transplantationIds = new Set(['mpa','tac','everolimus','cyclosporine','sirolimus']);
 const cardiologyIds = new Set(['digoxin']);
-const psychotropicIds = new Set(['lithium']);
+const psychotropicIds = new Set(['lithium','clozapine']);
+const additionalAntibioticIds = new Set(['teicoplanin']);
+const oncologyIds = new Set(['busulfan']);
 const manualFamilyCategories = {
   antibiotics: 'antibiotics',
   antidepressants: 'antidepressants',
@@ -45,6 +47,8 @@ const categoryFor = (drug, entry) => {
   if (antifungalIds.has(drug.id)) return 'antifungals';
   if (cardiologyIds.has(drug.id)) return 'cardiology';
   if (psychotropicIds.has(drug.id)) return 'psychotropics';
+  if (additionalAntibioticIds.has(drug.id)) return 'antibiotics';
+  if (oncologyIds.has(drug.id)) return 'oncology';
   const fromManual = entry ? manualFamilyCategories[entry.family] : null;
   return fromManual || 'other';
 };
