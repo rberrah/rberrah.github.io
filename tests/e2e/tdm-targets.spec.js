@@ -364,3 +364,14 @@ test('New antipsychotics and HD-MTX appear in the correct expandable family, wit
   await oncology.getByRole('button', { name: 'Méthotrexate (haute dose)' }).click();
   await expect(page.getByTestId('tdm-timed-safety-row')).toHaveCount(4);
 });
+
+
+test('Clozapine historical CHU evidence is shown without asserting present-day assay availability', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('clozapine');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-chu-historical-assay')).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-historical-assay')).toContainText('historique uniquement (2010–2022)');
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-historical-assay')).toHaveAttribute('href', /health-data-hub[.]fr/);
+});
