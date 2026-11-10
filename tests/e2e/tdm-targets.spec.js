@@ -617,7 +617,7 @@ test('Primary AGNP 2026 values coexist with older sources and sampling times are
   await expect(page.getByText('C₁₂h (12 h après dose)', {exact:true})).toBeVisible();
 
   await search.fill('trazodone');
-  await expect(page.getByText('650–1 500', {exact:true})).toBeVisible();
+  await expect(page.getByText(/650–1[\\u00a0\\u202f ]?500/).first()).toBeVisible();
 
   await search.fill('levomilnacipran');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
