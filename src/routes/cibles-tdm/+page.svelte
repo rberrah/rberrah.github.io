@@ -102,6 +102,14 @@
                   {en ? group.evidence.exposure.tagEn : group.evidence.exposure.tagFr}
                 </span>
               {/if}
+              {#if group.historicalChuAssay}
+                <a class="chu-sampling-link" data-testid="tdm-chu-historical-assay"
+                  href={group.historicalChuAssay.url} target="_blank" rel="noopener noreferrer"
+                  title={en ? group.historicalChuAssay.en : group.historicalChuAssay.fr}>
+                  {en ? 'CHU · Historic assay only (2010–2022)' : 'CHU · Dosage historique uniquement (2010–2022)'}
+                  <ExternalLink size={14} aria-hidden="true" />
+                </a>
+              {/if}
               {#if group.samplingDocument}
                 <a class="chu-sampling-link" data-testid="tdm-chu-sampling-link"
                   href={group.samplingDocument.url} target="_blank" rel="noopener noreferrer">
