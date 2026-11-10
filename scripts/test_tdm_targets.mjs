@@ -362,7 +362,8 @@ assert.equal(listedKeys.length, new Set(listedKeys).size, 'Each molecule should 
 assert.ok(tdmDrugs.every((drug) => listedKeys.includes(drug.id)), 'All searchable drugs need a family');
 assert.ok(tdmManualCatalog.every((entry) => listedKeys.includes(entry.drugKey) || listedKeys.includes(entry.id)),
   'All reviewed CHU assay names must be discoverable in the directory');
-assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 36));
+assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 37),
+  '36 CHU-listed antibiotics plus teicoplanin from the official ANSM SmPC');
 assert.ok(allGroups.some((group) => group.id === 'antidepressants' && group.medicines.length === 26));
 assert.ok(allGroups.some((group) => group.id === 'immunosuppressants' && group.medicines.length === 5));
 assert.deepEqual(tdmEvidencePriority.map((tier) => tier.id),
