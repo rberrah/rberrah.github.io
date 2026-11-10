@@ -9,6 +9,7 @@ import { tdmEvidenceForDrug } from './tdmEvidenceGuide.js';
 import { tdmSafetySignalsForDrug } from './tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
 import { tdmPharmacologyForDrug } from './tdmPharmacologyProfiles.js';
+import { agnp2026ReviewForDrug } from './tdmAgnpReview2026.js';
 
 // Grouping by a drug/indication/metric alone is unsafe:
 // identical concentration units may refer to the parent, active metabolite,
@@ -58,7 +59,7 @@ export function searchTdmMolecules(query = '') {
 
   const groups = matchedDrugs.map((drug) => {
     const indications = groupTdmReferenceEntries(tdmTargets.filter((entry) => entry.drug === drug.id));
-    return { drug, pharmacology: tdmPharmacologyForDrug(drug.id), indications, pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id), historicalChuAssay: historicalChuAssayForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
+    return { drug, pharmacology: tdmPharmacologyForDrug(drug.id), agnpReview: agnp2026ReviewForDrug(drug.id), indications, pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id), historicalChuAssay: historicalChuAssayForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
   }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0 || group.safetySignals.length > 0);
 
   const alreadyListed = new Set(groups.map((group) => group.drug.id));
