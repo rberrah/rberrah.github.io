@@ -65,7 +65,7 @@ assert.equal(searchTdmTargets({ query: 'lithium' }).length, 4);
 assert.equal(searchTdmTargets({ query: 'cardiaque' }).length, 5);
 assert.equal(searchTdmTargets({ query: 'heart' }).length, 5);
 assert.equal(searchTdmTargets({ query: 'heart', drug: 'mpa' }).length, 2);
-assert.equal(searchTdmTargets({ query: 'évérolimus' }).length, 4);
+assert.equal(searchTdmTargets({ query: 'évérolimus' }).length, 6);
 assert.equal(searchTdmTargets({ drug: 'everolimus', indication: 'heart' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'mpa', indication: 'kidney' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'vancomycin' }).length, 1);
