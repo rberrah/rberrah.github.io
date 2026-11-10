@@ -356,7 +356,8 @@ test('New antipsychotics and HD-MTX appear in the correct expandable family, wit
   await psychiatry.locator('summary').click();
   await expect(psychiatry.getByRole('button', { name: 'Halopéridol' })).toBeVisible();
   await psychiatry.getByRole('button', { name: 'Halopéridol' }).click();
-  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-agnp-2026-verified')).toBeVisible();
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
   await page.getByTestId('tdm-target-search').clear();
   const oncology = directory.getByTestId('tdm-medicine-family').filter({ hasText: 'Oncologie' });
@@ -397,8 +398,10 @@ test('Bupropion parent and hydroxybupropion remain two distinct analytes; upper-
   await expect(page.getByText('10–100', { exact: true })).toBeVisible();
   await expect(page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: 'Épisode dépressif majeur · hydroxybupropion' }) })).toContainText(/850–1\s*500/);
   await search.fill('tranylcypromine');
-  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
   await expect(page.getByText('≤50', { exact: true })).toBeVisible();
+  await expect(page.getByText('60–400', { exact: true })).toBeVisible();
+  await expect(page.getByText('Cmax (2–3 h après dose)', { exact: true })).toBeVisible();
 });
 
 
@@ -591,13 +594,42 @@ test('AGNP 2026 banner identifies old psychiatric values without claiming replac
   const review=page.getByTestId('tdm-agnp-2026-pending');
   await expect(review).toBeVisible();
   await expect(review).toContainText('consensus AGNP 2026');
-  await expect(review).toContainText('pas encore été vérifiées ni substituées');
+  await expect(review.getByTestId('tdm-agnp-2026-verified')).toContainText('tableau 5 AGNP 2026');
   await expect(review.getByRole('link')).toHaveAttribute('href','https://pubmed.ncbi.nlm.nih.gov/42392224/');
   await search.fill('clonazépam');
-  await expect(page.getByTestId('tdm-agnp-2026-pending')).toBeVisible();
+  await expect(page.getByTestId('tdm-agnp-2026-pending')).toContainText('pas encore été vérifiées ni substituées');
   await search.fill('vancomycine');
   await expect(page.getByTestId('tdm-agnp-2026-pending')).toHaveCount(0);
   await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
   await page.getByTestId('tdm-target-search').fill('haloperidol');
-  await expect(page.getByTestId('tdm-agnp-2026-pending')).toContainText('molecule-specific updated range has not been verified');
+  await expect(page.getByTestId('tdm-agnp-2026-verified')).toContainText('original Table 5 range(s) individually checked');
+});
+
+
+test('Primary AGNP 2026 values coexist with older sources and sampling times are unambiguous', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+
+  await search.fill('halopéridol');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('1–5', {exact:true})).toBeVisible();
+  await expect(page.getByText('1–10', {exact:true})).toBeVisible();
+  await expect(page.getByText('C₁₂h (12 h après dose)', {exact:true})).toBeVisible();
+
+  await search.fill('trazodone');
+  await expect(page.getByText('650–1 500', {exact:true})).toBeVisible();
+
+  await search.fill('levomilnacipran');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('30–90', {exact:true})).toBeVisible();
+  await expect(page.getByText('C₂₄h (24 h après dose)', {exact:true})).toBeVisible();
+
+  await search.fill('lacosamide');
+  await expect(page.getByText('1–12', {exact:true})).toBeVisible();
+  await search.fill('levetiracetam');
+  await expect(page.getByText('6–46', {exact:true})).toBeVisible();
+
+  await search.fill('clozapine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-agnp-2026-verified')).toBeVisible();
 });
