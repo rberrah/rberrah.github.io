@@ -52,3 +52,19 @@ Régime de licence du référentiel : liens et métadonnées bibliographiques un
 - Contrôle humain de toutes les valeurs des recommandations récentes.
 - Un identifiant de dose/formulation/voie par modèle MIPD Engine et une cartographie explicite des molécules.
 - Décision ultérieure sur l'usage : **enseignement/recherche** seulement vs dispositif d'aide clinique. Cette dernière option impose une évaluation séparée ; le présent chantier n'implique pas un marquage CE.
+
+
+## Extension PK/PD pour l'interface future (PR #228)
+
+La nouvelle matrice `src/lib/content/tdmPharmacologyProfiles.js` contient un enregistrement pour chacun des **132 identifiants canoniques**. Elle distingue :
+- `index.key` : critère PK/PD ou type d'exposition pertinent (`fT_MIC`, `AUC24_MIC`, `AUC_interval`, `Cmin`, `Cmax_reference`, `time_indexed`, `unknown`).
+- `practical.key` : prélèvement effectivement utilisable (`Cmin`, `auc_bayesian`, `Cmin_or_Css`, `peak_and_late`, etc.).
+- `administration.codes` : voies du contexte documenté, à confronter au RCP de la **spécialité/formulation** ; `scope` distingue schéma d'étude vs autorisation réglementaire. `modeFr/modeEn` explique perfusion continue/intermittente, libération immédiate/prolongée, dose de charge et autres modalités.
+- `proportionality.kind` : `conditional_linear`, `nonlinear`, `complex`, `unassessed` ; `directRatioPermitted = false` **pour toutes les molécules**.
+- Sources bibliographiques **distinctes par dimension** (indices, prélèvements, voie, dose–AUC).
+
+La future intégration doit lire un **snapshot figé et versionné** de ces valeurs, mais **ne jamais traduire `conditional_linear` en multiplicateur automatique de dose**. Un modèle MIPD qualifié doit estimer la clairance/biodisponibilité et respecter le contexte, les interactions, la voie, les horaires réels et l'incertitude. En présence de données insuffisantes, retourner `not_interpretable`.
+
+Le changement de forme ou de voie (ex. tacrolimus LI → LP, MPA gastro-résistant versus MMF IV, antipsychotique injectable LP versus oral) exige une vérification de l'interchangeabilité pharmacocinétique indépendante du référentiel de cibles.
+
+**Statut** : contrat préparatoire uniquement, sans ajout de calcul, d'API ni de fonctionnalité d'interprétation patient dans MIPD Engine.
