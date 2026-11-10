@@ -112,7 +112,7 @@ export const additionalTdmTargets = [
     contextEn: 'IDSA 2016 aspergillosis guidance, largely based on prophylaxis: combined parent + hydroxy-itraconazole trough >1.5 µg/mL (= mg/L). Not applicable to parent-only concentration. Formulation and interactions matter.',
     evidenceFr: 'IDSA 2016, section Itraconazole et suivi thérapeutique des triazolés ; preuve principalement observationnelle.',
     evidenceEn: 'IDSA 2016, Itraconazole and azole TDM sections; largely observational evidence.'
-  }
+  },
   {
     id: 'teicoplanin-severe-hplc', drug: 'teicoplanin', indication: 'severe-infection',
     indicationFr: 'Endocardite / infection sévère · dosage HPLC',
