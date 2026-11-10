@@ -692,7 +692,13 @@ assert.equal(valproateView.groups[0].indications.length, 1);
 assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRcp');
 assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
 assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 6);
-assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 3);
+assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 4,
+  'Serum and plasma lithium must remain separately labelled references');
+const lithiumEntries=searchTdmMolecules('lithium').groups[0].indications;
+assert.equal(lithiumEntries.filter((entry)=>entry.indicationFr==='Trouble bipolaire · entretien adulte').length,2,
+  'NICE plasma and ISBD serum references are distinct matrices, not alternatives');
+assert.deepEqual(new Set(lithiumEntries.filter((entry)=>entry.indicationFr==='Trouble bipolaire · entretien adulte')
+  .map((entry)=>entry.primary.matrixFr)),new Set(['Sérum','Plasma']));
 assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 0);
 assert.equal(searchTdmMolecules('cefepime').groups.length, 1);
 assert.equal(searchTdmMolecules('not-a-molecule-xyz').groups.length, 0);
