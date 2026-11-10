@@ -5,6 +5,8 @@ import {
 } from '../src/lib/content/tdmTargets.js';
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
 import { searchTdmMolecules } from '../src/lib/content/tdmSearchView.js';
+import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
+import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
 import {
   antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
@@ -16,7 +18,7 @@ import {
 
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
-const validRelations = new Set(['range', 'above', 'approx']);
+const validRelations = new Set(['range', 'above', 'approx', 'target']);
 const validStatuses = new Set(['guideline', 'study', 'review', 'regulatory', 'institutional']);
 
 for (const target of tdmTargets) {
@@ -58,7 +60,7 @@ assert.equal(normalizeTdmSearch('MYCOPHÉNOLATE'), 'mycophenolate');
 assert.equal(searchTdmTargets({ query: 'mycophenolate' }).length, 6);
 assert.equal(searchTdmTargets({ query: 'MMF' }).length, 6);
 assert.equal(searchTdmTargets({ query: 'MPA' }).length, 6);
-assert.equal(searchTdmTargets({ query: 'tacrolimus' }).length, 3);
+assert.equal(searchTdmTargets({ query: 'tacrolimus' }).length, 7);
 assert.equal(searchTdmTargets({ query: 'lithium' }).length, 4);
 assert.equal(searchTdmTargets({ query: 'cardiaque' }).length, 5);
 assert.equal(searchTdmTargets({ query: 'heart' }).length, 5);
@@ -114,6 +116,12 @@ assert.ok(tdmManualCatalog.filter((entry) => !tdmTargets.some((target) => target
 
 
 const reviewedNumericClaims = new Map([
+  ["tac-kidney-early-auc", ["tac2025","target",160,null]],
+  ["tac-kidney-mid-auc", ["tac2025","target",120,null]],
+  ["tac-kidney-late-auc", ["tac2025","target",80,null]],
+  ["everolimus-kidney-csa-fda", ["fdaZortress2026","range",3,8]],
+  ["everolimus-liver-tac-fda", ["fdaZortress2026","range",3,8]],
+  ["tac-liver-everolimus-fda", ["fdaZortress2026","range",3,5]],
   ["isoniazid-tb-peak", ["tbTdmMeta2023","range",3,6]],
   ["rifampicin-tb-peak", ["tbTdmMeta2023","range",8,24]],
   ["csa-kidney-c0-0", ["thaiKT2026","range",150,300]],
@@ -184,20 +192,21 @@ const reviewedNumericClaims = new Map([
   ["lithium-tolerability", ["lithium2019","range",0.4,0.6]],
   ["lithium-response", ["lithium2019","range",0.8,1]]
 ]);
-assert.equal(reviewedNumericClaims.size, 69);
+assert.equal(reviewedNumericClaims.size, 75);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 24, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 24, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 25, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 25, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 69 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 75 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
 const reviewedSourceIdentifiers = {
+  "fdaZortress2026": ["https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e082a024-7850-400b-a5c2-2a140612562a", null],
   "thaiKT2026": ["https://pmc.ncbi.nlm.nih.gov/articles/PMC13624913/", "10.1111/nep.70268"],
   "sirolimus2022": ["https://onlinelibrary.wiley.com/doi/full/10.1111/jcpt.13753", "10.1111/jcpt.13753"],
   "icuTdm2020": ["https://pmc.ncbi.nlm.nih.gov/articles/PMC7223855/", "10.1007/s00134-020-06050-1"],
@@ -266,7 +275,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 24 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 25 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
@@ -308,11 +317,47 @@ assert.equal(valproateView.groups.length, 1);
 assert.equal(valproateView.groups[0].indications.length, 1);
 assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRcp');
 assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
-assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 4);
+assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 6);
 assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 3);
 assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 0);
 assert.equal(searchTdmMolecules('cefepime').groups.length, 1);
 assert.equal(searchTdmMolecules('not-a-molecule-xyz').groups.length, 0);
+
+const allGroups = tdmBrowseCategories;
+assert.ok(allGroups.length >= 8);
+assert.ok(allGroups.every((group) => group.medicines.length && group.fr && group.en));
+const listedKeys = allGroups.flatMap((group) => group.medicines.map((entry) => entry.id));
+assert.equal(listedKeys.length, new Set(listedKeys).size, 'Each molecule should appear in exactly one category');
+assert.ok(tdmDrugs.every((drug) => listedKeys.includes(drug.id)), 'All searchable drugs need a family');
+assert.ok(tdmManualCatalog.every((entry) => listedKeys.includes(entry.drugKey) || listedKeys.includes(entry.id)),
+  'All reviewed CHU assay names must be discoverable in the directory');
+assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 36));
+assert.ok(allGroups.some((group) => group.id === 'antidepressants' && group.medicines.length === 26));
+assert.ok(allGroups.some((group) => group.id === 'immunosuppressants' && group.medicines.length === 5));
+assert.deepEqual(tdmEvidencePriority.map((tier) => tier.id),
+  ['society', 'regulatory', 'limoges', 'other']);
+assert.equal(classifyTdmSource('everolimus2025'), 'society');
+assert.equal(classifyTdmSource('valproateRcp'), 'regulatory');
+assert.equal(classifyTdmSource('fdaZortress2026'), 'regulatory');
+assert.equal(classifyTdmSource('levetiLimoges2022'), 'limoges');
+assert.equal(classifyTdmSource('tac2025'), 'other');
+assert.deepEqual(regulatoryLabelsByDrug.tac.map((label) => label.authority), ['ANSM','EMA','FDA']);
+assert.ok(regulatoryLabelsByDrug.mpa.some((label) => label.authority === 'EMA'));
+assert.ok(regulatoryLabelsByDrug.everolimus.some((label) => label.authority === 'FDA'));
+const tacEvidence = tdmEvidenceForDrug('tac');
+assert.match(tacEvidence.exposure.detailFr, /C₀/);
+assert.ok(tacEvidence.byTier.some((tier) => tier.id === 'regulatory'));
+assert.ok(tacEvidence.byTier.find((tier) => tier.id === 'limoges').papers.some((p) => p.citation.includes('Woillard')));
+assert.ok(tdmEvidenceForDrug('mpa').exposure.tagFr.includes('AUC'));
+assert.ok(tdmEvidenceForDrug('everolimus').exposure.tagFr.includes('C₀'));
+const tacTargets = searchTdmMolecules('tacrolimus').groups[0].indications;
+assert.equal(tacTargets.length, 7);
+assert.ok(tacTargets[0].metric.startsWith('AUC'), 'Tacrolimus AUC targets before C0 proxy on screen');
+assert.deepEqual(tacTargets.filter((row) => row.metric.startsWith('AUC')).map((row) => row.primary.min), [160,120,80]);
+assert.equal(tdmTargets.filter((row) => row.source === 'fdaZortress2026').length, 3);
+assert.equal(formatTdmTarget(tdmTargets.find((row) => row.id === 'tac-kidney-early-auc')), '160');
+console.log('TDM navigation and priority: all drugs indexed, society/RCP/Limoges order, AUC/C0 distinction validated.');
+
 console.log('TDM compact UI grouping: molecule-only search, coherent indications and source details validated.');
 
 
