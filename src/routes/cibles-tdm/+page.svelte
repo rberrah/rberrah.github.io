@@ -5,6 +5,7 @@
   import { tdmDrugs, tdmTargetSources, tdmInstitutionalResources, formatTdmTarget, TDM_REFERENCE_REVIEW_DATE } from '#lib/content/tdmTargets.js';
   import { tdmManualCatalog } from '#lib/content/tdmManualCatalog.js';
   import { searchTdmMolecules } from '#lib/content/tdmSearchView.js';
+  import { tdmBrowseCategories } from '#lib/content/tdmBrowseCategories.js';
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
 
   const base = resolve('/').replace(/\/$/, '');
@@ -54,6 +55,27 @@
     </datalist>
   </section>
 
+  {#if !hasQuery}
+    <section class="medicine-directory" data-testid="tdm-medicine-directory"
+      aria-label={en ? 'Browse medicines by category' : 'Explorer les molécules par famille'}>
+      <h2>{en ? 'Browse by medicine family' : 'Parcourir par famille de médicaments'}</h2>
+      <p>{en ? 'Expand a family, then select a molecule. The presence of a molecule does not imply a validated target or a CHU assay.' : 'Ouvrez une famille puis choisissez une molécule. Sa présence ne signifie pas nécessairement qu’une cible est validée ou qu’un dosage est réalisé au CHU.'}</p>
+      <div class="category-list">
+        {#each tdmBrowseCategories as category (category.id)}
+          <details class="medicine-family" data-testid="tdm-medicine-family">
+            <summary>{en ? category.en : category.fr} <span>{category.medicines.length}</span></summary>
+            <div class="family-drugs">
+              {#each category.medicines as medicine (medicine.id)}
+                <button type="button" onclick={() => query = medicine.query}
+                  data-testid="tdm-medicine-choice">{en ? medicine.en : medicine.fr}</button>
+              {/each}
+            </div>
+          </details>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
   {#if hasQuery}
     {#if results.groups.some((group) => group.pdTargets.length > 0)}
       <section class="mic-entry" data-testid="tdm-mic-input-section" aria-label={en ? 'MIC-dependent pharmacodynamic target' : 'Objectif pharmacodynamique selon la CMI'}>
@@ -74,6 +96,11 @@
           <section class="drug-section" data-testid="tdm-drug-group">
             <div class="drug-heading">
               <h2>{en ? group.drug.en : group.drug.fr}</h2>
+              {#if group.evidence.exposure}
+                <span class="exposure-tag" data-testid="tdm-exposure-tag">
+                  {en ? group.evidence.exposure.tagEn : group.evidence.exposure.tagFr}
+                </span>
+              {/if}
               {#if group.samplingDocument}
                 <a class="chu-sampling-link" data-testid="tdm-chu-sampling-link"
                   href={group.samplingDocument.url} target="_blank" rel="noopener noreferrer">
@@ -194,6 +221,41 @@
                 {/each}
               </div>
             {/if}
+
+            {#if group.evidence.exposure || group.evidence.byTier.length}
+              <details class="evidence-details" data-testid="tdm-evidence-details">
+                <summary>{en ? 'Exposure interpretation and reference sources' : 'AUC / C₀ et références complémentaires'}</summary>
+                <div class="evidence-content">
+                  {#if group.evidence.exposure}
+                    <h3>{en ? group.evidence.exposure.titleEn : group.evidence.exposure.titleFr}</h3>
+                    <p>{en ? group.evidence.exposure.detailEn : group.evidence.exposure.detailFr}
+                      <a href={group.evidence.exposure.sourceUrl} target="_blank" rel="noopener noreferrer">
+                        {group.evidence.exposure.sourceLabel} <ExternalLink size={13} aria-hidden="true" />
+                      </a>
+                    </p>
+                  {/if}
+                  <div class="tiered-references">
+                    {#each group.evidence.byTier as tier (tier.id)}
+                      <div class="reference-tier" data-testid="tdm-reference-tier">
+                        <h4>{en ? tier.en : tier.fr}</h4>
+                        <ul>
+                          {#each tier.papers as paper (paper.id)}
+                            <li>
+                              <a href={paper.url} target="_blank" rel="noopener noreferrer">
+                                {paper.citation} <ExternalLink size={13} aria-hidden="true" />
+                              </a>
+                              {#if paper.noteFr}
+                                <span>{en ? paper.noteEn : paper.noteFr}</span>
+                              {/if}
+                            </li>
+                          {/each}
+                        </ul>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              </details>
+            {/if}
           </section>
         {/each}
       </div>
@@ -240,6 +302,31 @@
 </div>
 
 <style>
+  .medicine-directory { margin: .3rem 0 1.7rem; }
+  .medicine-directory h2 { font: 650 1.1rem var(--font-heading); margin: 0 0 .35rem; }
+  .medicine-directory > p { font-size: .84rem; color: var(--text-secondary); margin: 0 0 .8rem; }
+  .category-list { display: grid; gap: .55rem; }
+  .medicine-family { border: 1px solid var(--border-subtle); background: var(--bg-tertiary); border-radius: 9px; overflow: hidden; }
+  .medicine-family summary { display: flex; justify-content: space-between; gap: .6rem; align-items: center; cursor: pointer; padding: .83rem 1rem; font-weight: 600; font-size: .94rem; }
+  .medicine-family summary > span { font-size: .81rem; color: var(--text-secondary); }
+  .medicine-family summary:focus-visible, .evidence-details summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: -2px; }
+  .family-drugs { display: flex; flex-wrap: wrap; gap: .42rem; padding: .6rem .85rem .9rem; border-top: 1px solid var(--border-subtle); }
+  .family-drugs button { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 6px; padding: .44rem .65rem; color: var(--text-primary); font: inherit; font-size: .85rem; cursor: pointer; }
+  .family-drugs button:hover { border-color: var(--accent-pk); }
+  .family-drugs button:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 1px; }
+  .exposure-tag { font-size: .74rem; font-weight: 600; border: 1px solid var(--border-subtle); border-radius: 5px; padding: .25rem .45rem; color: var(--text-secondary); }
+  .evidence-details { margin-top: .7rem; border: 1px solid var(--border-subtle); border-radius: 9px; overflow: hidden; }
+  .evidence-details > summary { padding: .65rem 1rem; cursor: pointer; color: var(--text-secondary); font-weight: 600; font-size: .85rem; }
+  .evidence-content { padding: .85rem 1rem; border-top: 1px solid var(--border-subtle); background: var(--bg-secondary); }
+  .evidence-content h3 { font-size: .97rem; margin: 0 0 .4rem; }
+  .evidence-content > p { line-height: 1.55; font-size: .85rem; color: var(--text-secondary); margin: 0 0 .8rem; }
+  .evidence-content > p a { display: inline-flex; gap: .25rem; align-items: center; margin-left: .25rem; }
+  .tiered-references { display: grid; gap: .85rem; }
+  .reference-tier h4 { margin: 0 0 .45rem; font-size: .83rem; }
+  .reference-tier ul { padding-left: 1.15rem; margin: 0; font-size: .81rem; }
+  .reference-tier li { margin-bottom: .4rem; }
+  .reference-tier li > span { display: block; font-size: .78rem; color: var(--text-secondary); line-height: 1.45; margin-top: .17rem; }
+  .reference-tier li > a { display: inline-flex; gap: .25rem; align-items: center; }
   .mic-entry { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-subtle); padding: .9rem 1rem; border-radius: 10px; margin: .5rem 0 1.3rem; }
   .mic-entry label { font-weight: 600; font-size: .88rem; }
   .mic-entry input { max-width: 130px; width: 100%; padding: .55rem .65rem; border: 1px solid var(--border-subtle); border-radius: 7px; background: var(--bg-tertiary); color: var(--text-primary); font: inherit; }
