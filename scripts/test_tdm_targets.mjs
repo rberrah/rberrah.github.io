@@ -83,6 +83,13 @@ assert.equal(searchTdmTargets({ drug: 'itraconazole' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'aripiprazole' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'risperidone' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'asenapine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'brivaracetam' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'clobazam' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'topiramate' }).length, 1);
+assert.equal(tdmTargets.find((r) => r.id === 'aed-clonazepam-norway2018').unit, 'ng/mL');
+assert.equal(tdmTargets.find((r) => r.id === 'aed-eslicarbazepine-norway2018').matrixFr, 'Sérum · S-licarbazépine (forme active)');
+assert.ok(tdmBrowseCategories.find((g) => g.id === 'antiseizure').medicines.some((d) => d.id === 'topiramate'));
+
 assert.equal(searchTdmTargets({ drug: 'agomelatine' }).length, 1);
 assert.equal(searchTdmTargets({ drug: 'bupropion' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'tranylcypromine' }).length, 1);
@@ -282,9 +289,25 @@ const reviewedNumericClaims = new Map([
   ["ad-vilazodone-mdd-extension-2025", ["antidepressant2025","range",15,45]],
   ["ad-bupropion-mdd-extension-2025", ["antidepressant2025","range",10,100]],
   ["ad-tranylcypromine-mdd-extension-2025", ["antidepressant2025","at_most",50,null]],
-  ["ad-bupropion-hydroxy-mdd-extension-2025", ["antidepressant2025","range",850,1500]]
+  ["ad-bupropion-hydroxy-mdd-extension-2025", ["antidepressant2025","range",850,1500]],
+  ["aed-brivaracetam-norway2018", ["oxcarb2018","range",0.2,2]],
+  ["aed-clobazam-norway2018", ["oxcarb2018","range",0.03,0.3]],
+  ["aed-clonazepam-norway2018", ["oxcarb2018","range",13,38]],
+  ["aed-eslicarbazepine-norway2018", ["oxcarb2018","range",3,26]],
+  ["aed-ethosuximide-norway2018", ["oxcarb2018","range",39,99]],
+  ["aed-felbamate-norway2018", ["oxcarb2018","range",30,60]],
+  ["aed-gabapentin-norway2018", ["oxcarb2018","range",3,21]],
+  ["aed-lacosamide-norway2018", ["oxcarb2018","range",3,10]],
+  ["aed-perampanel-norway2018", ["oxcarb2018","range",0.1,1]],
+  ["aed-pregabalin-norway2018", ["oxcarb2018","range",2,6]],
+  ["aed-rufinamide-norway2018", ["oxcarb2018","range",4,31]],
+  ["aed-stiripentol-norway2018", ["oxcarb2018","range",4,22]],
+  ["aed-sulthiame-norway2018", ["oxcarb2018","range",2,10]],
+  ["aed-topiramate-norway2018", ["oxcarb2018","range",2,10]],
+  ["aed-zonisamide-norway2018", ["oxcarb2018","range",10,38]],
+  ["aed-clobazam-active-metabolite-norway2018", ["oxcarb2018","range",0.3,3]]
 ]);
-assert.equal(reviewedNumericClaims.size, 115);
+assert.equal(reviewedNumericClaims.size, 131);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
 assert.equal(Object.keys(tdmTargetSources).length, 32, 'Any new source requires review');
 assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 32, 'Every numeric reference needs a distinct citation label');
@@ -293,7 +316,7 @@ for (const entry of tdmTargets) {
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 115 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 131 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
