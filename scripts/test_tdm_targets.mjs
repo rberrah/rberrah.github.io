@@ -81,7 +81,7 @@ assert.equal(searchTdmTargets({ query: 'Sporanox' }).length, 2);
 assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').min, 50);
 assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').metric, 'Cmax (prélèvement post-dose)');
 assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-combined-ia-idsa').metric, 'C₀ (somme des deux analytes)');
-assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-parent-ukhsa').metric, 'C₀ (itraconazole seul)');
+assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-parent-histo-idsa2025').metric, 'C₀ (itraconazole seul)');
 assert.equal(formatTdmTarget(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a')), '85–95');
 assert.equal(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a').metric, 'AUC cumulée');
 assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-hplc').matrixFr, 'Sérum · HPLC');
@@ -219,13 +219,13 @@ const reviewedNumericClaims = new Map([
   ["busulfan-iei-protocol-c", ["busulfanEBMT2026","range",60,70]],
   ["flucytosine-trough-ukhsa", ["ukhsaMycology","range",20,40]],
   ["flucytosine-peak-ukhsa", ["ukhsaMycology","range",50,100]],
-  ["itraconazole-parent-ukhsa", ["ukhsaMycology","above",0.5,null]],
+  ["itraconazole-parent-histo-idsa2025", ["itraconazoleIDSA2025","above",1,null]],
   ["itraconazole-combined-ia-idsa", ["itraconazoleIDSA2016","above",1.5,null]]
 ]);
 assert.equal(reviewedNumericClaims.size, 84);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 30, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 30, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 31, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 31, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
@@ -316,6 +316,10 @@ const reviewedSourceIdentifiers = {
   "itraconazoleIDSA2016": [
     "https://www.idsociety.org/practice-guideline/aspergillosis",
     "10.1093/cid/ciw326"
+  ],
+  "itraconazoleIDSA2025": [
+    "https://www.idsociety.org/practice-guideline/histoplasmosis/",
+    null
   ]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
@@ -325,7 +329,7 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 30 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 31 reviewed URLs and DOI identifiers pinned.');
 
 
 assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
