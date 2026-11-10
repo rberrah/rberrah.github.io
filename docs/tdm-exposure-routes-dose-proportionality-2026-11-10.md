@@ -24,8 +24,9 @@ Une variation de clairance rénale/hépatique, une DDI, une modification aliment
 | Vancomycine (SARM invasif) | **AUC24 / CMI** | AUC bayésienne préférée à C0 seule | IV | conditionnel, pas si fonction rénale change |
 | Teicoplanine | AUC/CMI, **C0 pratique** | C0 et méthode HPLC/FPIA | IV | pas de règle chiffrée revue |
 | Linézolide | **AUC24/CMI**, C0 proxy | C0, éventuellement AUC | PO/IV | pas de règle revérifiée |
-| MPA | **AUC0–12** préférable à C0 | LSS ou MAP bayésien | PO/IV pour MMF, selon spécialité | complexe, dépend formulation et co-traitements |
-| Tacrolimus | AUC décrit mieux l’exposition, **C0 routine** | C0 selon LI/LP, AUC selon question | PO/IV selon spécialité | non garantie, CYP3A/hématocrite/formulation |
+| MPA | **AUC0–12** préférable à C0 | LSS ou MAP bayésien | PO/IV pour MMF, selon spécialité | **sous-proportionnel** observé dans 84 greffés rénaux (pente dose–AUC 0,513 ; ×2 dose ≈ ×1,43 AUC en moyenne), non transposable directement |
+| Tacrolimus | AUC décrit mieux l’exposition, **C0 routine** | C0 selon LI/LP, AUC selon question | PO/IV selon spécialité | proportionnel à 3/7/10 mg PO dose unique chez des volontaires à jeun (FDA), **conditionnel** chez un greffé |
+| Ciclosporine | AUC / C2 selon greffe | C0 ou C2 suivant protocole | Neoral PO microémulsion, spécialités à distinguer | **linéaire dans la plage thérapeutique Neoral** (FDA), sans généralisation à toute formulation |
 | Évérolimus | **C0 bien corrélée à l’AUC** | C0 sang total | PO | PK généralement linéaire sous conditions |
 | Voriconazole | **C0 routine** | C0 | PO/IV | **NON**, métabolisme saturable ; 200→300 mg q12h PO ~AUC ×2,5 |
 | Phénytoïne | C0 totale/libre | résiduelle après équilibre | PO dans RCP consulté | **NON**, élimination saturable, +10 % de dose possiblement disproportionné |
@@ -68,3 +69,11 @@ Les modes d’administration issus d’un **papier de réanimation** sont étiqu
 - **Valproate** : [FDA / DailyMed Depakote](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=08a65cf4-7749-4ceb-6895-8f4805e2b01f), propriétés PK : les concentrations **totales** augmentent moins que proportionnellement à la dose par saturation de la liaison protéique, tandis que la **fraction libre** se comporte plus linéairement. Une correction automatique fondée sur le valproate total serait trompeuse en hypoalbuminémie.
 - **Carbamazépine** : [Tegretol FDA](https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20234S17LBL.PDF), auto-induction du métabolisme, demi-vie changeante et comportement dépendant de la durée de traitement.
 - **Rifampicine** : [modèle semi-mécaniste, Denti et al.](https://pubmed.ncbi.nlm.nih.gov/26552972/) et [revue STP antituberculeux](https://pmc.ncbi.nlm.nih.gov/articles/PMC7935699/), extraction hépatique saturable **et** auto-induction au fil des jours. Une dose plus forte peut générer une AUC plus que proportionnelle alors que les concentrations diminuent au cours de l’induction.
+
+## Vérification complémentaire : relation dose–AUC chez les immunosuppresseurs
+
+Les sources vérifiées montrent pourquoi il faut séparer « molécule ayant généralement une PK linéaire » de « règle de trois utilisable chez un patient particulier ».
+
+- **Tacrolimus Prograf** : [RCP FDA / DailyMed, §12.3](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=7f667de1-9dfa-4bd6-8ba0-15ee2d78873b) rapporte une AUC et une Cmax approximativement proportionnelles après **3, 7 et 10 mg oraux en dose unique chez 18 volontaires à jeun**. Cette observation ne valide pas un doublement de dose chez un greffé ayant une interaction CYP3A, un nouvel hématocrite ou un changement LI/LP.
+- **MPA sous MMF** : [Mohamed et al., *Clinical Pharmacokinetics*, 2026](https://pmc.ncbi.nlm.nih.gov/articles/PMC12960313/) : **84 greffés rénaux sous tacrolimus**, doses MMF **250–1 000 mg ×2/j**, pente du modèle log(AUC₀–₁₂)–log(dose) **0,513 (IC90 % 0,324–0,702)**, incompatible avec la proportionnalité. Dans **cette cohorte**, doubler la dose correspondrait à une AUC moyenne estimée ×**1,43** (2^0,513), et non ×2. Ceci **n'est pas une équation d’adaptation posologique individuelle**.
+- **Ciclosporine Neoral microémulsion** : le [RCP FDA](https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=94461af3-11f1-4670-95d4-2965b9538ae3) indique une relation dose–AUC **linéaire dans la plage thérapeutique** de cette spécialité ; Neoral et Sandimmune ne sont **pas** des formulations interchangeables sans précaution. La [fiche Neoral solution orale 2026](https://www.medicines.org.uk/emc/product/5300/smpc) confirme le mode d’administration microémulsion.
