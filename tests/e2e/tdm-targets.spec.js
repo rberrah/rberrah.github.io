@@ -402,6 +402,9 @@ test('Bupropion parent and hydroxybupropion remain two distinct analytes; upper-
   await expect(page.getByText('≤50', { exact: true })).toBeVisible();
   await expect(page.getByText('60–400', { exact: true })).toBeVisible();
   await expect(page.getByText('Cmax (2–3 h après dose)', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('PIC Cmax à 2–3 h');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('Pic à 2–3 h');
+
 });
 
 
