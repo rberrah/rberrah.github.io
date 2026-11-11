@@ -62,7 +62,7 @@ test('Different transplant regimens remain distinct; supported mobile English se
   await expect(page.getByRole('link', { name: /MIPD model library/ })).toBeVisible();
 });
 
-test('Only verified CHU sampling-time documents are shown, never lab request forms or assay pages', async ({ page }) => {
+test('CHU sampling-time documents remain distinct from explicitly labelled assay pages and request forms', async ({ page }) => {
   await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
   const search = page.getByTestId('tdm-target-search');
   await search.fill('céfépime');
@@ -80,7 +80,7 @@ test('Only verified CHU sampling-time documents are shown, never lab request for
   await expect(page.locator('a[href*="idDoc=33210"]')).toHaveCount(0);
   await search.fill('lithium');
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
-  await expect(page.locator('a[href*="DetailNew.aspx"]')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href', /DetailNew\.aspx\?id=A3912/);
   await search.fill('no-such-molecule-xyz');
   await expect(page.getByText(/Aucune molécule trouvée/)).toBeVisible();
   await page.getByRole('button', { name: 'Effacer la recherche' }).click();
@@ -468,7 +468,7 @@ test('CHU documentary filter shows exactly the previously verified names, not la
   await expect(filter).not.toBeChecked();
   await filter.check();
   const families = directory.getByTestId('tdm-medicine-family');
-  await expect(families).toHaveCount(7);
+  await expect(families).toHaveCount(10);
   await expect(directory.getByText(/sans garantie de dosage actuel/)).toBeVisible();
   const antibiotiques = families.filter({ hasText: 'Antibiotiques' });
   await expect(antibiotiques.locator('summary')).toContainText('36');
