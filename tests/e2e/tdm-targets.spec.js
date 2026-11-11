@@ -688,6 +688,7 @@ test('CHU full exam index: theophylline peak target, abacavir assay-only and out
   await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href',/A3838/);
   await search.fill('6-TGN');
   await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-chu-outsourced-exam')).toHaveAttribute('href',/A3946/);
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
 });
 test('IATDMCT anti-infective discovery does not assert routine monitoring or fabricate ranges', async ({page}) => {
