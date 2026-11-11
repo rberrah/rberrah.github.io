@@ -62,7 +62,7 @@ const chuEvidenceStatus = (entry) => {
   if (entry.status === 'request_form_only') return 'request_form_only';
   if (entry.status === 'outsourced_exam') return 'external_referral';
   if (entry.sourceId === 'antimicrobialProtocol') return 'listed_as_dosed';
-  if (['single_exam', 'group_exam', 'named_in_document'].includes(entry.status)) return 'exam_document';
+  if (['single_exam', 'individual_exam', 'group_exam', 'named_in_document'].includes(entry.status)) return 'exam_document';
   return 'not_documented';
 };
 const categoryFor = (drug, entry) => {
