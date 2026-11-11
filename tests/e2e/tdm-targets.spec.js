@@ -274,7 +274,7 @@ test('Clozapine remains a single analyte-specific reference with updated consens
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
   await expect(page.getByText('350–600', { exact: true })).toHaveCount(2);
   const historicalClozapine=page.getByTestId('tdm-target-card')
-    .filter({ has: page.getByRole('heading', { name: /maintenance|historical/i }) });
+    .filter({ has: page.getByRole('heading', { name: 'Schizophrenia · clozapine monitoring' }) });
   await historicalClozapine.locator('summary').click();
   await expect(historicalClozapine.getByText(/norclozapine is distinct/i)).toBeVisible();
   await expect(historicalClozapine.getByRole('link', { name: /AGNP 2026/ }))
