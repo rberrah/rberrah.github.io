@@ -11,7 +11,7 @@ import { additionalSocietyTdmDrugs, societyNumericTargets, societyNumericSources
 // Scientific author review: PENDING. Do not use as a clinical dosing protocol.
 // The numeric source must contain the numeric claim itself, not merely discuss TDM.
 // Access means the claim is visible in full text or an open bibliographic abstract.
-export const TDM_REFERENCE_REVIEW_DATE = '2026-11-11';
+export const TDM_REFERENCE_REVIEW_DATE = '2026-11-10';
 export const tdmInstitutionalResources = [
   {
     id: 'sfpt-stp',
