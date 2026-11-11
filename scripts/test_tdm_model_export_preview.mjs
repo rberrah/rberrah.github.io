@@ -50,3 +50,33 @@ assert.equal(tdmModels.filter(m=>m.analysisEligible).length,13);
 assert.equal(mipdModelsForTdmDrug('tac').some(m=>m.analysisEligible===false),true,
   'Deep links must also show simulation-only models');
 console.log('PMx MIPD deep links: 46 models, 23 mapped drug keys, no automatic analysis.');
+
+// --- Crosswalk evolution contract (adding MIPD models later must stay predictable) ---
+import { mipdCrosswalkDrift,mipdCrosswalkIsExact,describeMipdCrosswalkDrift,
+  computeMipdCrosswalkDrift,isMipdCrosswalkExact } from '../src/lib/tdm/guideModelLinks.js';
+// The pinned catalogue must be exactly covered before any release.
+assert.equal(mipdCrosswalkIsExact,true,
+  'Reviewed crosswalk drifted from the pinned MIPD catalogue: '+describeMipdCrosswalkDrift());
+assert.deepEqual(mipdCrosswalkDrift.unmappedModelDrugKeys,[]);
+assert.deepEqual(mipdCrosswalkDrift.crosswalkKeysWithoutModel,[]);
+assert.deepEqual(mipdCrosswalkDrift.ambiguousTdmIds,[]);
+assert.equal(describeMipdCrosswalkDrift(),'');
+// A new model for an ALREADY mapped molecule is supported automatically.
+const reviewed={tacrolimus:'tac',vanco:'vancomycin'};
+assert.equal(isMipdCrosswalkExact(
+  computeMipdCrosswalkDrift(['tacrolimus','tacrolimus','vanco','vanco','vanco'],reviewed)),true,
+  'Adding a model for an already reviewed molecule must need no crosswalk change');
+// A new molecule must be reported explicitly and name the offending key.
+const newMolecule=computeMipdCrosswalkDrift(['tacrolimus','vanco','ceftazidime_avibactam'],reviewed);
+assert.equal(isMipdCrosswalkExact(newMolecule),false);
+assert.deepEqual(newMolecule.unmappedModelDrugKeys,['ceftazidime_avibactam']);
+assert.match(describeMipdCrosswalkDrift(newMolecule),/ceftazidime_avibactam/);
+// A stale crosswalk entry and an ambiguous TDM id are both reported.
+assert.deepEqual(
+  computeMipdCrosswalkDrift(['tacrolimus'],reviewed).crosswalkKeysWithoutModel,['vanco']);
+assert.deepEqual(
+  computeMipdCrosswalkDrift(['a','b'],{a:'same',b:'same'}).ambiguousTdmIds,['same']);
+// Fail-safe: an ambiguous mapping must never produce a deep link for that molecule.
+assert.equal(mipdDrugKeyForTdmDrug('definitely-not-a-tdm-id'),null);
+assert.equal(mipdCatalogueHrefForTdmDrug('/pharmacometrie','definitely-not-a-tdm-id','fr'),null);
+console.log('PMx crosswalk evolution: exact today; new molecules reported with an actionable message.');

@@ -217,7 +217,7 @@
     </label>
     <label>
       <span>{copy.molecule}</span>
-      <select bind:value={selectedDrug}>
+      <select bind:value={selectedDrug} onchange={() => (unrecognizedGuideLink = false)}>
         {#each drugs as drug}
           <option value={drug.key}>{drug.label}</option>
         {/each}
