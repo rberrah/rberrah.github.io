@@ -819,8 +819,8 @@ assert.ok(tdmBrowseCategories.find((group) => group.id === 'oncology').medicines
 
 assert.ok(tdmManualCatalog.every((entry) => listedKeys.includes(entry.drugKey) || listedKeys.includes(entry.id)),
   'All reviewed CHU assay names must be discoverable in the directory');
-assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 37),
-  '36 CHU-listed antibiotics plus teicoplanin from the official ANSM SmPC');
+assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 43),
+  '36 CHU-listed antibiotics, teicoplanin from the ANSM SmPC, plus six selectively monitored antimycobacterial drugs');
 assert.ok(allGroups.some((group) => group.id === 'antidepressants' && group.medicines.length === 33),
   '26 CHU-listed antidepressants plus seven additional drugs; agomelatine is not duplicated');
 assert.ok(allGroups.some((group) => group.id === 'immunosuppressants' && group.medicines.length === 5));
