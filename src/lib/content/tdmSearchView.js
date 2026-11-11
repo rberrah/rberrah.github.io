@@ -35,6 +35,7 @@ export function groupTdmReferenceEntries(entries) {
     const key = JSON.stringify([
       entry.drug, entry.indication, entry.indicationFr, entry.indicationEn,
       entry.metric, entry.unit, entry.matrixFr, entry.matrixEn,
+      entry.matrixId ?? null,
       entry.analyteId ?? null, entry.analyteBasis ?? null,
       entry.formulationId ?? null, entry.assayMethod ?? null,
       entry.samplingTime ?? null
