@@ -40,6 +40,11 @@
     return (isEn ? en : fr)[level];
   }
 
+  /** @param {Array<{id:string}>} references @param {string} referenceId */
+  function isUnresolvedRelatedReference(references, referenceId) {
+    return references.some((reference) => reference.id === referenceId);
+  }
+
   let micInput = $state('');
   let micValue = $derived(parseMic(micInput));
 </script>
@@ -322,7 +327,7 @@
                           <h4>{en ? 'Other published references (not automatically interchangeable)' : 'Autres références publiées (non automatiquement interchangeables)'}</h4>
                           {#each otherReferences as alternative (alternative.id)}
                             {@const altSource = tdmTargetSources[alternative.source]}
-                            {@const comparabilityUnknown = item.relatedReferences.some((row) => row.id === alternative.id)}
+                            {@const comparabilityUnknown = isUnresolvedRelatedReference(item.relatedReferences, alternative.id)}
                             <div class="alternative">
                               {#if comparabilityUnknown}
                                 <p class="matrix-warning" data-testid="tdm-related-reference-warning">
