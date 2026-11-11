@@ -636,3 +636,27 @@ test('Primary AGNP 2026 values coexist with older sources and sampling times are
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
   await expect(page.getByTestId('tdm-agnp-2026-verified')).toBeVisible();
 });
+
+
+test('AGNP 2026 monitoring strength is explicit and never inferred from a therapeutic range', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('halopéridol');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('niveau 1');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('titration');
+  await expect(page.getByTestId('tdm-agnp-human-review-pending')).toContainText('validation pharmacologique indépendante en attente');
+
+  await search.fill('lévétiracétam');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('niveau 4');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('potentiellement utile en situations ciblées');
+  await expect(page.getByTestId('tdm-agnp-human-review-pending')).toBeVisible();
+
+  await search.fill('vancomycine');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toHaveCount(0);
+
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('levetiracetam');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('TDM potentially useful in specific situations');
+});
