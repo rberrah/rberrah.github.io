@@ -1,5 +1,5 @@
 // @ts-nocheck
-import catalog from './tdmModels.generated.json';
+import catalog from './tdmModels.generated.json' with { type: 'json' };
 
 export const tdmModels = catalog.models;
 
