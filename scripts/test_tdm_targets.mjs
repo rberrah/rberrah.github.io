@@ -14,6 +14,7 @@ import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../
 import { tdmSafetySignals, tdmSafetyReferences } from '../src/lib/content/tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from '../src/lib/content/tdmChuAssayProvenance.js';
 import { report as chuCoverage } from './report_tdm_coverage.mjs';
+import { additionalSocietyTdmDrugs, societyTdmDrugRows, societyMonitoringForDrug, societyMonitoringSources } from '../src/lib/content/tdmSocietyMonitoring2026.js';
 import { tdmPharmacologyProfiles, tdmPharmacologyForDrug, tdmPharmacologyCoverage, tdmPkReferences } from '../src/lib/content/tdmPharmacologyProfiles.js';
 
 import {
@@ -201,15 +202,15 @@ assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.kind,'condi
   'Updated sampling must not erase independently verified renal PK dose proportionality');
 
 const pkCoverage = tdmPharmacologyCoverage();
-assert.equal(pkCoverage.drugs, 132);
+assert.equal(pkCoverage.drugs, 154);
 assert.equal(Object.keys(tdmPharmacologyProfiles).length, tdmDrugs.length,
   'Every canonical molecule must have a pharmacology record, even when unreviewed');
 assert.deepEqual(new Set(Object.keys(tdmPharmacologyProfiles)), new Set(tdmDrugs.map((d) => d.id)));
 assert.equal(pkCoverage.safe_automatic_scaling_count, 0,
   'No molecule is allowed to trigger a blind twofold dose scaling');
-assert.ok(pkCoverage.with_index > 40 && pkCoverage.with_index < 132,
+assert.ok(pkCoverage.with_index > 40 && pkCoverage.with_index < 154,
   'Reviewed indices must be useful, but not extrapolated to every drug');
-assert.ok(pkCoverage.with_documented_routes > 20 && pkCoverage.with_documented_routes < 132,
+assert.ok(pkCoverage.with_documented_routes > 20 && pkCoverage.with_documented_routes < 154,
   'Drug/formulation-specific routes must not be invented for the whole catalogue');
 assert.ok(pkCoverage.with_reviewed_dose_behavior >= 20);
 for (const profile of Object.values(tdmPharmacologyProfiles)) {
@@ -306,19 +307,19 @@ assert.equal(searchTdmMolecules('MPA').groups[0].pharmacology.index.key, 'AUC_in
 assert.equal(searchTdmMolecules('cefepime').groups[0].pharmacology.index.key, 'fT_MIC');
 assert.equal(searchTdmMolecules('phenytoin').groups[0].pharmacology.proportionality.kind, 'nonlinear');
 assert.equal(searchTdmMolecules('ibrutinib').withoutTargets[0].pharmacology.review, 'unassessed');
-console.log('TDM PK/PD profiles: 132 covered, class and molecule indices/route sources audited, no automatic dose scaling.');
+console.log('TDM PK/PD profiles: 154 covered, class and molecule indices/route sources audited, no automatic dose scaling.');
 
-assert.equal(chuCoverage.curated_drugs, 132);
-assert.equal(chuCoverage.bibliographic_numeric_entries, 140);
-assert.equal(chuCoverage.verified_chu_document_names, 74);
-assert.equal(chuCoverage.manual_names_indexed, 74, 'All 74 reviewed CHU document names must remain discoverable');
+assert.equal(chuCoverage.curated_drugs, 154);
+assert.equal(chuCoverage.bibliographic_numeric_entries, 141);
+assert.equal(chuCoverage.verified_chu_document_names, 77);
+assert.equal(chuCoverage.manual_names_indexed, 77, 'All 77 named entries from reviewed CHU public documents must remain discoverable');
 assert.equal(chuCoverage.evidence_types.listed_as_dosed_in_protocol, 36);
 assert.equal(chuCoverage.evidence_types.request_form_only, 5);
-assert.equal(chuCoverage.evidence_types.external_referral, 1);
+assert.equal(chuCoverage.evidence_types.external_referral, 2);
 assert.equal(chuCoverage.all_chu_document_names_indexed, true);
 assert.ok(chuCoverage.scientifically_unresolved_chu_names.every((entry) =>
   entry.provenance && entry.name), 'Every missing reference must retain CHU-document provenance');
-console.log('CHU TDM documentary coverage: 74/74 names indexed with status and target/missing-target classification.');
+console.log('CHU TDM documentary coverage: 77/77 names indexed with status and target/missing-target classification.');
 
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
@@ -452,8 +453,8 @@ assert.throws(() => collectTdmComparisons([
   {...tdmTargets.find((row) => row.drug === 'vancomycin'), comparisonGroup: 'mismatch'}
 ]), /Unsafe TDM comparison/);
 
-assert.equal(tdmManualCatalog.length, 74);
-assert.equal(new Set(tdmManualCatalog.map((entry) => entry.id)).size, 74);
+assert.equal(tdmManualCatalog.length, 77);
+assert.equal(new Set(tdmManualCatalog.map((entry) => entry.id)).size, 77);
 assert.equal(searchManualCatalog({query: 'céfépime'}).length, 1);
 assert.equal(searchManualCatalog({query: 'linézolide'}).length, 1);
 assert.equal(searchManualCatalog({query: 'amitriptyline'}).length, 1);
@@ -631,18 +632,19 @@ const reviewedNumericClaims = new Map([
   ["agnp2026-lacosamide-epilepsy-2026", ["agnpConsensus2026","range",1,12]],
   ["agnp2026-lamotrigine-epilepsy-2026", ["agnpConsensus2026","range",3,15]],
   ["agnp2026-levetiracetam-epilepsy-2026", ["agnpConsensus2026","range",6,46]],
-  ["agnp2026-tranylcypromine-depression-peak-2026", ["agnpConsensus2026","range",60,400]]
+  ["agnp2026-tranylcypromine-depression-peak-2026", ["agnpConsensus2026","range",60,400]],
+  ["theophylline-oral-solution-peak-fda", ["theophyllineDailymed","range",10,15]]
 ]);
-assert.equal(reviewedNumericClaims.size, 140);
+assert.equal(reviewedNumericClaims.size, 141);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 33, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 33, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 34, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 34, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 140 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 141 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -736,7 +738,8 @@ const reviewedSourceIdentifiers = {
     "https://www.psychiatrist.com/pdf/blood-levels-to-optimize-antipsychotic-treatment-in-clinical-practice-a-joint-consensus-statement-of-the-american-society-of-clinical-psychopharmacology-and-the-therapeutic-drug-monitoring-task-force/",
     "10.4088/JCP.19cs13169"
   ],
-  "agnpConsensus2026": ["https://doi.org/10.1055/a-2860-7861", "10.1055/a-2860-7861"]
+  "agnpConsensus2026": ["https://doi.org/10.1055/a-2860-7861", "10.1055/a-2860-7861"],
+  "theophyllineDailymed": ["https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=32b9780f-c46f-4e0f-9641-2cab60600e6e", null]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
 for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
@@ -951,3 +954,42 @@ console.log('TDM antibiotic MIC objectives: 41 source-scoped contexts, 36 CHU sa
 console.log(`TDM manual linked index: ${tdmManualCatalog.length} named medicines across ${Object.keys(manualCatalogSources).length} official document types.`);
 console.log(`TDM comparisons: ${comparisons.length} source-by-source groups validated.`);
 console.log(`TDM target reference: ${tdmTargets.length} entries, ${tdmDrugs.length} drugs, ${Object.keys(tdmTargetSources).length} primary sources and ${tdmInstitutionalResources.length} SFT/SFPT context references validated.`);
+
+ 
+// November 2026 CHU full searchable catalogue and professional literature expansion.
+assert.equal(additionalSocietyTdmDrugs.length,22);
+assert.equal(societyTdmDrugRows.length,22);
+assert.equal(new Set(societyTdmDrugRows.map((row)=>row.id)).size,22);
+assert.deepEqual(new Set(Object.keys(societyMonitoringSources)),
+  new Set(['chu_theophylline','chu_abacavir','thiopurines','iatdmct_icu','ats_tb','ats_ntm']));
+assert.ok(societyTdmDrugRows.every((row)=>
+  row.noteFr && row.noteEn && societyMonitoringSources[row.sourceId]?.url));
+assert.equal(chuCoverage.chu_public_exam_count_all_disciplines_observed,1582);
+for(const [name,drug,status] of [
+  ['Théophylline','theophylline','individual_exam'],
+  ['Abacavir','abacavir','individual_exam'],
+  ['6-TGN / 6-MMP (métabolites thiopurines)',null,'outsourced_exam']
+]) {
+  const matched=tdmManualCatalog.filter((row)=>row.name===name);
+  assert.equal(matched.length,1,'CHU exam must not duplicate '+name);
+  assert.equal(matched[0].drugKey,drug);
+  assert.equal(matched[0].status,status);
+  assert.ok(manualCatalogSources[matched[0].sourceId]?.url.includes('DetailNew.aspx'));
+}
+for(const id of ['abacavir','isavuconazole','fluconazole','foscarnet','pyrazinamide','mercaptopurine']){
+  const result=searchTdmMolecules(id);
+  assert.equal(result.groups.length,1,'STP society discovery must render '+id);
+  assert.equal(result.groups[0].indications.length,0,'No fabricated numeric target for '+id);
+  assert.ok(result.groups[0].societyMonitoring.source.url);
+}
+assert.equal(societyMonitoringForDrug('isavuconazole').recommendation,'neither_recommend_nor_discourage');
+assert.equal(societyMonitoringForDrug('azathioprine').recommendation,'selective_metabolite_tdm');
+assert.equal(searchTdmMolecules('theophylline').groups[0].indications[0].primary.metric,'Cmax à l’état stable');
+assert.equal(searchTdmMolecules('theophylline').groups[0].indications[0].primary.min,10);
+assert.equal(searchTdmMolecules('theophylline').groups[0].indications[0].primary.max,15);
+assert.ok(searchTdmMolecules('theophylline').groups[0].manualExam);
+assert.ok(searchTdmMolecules('abacavir').groups[0].manualExam);
+assert.ok(tdmBrowseCategories.find((row)=>row.id==='antivirals').medicines.some((row)=>row.id==='abacavir'));
+assert.ok(tdmBrowseCategories.find((row)=>row.id==='gastroenterology').medicines.some((row)=>row.id==='azathioprine'));
+assert.ok(tdmBrowseCategories.find((row)=>row.id==='respiratory').medicines.some((row)=>row.id==='theophylline'));
+console.log('CHU Nov 2026 addendum: 3 individually verified exam records; 22 source-linked scientific discovery drugs; FDA peak-only theophylline range.');

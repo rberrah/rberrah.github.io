@@ -6,7 +6,7 @@ import { tdmDrugs, normalizeTdmSearch } from './tdmTargets.js';
 // manual, and inclusion does NOT imply an endorsed therapeutic interval.
 // We link to original sources rather than republishing protected instructions.
 // Review/date: 2026-11-09.
-export const manualCatalogUpdated = '2026-11-09';
+export const manualCatalogUpdated = '2026-11-11';
 /** @type {Record<string, {title: string, url: string, date: string, type: string, noteFr: string, noteEn: string}>} */
 export const manualCatalogSources = {
   antimicrobialProtocol: {
@@ -51,6 +51,27 @@ export const manualCatalogSources = {
     noteFr: 'Dosage à visée notamment toxicologique ; une concentration toxique ne constitue pas une fenêtre thérapeutique.',
     noteEn: 'Assay may support toxicology; a toxic concentration is not a therapeutic target.'
   },
+  theophyllineExam: {
+    title:'CHU Limoges · Théophylline (dosage immunochimique)',
+    url:'https://chu-limoges.manuelprelevement.fr/DetailNew.aspx?id=A3700',
+    date:'2024-12-18',type:'single_exam',
+    noteFr:'Prestation PTP mentionnée au catalogue public : sérum, immunochimie, analyse quotidienne. La plage publiée dans le guide vient du FDA label, pas du manuel.',
+    noteEn:'PTP assay listed publicly: serum immunoassay, daily. The numeric peak reference is from the FDA label, not this manual.'
+  },
+  abacavirExam: {
+    title:'CHU Limoges · Abacavir (dosage LC-MS/MS)',
+    url:'https://chu-limoges.manuelprelevement.fr/DetailNew.aspx?id=A3838',
+    date:'2024-10-30',type:'single_exam',
+    noteFr:'Prestation PTP documentée sérum/plasma, LC-MS/MS ; une capacité de mesure ne valide pas un objectif clinique.',
+    noteEn:'PTP serum/plasma LC-MS/MS assay; availability does not establish a therapeutic target.'
+  },
+  thiopurineMetaboliteExam: {
+    title:'CHU Limoges · 6-TGN / 6-MMP : examen externalisé Saint-Louis AP-HP',
+    url:'https://chu-limoges.manuelprelevement.fr/DetailNew.aspx?externalentid=183&externalid=A6967&id=A3946',
+    date:'2024-10-17',type:'external_exam',
+    noteFr:'Dosage des métabolites érythrocytaires 6-TGN / 6-MMP, PAS des promédicaments plasmatiques. Laboratoire exécutant : AP-HP Saint-Louis (examen externalisé).',
+    noteEn:'Red-cell 6-TGN / 6-MMP metabolite assay, NOT plasma parent prodrugs. Test performed by AP-HP Saint-Louis (external referral).'
+  },
   ibrutinibExam: {
     title: 'CHU de Limoges · Ibrutinib, analyse transmise à Saint-Louis (AP-HP)',
     url: 'https://chu-limoges.manuelprelevement.fr/DetailNew.aspx?id=A4481&redirect=home',
@@ -90,6 +111,8 @@ const knownKeys = {
   'Ropivacaïne': 'ropivacaine',
   'Mépivacaïne': 'mepivacaine',
   'Ibrutinib': 'ibrutinib',
+  'Théophylline':'theophylline',
+  'Abacavir':'abacavir',
   'Agomélatine': 'agomelatine',
   'Acide valproïque': 'valproate', 'Lithium': 'lithium',
   'Mycophénolate': 'mpa', 'Tacrolimus': 'tac', 'Évérolimus': 'everolimus',
@@ -169,7 +192,10 @@ export const tdmManualCatalog = [
   makeEntry('Acide valproïque', 'valproateExam', 'neurology_psychiatry', 'individual_exam'),
   ...['Lidocaïne', 'Bupivacaïne', 'Ropivacaïne', 'Mépivacaïne'].map((name) =>
     makeEntry(name, 'localAnaestheticExam', 'toxicology', 'group_exam')),
-  makeEntry('Ibrutinib', 'ibrutinibExam', 'oncology', 'outsourced_exam')
+  makeEntry('Ibrutinib', 'ibrutinibExam', 'oncology', 'outsourced_exam'),
+  makeEntry('Théophylline', 'theophyllineExam', 'respiratory', 'individual_exam'),
+  makeEntry('Abacavir', 'abacavirExam', 'antivirals', 'individual_exam'),
+  makeEntry('6-TGN / 6-MMP (métabolites thiopurines)', 'thiopurineMetaboliteExam', 'gastroenterology', 'outsourced_exam')
 ];
 
 export function searchManualCatalog({query = '', family = 'all'} = {}) {

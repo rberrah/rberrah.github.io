@@ -10,6 +10,7 @@ import { tdmSafetySignalsForDrug } from './tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
 import { tdmPharmacologyForDrug } from './tdmPharmacologyProfiles.js';
 import { agnp2026ReviewForDrug } from './tdmAgnpReview2026.js';
+import { societyMonitoringForDrug } from './tdmSocietyMonitoring2026.js';
 import { hasCompleteTdmIdentity } from './tdmReferenceIdentity.js';
 export { hasCompleteTdmIdentity, TDM_COMPARABILITY_FIELDS } from './tdmReferenceIdentity.js';
 
@@ -72,8 +73,16 @@ export function searchTdmMolecules(query = '') {
 
   const groups = matchedDrugs.map((drug) => {
     const indications = groupTdmReferenceEntries(tdmTargets.filter((entry) => entry.drug === drug.id));
-    return { drug, pharmacology: tdmPharmacologyForDrug(drug.id), agnpReview: agnp2026ReviewForDrug(drug.id), indications, pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id), historicalChuAssay: historicalChuAssayForDrug(drug.id), samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
-  }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0 || group.safetySignals.length > 0);
+    return { drug, pharmacology: tdmPharmacologyForDrug(drug.id),
+      societyMonitoring: societyMonitoringForDrug(drug.id),
+      manualExam: tdmManualCatalog.find((row)=>row.drugKey===drug.id &&
+        ['individual_exam','outsourced_exam'].includes(row.status)) || null,
+      agnpReview: agnp2026ReviewForDrug(drug.id), indications,
+      pdTargets: antibioticPdForDrug(drug.id), safetySignals: tdmSafetySignalsForDrug(drug.id),
+      historicalChuAssay: historicalChuAssayForDrug(drug.id),
+      samplingDocument: chuSamplingForDrug(drug.id), evidence: tdmEvidenceForDrug(drug.id) };
+  }).filter((group) => group.indications.length > 0 || group.pdTargets.length > 0 ||
+    group.safetySignals.length > 0 || Boolean(group.societyMonitoring));
 
   const alreadyListed = new Set(groups.map((group) => group.drug.id));
   const withoutTargets = searchManualCatalog({ query }).filter((entry) =>

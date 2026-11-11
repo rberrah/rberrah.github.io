@@ -5,12 +5,13 @@ import { psychiatryTdmSources, psychiatryTdmDrugs, psychiatryTdmTargets } from '
 import { nonStandardTdmDrugs } from './tdmSafetySignals.js';
 import { additionalTdmDrugs, additionalTdmSources, additionalTdmTargets } from './tdmTargetsAdditions.js';
 import { agnpVerifiedTdmTargets, agnpVerifiedTdmSources } from './tdmAgnpVerified2026.js';
+import { additionalSocietyTdmDrugs, societyNumericTargets, societyNumericSources } from './tdmSocietyMonitoring2026.js';
 // Curated bibliographic targets for the PMx Explain educational reference.
 // This catalogue is deliberately separate from the executable MIPD-Engine model library.
 // Scientific author review: PENDING. Do not use as a clinical dosing protocol.
 // The numeric source must contain the numeric claim itself, not merely discuss TDM.
 // Access means the claim is visible in full text or an open bibliographic abstract.
-export const TDM_REFERENCE_REVIEW_DATE = '2026-11-10';
+export const TDM_REFERENCE_REVIEW_DATE = '2026-11-11';
 export const tdmInstitutionalResources = [
   {
     id: 'sfpt-stp',
@@ -38,6 +39,15 @@ export const tdmInstitutionalResources = [
     url: 'https://www.sfpt-fr.org/?catid=78&id=2145%3Apublication-du-livre-suivi-th%C3%A9rapeutique-pharmacologique-pour-la-personnalisation-des-traitements-m%C3%A9dicamenteux&view=article',
     scopeFr: 'Ouvrage collectif commercialisé ; seul l’extrait libre du chapitre 35 (tableau 35.2, valproate) est utilisé pour une cible chiffrée.',
     scopeEn: 'The complete handbook is commercial; only the freely accessible chapter 35 excerpt (valproate, Table 35.2) supports a numerical target here.'
+  },
+  {
+    id: 'sfpt-catalogue',
+    organization: 'SFPT',
+    titleFr: 'SFPT · Annuaire national des analyses STP (actualisé octobre 2026)',
+    titleEn: 'SFPT · National assay directory (updated October 2026)',
+    url: 'https://groupe-stp-pt.quarto.pub/catalogue-groupe-stp/',
+    scopeFr: 'Annuaire des laboratoires et examens, différent d’une recommandation de dosage ou d’une cible clinique. Les disponibilités restent à confirmer avec chaque laboratoire.',
+    scopeEn: 'Assay directory, not evidence for routine TDM or numeric target. Verify actual assay availability directly with each laboratory.'
   },
   {
     id: 'sft-iatdmct',
@@ -291,7 +301,8 @@ export const tdmTargetSources = {
   },
   ...additionalTdmSources,
   ...psychiatryTdmSources,
-  ...agnpVerifiedTdmSources
+  ...agnpVerifiedTdmSources,
+  ...societyNumericSources
 };
 
 export const tdmDrugs = [
@@ -375,7 +386,8 @@ export const tdmDrugs = [
   ...nonStandardTdmDrugs,
   ...extraAntidepressantDrugs,
   ...additionalAntiseizureDrugs,
-  ...chuDocumentOnlyDrugs
+  ...chuDocumentOnlyDrugs,
+  ...additionalSocietyTdmDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
@@ -1592,7 +1604,8 @@ export const tdmTargets = [
   ...psychiatryTdmTargets,
   ...extraAntidepressantTargets,
   ...additionalAntiseizureTargets,
-  ...agnpVerifiedTdmTargets
+  ...agnpVerifiedTdmTargets,
+  ...societyNumericTargets
 ];
 
 /** @param {unknown} value */

@@ -3,7 +3,7 @@
   import { Search, ExternalLink, ArrowRight, X } from '@lucide/svelte';
   import { language } from '#lib/stores/language.js';
   import { tdmDrugs, tdmTargetSources, tdmInstitutionalResources, formatTdmTarget, TDM_REFERENCE_REVIEW_DATE } from '#lib/content/tdmTargets.js';
-  import { tdmManualCatalog } from '#lib/content/tdmManualCatalog.js';
+  import { tdmManualCatalog, manualCatalogSources } from '#lib/content/tdmManualCatalog.js';
   import { searchTdmMolecules } from '#lib/content/tdmSearchView.js';
   import { tdmBrowseCategories } from '#lib/content/tdmBrowseCategories.js';
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
@@ -134,6 +134,13 @@
                   {en ? group.evidence.exposure.tagEn : group.evidence.exposure.tagFr}
                 </span>
               {/if}
+              {#if group.manualExam && manualCatalogSources[group.manualExam.sourceId]}
+                <a class="chu-sampling-link" data-testid="tdm-chu-specific-assay"
+                  href={manualCatalogSources[group.manualExam.sourceId].url} target="_blank" rel="noopener noreferrer">
+                  {en ? 'CHU · assay record (not a target)' : 'CHU · Fiche de dosage (non cible)'}
+                  <ExternalLink size={14} aria-hidden="true" />
+                </a>
+              {/if}
               {#if group.historicalChuAssay}
                 <a class="chu-sampling-link" data-testid="tdm-chu-historical-assay"
                   href={group.historicalChuAssay.url} target="_blank" rel="noopener noreferrer"
@@ -149,6 +156,32 @@
                 </a>
               {/if}
             </div>
+            {#if group.societyMonitoring}
+              <div class="agnp-2026-pending" data-testid="tdm-society-monitoring">
+                <p><strong>{en ? 'STP/TDM evidence status' : 'Statut des données de STP'} ·
+                  {group.societyMonitoring.recommendation === 'neither_recommend_nor_discourage'
+                    ? (en ? 'Routine monitoring neither recommended nor discouraged' : 'STP systématique ni recommandé ni déconseillé')
+                    : group.societyMonitoring.recommendation === 'assay_only'
+                      ? (en ? 'Assay documented; target unvalidated' : 'Dosage documenté ; cible non validée')
+                      : group.societyMonitoring.recommendation === 'selective_metabolite_tdm'
+                        ? (en ? 'Selective metabolite monitoring' : 'STP ciblé des métabolites')
+                        : group.societyMonitoring.recommendation === 'selective_tb_tdm' ||
+                          group.societyMonitoring.recommendation === 'selective_ntm_tdm'
+                          ? (en ? 'Selective TDM in specific circumstances' : 'STP envisageable dans des situations ciblées')
+                          : (en ? 'Formulation-specific exposure evidence' : 'Données d’exposition spécifiques à une formulation')}
+                </strong></p>
+                <p>{en ? group.societyMonitoring.noteEn : group.societyMonitoring.noteFr}</p>
+                <a href={group.societyMonitoring.source.url} target="_blank" rel="noopener noreferrer">
+                  {group.societyMonitoring.source.title} <ExternalLink size={13} aria-hidden="true" />
+                </a>
+                {#if group.indications.length === 0 && group.pdTargets.length === 0}
+                  <p data-testid="tdm-no-validated-numeric-target">
+                    {en ? 'No drug-specific numeric exposure target independently qualified in this guide. No automated interpretation.'
+                      : 'Aucune cible d’exposition chiffrée individuellement qualifiée dans ce guide. Aucune interprétation automatique.'}
+                  </p>
+                {/if}
+              </div>
+            {/if}
             {#if group.agnpReview}
               <p class="agnp-2026-pending" data-testid="tdm-agnp-2026-pending">
                 {#if group.agnpReview.agnp2026NumericalRangeVerified}

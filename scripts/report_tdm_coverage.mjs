@@ -49,11 +49,13 @@ const uniqueDrugCount = new Set(tdmDrugs.map((row) => row.id)).size;
 const allRowsIndexed = manualRows.every((row) => row.indexed);
 export const report = {
   schema: 'pmx.tdm.coverage-audit.v1',
-  limitation: 'Partial PUBLIC CHU documents (not an authorized complete export or evidence of current test availability)',
+  limitation: 'PARTIAL public CHU exam index + selected official assay pages. The 1582 examinations shown by the CHU search cover all biological disciplines and are NOT 1582 TDM drugs. No exhaustive authorized inventory.',
   curated_drugs: uniqueDrugCount,
   pharmacology_evidence_coverage: tdmPharmacologyCoverage(),
   agnp2026_historical_reconciliation: agnp2026ReviewSummary(),
   structured_scientific_readiness: Object.fromEntries(Object.entries(semanticReadinessReport).filter(([k])=>k!=='claims')),
+  chu_public_exam_search_url: 'https://chu-limoges.manuelprelevement.fr/ResultNew.aspx',
+  chu_public_exam_count_all_disciplines_observed: 1582,
   complete_institutional_assay_export_available: false,
   human_scientific_approval_of_full_catalogue: false,
   publication_ready_for_automatic_clinical_interpretation: false,

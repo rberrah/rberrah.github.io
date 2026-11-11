@@ -70,3 +70,19 @@ Les six dimensions exigées sont `analyteId`, `analyteBasis`, `matrixId`, `formu
 - **Pilote scientifique limité** : le modèle MIPD `tacrolimus_woillard_ddi` est éligible au workflow MAP de recherche ; les modèles de vancomycine `vanco_goti`, `vanco_pkjust`, `vanco_roberts` ont des contextes cliniques et modes IV distincts. **Aucun modèle MPA/MPAG n'est présent parmi les 46 modèles MIPD** : le snapshot MPA est bibliographique seulement et ne doit jamais obtenir un `modelMapping` par défaut.
 - Pour les trois références candidates tacrolimus, MPA et vancomycine, les chiffres ont été confrontés aux tableaux/recommandations primaires van Gelder (2025, tableau 1), Liu et al. (2025, tableau 3) et consensus ASHP/IDSA/PIDS/SIDP (2020). Cette relecture ponctuelle **ne vaut pas approbation pharmacologique humaine** des 140 lignes, ni validation de modèle.
 - Pour affirmer une couverture exhaustive des dosages actuellement pratiqués au CHU, l'export institutionnel autorisé reste indispensable. Le site ne doit ni simuler son existence ni afficher « exhaustif ».
+
+
+## Addendum CHU Limoges & IATDMCT — 11 novembre 2026
+
+Une seconde recherche de la page publique `/Laboratory` a révélé que cette route est descriptive. Le **véritable index des examens** se situe à `https://chu-limoges.manuelprelevement.fr/ResultNew.aspx`, avec **1 582 fiches toutes disciplines confondues** lors de la consultation du 11/11/2026. **1 582 ne signifie pas 1 582 médicaments dosés**, ni l'exhaustivité des pratiques réelles du service PTP.
+
+Trois **fiches d'examen vérifiées individuellement** s'ajoutent aux 74 noms indexés :
+- **Théophylline** : `A3700` (18/12/2024), sérum, immunochimie, PTP, dosage quotidien, pas d'intervalle de consensus dans la fiche.
+- **Abacavir** : `A3838` (30/10/2024), LC-MS/MS, sérum/plasma, PTP ; aucun objectif thérapeutique validé n'y est fourni.
+- **6-TGN/6-MMP** : `A3946` (17/10/2024), métabolites des thiopurines sur sang total ; **examen externalisé** à Saint-Louis AP-HP, et non dosage de l'azathioprine/mercaptopurine plasmatiques.
+
+Vingt-deux médicaments additionnels sont décrits dans `tdmSocietyMonitoring2026.js` avec leur source et leur statut **distincts** (recommandation systématique, monitoring contextualisé, simple disponibilité d'un dosage, ou consensus « neither recommend nor discourage »). Les sources principales sont le position paper IATDMCT 2020, les recommandations ATS/CDC/IDSA sur tuberculose, ATS/ERS/ESCMID/IDSA sur mycobactéries non tuberculeuses et ECCO-ESPGHAN sur métabolites des thiopurines. **La SFPT nationale dispose d'un catalogue de laboratoires, pas d'un consensus chiffré universel.** Il ne faut pas attribuer à la SFPT des recommandations issues d'autres sociétés.
+
+Une seule valeur numérique nouvelle est introduite : **théophylline 10–15 mg/L, pic sérique à l'état stable pour la solution orale immédiate**, explicitement tirée de la section « Serum Concentration-Effect Relationship » du libellé FDA/DailyMed (équivalence 1 mcg/mL = 1 mg/L). Cette donnée ne s'applique **ni à C0 ni automatiquement aux formulations LP ou aux autres populations** ; relecture indépendante en attente. Les autres médicaments sont découvrables avec la mention explicite **« cible chiffrée non qualifiée »**, sans inventer de plage.
+
+Le portail distingue toujours `assay` de `sampling-time` : une fiche examen du CHU ne reçoit pas l'étiquette « temps de prélèvement validé ». Le statut de sous-traitance est conservé. Les trois références du pilote MIPD restent inchangées et non interprétables.

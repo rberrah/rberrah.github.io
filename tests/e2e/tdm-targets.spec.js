@@ -7,7 +7,7 @@ test('TDM reference starts with molecule search, not a wall of tables', async ({
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
   await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(0);
   await expect(page.getByTestId('tdm-medicine-directory')).toBeVisible();
-  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(9);
+  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(12);
   await expect(page.getByTestId('tdm-medicine-choice').first()).toBeHidden();
   await expect(page.getByText('Cibles thérapeutiques', { exact: true })).toBeVisible();
 });
@@ -286,7 +286,7 @@ test('Clozapine remains a single analyte-specific reference with updated consens
 
 test('Expanded drugs are discoverable inside existing closed-by-default family browser', async ({ page }) => {
   await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
-  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(9);
+  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(12);
   for (const [family, medicine] of [
     ['Antibiotiques', 'Téicoplanine'],
     ['Autres psychotropes', 'Clozapine'],
@@ -476,7 +476,7 @@ test('CHU documentary filter shows exactly the previously verified names, not la
   await expect(antibiotiques.getByRole('button', { name: 'Amikacine' })).toBeVisible();
   await expect(antibiotiques.getByRole('button', { name: 'Téicoplanine' })).toHaveCount(0);
   await filter.uncheck();
-  await expect(families).toHaveCount(9);
+  await expect(families).toHaveCount(12);
 });
 
 
@@ -669,4 +669,33 @@ test('AGNP 2026 monitoring strength is explicit and never inferred from a therap
   await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
   await page.getByTestId('tdm-target-search').fill('levetiracetam');
   await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('TDM potentially useful in specific situations');
+});
+
+
+test('CHU full exam index: theophylline peak target, abacavir assay-only and outsourced thiopurine metabolites', async ({page}) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('théophylline');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-society-monitoring')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toContainText('10–15');
+  await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href',/A3700/);
+  await search.fill('abacavir');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-no-validated-numeric-target')).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href',/A3838/);
+  await search.fill('6-TGN');
+  await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+});
+test('IATDMCT anti-infective discovery does not assert routine monitoring or fabricate ranges', async ({page}) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('isavuconazole');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-society-monitoring')).toContainText('neither recommended nor discouraged');
+  await expect(page.getByTestId('tdm-no-validated-numeric-target')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
 });

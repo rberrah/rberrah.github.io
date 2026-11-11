@@ -13,6 +13,9 @@ const categoryDefinitions = Object.freeze([
   { id: 'immunosuppressants', fr: 'Immunosuppresseurs', en: 'Immunosuppressants' },
   { id: 'antibiotics', fr: 'Antibiotiques et antituberculeux', en: 'Antibiotics and antituberculosis' },
   { id: 'antifungals', fr: 'Antifongiques', en: 'Antifungals' },
+  { id: 'antivirals', fr: 'Antiviraux', en: 'Antivirals' },
+  { id: 'respiratory', fr: 'Pneumologie', en: 'Respiratory medicine' },
+  { id: 'gastroenterology', fr: 'Gastroentérologie / thiopurines', en: 'Gastroenterology / thiopurines' },
   { id: 'antiseizure', fr: 'Antiépileptiques', en: 'Antiseizure medicines' },
   { id: 'antidepressants', fr: 'Antidépresseurs', en: 'Antidepressants' },
   { id: 'psychotropics', fr: 'Autres psychotropes', en: 'Other psychotropics' },
@@ -22,7 +25,11 @@ const categoryDefinitions = Object.freeze([
   { id: 'other', fr: 'Autres molécules', en: 'Other medicines' }
 ]);
 
-const antifungalIds = new Set(['voriconazole', 'posaconazole', 'flucytosine', 'itraconazole']);
+const antifungalIds = new Set(['voriconazole', 'posaconazole', 'flucytosine', 'itraconazole','fluconazole','isavuconazole','anidulafungin','caspofungin','micafungin']);
+const antiviralIds = new Set(['abacavir','aciclovir','valaciclovir','foscarnet','ganciclovir','valganciclovir','oseltamivir','ribavirin']);
+const respiratoryIds = new Set(['theophylline']);
+const gastroenterologyIds = new Set(['azathioprine','mercaptopurine']);
+const tuberculosisIds = new Set(['pyrazinamide','ethambutol','cycloserine','rifabutin','clarithromycin','streptomycin']);
 const antiseizureIds = new Set([...additionalAntiseizureDrugs.map((drug) => drug.id), 'valproate','carbamazepine','lamotrigine','oxcarbazepine',
   'levetiracetam','phenytoin','phenobarbital']);
 const transplantationIds = new Set(['mpa','tac','everolimus','cyclosporine','sirolimus']);
@@ -33,6 +40,9 @@ const additionalAntibioticIds = new Set(['teicoplanin']);
 const oncologyIds = new Set(['busulfan', 'methotrexate']);
 const manualFamilyCategories = {
   antibiotics: 'antibiotics',
+  antivirals: 'antivirals',
+  respiratory: 'respiratory',
+  gastroenterology: 'gastroenterology',
   antidepressants: 'antidepressants',
   immunosuppressants: 'immunosuppressants',
   neurology_psychiatry: null,
@@ -59,6 +69,10 @@ const categoryFor = (drug, entry) => {
   if (transplantationIds.has(drug.id)) return 'immunosuppressants';
   if (antiseizureIds.has(drug.id)) return 'antiseizure';
   if (antifungalIds.has(drug.id)) return 'antifungals';
+  if (antiviralIds.has(drug.id)) return 'antivirals';
+  if (respiratoryIds.has(drug.id)) return 'respiratory';
+  if (gastroenterologyIds.has(drug.id)) return 'gastroenterology';
+  if (tuberculosisIds.has(drug.id)) return 'antibiotics';
   if (extraAntidepressantIds.has(drug.id)) return 'antidepressants';
   if (cardiologyIds.has(drug.id)) return 'cardiology';
   if (psychotropicIds.has(drug.id)) return 'psychotropics';
