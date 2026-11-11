@@ -122,10 +122,14 @@ test('Expanded anti-infective and antiseizure targets preserve indication contex
   await search.fill('voriconazole');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
   await search.fill('lévétiracétam');
-  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
-  await expect(page.getByTestId('tdm-target-card').getByText('10–40', { exact: true })).toBeVisible();
-  await page.getByTestId('tdm-target-card').locator('summary').click();
-  await expect(page.getByTestId('tdm-other-sources').locator('.alternative-head strong')).toContainText('12–46');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  const historicalLevetiracetam = page.getByTestId('tdm-target-card')
+    .filter({ has: page.getByText('10–40', { exact: true }) });
+  await expect(historicalLevetiracetam).toBeVisible();
+  await historicalLevetiracetam.locator('summary').click();
+  await expect(historicalLevetiracetam.getByTestId('tdm-other-sources').locator('.alternative-head strong'))
+    .toContainText('12–46');
+  await expect(page.getByText('6–46', { exact: true })).toBeVisible();
   await search.fill('oxcarbazepine');
   await expect(page.getByTestId('tdm-target-card').getByText('3–36', { exact: true })).toBeVisible();
 });
@@ -267,11 +271,14 @@ test('Busulfan uses regimen-specific cumulative AUC, not per-dose or trough targ
 test('Clozapine remains a single analyte-specific reference with updated consensus warning', async ({ page }) => {
   await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
   await page.getByTestId('tdm-target-search').fill('clozaril');
-  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
-  await expect(page.getByText('350–600', { exact: true })).toBeVisible();
-  await page.getByTestId('tdm-target-card').first().locator('summary').click();
-  await expect(page.getByText(/norclozapine is distinct/i)).toBeVisible();
-  await expect(page.getByRole('link', { name: /AGNP 2026/ })).toHaveAttribute('href', /42392224/);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('350–600', { exact: true })).toHaveCount(2);
+  const historicalClozapine=page.getByTestId('tdm-target-card')
+    .filter({ has: page.getByRole('heading', { name: /maintenance|historical/i }) });
+  await historicalClozapine.locator('summary').click();
+  await expect(historicalClozapine.getByText(/norclozapine is distinct/i)).toBeVisible();
+  await expect(historicalClozapine.getByRole('link', { name: /AGNP 2026/ }))
+    .toHaveAttribute('href', /42392224/);
 });
 
 test('Expanded drugs are discoverable inside existing closed-by-default family browser', async ({ page }) => {
@@ -596,7 +603,7 @@ test('AGNP 2026 banner identifies old psychiatric values without claiming replac
   await search.fill('halopéridol');
   const review=page.getByTestId('tdm-agnp-2026-pending');
   await expect(review).toBeVisible();
-  await expect(review).toContainText('consensus AGNP 2026');
+  await expect(review).toContainText('tableau 5 AGNP 2026');
   await expect(review.getByTestId('tdm-agnp-2026-verified')).toContainText('tableau 5 AGNP 2026');
   await expect(review.getByRole('link')).toHaveAttribute('href','https://pubmed.ncbi.nlm.nih.gov/42392224/');
   await search.fill('clonazépam');
