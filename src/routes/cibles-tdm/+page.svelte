@@ -9,6 +9,7 @@
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
   import { tdmSafetyReferences } from '#lib/content/tdmSafetySignals.js';
   import { tdmPkReferences } from '#lib/content/tdmPharmacologyProfiles.js';
+  import { mipdModelsForTdmDrug, mipdCatalogueHrefForTdmDrug } from '#lib/tdm/guideModelLinks.js';
   import { agnp2026Update } from '#lib/content/tdmAgnpReview2026.js';
 
   const base = resolve('/').replace(/\/$/, '');
@@ -129,6 +130,15 @@
           <section class="drug-section" data-testid="tdm-drug-group">
             <div class="drug-heading">
               <h2>{en ? group.drug.en : group.drug.fr}</h2>
+              {#if mipdCatalogueHrefForTdmDrug(base,group.drug.id,en?'en':'fr')}
+                <a class="mipd-drug-link" data-testid="tdm-mipd-drug-deep-link"
+                  href={mipdCatalogueHrefForTdmDrug(base,group.drug.id,en?'en':'fr')}
+                  title={en ? 'Explore applicable MIPD models; opening the library never starts an analysis' : 'Explorer les modèles MIPD disponibles ; aucun calcul ne démarre automatiquement'}>
+                  {en ? 'View MIPD models' : 'Voir les modèles MIPD'}
+                  ({mipdModelsForTdmDrug(group.drug.id).length})
+                  <ArrowRight size={14} aria-hidden="true" />
+                </a>
+              {/if}
               {#if group.evidence.exposure}
                 <span class="exposure-tag" data-testid="tdm-exposure-tag">
                   {en ? group.evidence.exposure.tagEn : group.evidence.exposure.tagFr}
@@ -676,6 +686,8 @@
   .institutional-details ul { padding-left: 1.2rem; }
   .institutional-details li { margin-bottom: .45rem; }
   .mipd-link { display: inline-flex; align-items: center; gap: .3rem; }
+  .mipd-drug-link { display: inline-flex; align-items: center; gap: .3rem; font-size: .83rem; font-weight: 650; text-underline-offset: 3px; }
+  .mipd-drug-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   @media (max-width: 760px) {
     .tdm-page { padding-top: .5rem; }
     .target-overview { grid-template-columns: minmax(0, 1fr) auto; padding: .85rem 1rem; }

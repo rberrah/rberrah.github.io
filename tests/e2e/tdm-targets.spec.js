@@ -700,3 +700,35 @@ test('IATDMCT anti-infective discovery does not assert routine monitoring or fab
   await expect(page.getByTestId('tdm-no-validated-numeric-target')).toBeVisible();
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
 });
+
+test('TDM drug link directly opens MIPD library filtered to all models for that molecule', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('tacrolimus');
+  const link=page.getByTestId('tdm-mipd-drug-deep-link');
+  await expect(link).toHaveCount(1);
+  await expect(link).toContainText('Voir les modèles MIPD');
+  await expect(link).toContainText('(2)');
+  await expect(link).toHaveAttribute('href', /\/tdm\/\?drug=tacrolimus&lang=fr#modeles/);
+  await link.click();
+  await expect(page).toHaveURL(/\/tdm\/\?drug=tacrolimus&lang=fr#modeles/);
+  await expect(page.getByTestId('tdm-active-drug-deep-link')).toBeVisible();
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-model-open-shiny')).toHaveCount(1);
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('vancomycine');
+  await expect(page.getByTestId('tdm-mipd-drug-deep-link')).toContainText('(3)');
+  await page.getByTestId('tdm-mipd-drug-deep-link').click();
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('lithium');
+  await expect(page.getByTestId('tdm-mipd-drug-deep-link')).toHaveCount(0);
+});
+
+test('MIPD deep-link accepts only known model library keys, including English', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=cefepime&lang=en#modeles');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+  await expect(page.getByTestId('tdm-active-drug-deep-link')).toContainText('Filtered by drug');
+  await page.goto('/pharmacometrie/tdm/?drug=invalid-unknown&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toBeVisible();
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(46);
+});

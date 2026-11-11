@@ -22,3 +22,19 @@ L'absence de référence chiffrée donne un tableau `targets:[]` mais conserve l
 - Mise à jour après validation des modèles supplémentaires Limoges : c'est le `models/catalog.json` de MIPD qui doit piloter le nombre de fiches, et la mise en correspondance des identifiants canoniques devra être explicitement revue.
 
 Contrôles : `node scripts/test_tdm_model_export_preview.mjs`.
+
+## Deep-link TDM Guide → MIPD model library (draft, 11 November 2026)
+
+For guide medicines with an exact canonical crosswalk and at least one model, a bilingual
+« Voir les modèles MIPD (N) » link opens `/tdm/?drug=<MIPD drugKey>&lang=fr|en#modeles`.
+The existing independent Shiny engine model link `?model=<id>` is offered **only for qualified MAP-eligible models**.
+The PMx library lists all 46 models including simulation-only models, with their original population and bibliographic details.
+No model is chosen arbitrarily, no calculation is run and no patient parameters enter a URL.
+
+The crosswalk is a pinned source copy `src/lib/tdm/mipdDrugCrosswalk.preview.v1.js`; the independent
+MIPD CI checks it for exact parity with `integration/tdm-guide-drug-crosswalk.preview.v1.json`.
+Unknown drug query keys result in a visible warning and the entire catalogue; guide molecules
+without a corresponding model have **no misleading link**.
+
+Unit checks: `scripts/test_tdm_model_export_preview.mjs`.
+Browser checks: `tests/e2e/tdm-targets.spec.js`.
