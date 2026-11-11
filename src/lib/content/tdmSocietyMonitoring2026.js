@@ -1,6 +1,7 @@
 // Drug discovery beyond the CHU manual, with exact institutional/society provenance.
 // Mentioned in a paper != routine TDM recommendation != a validated numeric target.
 // This is a deliberately non-executable educational review queue.
+/** @type {Readonly<Record<string, {title:string, url:string, organization:string}>>} */
 export const societyMonitoringSources = Object.freeze({
   "chu_theophylline": {
     "title": "FDA/DailyMed · théophylline (exposition) + fiche CHU Limoges (disponibilité analytique)",
@@ -349,7 +350,7 @@ export const societyNumericSources = Object.freeze({
     title:'THEOPHYLLINE ORAL SOLUTION USP · US FDA label, Serum Concentration-Effect Relationship',
     citation:'FDA DailyMed · théophylline (solution orale)',
     url:'https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=32b9780f-c46f-4e0f-9641-2cab60600e6e',
-    year:2024,organization:'FDA regulatory product label',access:'open_full_text',
+    year:2024,organization:'FDA regulatory product label',access: /** @type {'open_full_text'} */ ('open_full_text'),
     evidenceSection:'Serum Concentration-Effect Relationship: general steady-state peak 10–15 mcg/mL; >20 increases adverse event risk; oral solution only',
     verifiedOn:'2026-11-11'
   }
