@@ -4,7 +4,7 @@ import {
   tdmDrugs, tdmTargets, normalizeTdmSearch, searchTdmTargets, formatTdmTarget
 } from '../src/lib/content/tdmTargets.js';
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
-import { searchTdmMolecules, groupTdmReferenceEntries } from '../src/lib/content/tdmSearchView.js';
+import { searchTdmMolecules, groupTdmReferenceEntries, hasCompleteTdmIdentity, TDM_COMPARABILITY_FIELDS } from '../src/lib/content/tdmSearchView.js';
 import { agnp2026Update, agnp2026ReviewQueue, agnp2026ReviewSummary, agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
 import { generateTdmPilotSnapshot, validateTdmPilotSnapshot } from './export_tdm_pilot_snapshot.mjs';
 import { semanticReadinessReport, semanticReadinessRows } from './report_tdm_semantic_readiness.mjs';
@@ -31,7 +31,8 @@ const syntheticTdmBase = {
   ...tdmTargets.find((row)=>row.id==='mpa-kidney-auc'),
   indicationFr:'Synthetic clinical label', indicationEn:'Synthetic clinical label',
   id:'synthetic-parent', matrixFr:'Plasma · parent', matrixEn:'Plasma · parent',
-  analyteId:'parent', analyteBasis:'total', formulationId:'oral_ir',
+  analyteId:'parent', analyteBasis:'total', matrixId:'plasma',
+  formulationId:'oral_ir',
   assayMethod:'LC-MS/MS', samplingTime:'C0'
 };
 const syntheticTdmPeer = {...syntheticTdmBase, id:'synthetic-parent-other-paper', source:'mpa2021'};
@@ -49,6 +50,20 @@ const syntheticTdmDimensions = [
 ];
 assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer]).length,1);
 assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer])[0].alternatives.length,1);
+assert.equal(hasCompleteTdmIdentity(syntheticTdmBase),true);
+for (const missingField of TDM_COMPARABILITY_FIELDS) {
+  const unknown = {...syntheticTdmBase, [missingField]: undefined};
+  const duplicate = {...unknown, id:'unknown-source'};
+  const unresolved = groupTdmReferenceEntries([unknown, duplicate]);
+  assert.equal(hasCompleteTdmIdentity(unknown),false);
+  assert.equal(unresolved.length,1,'Keep readable indication cards with source evidence');
+  assert.equal(unresolved[0].alternatives.length,0,
+    'Two missing '+missingField+' values cannot prove analytical interchangeability');
+  assert.equal(unresolved[0].relatedReferences.length,1,
+    'Unresolved references remain accessible, explicitly NOT interchangeable');
+  assert.equal(groupTdmReferenceEntries([syntheticTdmBase, duplicate]).length,2,
+    'A documented vs unknown '+missingField+' cannot be treated as equal');
+}
 for (const [dimension,different] of syntheticTdmDimensions) {
   const groups = groupTdmReferenceEntries([
     syntheticTdmBase, {...syntheticTdmPeer, [dimension]:different}
@@ -732,8 +747,8 @@ assert.equal(searchTdmMolecules('amitriptyline').groups[0].indications.length, 1
 assert.equal(searchTdmMolecules('doxépine').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('venlafaxine').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications.length, 2);
-assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications[0].alternatives.length, 1);
-assert.equal(searchTdmMolecules('escitalopram').groups[0].indications[0].alternatives.length, 1);
+assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications[0].relatedReferences.length, 1);
+assert.equal(searchTdmMolecules('escitalopram').groups[0].indications[0].relatedReferences.length, 1);
 assert.equal(searchTdmMolecules('phenobarbital').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('digoxin').groups[0].indications.length, 1);
 const mpaByDrug = tdmTargets.filter((row) => row.drug === 'mpa');
@@ -752,14 +767,14 @@ for (const alias of ['MPA', 'MMF', 'mycophenolate']) {
   assert.equal(view.groups[0].indications.length, 4, 'Kidney, heart, liver and lung must group by organ');
   const heart = view.groups[0].indications.find((row) => row.indicationFr === 'Greffe cardiaque');
   assert.equal(heart.primary.source, 'mpa2025', 'Consensus recommendation must precede exploratory study');
-  assert.equal(heart.alternatives.length, 1, 'Other source must stay accessible in Details');
-  assert.equal(heart.alternatives[0].source, 'mpa2015heart');
+  assert.equal(heart.relatedReferences.length, 1, 'Unverified source must stay accessible without asserting equivalence');
+  assert.equal(heart.relatedReferences[0].source, 'mpa2015heart');
 }
 const valproateView = searchTdmMolecules('valproate');
 assert.equal(valproateView.groups.length, 1);
 assert.equal(valproateView.groups[0].indications.length, 1);
 assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRcp');
-assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
+assert.equal(valproateView.groups[0].indications[0].relatedReferences.length, 2);
 assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 6);
 assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 4,
   'Serum and plasma lithium must remain separately labelled references');

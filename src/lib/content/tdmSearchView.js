@@ -14,8 +14,21 @@ import { agnp2026ReviewForDrug } from './tdmAgnpReview2026.js';
 // Grouping by a drug/indication/metric alone is unsafe:
 // identical concentration units may refer to the parent, active metabolite,
 // active-moiety sum, free fraction, different assay or formulation.
-// Preserve independently sourced ranges as alternatives only if every known
-// scientific identity dimension matches. Missing dimensions are NOT inferred.
+// Published references can share a visually concise indication card even
+// when their clinical comparability has NOT been established. Only references
+// whose complete analytical identity is explicitly typed are alternatives;
+// other references are separately flagged for independent review. An absent
+// dimension is NEVER evidence of equality.
+export const TDM_COMPARABILITY_FIELDS = Object.freeze([
+  'analyteId', 'analyteBasis', 'matrixId', 'formulationId',
+  'assayMethod', 'samplingTime'
+]);
+
+export function hasCompleteTdmIdentity(entry) {
+  return TDM_COMPARABILITY_FIELDS.every((field) =>
+    typeof entry?.[field] === 'string' && Boolean(entry[field].trim()));
+}
+
 export function groupTdmReferenceEntries(entries) {
   const indications = new Map();
   for (const entry of entries) {
@@ -34,10 +47,17 @@ export function groupTdmReferenceEntries(entries) {
         metric: entry.metric,
         unit: entry.unit,
         primary: entry,
-        alternatives: []
+        alternatives: [],
+        // Same published context is not the same as analytically comparable.
+        relatedReferences: []
       });
     } else {
-      indications.get(key).alternatives.push(entry);
+      const group = indications.get(key);
+      if (hasCompleteTdmIdentity(group.primary) && hasCompleteTdmIdentity(entry)) {
+        group.alternatives.push(entry);
+      } else {
+        group.relatedReferences.push(entry);
+      }
     }
   }
   return Array.from(indications.values());

@@ -51,3 +51,12 @@ Cette commande **n’exporte pas de modèle ni de patient**. Elle ne publie aucu
 - **Intégration initiale** : comparaison documentaire de l’exposition calculée **uniquement** après validation humaine du sous-ensemble, sans adaptation de dose automatique.
 
 Aucune de ces étapes ne constitue une qualification clinique ou réglementaire du dispositif ; l’usage envisagé reste scientifique, pédagogique et de recherche.
+
+
+## Verrou de comparabilité sans métadonnées analytiques complètes (11/11/2026)
+
+Le correctif `groupTdmReferenceEntries()` distingue désormais `alternatives` (six dimensions structurées et identiques) et `relatedReferences` (sources affichées dans le même contexte de recherche **sans preuve d'équivalence**). Une dimension inconnue, même inconnue dans les deux documents, ne rend **jamais** ces sources automatiquement interchangeables. Chaque référence non qualifiée affiche une alerte bilingue explicite à l'ouverture des détails ; toutes les cartes chiffrées sans approbation signée portent également un avis de validation pharmacologique en attente.
+
+Les six dimensions exigées sont `analyteId`, `analyteBasis`, `matrixId`, `formulationId`, `assayMethod`, `samplingTime`. Les tests synthétiques vérifient chacune de ces dimensions, y compris deux valeurs manquantes identiques et le cas « une valeur connue / une inconnue ». Cela corrige le risque antérieur `null === null` sans perdre l'accès aux sources bibliographiques secondaires.
+
+**Important** : ce correctif technique ne fournit aucune validation humaine pharmacologique ; les chiffres historiques et AGNP restent non approuvés pour une interprétation clinique. Un lecteur MIPD ne doit jamais consommer les entrées de `relatedReferences` comme des alternatives thérapeutiques.

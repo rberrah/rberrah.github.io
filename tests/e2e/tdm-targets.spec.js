@@ -24,6 +24,8 @@ test('MPA and MMF aliases show one molecule and four indication cards, with stud
   await expect(heart.getByTestId('tdm-other-sources')).toBeHidden();
   await heart.locator('summary').click();
   await expect(heart.getByTestId('tdm-other-sources')).toBeVisible();
+  await expect(heart.getByTestId('tdm-related-reference-warning')).toBeVisible();
+  await expect(heart.getByTestId('tdm-human-review-pending')).toBeVisible();
   await expect(heart.getByText('≈50', { exact: false })).toBeVisible();
   await search.fill('MMF');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(4);
@@ -43,6 +45,7 @@ test('Valproate displays one primary RCP target; SFPT values and limitations are
   await expect(card.getByTestId('tdm-other-sources')).toBeHidden();
   await card.locator('summary').click();
   await expect(card.getByTestId('tdm-other-sources')).toBeVisible();
+  await expect(card.getByTestId('tdm-related-reference-warning')).toHaveCount(2);
   await expect(card.getByTestId('tdm-other-sources').locator('.alternative-head strong').filter({ hasText: /50–100/ })).toHaveCount(2);
 });
 

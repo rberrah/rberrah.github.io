@@ -255,6 +255,7 @@
               {#each group.indications as item (item.id)}
                 {@const primary = item.primary}
                 {@const source = tdmTargetSources[primary.source]}
+                {@const otherReferences = [...item.alternatives, ...item.relatedReferences]}
                 <article class="indication-card" data-testid="tdm-target-card">
                   <div class="target-overview">
                     <div class="indication-label">
@@ -267,6 +268,12 @@
                         aria-label={(en ? 'Original source: ' : 'Source originale : ') + source.citation}>
                         {source.citation} <ExternalLink size={14} aria-hidden="true" />
                       </a>
+                      {#if primary.humanReview?.status !== 'approved'}
+                        <span class="study-note" data-testid="tdm-human-review-pending">
+                          {en ? 'Bibliographic range · independent pharmacological sign-off pending'
+                            : 'Valeur bibliographique · validation pharmacologique indépendante en attente'}
+                        </span>
+                      {/if}
                       {#if primary.agnp2026TdmRecommendationLevel}
                         <span class="study-note" data-testid="tdm-agnp-recommendation-level">
                           {en ? 'AGNP level' : 'AGNP niveau'} {primary.agnp2026TdmRecommendationLevel} · {agnpTdmLevelLabel(primary.agnp2026TdmRecommendationLevel, en)}
@@ -287,7 +294,7 @@
                   </div>
 
                   <details class="detail-panel" data-testid="tdm-target-details">
-                    <summary>{en ? 'Details' : 'Détails'}{#if item.alternatives.length} <span>· {item.alternatives.length} {en ? 'other source(s)' : 'autre(s) source(s)'}</span>{/if}</summary>
+                    <summary>{en ? 'Details' : 'Détails'}{#if otherReferences.length} <span>· {otherReferences.length} {en ? 'other reference(s)' : 'autre(s) référence(s)'}</span>{/if}</summary>
                     <div class="detail-content">
                       <dl>
                         <div><dt>{en ? 'Clinical context and limitations' : 'Contexte et limites'}</dt><dd>{en ? primary.contextEn : primary.contextFr}</dd></div>
@@ -310,12 +317,19 @@
                         </p>
                       {/if}
 
-                      {#if item.alternatives.length}
+                      {#if otherReferences.length}
                         <div class="other-sources" data-testid="tdm-other-sources">
-                          <h4>{en ? 'Other published sources' : 'Autres sources publiées'}</h4>
-                          {#each item.alternatives as alternative (alternative.id)}
+                          <h4>{en ? 'Other published references (not automatically interchangeable)' : 'Autres références publiées (non automatiquement interchangeables)'}</h4>
+                          {#each otherReferences as alternative (alternative.id)}
                             {@const altSource = tdmTargetSources[alternative.source]}
+                            {@const comparabilityUnknown = item.relatedReferences.some((row) => row.id === alternative.id)}
                             <div class="alternative">
+                              {#if comparabilityUnknown}
+                                <p class="matrix-warning" data-testid="tdm-related-reference-warning">
+                                  {en ? 'Analytical equivalence NOT established: analyte, fraction, matrix, formulation, assay or sampling time not fully verified. This range must not be substituted for the reference above.'
+                                    : 'Équivalence analytique NON établie : analyte, fraction, matrice, formulation, méthode ou horaire incomplets. Ne pas substituer cette plage à la référence ci-dessus.'}
+                                </p>
+                              {/if}
                               <div class="alternative-head">
                                 <strong>{formatTdmTarget(alternative, en ? 'en' : 'fr')} {alternative.unit}</strong>
                                 <a href={altSource.url} target="_blank" rel="noopener noreferrer">
