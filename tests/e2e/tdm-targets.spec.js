@@ -732,3 +732,24 @@ test('MIPD deep-link accepts only known model library keys, including English', 
   await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toBeVisible();
   await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(46);
 });
+
+test('Switching language after a guide deep link keeps the reader own filters', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=vanco&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+  const search = page.locator('.filters input[type="search"]');
+  await search.fill('goti');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(1);
+  // The language toggle rewrites the URL, which must not re-apply the deep link.
+  await page.locator('.language-toggle').getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.getByTestId('tdm-active-drug-deep-link')).toContainText('Filtered by drug');
+  await expect(search).toHaveValue('goti');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(1);
+});
+
+test('Choosing a molecule by hand clears the unknown-identifier notice', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=invalid-unknown&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toBeVisible();
+  await page.locator('.filters select').first().selectOption('vanco');
+  await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+});

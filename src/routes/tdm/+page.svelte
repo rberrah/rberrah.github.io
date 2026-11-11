@@ -27,11 +27,22 @@
   let selectedDrug = $state('all');
   let selectedAdministration = $state('all');
   let unrecognizedGuideLink = $state(false);
+  // Plain variable on purpose: tracking it would re-run this effect on its own write.
+  /** @type {string|null} */
+  let appliedDrugParam = null;
   // Reads drug-only deep links on initial load and on SvelteKit client navigation.
+  // Measured today: a same-route URL rewrite (the language toggle calls goto, which
+  // does change page.url) does NOT re-run this effect, so the reader's filters survive.
+  // That guarantee rests on SvelteKit's reactivity granularity rather than on this
+  // component, so the applied value is recorded and only a CHANGE of the drug parameter
+  // re-applies the link. Without it, a future framework change could silently clear the
+  // search text and administration filter the reader has just set. Covered by
+  // "Switching language after a guide deep link keeps the reader own filters".
   $effect(() => {
     const requested=page.url.searchParams.get('drug');
-    if (requested!==null) {
+    if (requested!==null && requested!==appliedDrugParam) {
       const selection=mipdDrugFilterFromDeepLink(requested);
+      appliedDrugParam=requested;
       selectedDrug=selection.drugKey;
       selectedAdministration='all';
       query='';
