@@ -16,6 +16,11 @@ for (const width of [390, 1440]) {
     await page.goto(`${site}/pd/?lang=en`);
     await expect(page.getByRole('button', { name: 'General PD', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Infectiology', exact: true }).click();
+    const guide = page.getByTestId('pd-tdm-guide-link');
+    await expect(guide).toBeVisible();
+    await expect(guide).toHaveAttribute('href', '/cibles-tdm/?lang=en');
+    await expect(page.getByTestId('pd-tdm-guide-context')).toContainText('does not transfer doses');
+
     const workshop = page.getByTestId('infection-workbench');
     await expect(workshop).toBeVisible();
     await expect(workshop.getByTestId('transfer-contract')).toContainText('MIC, index and PK/PD target');

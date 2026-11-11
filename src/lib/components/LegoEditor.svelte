@@ -2812,7 +2812,11 @@
   .cov-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
   .cov-effects-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
   .cov-effects-head h3 { margin: 0; }
-  .cov-effect { display: grid; grid-template-columns: minmax(0, 1fr) minmax(80px, 0.55fr) auto; align-items: end; gap: 7px; padding: 7px 0; }
+  .cov-effect { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 7px; padding: 7px 0; }
+  /* Give the target dropdown its own full-width row, above the effect controls. */
+  .cov-effect .cov-target { grid-column: 1 / -1; }
+  .cov-effect .cov-target select { min-height: 36px; }
+  .cov-effect > .rx { grid-column: 3; }
   .cov-effect + .cov-effect { border-top: 1px dashed var(--border-subtle); }
   .cov-row label { display: grid; align-content: end; gap: 3px; min-width: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
   .cov-fields .cov-toggle { grid-column: 1 / -1; }

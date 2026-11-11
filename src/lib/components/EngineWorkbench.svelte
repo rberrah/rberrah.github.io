@@ -1,5 +1,7 @@
 <script>
   import { onMount, onDestroy, flushSync } from 'svelte';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { readDraft, writeDraft, takeDraft } from '#lib/workshops/session.js';
   import { language } from '#lib/stores/language.js';
   import { tdmEngineUrl } from '#lib/tdm/engine.js';
@@ -123,6 +125,11 @@
     <button type="button" class:active={pdMode === 'infection'} aria-pressed={pdMode === 'infection'} onclick={() => pdMode = 'infection'}>{t('Infectiologie', 'Infectiology')}</button>
   </div>{/if}
   {#if view === 'pd' && pdMode === 'infection'}
+    <p class="tdm-guide-context" data-testid="pd-tdm-guide-context">
+      {t('Pour comprendre les cibles PK/PD selon la molécule, la CMI et les prélèvements, consulter le guide bibliographique. Il est indépendant de cette simulation et ne transfère aucune dose.',
+        'For drug- and MIC-specific PK/PD indices, targets and sampling, see the bibliographic TDM guide. It is separate from this simulation and does not transfer doses.')}
+      <a href={`${base}/cibles-tdm/?lang=${$language}`} data-testid="pd-tdm-guide-link">{t('Guide des cibles TDM', 'TDM Target Guide')} →</a>
+    </p>
     <InfectionWorkbench bind:model={pkInfection}/>
   {:else}
   <div class="assembly" class:two-blocks={view === 'pd' && (pdMode === 'onco' ? !onco.toxicity : !pd.delay)} aria-label={t('Schéma du modèle', 'Model diagram')}>
@@ -256,6 +263,9 @@
   [hidden] { display: none !important; }
   .assembly.two-blocks { grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr); }
   .workbench { min-width: 0; letter-spacing: 0; }
+  .tdm-guide-context { max-width: 88ch; margin: 0 0 18px; padding: 11px 14px; border-left: 3px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-secondary); font-size: .87rem; line-height: 1.6; }
+  .tdm-guide-context a { display: inline-flex; margin-left: .35rem; color: var(--text-primary); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+  .tdm-guide-context a:focus-visible { outline: 2px solid #168879; outline-offset: 2px; }
   header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
   h1 { font-size: 2rem; line-height: 1.2; margin: 0; letter-spacing: 0; } h2 { font-size: 1.4rem; letter-spacing: 0; } h3 { font-size: 1rem; letter-spacing: 0; }
   .eyebrow, .status { font-size: 0.8rem; color: var(--text-secondary); } .intro { max-width: 88ch; font-size: 0.95rem; margin: 16px 0 24px; }
