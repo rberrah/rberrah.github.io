@@ -349,7 +349,7 @@ for (const target of tdmTargets) {
   assert.ok(source.organization && source.evidenceSection, `Source has no claim locator: ${target.id}`);
   assert.ok(source.citation && source.citation.length < 70, `Missing concise primary citation: ${target.id}`);
   assert.ok(['open_full_text', 'open_abstract'].includes(source.access), `Source access not audited: ${target.id}`);
-  assert.equal(source.verifiedOn, target.source === 'agnpConsensus2026' ? '2026-11-11' : TDM_REFERENCE_REVIEW_DATE, `Source not freshly reviewed: ${target.id}`);
+  assert.equal(source.verifiedOn, ['agnpConsensus2026','theophyllineDailymed'].includes(target.source) ? '2026-11-11' : TDM_REFERENCE_REVIEW_DATE, `Source review date mismatch: ${target.id}`);
   assert.ok(!source.url.endsWith('/recommandations/'), `Numeric source must target a specific publication: ${target.id}`);
   assert.ok(formatTdmTarget(target, 'fr').length);
   assert.ok(formatTdmTarget(target, 'en').length);
