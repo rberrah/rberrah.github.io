@@ -497,6 +497,13 @@
         <ul>
           {#each results.withoutTargets.slice(0, 8) as entry (entry.id)}
             <li data-testid="tdm-manual-entry"><strong>{entry.name}</strong><span class="pk-unknown-inline">{en ? 'PK/PD, routes and linearity: not established' : 'PK/PD, voies et linéarité : non documentés'}</span>
+              {#if entry.status === 'outsourced_exam' && manualCatalogSources[entry.sourceId]}
+                <a data-testid="tdm-chu-outsourced-exam" href={manualCatalogSources[entry.sourceId].url}
+                  target="_blank" rel="noopener noreferrer">
+                  {en ? 'CHU · External assay record (not an exposure target)' : 'CHU · Fiche de dosage externalisé (non cible)'}
+                  <ExternalLink size={13} aria-hidden="true" />
+                </a>
+              {/if}
               {#if entry.samplingDocument}
                 <a data-testid="tdm-chu-sampling-link" href={entry.samplingDocument.url} target="_blank" rel="noopener noreferrer">
                   {en ? 'CHU sampling times' : 'CHU · Temps de prélèvement'} <ExternalLink size={13} aria-hidden="true" />
