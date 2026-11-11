@@ -10,6 +10,8 @@ import { tdmSafetySignalsForDrug } from './tdmSafetySignals.js';
 import { historicalChuAssayForDrug } from './tdmChuAssayProvenance.js';
 import { tdmPharmacologyForDrug } from './tdmPharmacologyProfiles.js';
 import { agnp2026ReviewForDrug } from './tdmAgnpReview2026.js';
+import { hasCompleteTdmIdentity } from './tdmReferenceIdentity.js';
+export { hasCompleteTdmIdentity, TDM_COMPARABILITY_FIELDS } from './tdmReferenceIdentity.js';
 
 // Grouping by a drug/indication/metric alone is unsafe:
 // identical concentration units may refer to the parent, active metabolite,
@@ -19,16 +21,6 @@ import { agnp2026ReviewForDrug } from './tdmAgnpReview2026.js';
 // whose complete analytical identity is explicitly typed are alternatives;
 // other references are separately flagged for independent review. An absent
 // dimension is NEVER evidence of equality.
-export const TDM_COMPARABILITY_FIELDS = Object.freeze([
-  'analyteId', 'analyteBasis', 'matrixId', 'formulationId',
-  'assayMethod', 'samplingTime'
-]);
-
-export function hasCompleteTdmIdentity(entry) {
-  return TDM_COMPARABILITY_FIELDS.every((field) =>
-    typeof entry?.[field] === 'string' && Boolean(entry[field].trim()));
-}
-
 export function groupTdmReferenceEntries(entries) {
   const indications = new Map();
   for (const entry of entries) {

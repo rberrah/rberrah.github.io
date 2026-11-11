@@ -60,3 +60,13 @@ Le correctif `groupTdmReferenceEntries()` distingue désormais `alternatives` (s
 Les six dimensions exigées sont `analyteId`, `analyteBasis`, `matrixId`, `formulationId`, `assayMethod`, `samplingTime`. Les tests synthétiques vérifient chacune de ces dimensions, y compris deux valeurs manquantes identiques et le cas « une valeur connue / une inconnue ». Cela corrige le risque antérieur `null === null` sans perdre l'accès aux sources bibliographiques secondaires.
 
 **Important** : ce correctif technique ne fournit aucune validation humaine pharmacologique ; les chiffres historiques et AGNP restent non approuvés pour une interprétation clinique. Un lecteur MIPD ne doit jamais consommer les entrées de `relatedReferences` comme des alternatives thérapeutiques.
+
+
+## Export de revue traçable et statut du pilote (11/11/2026)
+
+- `node scripts/report_tdm_semantic_readiness.mjs --json` : toutes les 140 lignes, métadonnées manquantes, statut d'approbation, blocages AGNP.
+- `node scripts/report_tdm_semantic_readiness.mjs --csv` : matrice à transmettre pour la relecture des 140 références, sans donnée patient. Champs présents mais renseignés par `unknown`/`pending`/`N/A` ne sont **plus** considérés valides.
+- La même liste de six champs est appliquée au regroupement de la page et au rapport de préparation. Une paire de plages au sens analytique incomplet reste `relatedReferences` et non `alternatives`, même si les champs manquants coïncident.
+- **Pilote scientifique limité** : le modèle MIPD `tacrolimus_woillard_ddi` est éligible au workflow MAP de recherche ; les modèles de vancomycine `vanco_goti`, `vanco_pkjust`, `vanco_roberts` ont des contextes cliniques et modes IV distincts. **Aucun modèle MPA/MPAG n'est présent parmi les 46 modèles MIPD** : le snapshot MPA est bibliographique seulement et ne doit jamais obtenir un `modelMapping` par défaut.
+- Pour les trois références candidates tacrolimus, MPA et vancomycine, les chiffres ont été confrontés aux tableaux/recommandations primaires van Gelder (2025, tableau 1), Liu et al. (2025, tableau 3) et consensus ASHP/IDSA/PIDS/SIDP (2020). Cette relecture ponctuelle **ne vaut pas approbation pharmacologique humaine** des 140 lignes, ni validation de modèle.
+- Pour affirmer une couverture exhaustive des dosages actuellement pratiqués au CHU, l'export institutionnel autorisé reste indispensable. Le site ne doit ni simuler son existence ni afficher « exhaustif ».

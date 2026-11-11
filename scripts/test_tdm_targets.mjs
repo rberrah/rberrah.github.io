@@ -7,7 +7,7 @@ import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
 import { searchTdmMolecules, groupTdmReferenceEntries, hasCompleteTdmIdentity, TDM_COMPARABILITY_FIELDS } from '../src/lib/content/tdmSearchView.js';
 import { agnp2026Update, agnp2026ReviewQueue, agnp2026ReviewSummary, agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
 import { generateTdmPilotSnapshot, validateTdmPilotSnapshot } from './export_tdm_pilot_snapshot.mjs';
-import { semanticReadinessReport, semanticReadinessRows } from './report_tdm_semantic_readiness.mjs';
+import { semanticReadinessReport, semanticReadinessRows, generateTdmSemanticReviewCsv } from './report_tdm_semantic_readiness.mjs';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
@@ -51,6 +51,14 @@ const syntheticTdmDimensions = [
 assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer]).length,1);
 assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer])[0].alternatives.length,1);
 assert.equal(hasCompleteTdmIdentity(syntheticTdmBase),true);
+for (const placeholder of ['unknown', 'unassessed', 'N/A', 'pending']) {
+  const unresolved = {...syntheticTdmBase, assayMethod:placeholder};
+  assert.equal(hasCompleteTdmIdentity(unresolved),false,
+    'Placeholder '+placeholder+' is not a documented assay method');
+  const pair=groupTdmReferenceEntries([unresolved,{...unresolved,id:'placeholder-companion'}]);
+  assert.equal(pair[0].alternatives.length,0,'Placeholder assay cannot create a comparable reference');
+  assert.equal(pair[0].relatedReferences.length,1);
+}
 for (const missingField of TDM_COMPARABILITY_FIELDS) {
   const unknown = {...syntheticTdmBase, [missingField]: undefined};
   const duplicate = {...unknown, id:'unknown-source'};
@@ -133,6 +141,10 @@ assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,patientDataIncluded:true
 assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,sha256:'0'.repeat(64)}),false);
 console.log('TDM pilot snapshot: source-locked tacrolimus/MPA/vancomycin, SHA256-guarded, 0 interpretable and 0 automatic doses.');
 
+const reviewCsv = generateTdmSemanticReviewCsv();
+assert.equal(reviewCsv.split('\n').length,tdmTargets.length+2);
+assert.ok(reviewCsv.includes('missingSemanticFields'));
+assert.ok(reviewCsv.includes('"PENDING"')===false);
 assert.equal(semanticReadinessReport.totalCuratedDrugs,tdmDrugs.length);
 assert.equal(semanticReadinessReport.numericReferenceClaims,tdmTargets.length);
 assert.equal(semanticReadinessRows.length,tdmTargets.length);

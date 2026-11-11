@@ -4,14 +4,12 @@
 import { tdmTargets, tdmDrugs } from '../src/lib/content/tdmTargets.js';
 import { tdmPharmacologyForDrug } from '../src/lib/content/tdmPharmacologyProfiles.js';
 import { agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
+import { TDM_COMPARABILITY_FIELDS, isMeaningfulTdmIdentityValue } from '../src/lib/content/tdmReferenceIdentity.js';
 
-const semanticRequired = [
-  'analyteId','analyteBasis','matrixId','formulationId',
-  'assayMethod','samplingTime'
-];
+const semanticRequired = TDM_COMPARABILITY_FIELDS;
 export const semanticReadinessRows = tdmTargets.map((entry)=>{
   const missing = semanticRequired.filter((field)=>
-    typeof entry[field]!=='string'||!entry[field].trim());
+    !isMeaningfulTdmIdentityValue(entry[field]));
   const pk=tdmPharmacologyForDrug(entry.drug);
   const historicalNeuro=Boolean(agnp2026ReviewForDrug(entry.drug) &&
     agnp2026ReviewForDrug(entry.drug).historicalReferenceIds.includes(entry.id));
@@ -42,8 +40,22 @@ export const semanticReadinessReport = {
   ])),
   claims:semanticReadinessRows
 };
+// Reviewable CSV for signed pharmacological curation. Read-only; no patient data.
+const csvFields = Object.freeze([
+  'targetId','drugId','sourceId','indication','metric','unit',
+  'matrixAsPublished','missingSemanticFields','hasDrugSpecificPkIndex',
+  'agnp2026ComparisonPending','humanApproved','nextAction'
+]);
+const escapeCsv = (value) => '"' + String(value ?? '').replaceAll('"','""') + '"';
+export function generateTdmSemanticReviewCsv() {
+  return [csvFields.join(','), ...semanticReadinessRows.map((row) =>
+    csvFields.map((field) => escapeCsv(field === 'missingSemanticFields'
+      ? row.missingSemanticFields.join(';') : row[field])).join(','))].join('\n') + '\n';
+}
+
 if(process.argv[1]?.endsWith('report_tdm_semantic_readiness.mjs')) {
-  if(process.argv.includes('--json')) console.log(JSON.stringify(semanticReadinessReport,null,2));
+  if(process.argv.includes('--csv')) process.stdout.write(generateTdmSemanticReviewCsv());
+  else if(process.argv.includes('--json')) console.log(JSON.stringify(semanticReadinessReport,null,2));
   else {
     const {claims,...summary}=semanticReadinessReport;
     console.log(JSON.stringify(summary,null,2));
