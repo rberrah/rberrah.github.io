@@ -33,8 +33,8 @@
   // AGNP levels classify how useful monitoring is, not how narrow a
   // therapeutic window is, and never authorize automatic dose adaptation.
   function agnpTdmLevelLabel(level, isEn) {
-    const fr = { 1: 'STP fortement recommandé pour la titration', 2: 'STP recommandé', 3: 'STP utile selon le contexte', 4: 'STP potentiellement utile en situations ciblées' };
-    const en = { 1: 'TDM strongly recommended for titration', 2: 'TDM recommended', 3: 'TDM useful in clinical context', 4: 'TDM potentially useful in specific situations' };
+    const fr = [null, 'STP fortement recommandé pour la titration', 'STP recommandé', 'STP utile selon le contexte', 'STP potentiellement utile en situations ciblées'];
+    const en = [null, 'TDM strongly recommended for titration', 'TDM recommended', 'TDM useful in clinical context', 'TDM potentially useful in specific situations'];
     if (!Number.isInteger(level) || level < 1 || level > 4) return null;
     return (isEn ? en : fr)[level];
   }
