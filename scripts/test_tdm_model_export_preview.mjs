@@ -80,3 +80,33 @@ assert.deepEqual(
 assert.equal(mipdDrugKeyForTdmDrug('definitely-not-a-tdm-id'),null);
 assert.equal(mipdCatalogueHrefForTdmDrug('/pharmacometrie','definitely-not-a-tdm-id','fr'),null);
 console.log('PMx crosswalk evolution: exact today; new molecules reported with an actionable message.');
+
+// --- Reverse navigation: a MIPD model card back to its TDM Guide entry ---
+import { tdmGuideHrefForModelDrugKey,tdmGuideDrugFromDeepLink } from '../src/lib/tdm/guideModelLinks.js';
+import { mipdDrugToTdmId as mipdDrugToTdmIdForTest } from '../src/lib/tdm/mipdDrugCrosswalk.preview.v1.js';
+assert.equal(tdmGuideHrefForModelDrugKey('/pharmacometrie','tacrolimus','fr'),
+  '/pharmacometrie/cibles-tdm/?drug=tac&lang=fr');
+assert.equal(tdmGuideHrefForModelDrugKey('/pharmacometrie/','vanco','en'),
+  '/pharmacometrie/cibles-tdm/?drug=vancomycin&lang=en');
+// Every molecule in the pinned catalogue reaches the guide, and only those.
+for (const key of new Set(tdmModels.map(model=>model.drugKey)))
+  assert.ok(tdmGuideHrefForModelDrugKey('/pharmacometrie',key,'fr'),'no guide link for '+key);
+assert.equal(tdmGuideHrefForModelDrugKey('/pharmacometrie','not-a-drug-key','fr'),null);
+assert.equal(tdmGuideHrefForModelDrugKey('/pharmacometrie','constructor','fr'),null);
+// The link carries a molecule and a language only: no model id, no patient value.
+for (const key of new Set(tdmModels.map(model=>model.drugKey))) {
+  const href=tdmGuideHrefForModelDrugKey('/pharmacometrie',key,'fr');
+  assert.deepEqual([...new URL(href,'https://x').searchParams.keys()].sort(),['drug','lang']);
+}
+assert.deepEqual(tdmGuideDrugFromDeepLink('tac'),{drugId:'tac',invalid:false});
+assert.deepEqual(tdmGuideDrugFromDeepLink(''),{drugId:null,invalid:false});
+assert.deepEqual(tdmGuideDrugFromDeepLink(null),{drugId:null,invalid:false});
+assert.deepEqual(tdmGuideDrugFromDeepLink('lithium'),{drugId:null,invalid:true});
+assert.deepEqual(tdmGuideDrugFromDeepLink('../secret'),{drugId:null,invalid:true});
+assert.deepEqual(tdmGuideDrugFromDeepLink('__proto__'),{drugId:null,invalid:true});
+// Round trip: the guide link and the catalogue link agree on the same molecule.
+for (const [drugKey,tdmId] of Object.entries(mipdDrugToTdmIdForTest)) {
+  assert.equal(tdmGuideDrugFromDeepLink(tdmId).drugId,tdmId);
+  assert.equal(mipdDrugKeyForTdmDrug(tdmId),drugKey);
+}
+console.log('PMx reverse links: every pinned molecule reaches its TDM Guide entry, molecule and language only.');

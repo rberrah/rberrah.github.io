@@ -107,6 +107,30 @@ export function mipdCatalogueHrefForTdmDrug(base, tdmId, lang = 'fr') {
   );
 }
 
+/**
+ * Reverse navigation: from a MIPD model back to the TDM Guide entry of its molecule.
+ * Carries a molecule identifier and a language only, never a model or any patient value.
+ * @param {string} base @param {string} drugKey @param {'fr'|'en'} lang
+ */
+export function tdmGuideHrefForModelDrugKey(base, drugKey, lang = 'fr') {
+  const tdmId = Object.hasOwn(mipdDrugToTdmId, drugKey) ? mipdDrugToTdmId[drugKey] : null;
+  if (!tdmId || ambiguousTdmIds.has(tdmId) || !modelDrugKeys.has(drugKey)) return null;
+  return (
+    base.replace(/\/$/, '') +
+    '/cibles-tdm/?drug=' +
+    encodeURIComponent(tdmId) +
+    '&lang=' +
+    encodeURIComponent(lang === 'en' ? 'en' : 'fr')
+  );
+}
+
+/** @param {string|null} requested */
+export function tdmGuideDrugFromDeepLink(requested) {
+  if (requested === null || requested === '') return { drugId: null, invalid: false };
+  const ok = typeof requested === 'string' && Object.hasOwn(mipdDrugKeyByTdmId, requested);
+  return { drugId: ok ? requested : null, invalid: !ok };
+}
+
 /** @param {string|null} requested */
 export function mipdDrugFilterFromDeepLink(requested) {
   if (requested === null || requested === '') return { drugKey: 'all', invalid: false };

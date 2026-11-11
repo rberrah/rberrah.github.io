@@ -3,7 +3,7 @@
   const base = resolve('/').replace(/\/$/, '');
   import { onDestroy } from 'svelte';
   import { page } from '$app/state';
-  import { mipdDrugFilterFromDeepLink } from '#lib/tdm/guideModelLinks.js';
+  import { mipdDrugFilterFromDeepLink, tdmGuideHrefForModelDrugKey } from '#lib/tdm/guideModelLinks.js';
   import { ArrowRight } from '@lucide/svelte';
   import LabTransfer from '#lib/components/LabTransfer.svelte';
   import { openLaboratoryTdm } from '#lib/labs/tdm.js';
@@ -279,6 +279,13 @@
             <div class="model-actions">
               {#if model.analysisEligible}
                 <a data-testid="tdm-model-open-shiny" class="btn btn-primary sm" href={tdmEngineUrl + '/?model=' + encodeURIComponent(model.id) + '&lang=' + $language} target="_blank" rel="noopener noreferrer">{copy.use}</a>
+              {/if}
+              {#if tdmGuideHrefForModelDrugKey(base, model.drugKey, $language === 'en' ? 'en' : 'fr')}
+                <a class="btn btn-outline sm" data-testid="tdm-model-guide-link"
+                  href={tdmGuideHrefForModelDrugKey(base, model.drugKey, $language === 'en' ? 'en' : 'fr')}
+                  title={$language === 'en' ? 'Exposure index, sampling and published references for this molecule' : 'Indice d’exposition, prélèvement et références publiées de cette molécule'}>
+                  {$language === 'en' ? 'TDM targets' : 'Cibles STP'}
+                </a>
               {/if}
               <a class="btn btn-outline sm" href={base + model.href} download>{copy.download}</a>
             </div>

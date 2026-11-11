@@ -753,3 +753,26 @@ test('Choosing a molecule by hand clears the unknown-identifier notice', async (
   await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toHaveCount(0);
   await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
 });
+
+test('A MIPD model card links back to the TDM Guide entry of its molecule', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=tacrolimus&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(2);
+  const card = page.getByTestId('tdm-library-model-card').first();
+  // The actions live inside the collapsed details block.
+  await card.locator('details.model-details > summary').click();
+  const guideLink = card.getByTestId('tdm-model-guide-link');
+  await expect(guideLink).toHaveAttribute('href', /\/cibles-tdm\/\?drug=tac&lang=fr$/);
+  await guideLink.click();
+  // The guide opens already showing that molecule, and the search stays editable.
+  await expect(page.getByTestId('tdm-target-search')).toHaveValue(/tacrolimus/i);
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-unknown-guide-drug-link')).toHaveCount(0);
+  // And the molecule offers the return trip to its models.
+  await expect(page.getByTestId('tdm-mipd-drug-deep-link')).toContainText('(2)');
+});
+
+test('An unknown molecule identifier on the guide warns instead of showing nothing', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?drug=not-a-molecule&lang=fr');
+  await expect(page.getByTestId('tdm-unknown-guide-drug-link')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-search')).toHaveValue('');
+});

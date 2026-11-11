@@ -9,7 +9,8 @@
   import { parseMic, formatMicCalculation, antibioticPdReference } from '#lib/content/tdmAntibioticPd.js';
   import { tdmSafetyReferences } from '#lib/content/tdmSafetySignals.js';
   import { tdmPkReferences } from '#lib/content/tdmPharmacologyProfiles.js';
-  import { mipdModelsForTdmDrug, mipdCatalogueHrefForTdmDrug } from '#lib/tdm/guideModelLinks.js';
+  import { page } from '$app/state';
+  import { mipdModelsForTdmDrug, mipdCatalogueHrefForTdmDrug, tdmGuideDrugFromDeepLink } from '#lib/tdm/guideModelLinks.js';
   import { agnp2026Update } from '#lib/content/tdmAgnpReview2026.js';
 
   const base = resolve('/').replace(/\/$/, '');
@@ -19,6 +20,24 @@
   ])].sort((a, b) => a.localeCompare(b, 'fr'));
 
   let query = $state('');
+  let unknownGuideDrugLink = $state(false);
+  // Plain variable on purpose: tracking it would re-run this effect on its own write.
+  /** @type {string|null} */
+  let appliedGuideDrug = null;
+  // Arriving from a MIPD model card: show that molecule's references straight away.
+  // Only a molecule identifier is read; the search box stays editable afterwards.
+  $effect(() => {
+    const requested = page.url.searchParams.get('drug');
+    if (requested !== null && requested !== appliedGuideDrug) {
+      appliedGuideDrug = requested;
+      const selection = tdmGuideDrugFromDeepLink(requested);
+      unknownGuideDrugLink = selection.invalid;
+      const drug = selection.drugId
+        ? tdmDrugs.find((candidate) => candidate.id === selection.drugId)
+        : null;
+      if (drug) query = $language === 'en' ? drug.en : drug.fr;
+    }
+  });
   let en = $derived($language === 'en');
   let results = $derived(searchTdmMolecules(query));
   let hasQuery = $derived(Boolean(query.trim()));
@@ -73,9 +92,15 @@
         placeholder={en ? 'e.g. tacrolimus, MMF, lithium…' : 'Ex. tacrolimus, MMF, lithium…'} />
       {#if hasQuery}
         <button class="clear-button" type="button" aria-label={en ? 'Clear search' : 'Effacer la recherche'}
-          onclick={() => { query = ''; }}><X size={18} aria-hidden="true" /></button>
+          onclick={() => { query = ''; unknownGuideDrugLink = false; }}><X size={18} aria-hidden="true" /></button>
       {/if}
     </div>
+    {#if unknownGuideDrugLink}
+      <p role="status" data-testid="tdm-unknown-guide-drug-link">
+        {en ? 'Unrecognized molecule identifier: use the search field.'
+          : 'Identifiant de molécule inconnu : utiliser le champ de recherche.'}
+      </p>
+    {/if}
     <datalist id="tdm-drug-options">
       {#each suggestions as name (name)}
         <option value={name}></option>
