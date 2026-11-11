@@ -383,8 +383,6 @@ assign(['haloperidol','clozapine','trazodone','lacosamide','lamotrigine','leveti
   practical:routine('C12','12 h après dernière dose','12 h after last dose',
     'Noter le délai réel, l’état stable, la formulation et l’analyte. Pour les formes injectables prolongées, vérifier la chronologie spécifique.',
     'Record actual timing, steady state, formulation and analyte; depot formulations require their own schedule.','agnp2026Table5'),
-  administration:{codes:[],sourceId:null,scope:'unreviewed'},
-  proportionality:unknownDose
 },'drug_reviewed');
 assign(['levomilnacipran','desvenlafaxine'],{
   index:indexed('C24_reference','Référence de concentration à 24 h','24-h concentration reference',
@@ -393,8 +391,6 @@ assign(['levomilnacipran','desvenlafaxine'],{
   practical:routine('C24','24 h après dernière prise','24 h after last dose',
     'Distinguer forme immédiate/prolongée, analyte et état stable ; le temps réel conditionne la comparaison.',
     'Formulation, analyte, steady state and exact time constrain the comparison.','agnp2026Table5'),
-  administration:{codes:[],sourceId:null,scope:'unreviewed'},
-  proportionality:unknownDose
 },'drug_reviewed');
 assign(['tranylcypromine'],{
   index:indexed('Cmax_reference','PIC Cmax à 2–3 h (pas C0)','2–3 h PEAK Cmax (not trough)',
@@ -403,8 +399,6 @@ assign(['tranylcypromine'],{
   practical:routine('peak_2_3h','Pic à 2–3 h après dose','2–3 h postdose peak',
     'Ne jamais interpréter une résiduelle avec cette plage ; vérifier le schéma continu, la dose et le délai.',
     'Never compare trough to this peak range; confirm continuous regimen, dose and sampling time.','agnp2026Table5'),
-  administration:{codes:[],sourceId:null,scope:'unreviewed'},
-  proportionality:unknownDose
 },'drug_reviewed');
 
 // Nonlinearity is analyte-, regimen- and time-specific: never mark all
