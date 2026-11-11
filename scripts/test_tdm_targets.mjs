@@ -162,6 +162,16 @@ assert.ok(agnp2026ReviewForDrug('haloperidol').agnp2026NumericalRangeVerified);
 assert.ok(!agnp2026ReviewForDrug('clonazepam').agnp2026NumericalRangeVerified);
 assert.equal(agnp2026ReviewForDrug('vancomycin'),null);
 assert.equal(agnp2026ReviewSummary().automatic_replacements,0);
+assert.equal(tdmPharmacologyForDrug('tranylcypromine').index.key,'Cmax_reference',
+  'Tranylcypromine 2026 PEAK must supersede historical class-level trough label');
+assert.equal(tdmPharmacologyForDrug('tranylcypromine').practical.key,'peak_2_3h');
+assert.equal(tdmPharmacologyForDrug('tranylcypromine').index.sourceId,'agnp2026Table5');
+assert.equal(tdmPharmacologyForDrug('haloperidol').practical.key,'C12');
+assert.equal(tdmPharmacologyForDrug('clozapine').practical.key,'C12');
+assert.equal(tdmPharmacologyForDrug('levomilnacipran').practical.key,'C24');
+assert.equal(tdmPharmacologyForDrug('desvenlafaxine').practical.key,'C24');
+assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.kind,'conditional_linear',
+  'Updated sampling must not erase independently verified renal PK dose proportionality');
 
 const pkCoverage = tdmPharmacologyCoverage();
 assert.equal(pkCoverage.drugs, 132);
