@@ -12,12 +12,14 @@ const invalid = new Set([
   'non renseigné', 'inconnu', 'à vérifier', 'a verifier'
 ]);
 
+/** @param {unknown} value */
 export function isMeaningfulTdmIdentityValue(value) {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
   if (!trimmed) return false;
   return !invalid.has(trimmed.toLowerCase());
 }
+/** @param {Record<string, unknown> | null | undefined} entry */
 export function hasCompleteTdmIdentity(entry) {
   return TDM_COMPARABILITY_FIELDS.every((field) =>
     isMeaningfulTdmIdentityValue(entry?.[field]));
