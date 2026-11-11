@@ -2,7 +2,7 @@
 // Presentation-only grouping for the concise, molecule-first TDM guide.
 // Original scientific values, context, and source metadata remain untouched.
 import { tdmDrugs, tdmTargets, normalizeTdmSearch } from './tdmTargets.js';
-import { searchManualCatalog } from './tdmManualCatalog.js';
+import { searchManualCatalog, tdmManualCatalog } from './tdmManualCatalog.js';
 import { antibioticPdForDrug } from './tdmAntibioticPd.js';
 import { chuSamplingForDrug } from './tdmChuSampling.js';
 import { tdmEvidenceForDrug } from './tdmEvidenceGuide.js';
