@@ -1,9 +1,17 @@
+import { chuDocumentOnlyDrugs } from './tdmChuDocumentOnlyDrugs.js';
+import { additionalAntiseizureDrugs, additionalAntiseizureTargets } from './tdmAntiseizureExpansion2018.js';
+import { extraAntidepressantDrugs, extraAntidepressantTargets } from './tdmAntidepressantExpansion2026.js';
+import { psychiatryTdmSources, psychiatryTdmDrugs, psychiatryTdmTargets } from './tdmPsychiatryExpansion2026.js';
+import { nonStandardTdmDrugs } from './tdmSafetySignals.js';
+import { additionalTdmDrugs, additionalTdmSources, additionalTdmTargets } from './tdmTargetsAdditions.js';
+import { agnpVerifiedTdmTargets, agnpVerifiedTdmSources } from './tdmAgnpVerified2026.js';
+import { additionalSocietyTdmDrugs, societyNumericTargets, societyNumericSources } from './tdmSocietyMonitoring2026.js';
 // Curated bibliographic targets for the PMx Explain educational reference.
 // This catalogue is deliberately separate from the executable MIPD-Engine model library.
 // Scientific author review: PENDING. Do not use as a clinical dosing protocol.
 // The numeric source must contain the numeric claim itself, not merely discuss TDM.
 // Access means the claim is visible in full text or an open bibliographic abstract.
-export const TDM_REFERENCE_REVIEW_DATE = '2026-11-09';
+export const TDM_REFERENCE_REVIEW_DATE = '2026-11-10';
 export const tdmInstitutionalResources = [
   {
     id: 'sfpt-stp',
@@ -31,6 +39,15 @@ export const tdmInstitutionalResources = [
     url: 'https://www.sfpt-fr.org/?catid=78&id=2145%3Apublication-du-livre-suivi-th%C3%A9rapeutique-pharmacologique-pour-la-personnalisation-des-traitements-m%C3%A9dicamenteux&view=article',
     scopeFr: 'Ouvrage collectif commercialisé ; seul l’extrait libre du chapitre 35 (tableau 35.2, valproate) est utilisé pour une cible chiffrée.',
     scopeEn: 'The complete handbook is commercial; only the freely accessible chapter 35 excerpt (valproate, Table 35.2) supports a numerical target here.'
+  },
+  {
+    id: 'sfpt-catalogue',
+    organization: 'SFPT',
+    titleFr: 'SFPT · Annuaire national des analyses STP (actualisé octobre 2026)',
+    titleEn: 'SFPT · National assay directory (updated October 2026)',
+    url: 'https://groupe-stp-pt.quarto.pub/catalogue-groupe-stp/',
+    scopeFr: 'Annuaire des laboratoires et examens, différent d’une recommandation de dosage ou d’une cible clinique. Les disponibilités restent à confirmer avec chaque laboratoire.',
+    scopeEn: 'Assay directory, not evidence for routine TDM or numeric target. Verify actual assay availability directly with each laboratory.'
   },
   {
     id: 'sft-iatdmct',
@@ -122,8 +139,10 @@ export const tdmTargetSources = {
     url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5811172/",
     year: 2018, organization: "Peer-reviewed clinical reference proposal",
     access: 'open_full_text',
-    evidenceSection: "Oxcarbazepine section: active 10-hydroxycarbazepine/licarbazepine (MHD) reference intervals",
+    evidenceSection: "Table 1: national serum reference intervals for anti-seizure medications; Oxcarbazepine section distinguishes MHD",
     verifiedOn: TDM_REFERENCE_REVIEW_DATE,
+    newerConsensusUrl: 'https://pubmed.ncbi.nlm.nih.gov/42392224/',
+    newerConsensusTitle: 'AGNP 2026 · tableau 5 : vérifier les nouvelles plages molécule par molécule'
   },
   phenytoinFDA: {
     title: "FDA / DailyMed · Dilantin-125 prescribing information",
@@ -279,7 +298,11 @@ export const tdmTargetSources = {
     year: 2019, organization: 'ISBD / IGSLI expert task force',
     access: 'open_full_text', evidenceSection: 'Table 5 and conclusion (adult maintenance, 12 ± 1 h samples)',
     verifiedOn: TDM_REFERENCE_REVIEW_DATE
-  }
+  },
+  ...additionalTdmSources,
+  ...psychiatryTdmSources,
+  ...agnpVerifiedTdmSources,
+  ...societyNumericSources
 };
 
 export const tdmDrugs = [
@@ -357,7 +380,14 @@ export const tdmDrugs = [
   { id: 'vancomycin', fr: 'Vancomycine', en: 'Vancomycin', aliases: ['vancomycine', 'vancomycin', 'vanco'] },
   { id: 'valproate', fr: 'Acide valproïque (valproate)', en: 'Valproic acid (valproate)', aliases: ['valproate', 'valproic acid', 'acide valproique', 'acide valproïque', 'Depakine', 'Depakote', 'Depamide'] },
   { id: 'linezolid', fr: 'Linézolide', en: 'Linezolid', aliases: ['linézolide', 'linezolid', 'zyvoxid'] },
-  { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] }
+  { id: 'lithium', fr: 'Lithium', en: 'Lithium', aliases: ['lithium', 'lithémie', 'lithiemie'] },
+  ...additionalTdmDrugs,
+  ...psychiatryTdmDrugs,
+  ...nonStandardTdmDrugs,
+  ...extraAntidepressantDrugs,
+  ...additionalAntiseizureDrugs,
+  ...chuDocumentOnlyDrugs,
+  ...additionalSocietyTdmDrugs
 ];
 
 // Every entry is a specific drug × indication × exposure metric × regimen.
@@ -1569,7 +1599,13 @@ export const tdmTargets = [
     contextFr: 'Option du consensus chez l’adulte en entretien ; discussion clinique requise.',
     contextEn: 'Adult-maintenance consensus alternative; clinical assessment required.',
     evidenceFr: 'Consensus conditionnel ISBD/IGSLI.', evidenceEn: 'Conditional ISBD/IGSLI consensus.'
-  }
+  },
+  ...additionalTdmTargets,
+  ...psychiatryTdmTargets,
+  ...extraAntidepressantTargets,
+  ...additionalAntiseizureTargets,
+  ...agnpVerifiedTdmTargets,
+  ...societyNumericTargets
 ];
 
 /** @param {unknown} value */
@@ -1616,6 +1652,7 @@ export function formatTdmTarget(entry, lang = 'fr') {
   }
   if (entry.relation === 'target') return value(entry.min);
   if (entry.relation === 'above') return `>${value(entry.min)}`;
+  if (entry.relation === 'at_most') return `≤${value(entry.min)}`;
   if (entry.relation === 'approx') return `≈${value(entry.min)}`;
   throw new Error(`Unknown TDM target relation: ${entry.relation}`);
 }

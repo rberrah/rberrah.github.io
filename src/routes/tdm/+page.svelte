@@ -2,6 +2,8 @@
   import { resolve } from '$app/paths';
   const base = resolve('/').replace(/\/$/, '');
   import { onDestroy } from 'svelte';
+  import { page } from '$app/state';
+  import { mipdDrugFilterFromDeepLink, tdmGuideHrefForModelDrugKey } from '#lib/tdm/guideModelLinks.js';
   import { ArrowRight } from '@lucide/svelte';
   import LabTransfer from '#lib/components/LabTransfer.svelte';
   import { openLaboratoryTdm } from '#lib/labs/tdm.js';
@@ -24,6 +26,29 @@
   let query = $state('');
   let selectedDrug = $state('all');
   let selectedAdministration = $state('all');
+  let unrecognizedGuideLink = $state(false);
+  // Plain variable on purpose: tracking it would re-run this effect on its own write.
+  /** @type {string|null} */
+  let appliedDrugParam = null;
+  // Reads drug-only deep links on initial load and on SvelteKit client navigation.
+  // Measured today: a same-route URL rewrite (the language toggle calls goto, which
+  // does change page.url) does NOT re-run this effect, so the reader's filters survive.
+  // That guarantee rests on SvelteKit's reactivity granularity rather than on this
+  // component, so the applied value is recorded and only a CHANGE of the drug parameter
+  // re-applies the link. Without it, a future framework change could silently clear the
+  // search text and administration filter the reader has just set. Covered by
+  // "Switching language after a guide deep link keeps the reader own filters".
+  $effect(() => {
+    const requested=page.url.searchParams.get('drug');
+    if (requested!==null && requested!==appliedDrugParam) {
+      const selection=mipdDrugFilterFromDeepLink(requested);
+      appliedDrugParam=requested;
+      selectedDrug=selection.drugKey;
+      selectedAdministration='all';
+      query='';
+      unrecognizedGuideLink=selection.invalid;
+    }
+  });
 
   const repoIssueUrl = 'https://github.com/rberrah/MIPD-Engine/issues/new';
   const tdmxUrl = 'https://www.tdmx.eu/';
@@ -184,6 +209,18 @@
     <span class="muted">{copy.modelCount(filteredModels.length, tdmModels.length)}</span>
   </div>
 
+  {#if unrecognizedGuideLink}
+    <p role="status" data-testid="tdm-invalid-drug-deep-link">
+      {$language==='en' ? 'Unrecognized MIPD drug identifier: showing the full catalogue.' :
+        'Identifiant de molécule MIPD inconnu : catalogue complet affiché.'}
+    </p>
+  {/if}
+  {#if selectedDrug!=='all'}
+    <p data-testid="tdm-active-drug-deep-link">
+      {$language==='en' ? 'Filtered by drug. Select the appropriate model and population; no calculation has started.' :
+        'Filtré par molécule. Sélectionner le modèle et la population adaptés ; aucun calcul n’a démarré.'}
+    </p>
+  {/if}
   <div class="filters">
     <label>
       <span>{copy.search}</span>
@@ -191,7 +228,7 @@
     </label>
     <label>
       <span>{copy.molecule}</span>
-      <select bind:value={selectedDrug}>
+      <select bind:value={selectedDrug} onchange={() => (unrecognizedGuideLink = false)}>
         {#each drugs as drug}
           <option value={drug.key}>{drug.label}</option>
         {/each}
@@ -208,10 +245,10 @@
   </div>
 
   {#if filteredModels.length}
-    <div class="model-grid">
+    <div class="model-grid" data-testid="tdm-filtered-models">
       {#each filteredModels as model}
         {@const display = localizedModel(model)}
-        <article class="model-card card">
+        <article class="model-card card" data-testid="tdm-library-model-card">
           <div class="model-main">
             <div class="model-kicker">
               <span class="drug">{display.drug}</span>
@@ -241,7 +278,14 @@
             {/if}
             <div class="model-actions">
               {#if model.analysisEligible}
-                <a class="btn btn-primary sm" href={tdmEngineUrl + '/?model=' + encodeURIComponent(model.id) + '&lang=' + $language} target="_blank" rel="noopener noreferrer">{copy.use}</a>
+                <a data-testid="tdm-model-open-shiny" class="btn btn-primary sm" href={tdmEngineUrl + '/?model=' + encodeURIComponent(model.id) + '&lang=' + $language} target="_blank" rel="noopener noreferrer">{copy.use}</a>
+              {/if}
+              {#if tdmGuideHrefForModelDrugKey(base, model.drugKey, $language === 'en' ? 'en' : 'fr')}
+                <a class="btn btn-outline sm" data-testid="tdm-model-guide-link"
+                  href={tdmGuideHrefForModelDrugKey(base, model.drugKey, $language === 'en' ? 'en' : 'fr')}
+                  title={$language === 'en' ? 'Exposure index, sampling and published references for this molecule' : 'Indice d’exposition, prélèvement et références publiées de cette molécule'}>
+                  {$language === 'en' ? 'TDM targets' : 'Cibles STP'}
+                </a>
               {/if}
               <a class="btn btn-outline sm" href={base + model.href} download>{copy.download}</a>
             </div>

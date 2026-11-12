@@ -4,10 +4,19 @@ import {
   tdmDrugs, tdmTargets, normalizeTdmSearch, searchTdmTargets, formatTdmTarget
 } from '../src/lib/content/tdmTargets.js';
 import { collectTdmComparisons } from '../src/lib/content/tdmComparisons.js';
-import { searchTdmMolecules } from '../src/lib/content/tdmSearchView.js';
+import { searchTdmMolecules, groupTdmReferenceEntries, hasCompleteTdmIdentity, TDM_COMPARABILITY_FIELDS } from '../src/lib/content/tdmSearchView.js';
+import { agnp2026Update, agnp2026ReviewQueue, agnp2026ReviewSummary, agnp2026ReviewForDrug } from '../src/lib/content/tdmAgnpReview2026.js';
+import { generateTdmPilotSnapshot, validateTdmPilotSnapshot } from './export_tdm_pilot_snapshot.mjs';
+import { semanticReadinessReport, semanticReadinessRows, generateTdmSemanticReviewCsv } from './report_tdm_semantic_readiness.mjs';
 import { tdmBrowseCategories } from '../src/lib/content/tdmBrowseCategories.js';
 import { tdmEvidencePriority, tdmEvidenceForDrug, classifyTdmSource, regulatoryLabelsByDrug } from '../src/lib/content/tdmEvidenceGuide.js';
 import { tdmManualCatalog, manualCatalogSources, searchManualCatalog } from '../src/lib/content/tdmManualCatalog.js';
+import { tdmSafetySignals, tdmSafetyReferences } from '../src/lib/content/tdmSafetySignals.js';
+import { historicalChuAssayForDrug } from '../src/lib/content/tdmChuAssayProvenance.js';
+import { report as chuCoverage } from './report_tdm_coverage.mjs';
+import { additionalSocietyTdmDrugs, societyTdmDrugRows, societyMonitoringForDrug, societyMonitoringSources } from '../src/lib/content/tdmSocietyMonitoring2026.js';
+import { tdmPharmacologyProfiles, tdmPharmacologyForDrug, tdmPharmacologyCoverage, tdmPkReferences } from '../src/lib/content/tdmPharmacologyProfiles.js';
+
 import {
   antibioticPdTargets, betaLactamIds, aminoglycosideIds, fluoroquinoloneIds,
   parseMic, formatMicCalculation, antibioticPdForDrug, antibioticPdReference, antibioticPdSource
@@ -16,9 +25,306 @@ import {
   chuSamplingDocuments, antibioticsWithChuSamplingDocument, chuSamplingForDrug
 } from '../src/lib/content/tdmChuSampling.js';
 
+
+// Guard against a clinically dangerous alternative: same indication + metric
+// + unit but different analyte, matrix, formulation, assay or sampling time.
+const syntheticTdmBase = {
+  ...tdmTargets.find((row)=>row.id==='mpa-kidney-auc'),
+  indicationFr:'Synthetic clinical label', indicationEn:'Synthetic clinical label',
+  id:'synthetic-parent', matrixFr:'Plasma · parent', matrixEn:'Plasma · parent',
+  analyteId:'parent', analyteBasis:'total', matrixId:'plasma',
+  formulationId:'oral_ir',
+  assayMethod:'LC-MS/MS', samplingTime:'C0'
+};
+const syntheticTdmPeer = {...syntheticTdmBase, id:'synthetic-parent-other-paper', source:'mpa2021'};
+const syntheticTdmDimensions = [
+  ['analyteId','hydroxy-metabolite'],
+  ['analyteBasis','free'],
+  ['matrixFr','Sérum · parent'],
+  ['matrixEn','Serum · parent'],
+  ['formulationId','oral_lp'],
+  ['assayMethod','immunoassay'],
+  ['samplingTime','C2'],
+  ['indication','liver'],
+  ['metric','C2'],
+  ['unit','ng/mL']
+];
+assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer]).length,1);
+assert.equal(groupTdmReferenceEntries([syntheticTdmBase, syntheticTdmPeer])[0].alternatives.length,1);
+assert.equal(hasCompleteTdmIdentity(syntheticTdmBase),true);
+for (const placeholder of ['unknown', 'unassessed', 'N/A', 'pending']) {
+  const unresolved = {...syntheticTdmBase, assayMethod:placeholder};
+  assert.equal(hasCompleteTdmIdentity(unresolved),false,
+    'Placeholder '+placeholder+' is not a documented assay method');
+  const pair=groupTdmReferenceEntries([unresolved,{...unresolved,id:'placeholder-companion'}]);
+  assert.equal(pair[0].alternatives.length,0,'Placeholder assay cannot create a comparable reference');
+  assert.equal(pair[0].relatedReferences.length,1);
+}
+for (const missingField of TDM_COMPARABILITY_FIELDS) {
+  const unknown = {...syntheticTdmBase, [missingField]: undefined};
+  const duplicate = {...unknown, id:'unknown-source'};
+  const unresolved = groupTdmReferenceEntries([unknown, duplicate]);
+  assert.equal(hasCompleteTdmIdentity(unknown),false);
+  assert.equal(unresolved.length,1,'Keep readable indication cards with source evidence');
+  assert.equal(unresolved[0].alternatives.length,0,
+    'Two missing '+missingField+' values cannot prove analytical interchangeability');
+  assert.equal(unresolved[0].relatedReferences.length,1,
+    'Unresolved references remain accessible, explicitly NOT interchangeable');
+  assert.equal(groupTdmReferenceEntries([syntheticTdmBase, duplicate]).length,2,
+    'A documented vs unknown '+missingField+' cannot be treated as equal');
+}
+for (const [dimension,different] of syntheticTdmDimensions) {
+  const groups = groupTdmReferenceEntries([
+    syntheticTdmBase, {...syntheticTdmPeer, [dimension]:different}
+  ]);
+  assert.equal(groups.length,2,
+    'Different '+dimension+' must never appear as silent alternative measurements');
+}
+assert.equal(agnp2026Update.year,2026);
+assert.equal(agnp2026Update.ranges,160);
+assert.equal(agnp2026Update.revisedDrugRanges,88);
+assert.equal(agnp2026ReviewSummary().confirmed_2026_numeric_values,9);
+assert.equal(agnp2026ReviewSummary().all_agnp2026_rows_registered,9);
+assert.equal(agnp2026ReviewSummary().automatic_replacements,0);
+assert.ok(agnp2026ReviewQueue.length>=25,'Historical psychiatric/epilepsy audit queue cannot silently shrink');
+for(const entry of agnp2026ReviewQueue) {
+  assert.equal(entry.agnp2026NumericalRangeVerified,entry.verified2026ReferenceIds.length>0);
+  assert.equal(entry.verified2026ReferenceIds.length,
+    tdmTargets.filter((row)=>row.drug===entry.drugId&&row.source==='agnpConsensus2026').length);
+  assert.equal(entry.clinicalInterpretationAllowed,false);
+  assert.ok(entry.historicalReferenceIds.length>0);
+  for(const targetId of entry.historicalReferenceIds) {
+    const target=tdmTargets.find((row)=>row.id===targetId);
+    assert.equal(target.drug,entry.drugId);
+    assert.ok(tdmTargetSources[target.source].year<2026);
+  }
+}
+assert.ok(agnp2026ReviewForDrug('haloperidol')?.historicalReferenceIds.length);
+assert.ok(agnp2026ReviewForDrug('clonazepam')?.historicalReferenceIds.length);
+assert.ok(agnp2026ReviewForDrug('agomelatine')?.historicalReferenceIds.length);
+assert.equal(agnp2026ReviewForDrug('vancomycin'),null);
+assert.ok(searchTdmMolecules('clonazepam').groups[0].agnpReview);
+assert.equal(searchTdmMolecules('vancomycin').groups[0].agnpReview,null);
+console.log('TDM safeguards: analyte and sampling isolation; AGNP 2026 historical review queue without invented numerical updates.');
+
+const pilotSnapshot=generateTdmPilotSnapshot();
+assert.equal(validateTdmPilotSnapshot(pilotSnapshot),true);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.drugId),
+  ['tac','mpa','vancomycin']);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.target.id),
+  ['tac-kidney-mid','mpa-kidney-auc','vancomycin-mrsa']);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.target.value),
+  [{relation:'range',min:5,max:7},{relation:'range',min:30,max:60},
+   {relation:'range',min:400,max:600}]);
+assert.deepEqual(pilotSnapshot.references.map((row)=>row.exposureMeasure),
+  ['C0','AUC0_12','AUC24']);
+assert.ok(pilotSnapshot.references.every((row)=>row.eligibility.status==='not_interpretable'));
+assert.ok(pilotSnapshot.references.every((row)=>row.eligibility.modelMapping==='UNMAPPED'));
+assert.ok(pilotSnapshot.references.every((row)=>row.eligibility.automaticDoseAdjustmentAllowed===false));
+assert.equal(pilotSnapshot.references[0].target.evidenceStatus,'study',
+  'Tacrolimus local study window must not masquerade as a guideline');
+assert.equal(pilotSnapshot.references[1].analyte,'mpa_parent_total');
+assert.equal(pilotSnapshot.references[2].mic?.method,'broth_microdilution');
+assert.equal(pilotSnapshot.references[2].mic?.assumption,true);
+assert.equal(validateTdmPilotSnapshot({
+  ...pilotSnapshot,
+  references:pilotSnapshot.references.map((row,i)=>i===0
+    ? {...row,eligibility:{...row.eligibility,clinicalInterpretationAllowed:true}}
+    : row)
+}),false,'Escalating interpretation must fail validation');
+assert.equal(validateTdmPilotSnapshot({
+  ...pilotSnapshot,
+  references:pilotSnapshot.references.map((row,i)=>i===1
+    ? {...row,target:{...row.target,value:{relation:'range',min:30,max:600}}}
+    : row)
+}),false,'Altered numeric target must fail integrity hash');
+assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,patientDataIncluded:true}),false);
+assert.equal(validateTdmPilotSnapshot({...pilotSnapshot,sha256:'0'.repeat(64)}),false);
+console.log('TDM pilot snapshot: source-locked tacrolimus/MPA/vancomycin, SHA256-guarded, 0 interpretable and 0 automatic doses.');
+
+const reviewCsv = generateTdmSemanticReviewCsv();
+assert.equal(reviewCsv.split('\n').length,tdmTargets.length+2);
+assert.ok(reviewCsv.includes('missingSemanticFields'));
+assert.ok(reviewCsv.includes('"PENDING"')===false);
+assert.equal(semanticReadinessReport.totalCuratedDrugs,tdmDrugs.length);
+assert.equal(semanticReadinessReport.numericReferenceClaims,tdmTargets.length);
+assert.equal(semanticReadinessRows.length,tdmTargets.length);
+assert.equal(semanticReadinessReport.humanApprovedClaims,0);
+assert.equal(semanticReadinessReport.eligibleForAutomaticClinicalInterpretation,0);
+assert.equal(semanticReadinessReport.unresolvedByField.analyteId,tdmTargets.length-10,
+  'Nine source-checked AGNP 2026 rows and one FDA theophylline row have typed analyte identity; older rows remain unstructured');
+assert.equal(semanticReadinessReport.humanApprovedClaims,0);
+assert.equal(semanticReadinessReport.fullyStructuredClaims,0,
+  'Nine typed analyte/timing records still lack formulation/assay human signoff');
+assert.ok(semanticReadinessRows.some((r)=>r.agnp2026ComparisonPending));
+assert.ok(semanticReadinessRows.every((r)=>r.eligibleForAutomaticClinicalInterpretation===false));
+assert.equal(chuCoverage.structured_scientific_readiness.numericReferenceClaims,tdmTargets.length);
+assert.equal(chuCoverage.complete_institutional_assay_export_available,false);
+assert.equal(chuCoverage.human_scientific_approval_of_full_catalogue,false);
+console.log('TDM structured readiness: missing analytic semantics and human sign-off exposed, not silently inferred.');
+
+
+// Direct full text AGNP 2026 Table 5 checked: each therapeutic range and
+// exact sample time is distinct from laboratory alert levels, and pre-2026
+// ranges are preserved rather than silently overwritten.
+const verified2026Rows=tdmTargets.filter((row)=>row.source==='agnpConsensus2026');
+assert.equal(verified2026Rows.length,9);
+assert.deepEqual(verified2026Rows.map((row)=>row.id),["agnp2026-haloperidol-schizophrenia-2026","agnp2026-clozapine-schizophrenia-2026","agnp2026-trazodone-depression-2026","agnp2026-levomilnacipran-depression-2026","agnp2026-desvenlafaxine-depression-2026","agnp2026-lacosamide-epilepsy-2026","agnp2026-lamotrigine-epilepsy-2026","agnp2026-levetiracetam-epilepsy-2026","agnp2026-tranylcypromine-depression-peak-2026"]);
+assert.deepEqual(verified2026Rows.map((row)=>[row.min,row.max]),[[1,5],[350,600],[650,1500],[30,90],[85,380],[1,12],[3,15],[6,46],[60,400]]);
+assert.deepEqual(verified2026Rows.map((row)=>row.samplingTime),
+  ['12h','12h','12h','24h','24h','12h','12h','12h','2-3h_peak']);
+assert.deepEqual(verified2026Rows.map((row)=>row.agnp2026TdmRecommendationLevel),
+  [1,1,2,3,2,3,2,4,4]);
+assert.ok(verified2026Rows.every((row)=>row.status==='guideline'));
+assert.ok(verified2026Rows.every((row)=>row.reviewStatus==='primary_source_row_verified_pending_human_approval'));
+assert.ok(verified2026Rows.every((row)=>row.analyteBasis==='parent_total'));
+assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length,2);
+assert.ok(searchTdmMolecules('haloperidol').groups[0].indications.some((row)=>row.primary.source==='antipsychoticJoint2020'));
+assert.ok(searchTdmMolecules('haloperidol').groups[0].indications.some((row)=>row.primary.source==='agnpConsensus2026'));
+assert.equal(tdmTargets.find((row)=>row.id==='aps-haloperidol-schizophrenia-2020').max,10);
+assert.equal(tdmTargets.find((row)=>row.id==='agnp2026-haloperidol-schizophrenia-2026').max,5);
+assert.equal(tdmTargets.find((row)=>row.id==='agnp2026-tranylcypromine-depression-peak-2026').metric,
+  'Cmax (2–3 h après dose)');
+assert.equal(tdmTargets.find((row)=>row.id==='ad-tranylcypromine-mdd-extension-2025').relation,'at_most');
+assert.ok(agnp2026ReviewForDrug('haloperidol').agnp2026NumericalRangeVerified);
+assert.ok(!agnp2026ReviewForDrug('clonazepam').agnp2026NumericalRangeVerified);
+assert.equal(agnp2026ReviewForDrug('vancomycin'),null);
+assert.equal(agnp2026ReviewSummary().automatic_replacements,0);
+assert.equal(tdmPharmacologyForDrug('tranylcypromine').index.key,'Cmax_reference',
+  'Tranylcypromine 2026 PEAK must supersede historical class-level trough label');
+assert.equal(tdmPharmacologyForDrug('tranylcypromine').practical.key,'peak_2_3h');
+assert.equal(tdmPharmacologyForDrug('tranylcypromine').index.sourceId,'agnp2026Table5');
+assert.equal(tdmPharmacologyForDrug('haloperidol').practical.key,'C12');
+assert.equal(tdmPharmacologyForDrug('clozapine').practical.key,'C12');
+assert.equal(tdmPharmacologyForDrug('levomilnacipran').practical.key,'C24');
+assert.equal(tdmPharmacologyForDrug('desvenlafaxine').practical.key,'C24');
+assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.kind,'conditional_linear',
+  'Updated sampling must not erase independently verified renal PK dose proportionality');
+
+const pkCoverage = tdmPharmacologyCoverage();
+assert.equal(pkCoverage.drugs, 154);
+assert.equal(Object.keys(tdmPharmacologyProfiles).length, tdmDrugs.length,
+  'Every canonical molecule must have a pharmacology record, even when unreviewed');
+assert.deepEqual(new Set(Object.keys(tdmPharmacologyProfiles)), new Set(tdmDrugs.map((d) => d.id)));
+assert.equal(pkCoverage.safe_automatic_scaling_count, 0,
+  'No molecule is allowed to trigger a blind twofold dose scaling');
+assert.ok(pkCoverage.with_index > 40 && pkCoverage.with_index < 154,
+  'Reviewed indices must be useful, but not extrapolated to every drug');
+assert.ok(pkCoverage.with_documented_routes > 20 && pkCoverage.with_documented_routes < 154,
+  'Drug/formulation-specific routes must not be invented for the whole catalogue');
+assert.ok(pkCoverage.with_reviewed_dose_behavior >= 20);
+for (const profile of Object.values(tdmPharmacologyProfiles)) {
+  assert.ok(profile.drug && profile.index && profile.practical && profile.administration && profile.proportionality);
+  assert.equal(profile.proportionality.directRatioPermitted, false);
+  assert.ok(['conditional_linear','nonlinear','complex','unassessed'].includes(profile.proportionality.kind));
+  assert.ok(['unassessed','class_reviewed','drug_reviewed'].includes(profile.review));
+  assert.ok(Array.isArray(profile.administration.codes));
+  assert.equal(new Set(profile.administration.codes).size, profile.administration.codes.length);
+  assert.ok(profile.administration.codes.every((code) => ['PO','IV','IM','INH','SC','TOP'].includes(code)));
+  for (const sourceId of [
+    profile.index.sourceId, profile.practical.sourceId,
+    profile.administration.sourceId, profile.proportionality.sourceId
+  ]) if (sourceId !== null) {
+    assert.ok(tdmPkReferences[sourceId]?.url.startsWith('https://'),
+      'Every populated PK dimension needs a URL source: '+profile.drug+'/'+sourceId);
+  }
+  if (profile.administration.codes.length) {
+    assert.ok(profile.administration.sourceId, 'Documented routes require a source: '+profile.drug);
+    assert.notEqual(profile.administration.scope, 'unreviewed');
+  }
+  if (profile.review === 'unassessed') {
+    assert.equal(profile.index.key, 'unknown');
+    assert.equal(profile.proportionality.kind, 'unassessed');
+  }
+}
+assert.equal(tdmPharmacologyForDrug('nonexistent-drug'), null);
+assert.equal(tdmPharmacologyForDrug('cefepime').index.key, 'fT_MIC');
+assert.equal(tdmPharmacologyForDrug('cefepime').practical.key, 'Cmin_or_Css');
+assert.match(tdmPharmacologyForDrug('cefepime').administration.modeFr, /prolongée ou continue/);
+assert.match(tdmPharmacologyForDrug('vancomycin').administration.modeEn, /continuous IV infusion/);
+assert.match(tdmPharmacologyForDrug('tac').administration.modeFr, /libération immédiate ou prolongée/);
+assert.match(tdmPharmacologyForDrug('mpa').administration.modeFr, /MMF IV chez l’adulte/);
+assert.match(tdmPharmacologyForDrug('methotrexate').administration.modeFr, /début de la perfusion/);
+
+assert.equal(tdmPharmacologyForDrug('amikacin').index.key, 'AUC_MIC_and_Cmax_MIC');
+assert.equal(tdmPharmacologyForDrug('amikacin').practical.key, 'peak_and_late');
+assert.equal(tdmPharmacologyForDrug('ciprofloxacin').index.key, 'fAUC_MIC');
+assert.equal(tdmPharmacologyForDrug('vancomycin').index.key, 'AUC24_MIC');
+assert.equal(tdmPharmacologyForDrug('vancomycin').practical.key, 'auc_bayesian');
+assert.equal(tdmPharmacologyForDrug('linezolid').index.key, 'AUC_MIC');
+assert.equal(tdmPharmacologyForDrug('teicoplanin').practical.key, 'Cmin');
+assert.equal(tdmPharmacologyForDrug('tac').index.key, 'AUC_interval');
+assert.equal(tdmPharmacologyForDrug('tac').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('tac').proportionality.sourceId, 'tacrolimusFDAProportional');
+assert.match(tdmPharmacologyForDrug('tac').proportionality.noteFr, /3, 7 et 10 mg/);
+assert.equal(tdmPharmacologyForDrug('cyclosporine').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').proportionality.sourceId, 'neoralFDAProportional');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').index.sourceId, 'cyclosporineGuideline2026');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').practical.sourceId, 'cyclosporineGuideline2026');
+assert.equal(tdmPharmacologyForDrug('cyclosporine').administration.sourceId, 'neoralFDAProportional');
+assert.match(tdmPharmacologyForDrug('cyclosporine').administration.modeFr, /Neoral/);
+assert.equal(tdmPharmacologyForDrug('mpa').proportionality.sourceId, 'mpaDoseNonlinear2026');
+assert.match(tdmPharmacologyForDrug('mpa').proportionality.noteFr, /0,513/);
+assert.match(tdmPharmacologyForDrug('mpa').proportionality.noteFr, /1,43/);
+assert.equal(tdmPharmacologyForDrug('tac').practical.key, 'Cmin');
+assert.equal(tdmPharmacologyForDrug('mpa').index.key, 'AUC_interval');
+assert.equal(tdmPharmacologyForDrug('mpa').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('everolimus').index.key, 'Cmin');
+assert.equal(tdmPharmacologyForDrug('everolimus').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('voriconazole').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('phenytoin').proportionality.kind, 'nonlinear');
+
+assert.equal(tdmPharmacologyForDrug('gabapentin').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('gabapentin').proportionality.sourceId, 'neurontinFDA');
+assert.match(tdmPharmacologyForDrug('gabapentin').proportionality.noteFr, /absorption|biodisponibilité/);
+assert.equal(tdmPharmacologyForDrug('pregabalin').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('pregabalin').proportionality.sourceId, 'lyricaFDA');
+assert.deepEqual(tdmPharmacologyForDrug('pregabalin').administration.codes, ['PO']);
+assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('levetiracetam').proportionality.sourceId, 'levetiracetamFDA');
+assert.equal(tdmPharmacologyForDrug('digoxin').practical.key, 'post_distribution_or_trough');
+assert.equal(tdmPharmacologyForDrug('digoxin').administration.scope, 'oral_vs_iv_nonbioequivalent');
+assert.match(tdmPharmacologyForDrug('digoxin').practical.noteFr, /6 h après/);
+
+assert.equal(tdmPharmacologyForDrug('valproate').proportionality.kind, 'complex');
+assert.ok(tdmPharmacologyForDrug('valproate').proportionality.noteFr.includes('valproate libre'));
+assert.equal(tdmPharmacologyForDrug('carbamazepine').proportionality.kind, 'complex');
+assert.match(tdmPharmacologyForDrug('carbamazepine').proportionality.noteFr, /auto-induction/);
+assert.equal(tdmPharmacologyForDrug('rifampicin').proportionality.kind, 'nonlinear');
+assert.equal(tdmPharmacologyForDrug('rifampicin').index.key, 'AUC_MIC');
+assert.equal(tdmPharmacologyForDrug('rifampicin').proportionality.sourceId, 'rifampicinPK2016');
+
+assert.deepEqual(tdmPharmacologyForDrug('voriconazole').administration.codes, ['PO','IV']);
+assert.deepEqual(tdmPharmacologyForDrug('mpa').administration.codes, ['PO','IV']);
+assert.deepEqual(tdmPharmacologyForDrug('amoxicillin').administration.codes, ['PO','IV']);
+assert.equal(tdmPharmacologyForDrug('amoxicillin').proportionality.kind, 'conditional_linear');
+assert.equal(tdmPharmacologyForDrug('agomelatine').index.key, 'Cmax_reference');
+assert.equal(tdmPharmacologyForDrug('methotrexate').index.key, 'time_indexed');
+assert.equal(tdmPharmacologyForDrug('busulfan').index.key, 'AUC_cumulative');
+assert.equal(tdmPharmacologyForDrug('ibrutinib').review, 'unassessed');
+assert.equal(tdmPharmacologyForDrug('ibrutinib').administration.codes.length, 0);
+assert.equal(searchTdmMolecules('MPA').groups[0].pharmacology.index.key, 'AUC_interval');
+assert.equal(searchTdmMolecules('cefepime').groups[0].pharmacology.index.key, 'fT_MIC');
+assert.equal(searchTdmMolecules('phenytoin').groups[0].pharmacology.proportionality.kind, 'nonlinear');
+assert.equal(searchTdmMolecules('ibrutinib').withoutTargets[0].pharmacology.review, 'unassessed');
+console.log('TDM PK/PD profiles: 154 covered, class and molecule indices/route sources audited, no automatic dose scaling.');
+
+assert.equal(chuCoverage.curated_drugs, 154);
+assert.equal(chuCoverage.bibliographic_numeric_entries, 141);
+assert.equal(chuCoverage.verified_chu_document_names, 77);
+assert.equal(chuCoverage.manual_names_indexed, 77, 'All 77 named entries from reviewed CHU public documents must remain discoverable');
+assert.equal(chuCoverage.evidence_types.listed_as_dosed_in_protocol, 36);
+assert.equal(chuCoverage.evidence_types.request_form_only, 5);
+assert.equal(chuCoverage.evidence_types.external_referral, 2);
+assert.equal(chuCoverage.all_chu_document_names_indexed, true);
+assert.ok(chuCoverage.scientifically_unresolved_chu_names.every((entry) =>
+  entry.provenance && entry.name), 'Every missing reference must retain CHU-document provenance');
+console.log('CHU TDM documentary coverage: 77/77 names indexed with status and target/missing-target classification.');
+
 const ids = new Set();
 const drugIds = new Set(tdmDrugs.map((drug) => drug.id));
-const validRelations = new Set(['range', 'above', 'approx', 'target']);
+assert.equal(drugIds.size, tdmDrugs.length, 'Canonical drug identifiers must be unique');
+const validRelations = new Set(['range', 'above', 'approx', 'target', 'at_most']);
 const validStatuses = new Set(['guideline', 'study', 'review', 'regulatory', 'institutional']);
 
 for (const target of tdmTargets) {
@@ -43,7 +349,7 @@ for (const target of tdmTargets) {
   assert.ok(source.organization && source.evidenceSection, `Source has no claim locator: ${target.id}`);
   assert.ok(source.citation && source.citation.length < 70, `Missing concise primary citation: ${target.id}`);
   assert.ok(['open_full_text', 'open_abstract'].includes(source.access), `Source access not audited: ${target.id}`);
-  assert.equal(source.verifiedOn, TDM_REFERENCE_REVIEW_DATE, `Source not freshly reviewed: ${target.id}`);
+  assert.equal(source.verifiedOn, ['agnpConsensus2026','theophyllineDailymed'].includes(target.source) ? '2026-11-11' : TDM_REFERENCE_REVIEW_DATE, `Source review date mismatch: ${target.id}`);
   assert.ok(!source.url.endsWith('/recommandations/'), `Numeric source must target a specific publication: ${target.id}`);
   assert.ok(formatTdmTarget(target, 'fr').length);
   assert.ok(formatTdmTarget(target, 'en').length);
@@ -71,6 +377,55 @@ assert.equal(searchTdmTargets({ drug: 'mpa', indication: 'kidney' }).length, 2);
 assert.equal(searchTdmTargets({ drug: 'vancomycin' }).length, 1);
 assert.equal(searchTdmTargets({ query: 'valproate' }).length, 3);
 assert.equal(searchTdmTargets({ drug: 'linezolid' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'teicoplanin' }).length, 2);
+assert.equal(searchTdmTargets({ query: 'Targocid' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'busulfan' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'clozapine' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'flucytosine' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'itraconazole' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'aripiprazole' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'risperidone' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'asenapine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'brivaracetam' }).length, 1);
+assert.ok(tdmTargetSources.oxcarb2018.newerConsensusUrl.includes('42392224'),
+  'All 2018 AED historical references must signal the newer 2026 consensus.');
+
+assert.equal(searchTdmTargets({ drug: 'clobazam' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'topiramate' }).length, 1);
+assert.equal(tdmTargets.find((r) => r.id === 'aed-clonazepam-norway2018').unit, 'ng/mL');
+assert.equal(tdmTargets.find((r) => r.id === 'aed-eslicarbazepine-norway2018').matrixFr, 'Sérum · S-licarbazépine (forme active)');
+assert.ok(tdmBrowseCategories.find((g) => g.id === 'antiseizure').medicines.some((d) => d.id === 'topiramate'));
+
+assert.equal(searchTdmTargets({ drug: 'agomelatine' }).length, 1);
+assert.equal(searchTdmTargets({ drug: 'bupropion' }).length, 2);
+assert.equal(searchTdmTargets({ drug: 'tranylcypromine' }).length, 2);
+assert.equal(formatTdmTarget(tdmTargets.find((row) => row.id === 'ad-tranylcypromine-mdd-extension-2025')), '≤50');
+assert.equal(tdmTargets.find((row) => row.id === 'ad-agomelatine-mdd-extension-2025').metric, 'Cmax à 1–2 h après prise');
+assert.equal(tdmTargets.find((row) => row.id === 'ad-bupropion-hydroxy-mdd-extension-2025').min, 850);
+
+assert.equal(searchTdmTargets({ drug: 'methotrexate' }).length, 0, 'HD-MTX has safety thresholds, not a therapeutic window');
+assert.equal(searchTdmMolecules('méthotrexate').groups[0].safetySignals.length, 4);
+assert.equal(searchTdmMolecules('haloperidol').groups[0].indications.length, 2);
+assert.ok(tdmTargetSources.antipsychoticJoint2020.newerConsensusUrl.includes('42392224'));
+assert.equal(tdmTargets.find((r) => r.id === 'aps-risperidone-schizophrenia-2020').metric, 'C₀ (somme active)');
+assert.equal(tdmTargets.find((r) => r.id === 'aps-flupentixol-schizophrenia-2020').metric, 'C₀ (isomère cis)');
+assert.equal(tdmTargets.find((r) => r.id === 'aps-aripiprazole-active-moiety-2020').min, 150);
+
+assert.equal(searchTdmTargets({ query: 'Sporanox' }).length, 2);
+assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').min, 50);
+assert.equal(tdmTargets.find((r) => r.id === 'flucytosine-peak-ukhsa').metric, 'Cmax (prélèvement post-dose)');
+assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-combined-ia-idsa').metric, 'C₀ (somme des deux analytes)');
+assert.equal(tdmTargets.find((r) => r.id === 'itraconazole-parent-histo-idsa2025').metric, 'C₀ (itraconazole seul)');
+assert.equal(formatTdmTarget(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a')), '85–95');
+assert.equal(tdmTargets.find((r) => r.id === 'busulfan-iei-protocol-a').metric, 'AUC cumulée');
+assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-hplc').matrixFr, 'Sérum · HPLC');
+assert.equal(tdmTargets.find((r) => r.id === 'teicoplanin-severe-fpia').matrixFr, 'Sérum · FPIA');
+assert.equal(tdmEvidenceForDrug('teicoplanin').byTier[0].id, 'regulatory');
+assert.equal(tdmEvidenceForDrug('busulfan').byTier[0].id, 'society');
+assert.equal(tdmEvidenceForDrug('busulfan').exposure.tagFr, 'AUC cumulée prioritaire');
+for (const [id, category] of [['teicoplanin','antibiotics'],['clozapine','psychotropics'],['busulfan','oncology'],['flucytosine','antifungals'],['itraconazole','antifungals']]) {
+  assert.ok(tdmBrowseCategories.find((item) => item.id === category).medicines.some((item) => item.id === id));
+}
 assert.equal(searchTdmTargets({ query: 'nonexistent-drug-xyz' }).length, 0);
 
 const renalMpa = tdmTargets.find((item) => item.id === 'mpa-kidney-auc');
@@ -98,11 +453,24 @@ assert.throws(() => collectTdmComparisons([
   {...tdmTargets.find((row) => row.drug === 'vancomycin'), comparisonGroup: 'mismatch'}
 ]), /Unsafe TDM comparison/);
 
-assert.equal(tdmManualCatalog.length, 74);
-assert.equal(new Set(tdmManualCatalog.map((entry) => entry.id)).size, 74);
+assert.equal(tdmManualCatalog.length, 77);
+assert.equal(new Set(tdmManualCatalog.map((entry) => entry.id)).size, 77);
 assert.equal(searchManualCatalog({query: 'céfépime'}).length, 1);
 assert.equal(searchManualCatalog({query: 'linézolide'}).length, 1);
 assert.equal(searchManualCatalog({query: 'amitriptyline'}).length, 1);
+assert.equal(searchManualCatalog({query: 'agomelatine'})[0].drugKey, 'agomelatine');
+for (const [name, id] of [
+  ['Amoxapine','amoxapine'],['Iproniazide','iproniazid'],
+  ['Lidocaïne','lidocaine'],['Bupivacaïne','bupivacaine'],
+  ['Ropivacaïne','ropivacaine'],['Mépivacaïne','mepivacaine'],
+  ['Ibrutinib','ibrutinib']
+]) {
+  assert.equal(searchManualCatalog({query: name})[0].drugKey, id,
+    'A CHU-only drug needs a canonical ID even when no numeric target exists');
+  assert.equal(searchTdmMolecules(name).withoutTargets.length, 1,
+    'Unqualified manual evidence must appear without a fabricated target');
+  assert.equal(searchTdmTargets({drug: id}).length, 0);
+}
 assert.equal(searchManualCatalog({query: 'ibrutinib'}).length, 1);
 assert.equal(searchManualCatalog({query: 'tacrolimus'}).length, 1);
 assert.equal(searchManualCatalog({query: 'valproate'}).length, 1);
@@ -114,6 +482,15 @@ assert.ok(tdmManualCatalog.filter((entry) => entry.status === 'request_form_only
   manualCatalogSources[entry.sourceId].type === 'request_form'));
 assert.ok(tdmManualCatalog.filter((entry) => !tdmTargets.some((target) => target.drug === entry.drugKey)).length > 20);
 
+
+
+// Time-dependent safety signals MUST NOT become entries in the therapeutic target registry.
+assert.equal(tdmSafetySignals.length, 4);
+assert.ok(tdmSafetySignals.every((item) => !tdmTargets.some((entry) => entry.id === item.id)));
+assert.deepEqual(tdmSafetySignals.map((item) => item.timeHoursAfterInfusionStart), [24,36,42,48]);
+assert.deepEqual(tdmSafetySignals.map((item) => item.value), [50,30,10,5]);
+assert.ok(tdmSafetySignals.every((item) => item.kind === 'glucarpidase_consideration' && item.unit === 'µmol/L'));
+assert.equal(tdmSafetyReferences.europeanHdMtx2024.url, 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11446969/');
 
 const reviewedNumericClaims = new Map([
   ["tac-kidney-early-auc", ["tac2025","target",160,null]],
@@ -190,18 +567,84 @@ const reviewedNumericClaims = new Map([
   ["lithium-maintenance", ["lithium2019","range",0.6,0.8]],
   ["lithium-nice-first-line", ["lithiumNice","range",0.6,0.8]],
   ["lithium-tolerability", ["lithium2019","range",0.4,0.6]],
-  ["lithium-response", ["lithium2019","range",0.8,1]]
+  ["lithium-response", ["lithium2019","range",0.8,1]],
+  ["teicoplanin-severe-hplc", ["teicoplaninANSM2026","range",15,30]],
+  ["teicoplanin-severe-fpia", ["teicoplaninANSM2026","range",30,40]],
+  ["clozapine-maintenance-reference", ["clozapineRCPA2024","range",350,600]],
+  ["busulfan-iei-protocol-a", ["busulfanEBMT2026","range",85,95]],
+  ["busulfan-iei-protocol-c", ["busulfanEBMT2026","range",60,70]],
+  ["flucytosine-trough-ukhsa", ["ukhsaMycology","range",20,40]],
+  ["flucytosine-peak-ukhsa", ["ukhsaMycology","range",50,100]],
+  ["itraconazole-parent-histo-idsa2025", ["itraconazoleIDSA2025","above",1,null]],
+  ["itraconazole-combined-ia-idsa", ["itraconazoleIDSA2016","above",1.5,null]],
+  ["aps-fluphenazine-schizophrenia-2020", ["antipsychoticJoint2020","range",1,10]],
+  ["aps-haloperidol-schizophrenia-2020", ["antipsychoticJoint2020","range",1,10]],
+  ["aps-olanzapine-schizophrenia-2020", ["antipsychoticJoint2020","range",20,80]],
+  ["aps-perazine-schizophrenia-2020", ["antipsychoticJoint2020","range",100,230]],
+  ["aps-perphenazine-schizophrenia-2020", ["antipsychoticJoint2020","range",0.6,2.4]],
+  ["aps-aripiprazole-schizophrenia-2020", ["antipsychoticJoint2020","range",100,350]],
+  ["aps-chlorpromazine-schizophrenia-2020", ["antipsychoticJoint2020","range",30,300]],
+  ["aps-flupentixol-schizophrenia-2020", ["antipsychoticJoint2020","range",0.5,5]],
+  ["aps-paliperidone-schizophrenia-2020", ["antipsychoticJoint2020","range",20,60]],
+  ["aps-quetiapine-schizophrenia-2020", ["antipsychoticJoint2020","range",100,500]],
+  ["aps-risperidone-schizophrenia-2020", ["antipsychoticJoint2020","range",20,60]],
+  ["aps-sertindole-schizophrenia-2020", ["antipsychoticJoint2020","range",50,100]],
+  ["aps-ziprasidone-schizophrenia-2020", ["antipsychoticJoint2020","range",50,200]],
+  ["aps-brexpiprazole-schizophrenia-2020", ["antipsychoticJoint2020","range",40,140]],
+  ["aps-chlorprothixene-schizophrenia-2020", ["antipsychoticJoint2020","range",20,300]],
+  ["aps-iloperidone-schizophrenia-2020", ["antipsychoticJoint2020","range",5,10]],
+  ["aps-loxapine-schizophrenia-2020", ["antipsychoticJoint2020","range",5,10]],
+  ["aps-lurasidone-schizophrenia-2020", ["antipsychoticJoint2020","range",15,40]],
+  ["aps-melperone-schizophrenia-2020", ["antipsychoticJoint2020","range",30,100]],
+  ["aps-pimozide-schizophrenia-2020", ["antipsychoticJoint2020","range",15,20]],
+  ["aps-asenapine-schizophrenia-2020", ["antipsychoticJoint2020","range",1,5]],
+  ["aps-aripiprazole-active-moiety-2020", ["antipsychoticJoint2020","range",150,500]],
+  ["ad-agomelatine-mdd-extension-2025", ["antidepressant2025","range",7,300]],
+  ["ad-trazodone-mdd-extension-2025", ["antidepressant2025","range",700,1000]],
+  ["ad-desvenlafaxine-mdd-extension-2025", ["antidepressant2025","range",85,380]],
+  ["ad-levomilnacipran-mdd-extension-2025", ["antidepressant2025","range",80,120]],
+  ["ad-reboxetine-mdd-extension-2025", ["antidepressant2025","range",60,350]],
+  ["ad-vilazodone-mdd-extension-2025", ["antidepressant2025","range",15,45]],
+  ["ad-bupropion-mdd-extension-2025", ["antidepressant2025","range",10,100]],
+  ["ad-tranylcypromine-mdd-extension-2025", ["antidepressant2025","at_most",50,null]],
+  ["ad-bupropion-hydroxy-mdd-extension-2025", ["antidepressant2025","range",850,1500]],
+  ["aed-brivaracetam-norway2018", ["oxcarb2018","range",0.2,2]],
+  ["aed-clobazam-norway2018", ["oxcarb2018","range",0.03,0.3]],
+  ["aed-clonazepam-norway2018", ["oxcarb2018","range",13,38]],
+  ["aed-eslicarbazepine-norway2018", ["oxcarb2018","range",3,26]],
+  ["aed-ethosuximide-norway2018", ["oxcarb2018","range",39,99]],
+  ["aed-felbamate-norway2018", ["oxcarb2018","range",30,60]],
+  ["aed-gabapentin-norway2018", ["oxcarb2018","range",3,21]],
+  ["aed-lacosamide-norway2018", ["oxcarb2018","range",3,10]],
+  ["aed-perampanel-norway2018", ["oxcarb2018","range",0.1,1]],
+  ["aed-pregabalin-norway2018", ["oxcarb2018","range",2,6]],
+  ["aed-rufinamide-norway2018", ["oxcarb2018","range",4,31]],
+  ["aed-stiripentol-norway2018", ["oxcarb2018","range",4,22]],
+  ["aed-sulthiame-norway2018", ["oxcarb2018","range",2,10]],
+  ["aed-topiramate-norway2018", ["oxcarb2018","range",2,10]],
+  ["aed-zonisamide-norway2018", ["oxcarb2018","range",10,38]],
+  ["aed-clobazam-active-metabolite-norway2018", ["oxcarb2018","range",0.3,3]],
+  ["agnp2026-haloperidol-schizophrenia-2026", ["agnpConsensus2026","range",1,5]],
+  ["agnp2026-clozapine-schizophrenia-2026", ["agnpConsensus2026","range",350,600]],
+  ["agnp2026-trazodone-depression-2026", ["agnpConsensus2026","range",650,1500]],
+  ["agnp2026-levomilnacipran-depression-2026", ["agnpConsensus2026","range",30,90]],
+  ["agnp2026-desvenlafaxine-depression-2026", ["agnpConsensus2026","range",85,380]],
+  ["agnp2026-lacosamide-epilepsy-2026", ["agnpConsensus2026","range",1,12]],
+  ["agnp2026-lamotrigine-epilepsy-2026", ["agnpConsensus2026","range",3,15]],
+  ["agnp2026-levetiracetam-epilepsy-2026", ["agnpConsensus2026","range",6,46]],
+  ["agnp2026-tranylcypromine-depression-peak-2026", ["agnpConsensus2026","range",60,400]],
+  ["theophylline-oral-solution-peak-fda", ["theophyllineDailymed","range",10,15]]
 ]);
-assert.equal(reviewedNumericClaims.size, 75);
+assert.equal(reviewedNumericClaims.size, 141);
 assert.equal(tdmTargets.length, reviewedNumericClaims.size, 'Any new target requires an explicit source review');
-assert.equal(Object.keys(tdmTargetSources).length, 25, 'Any new source requires review');
-assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 25, 'Every numeric reference needs a distinct citation label');
+assert.equal(Object.keys(tdmTargetSources).length, 34, 'Any new source requires review');
+assert.equal(new Set(Object.values(tdmTargetSources).map((source) => source.citation)).size, 34, 'Every numeric reference needs a distinct citation label');
 for (const entry of tdmTargets) {
   assert.ok(reviewedNumericClaims.has(entry.id), `Unreviewed numeric target ${entry.id}`);
   assert.deepEqual([entry.source, entry.relation, entry.min, entry.max], reviewedNumericClaims.get(entry.id), `Reviewed source or value drift for ${entry.id}`);
 }
 assert.ok(tdmInstitutionalResources.find((e) => e.id === 'sfpt-book').scopeFr.includes('chapitre 35'), 'SFPT preview attribution must remain transparent');
-console.log('TDM per-claim audit lock: 75 bibliographic claims tied to their original sources.');
+console.log('TDM per-claim audit lock: 141 bibliographic claims tied to their original sources.');
 
 // The sources are as important as the numeric claims: a changed target hyperlink or
 // DOI must be explicitly reviewed rather than silently retaining a valid-looking value.
@@ -266,7 +709,37 @@ const reviewedSourceIdentifiers = {
   "lithium2019": [
     "https://pmc.ncbi.nlm.nih.gov/articles/PMC6688930/",
     "10.1111/bdi.12805"
-  ]
+  ],
+  "teicoplaninANSM2026": [
+    "https://base-donnees-publique.medicaments.gouv.fr/medicament/64196782/extrait",
+    null
+  ],
+  "clozapineRCPA2024": [
+    "https://www.rcpa.edu.au/Manuals/RCPA-Manual/Pathology-Tests/C/Clozapine",
+    null
+  ],
+  "busulfanEBMT2026": [
+    "https://doi.org/10.1038/s41409-026-02906-0",
+    "10.1038/s41409-026-02906-0"
+  ],
+  "ukhsaMycology": [
+    "https://www.gov.uk/government/publications/mycology-reference-laboratory-mrl-service-user-handbook/mycology-reference-laboratory-service-user-handbook",
+    null
+  ],
+  "itraconazoleIDSA2016": [
+    "https://www.idsociety.org/practice-guideline/aspergillosis",
+    "10.1093/cid/ciw326"
+  ],
+  "itraconazoleIDSA2025": [
+    "https://www.idsociety.org/practice-guideline/histoplasmosis/",
+    null
+  ],
+  "antipsychoticJoint2020": [
+    "https://www.psychiatrist.com/pdf/blood-levels-to-optimize-antipsychotic-treatment-in-clinical-practice-a-joint-consensus-statement-of-the-american-society-of-clinical-psychopharmacology-and-the-therapeutic-drug-monitoring-task-force/",
+    "10.4088/JCP.19cs13169"
+  ],
+  "agnpConsensus2026": ["https://doi.org/10.1055/a-2860-7861", "10.1055/a-2860-7861"],
+  "theophyllineDailymed": ["https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=32b9780f-c46f-4e0f-9641-2cab60600e6e", null]
 };
 assert.equal(Object.keys(tdmTargetSources).length, Object.keys(reviewedSourceIdentifiers).length);
 for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
@@ -275,10 +748,10 @@ for (const [key, [url, doi]] of Object.entries(reviewedSourceIdentifiers)) {
   assert.equal(tdmTargetSources[key].doi ?? null, doi, `Unreviewed DOI for ${key}`);
   assert.ok(tdmTargetSources[key].evidenceSection.length >= 18, `Missing exact claim locator for ${key}`);
 }
-console.log('TDM source link integrity: all 25 reviewed URLs and DOI identifiers pinned.');
+console.log('TDM source link integrity: all 33 reviewed URLs and DOI identifiers pinned.');
 
 
-assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 23);
+assert.equal(tdmTargets.filter((row)=>row.source === 'antidepressant2025').length, 32);
 assert.ok(tdmTargetSources.antidepressant2025.newerConsensusUrl?.includes('42392224'),
   'Require explicit referral to the newer 2026 AGNP consensus for unresolved updates');
 assert.equal(searchTdmMolecules('ciclosporine').groups[0].indications.length, 6);
@@ -288,9 +761,9 @@ assert.equal(searchTdmMolecules('voriconazole').groups[0].indications.length, 1)
 assert.equal(searchTdmMolecules('amitriptyline').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('doxépine').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('venlafaxine').groups[0].indications.length, 1);
-assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications.length, 1);
-assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications[0].alternatives.length, 1);
-assert.equal(searchTdmMolecules('escitalopram').groups[0].indications[0].alternatives.length, 1);
+assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications.length, 2);
+assert.equal(searchTdmMolecules('levetiracetam').groups[0].indications[0].relatedReferences.length, 1);
+assert.equal(searchTdmMolecules('escitalopram').groups[0].indications[0].relatedReferences.length, 1);
 assert.equal(searchTdmMolecules('phenobarbital').groups[0].indications.length, 1);
 assert.equal(searchTdmMolecules('digoxin').groups[0].indications.length, 1);
 const mpaByDrug = tdmTargets.filter((row) => row.drug === 'mpa');
@@ -309,16 +782,22 @@ for (const alias of ['MPA', 'MMF', 'mycophenolate']) {
   assert.equal(view.groups[0].indications.length, 4, 'Kidney, heart, liver and lung must group by organ');
   const heart = view.groups[0].indications.find((row) => row.indicationFr === 'Greffe cardiaque');
   assert.equal(heart.primary.source, 'mpa2025', 'Consensus recommendation must precede exploratory study');
-  assert.equal(heart.alternatives.length, 1, 'Other source must stay accessible in Details');
-  assert.equal(heart.alternatives[0].source, 'mpa2015heart');
+  assert.equal(heart.relatedReferences.length, 1, 'Unverified source must stay accessible without asserting equivalence');
+  assert.equal(heart.relatedReferences[0].source, 'mpa2015heart');
 }
 const valproateView = searchTdmMolecules('valproate');
 assert.equal(valproateView.groups.length, 1);
 assert.equal(valproateView.groups[0].indications.length, 1);
 assert.equal(valproateView.groups[0].indications[0].primary.source, 'valproateRcp');
-assert.equal(valproateView.groups[0].indications[0].alternatives.length, 2);
+assert.equal(valproateView.groups[0].indications[0].relatedReferences.length, 2);
 assert.equal(searchTdmMolecules('everolimus').groups[0].indications.length, 6);
-assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 3);
+assert.equal(searchTdmMolecules('lithium').groups[0].indications.length, 4,
+  'Serum and plasma lithium must remain separately labelled references');
+const lithiumEntries=searchTdmMolecules('lithium').groups[0].indications;
+assert.equal(lithiumEntries.filter((entry)=>entry.indicationFr==='Trouble bipolaire · entretien adulte').length,2,
+  'NICE plasma and ISBD serum references are distinct matrices, not alternatives');
+assert.deepEqual(new Set(lithiumEntries.filter((entry)=>entry.indicationFr==='Trouble bipolaire · entretien adulte')
+  .map((entry)=>entry.primary.matrixFr)),new Set(['Sérum','Plasma']));
 assert.equal(searchTdmMolecules('cefepime').withoutTargets.length, 0);
 assert.equal(searchTdmMolecules('cefepime').groups.length, 1);
 assert.equal(searchTdmMolecules('not-a-molecule-xyz').groups.length, 0);
@@ -329,10 +808,21 @@ assert.ok(allGroups.every((group) => group.medicines.length && group.fr && group
 const listedKeys = allGroups.flatMap((group) => group.medicines.map((entry) => entry.id));
 assert.equal(listedKeys.length, new Set(listedKeys).size, 'Each molecule should appear in exactly one category');
 assert.ok(tdmDrugs.every((drug) => listedKeys.includes(drug.id)), 'All searchable drugs need a family');
+assert.ok(tdmBrowseCategories.find((group) => group.id === 'psychotropics').medicines.some((d) => d.id === 'haloperidol'));
+assert.equal(tdmBrowseCategories.find((group) => group.id === 'psychotropics').medicines.find((d) => d.id === 'clozapine').historicallyAssayedAtChu, true);
+assert.equal(historicalChuAssayForDrug('clozapine').period, '2010–2022');
+assert.equal(historicalChuAssayForDrug('haloperidol'), null);
+assert.equal(tdmBrowseCategories.find((group) => group.id === 'antibiotics').medicines.find((d) => d.id === 'amikacin').chuEvidenceStatus, 'listed_as_dosed');
+assert.equal(tdmBrowseCategories.find((group) => group.id === 'immunosuppressants').medicines.find((d) => d.id === 'tac').chuEvidenceStatus, 'request_form_only');
+
+assert.ok(tdmBrowseCategories.find((group) => group.id === 'oncology').medicines.some((d) => d.id === 'methotrexate'));
+
 assert.ok(tdmManualCatalog.every((entry) => listedKeys.includes(entry.drugKey) || listedKeys.includes(entry.id)),
   'All reviewed CHU assay names must be discoverable in the directory');
-assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 36));
-assert.ok(allGroups.some((group) => group.id === 'antidepressants' && group.medicines.length === 26));
+assert.ok(allGroups.some((group) => group.id === 'antibiotics' && group.medicines.length === 43),
+  '36 CHU-listed antibiotics, teicoplanin from the ANSM SmPC, plus six selectively monitored antimycobacterial drugs');
+assert.ok(allGroups.some((group) => group.id === 'antidepressants' && group.medicines.length === 33),
+  '26 CHU-listed antidepressants plus seven additional drugs; agomelatine is not duplicated');
 assert.ok(allGroups.some((group) => group.id === 'immunosuppressants' && group.medicines.length === 5));
 assert.deepEqual(tdmEvidencePriority.map((tier) => tier.id),
   ['society', 'regulatory', 'limoges', 'other']);
@@ -464,3 +954,42 @@ console.log('TDM antibiotic MIC objectives: 41 source-scoped contexts, 36 CHU sa
 console.log(`TDM manual linked index: ${tdmManualCatalog.length} named medicines across ${Object.keys(manualCatalogSources).length} official document types.`);
 console.log(`TDM comparisons: ${comparisons.length} source-by-source groups validated.`);
 console.log(`TDM target reference: ${tdmTargets.length} entries, ${tdmDrugs.length} drugs, ${Object.keys(tdmTargetSources).length} primary sources and ${tdmInstitutionalResources.length} SFT/SFPT context references validated.`);
+
+ 
+// November 2026 CHU full searchable catalogue and professional literature expansion.
+assert.equal(additionalSocietyTdmDrugs.length,22);
+assert.equal(societyTdmDrugRows.length,22);
+assert.equal(new Set(societyTdmDrugRows.map((row)=>row.id)).size,22);
+assert.deepEqual(new Set(Object.keys(societyMonitoringSources)),
+  new Set(['chu_theophylline','chu_abacavir','thiopurines','iatdmct_icu','ats_tb','ats_ntm']));
+assert.ok(societyTdmDrugRows.every((row)=>
+  row.noteFr && row.noteEn && societyMonitoringSources[row.sourceId]?.url));
+assert.equal(chuCoverage.chu_public_exam_count_all_disciplines_observed,1582);
+for(const [name,drug,status] of [
+  ['Théophylline','theophylline','individual_exam'],
+  ['Abacavir','abacavir','individual_exam'],
+  ['6-TGN / 6-MMP (métabolites thiopurines)',null,'outsourced_exam']
+]) {
+  const matched=tdmManualCatalog.filter((row)=>row.name===name);
+  assert.equal(matched.length,1,'CHU exam must not duplicate '+name);
+  assert.equal(matched[0].drugKey,drug);
+  assert.equal(matched[0].status,status);
+  assert.ok(manualCatalogSources[matched[0].sourceId]?.url.includes('DetailNew.aspx'));
+}
+for(const id of ['abacavir','isavuconazole','fluconazole','foscarnet','pyrazinamide','mercaptopurine']){
+  const result=searchTdmMolecules(id);
+  assert.equal(result.groups.length,1,'STP society discovery must render '+id);
+  assert.equal(result.groups[0].indications.length,0,'No fabricated numeric target for '+id);
+  assert.ok(result.groups[0].societyMonitoring.source.url);
+}
+assert.equal(societyMonitoringForDrug('isavuconazole').recommendation,'neither_recommend_nor_discourage');
+assert.equal(societyMonitoringForDrug('azathioprine').recommendation,'selective_metabolite_tdm');
+assert.equal(searchTdmMolecules('theophylline').groups[0].indications[0].primary.metric,'Cmax à l’état stable');
+assert.equal(searchTdmMolecules('theophylline').groups[0].indications[0].primary.min,10);
+assert.equal(searchTdmMolecules('theophylline').groups[0].indications[0].primary.max,15);
+assert.ok(searchTdmMolecules('theophylline').groups[0].manualExam);
+assert.ok(searchTdmMolecules('abacavir').groups[0].manualExam);
+assert.ok(tdmBrowseCategories.find((row)=>row.id==='antivirals').medicines.some((row)=>row.id==='abacavir'));
+assert.ok(tdmBrowseCategories.find((row)=>row.id==='gastroenterology').medicines.some((row)=>row.id==='azathioprine'));
+assert.ok(tdmBrowseCategories.find((row)=>row.id==='respiratory').medicines.some((row)=>row.id==='theophylline'));
+console.log('CHU Nov 2026 addendum: 3 individually verified exam records; 22 source-linked scientific discovery drugs; FDA peak-only theophylline range.');

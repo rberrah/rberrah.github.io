@@ -7,7 +7,7 @@ test('TDM reference starts with molecule search, not a wall of tables', async ({
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
   await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(0);
   await expect(page.getByTestId('tdm-medicine-directory')).toBeVisible();
-  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(9);
+  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(12);
   await expect(page.getByTestId('tdm-medicine-choice').first()).toBeHidden();
   await expect(page.getByText('Cibles thérapeutiques', { exact: true })).toBeVisible();
 });
@@ -24,6 +24,8 @@ test('MPA and MMF aliases show one molecule and four indication cards, with stud
   await expect(heart.getByTestId('tdm-other-sources')).toBeHidden();
   await heart.locator('summary').click();
   await expect(heart.getByTestId('tdm-other-sources')).toBeVisible();
+  await expect(heart.getByTestId('tdm-related-reference-warning')).toBeVisible();
+  await expect(heart.getByTestId('tdm-human-review-pending')).toBeVisible();
   await expect(heart.getByText('≈50', { exact: false })).toBeVisible();
   await search.fill('MMF');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(4);
@@ -43,6 +45,7 @@ test('Valproate displays one primary RCP target; SFPT values and limitations are
   await expect(card.getByTestId('tdm-other-sources')).toBeHidden();
   await card.locator('summary').click();
   await expect(card.getByTestId('tdm-other-sources')).toBeVisible();
+  await expect(card.getByTestId('tdm-related-reference-warning')).toHaveCount(2);
   await expect(card.getByTestId('tdm-other-sources').locator('.alternative-head strong').filter({ hasText: /50–100/ })).toHaveCount(2);
 });
 
@@ -59,7 +62,7 @@ test('Different transplant regimens remain distinct; supported mobile English se
   await expect(page.getByRole('link', { name: /MIPD model library/ })).toBeVisible();
 });
 
-test('Only verified CHU sampling-time documents are shown, never lab request forms or assay pages', async ({ page }) => {
+test('CHU sampling-time documents remain distinct from explicitly labelled assay pages and request forms', async ({ page }) => {
   await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
   const search = page.getByTestId('tdm-target-search');
   await search.fill('céfépime');
@@ -77,7 +80,7 @@ test('Only verified CHU sampling-time documents are shown, never lab request for
   await expect(page.locator('a[href*="idDoc=33210"]')).toHaveCount(0);
   await search.fill('lithium');
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
-  await expect(page.locator('a[href*="DetailNew.aspx"]')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href', /DetailNew\.aspx\?id=A3912/);
   await search.fill('no-such-molecule-xyz');
   await expect(page.getByText(/Aucune molécule trouvée/)).toBeVisible();
   await page.getByRole('button', { name: 'Effacer la recherche' }).click();
@@ -122,10 +125,14 @@ test('Expanded anti-infective and antiseizure targets preserve indication contex
   await search.fill('voriconazole');
   await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
   await search.fill('lévétiracétam');
-  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
-  await expect(page.getByTestId('tdm-target-card').getByText('10–40', { exact: true })).toBeVisible();
-  await page.getByTestId('tdm-target-card').locator('summary').click();
-  await expect(page.getByTestId('tdm-other-sources').locator('.alternative-head strong')).toContainText('12–46');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  const historicalLevetiracetam = page.getByTestId('tdm-target-card')
+    .filter({ has: page.getByText('10–40', { exact: true }) });
+  await expect(historicalLevetiracetam).toBeVisible();
+  await historicalLevetiracetam.locator('summary').click();
+  await expect(historicalLevetiracetam.getByTestId('tdm-other-sources').locator('.alternative-head strong'))
+    .toContainText('12–46');
+  await expect(page.getByText('6–46', { exact: true })).toBeVisible();
   await search.fill('oxcarbazepine');
   await expect(page.getByTestId('tdm-target-card').getByText('3–36', { exact: true })).toBeVisible();
 });
@@ -237,4 +244,535 @@ test('English category navigation and regulatory links remain responsive on mobi
   await antibioticFamily.getByRole('button', { name: 'Cefepime' }).click();
   await expect(page.getByTestId('tdm-mic-card')).toHaveCount(2);
   await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(1);
+});
+
+
+test('ANSM teicoplanin targets are assay-specific and never mixed between HPLC and FPIA', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('Targocid');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('15–30', { exact: true })).toBeVisible();
+  await expect(page.getByText('30–40', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /HPLC/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /FPIA/ })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').first().getByRole('link', { name: /Source originale/ }))
+    .toHaveAttribute('href', /base-donnees-publique[.]medicaments[.]gouv[.]fr/);
+});
+
+test('Busulfan uses regimen-specific cumulative AUC, not per-dose or trough targets', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('busulfan');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('85–95', { exact: true })).toBeVisible();
+  await expect(page.getByText('60–70', { exact: true })).toBeVisible();
+  await expect(page.getByText('AUC cumulée', { exact: true })).toHaveCount(2);
+  await expect(page.getByTestId('tdm-exposure-tag')).toContainText('AUC cumulée');
+  await page.getByTestId('tdm-target-card').first().locator('summary').click();
+  await expect(page.getByText(/AUC totale cumulée du conditionnement/).first()).toBeVisible();
+});
+
+test('Clozapine remains a single analyte-specific reference with updated consensus warning', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('clozaril');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('350–600', { exact: true })).toHaveCount(2);
+  const historicalClozapine=page.getByTestId('tdm-target-card')
+    .filter({ has: page.getByRole('heading', { name: 'Schizophrenia · clozapine monitoring' }) });
+  await historicalClozapine.locator('summary').click();
+  await expect(historicalClozapine.getByText(/norclozapine is distinct/i)).toBeVisible();
+  await expect(historicalClozapine.getByRole('link', { name: /AGNP 2026/ }))
+    .toHaveAttribute('href', /42392224/);
+});
+
+test('Expanded drugs are discoverable inside existing closed-by-default family browser', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await expect(page.getByTestId('tdm-medicine-family')).toHaveCount(12);
+  for (const [family, medicine] of [
+    ['Antibiotiques', 'Téicoplanine'],
+    ['Autres psychotropes', 'Clozapine'],
+    ['Oncologie', 'Busulfan']
+  ]) {
+    const section = page.getByTestId('tdm-medicine-family').filter({ hasText: family });
+    await section.locator('summary').click();
+    await expect(section.getByRole('button', { name: medicine })).toBeVisible();
+    await section.locator('summary').click();
+  }
+});
+
+
+test('Flucytosine pre-dose and post-dose targets keep their sampling times separate', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('ancotil');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('20–40', { exact: true })).toBeVisible();
+  await expect(page.getByText('50–100', { exact: true })).toBeVisible();
+  const peak = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /pic 2 h per os/ }) });
+  await peak.locator('summary').click();
+  await expect(peak.getByText(/2 h après une dose orale ou 30 min après une dose intraveineuse/)).toBeVisible();
+});
+
+test('Itraconazole does not conflate parent-only and parent-plus-metabolite troughs', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('sporanox');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('>1', { exact: true })).toBeVisible();
+  await expect(page.getByText('>1,5', { exact: true })).toBeVisible();
+  const combined = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /somme itraconazole/ }) });
+  await expect(page.getByRole('heading', { name: /Histoplasmose pulmonaire/ })).toBeVisible();
+  await combined.locator('summary').click();
+  await expect(combined.getByText(/SOMME des deux analytes/)).toBeVisible();
+  await expect(combined.getByRole('link', { name: /DOI/ })).toHaveAttribute('href', /10[.]1093\/cid\/ciw326/);
+});
+
+
+test('Antipsychotics expose older ranges with 2026 update warning and explicit active moieties', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('aripiprazole');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('100–350', { exact: true })).toBeVisible();
+  await expect(page.getByText('150–500', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-historical-warning')).toHaveCount(2);
+  const combined = page.getByTestId('tdm-target-card').filter({ has: page.getByText('150–500', { exact: true }) });
+  await combined.locator('summary').click();
+  await expect(combined.getByText(/déhydroaripiprazole/).first()).toBeVisible();
+  await expect(combined.getByRole('link', { name: /AGNP 2026/ })).toHaveAttribute('href', /42392224/);
+
+  await search.fill('rispéridone');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByText(/9-OH-rispéridone/).first()).toBeVisible();
+});
+
+test('Methotrexate safety signals are time-anchored and never rendered as a therapeutic window', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('méthotrexate');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-timed-safety-section')).toBeVisible();
+  await expect(page.getByTestId('tdm-timed-safety-row')).toHaveCount(4);
+  await expect(page.getByTestId('tdm-timed-safety-row').first()).toContainText('H24');
+  await expect(page.getByTestId('tdm-timed-safety-row').first()).toContainText('>50 µmol/L');
+  await expect(page.getByText(/DÉBUT de la perfusion/)).toBeVisible();
+  await expect(page.getByText(/pas des cibles thérapeutiques/)).toBeVisible();
+  await expect(page.getByTestId('tdm-mic-input')).toHaveCount(0);
+});
+
+test('New antipsychotics and HD-MTX appear in the correct expandable family, without CHU sampling link inventions', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const directory = page.getByTestId('tdm-medicine-directory');
+  const psychiatry = directory.getByTestId('tdm-medicine-family').filter({ hasText: 'Autres psychotropes' });
+  await psychiatry.locator('summary').click();
+  await expect(psychiatry.getByRole('button', { name: 'Halopéridol' })).toBeVisible();
+  await psychiatry.getByRole('button', { name: 'Halopéridol' }).click();
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-agnp-2026-verified')).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+  await page.getByTestId('tdm-target-search').clear();
+  const oncology = directory.getByTestId('tdm-medicine-family').filter({ hasText: 'Oncologie' });
+  await oncology.locator('summary').click();
+  await oncology.getByRole('button', { name: 'Méthotrexate (haute dose)' }).click();
+  await expect(page.getByTestId('tdm-timed-safety-row')).toHaveCount(4);
+});
+
+
+test('Clozapine historical CHU evidence is shown without asserting present-day assay availability', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('clozapine');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-chu-historical-assay')).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-historical-assay')).toContainText('historique uniquement (2010–2022)');
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-chu-historical-assay')).toHaveAttribute('href', /health-data-hub[.]fr/);
+});
+
+
+test('Agomelatine uses 1–2 h peak, not trough, and is linked to the documented CHU name', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('Agomélatine');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('7–300', { exact: true })).toBeVisible();
+  await expect(page.getByText('Cmax à 1–2 h après prise')).toBeVisible();
+  await expect(page.getByTestId('tdm-historical-warning')).toHaveCount(1);
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByText(/TDM de niveau 4/)).toBeVisible();
+});
+
+test('Bupropion parent and hydroxybupropion remain two distinct analytes; upper-only targets are not ranges', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('bupropion');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('10–100', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: 'Épisode dépressif majeur · hydroxybupropion' }) })).toContainText(/850–1\s*500/);
+  await search.fill('tranylcypromine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('≤50', { exact: true })).toBeVisible();
+  await expect(page.getByText('60–400', { exact: true })).toBeVisible();
+  await expect(page.getByText('Cmax (2–3 h après dose)', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('PIC Cmax à 2–3 h');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('Pic à 2–3 h');
+
+});
+
+
+test('Antiseizure extension keeps clobazam parent and active metabolite distinct', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('clobazam');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('0,03–0,3', { exact: true })).toBeVisible();
+  await expect(page.getByText('0,3–3', { exact: true })).toBeVisible();
+  const metabolite = page.getByTestId('tdm-target-card').filter({ has: page.getByRole('heading', { name: /N-desméthylclobazam/ }) });
+  await metabolite.locator('summary').click();
+  await expect(metabolite.getByText(/CYP2C19/)).toBeVisible();
+});
+
+test('Historical Norwegian AED ranges and analytes are individually discoverable', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('eslicarbazepine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('3–26', { exact: true })).toBeVisible();
+  await page.getByTestId('tdm-target-card').locator('summary').click();
+  await expect(page.getByText(/S-licarbazepine/).first()).toBeVisible();
+
+  await search.fill('clonazepam');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('13–38', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card')).toContainText('ng/mL');
+
+  await search.fill('topiramate');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByText('2–10', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-sampling-link')).toHaveCount(0);
+});
+
+test('New AED molecules appear under antiseizure collapsible family, not antidepressants', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const group = page.getByTestId('tdm-medicine-family').filter({ hasText: 'Antiépileptiques' });
+  await group.locator('summary').click();
+  await expect(group.getByRole('button', { name: 'Brivaracétam' })).toBeVisible();
+  await expect(group.getByRole('button', { name: 'Topiramate' })).toBeVisible();
+  await expect(group.getByRole('button', { name: 'Lacosamide' })).toBeVisible();
+});
+
+
+test('CHU documentary filter shows exactly the previously verified names, not laboratory certification', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const directory = page.getByTestId('tdm-medicine-directory');
+  const filter = page.getByTestId('tdm-chu-directory-filter');
+  await expect(filter).not.toBeChecked();
+  await filter.check();
+  const families = directory.getByTestId('tdm-medicine-family');
+  await expect(families).toHaveCount(10);
+  await expect(directory.getByText(/sans garantie de dosage actuel/)).toBeVisible();
+  const antibiotiques = families.filter({ hasText: 'Antibiotiques' });
+  await expect(antibiotiques.locator('summary')).toContainText('36');
+  await antibiotiques.locator('summary').click();
+  await expect(antibiotiques.getByRole('button', { name: 'Amikacine' })).toBeVisible();
+  await expect(antibiotiques.getByRole('button', { name: 'Téicoplanine' })).toHaveCount(0);
+  await filter.uncheck();
+  await expect(families).toHaveCount(12);
+});
+
+
+test('Beta-lactam PK/PD card separates optimal fT>MIC from practical trough and conditional dose linearity', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('cefepime');
+  const pk = page.getByTestId('tdm-pk-summary');
+  await expect(pk).toHaveCount(1);
+  await expect(pk.getByTestId('tdm-pk-index')).toContainText('fT>CMI');
+  await expect(pk.getByTestId('tdm-pk-sample')).toContainText('Cmin');
+  await expect(pk.getByTestId('tdm-pk-routes')).toContainText('IV');
+  await expect(pk.getByTestId('tdm-pk-admin-mode')).toContainText('prolongée ou continue');
+  await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('Conditionnellement');
+  await pk.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(pk.getByText(/La résiduelle libre peut étayer/)).toBeVisible();
+  await expect(pk.getByText(/AUCτ = F × dose \/ CL/).last()).toBeVisible();
+  await expect(pk.getByRole('link', {name:/ACCP.*2026/}).first()).toHaveAttribute('href', /PMC13392062/);
+});
+
+test('Vancomycin uses AUC rather than trough-only; aminoglycoside has AUC/peak and safety trough', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('vancomycine');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('AUC₀–₂₄');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('AUC bayésienne');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/résiduel seul déconseillée/)).toBeVisible();
+  await search.fill('amikacine');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('Cmax/CMI');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('Pic post-perfusion');
+});
+
+test('Vori and phenytoin show nonlinear dose/AUC and MPA shows AUC preferred over C0', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('voriconazole');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Non : PK non linéaire');
+  await expect(page.getByTestId('tdm-pk-routes')).toContainText('PO · IV');
+  await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('dose de charge');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/2,5 fois/)).toBeVisible();
+  await search.fill('phénytoïne');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('métabolisme saturable');
+  await search.fill('MPA');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('AUC₀–₁₂');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('prélèvements limités');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('sous-proportionnelle');
+  await search.fill('évérolimus');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('C0');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('linéaire');
+});
+
+test('CHU-only molecules show unassessed PK/PD without guessed routes or dosing rules', async ({ page }) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('ibrutinib');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-manual-entry')).toContainText('non documentés');
+  await page.getByTestId('tdm-target-search').fill('méthotrexate');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('H24/H36/H42/H48');
+  await expect(page.getByTestId('tdm-pk-routes')).toContainText('IV');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('À documenter');
+});
+
+test('PK/PD reference matrix is correctly localised in English', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('voriconazole');
+  const pk = page.getByTestId('tdm-pk-summary');
+  await expect(pk.getByText('Relevant PK/PD index')).toBeVisible();
+  await expect(pk.getByText('Practical sampling')).toBeVisible();
+  await expect(pk.getByText('Documented administration')).toBeVisible();
+  await expect(pk.getByText('2× dose → 2× AUC?')).toBeVisible();
+  await expect(pk.getByTestId('tdm-pk-linearity')).toContainText('No: nonlinear PK');
+});
+
+
+test('Linear PK is formulation- and context-specific: tacrolimus FDA, Neoral FDA, and sublinear MMF cohort', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('tacrolimus');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('proportionnelle');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/3, 7 et 10 mg PO à jeun/)).toBeVisible();
+  await expect(page.getByText(/ne garantit donc jamais ×2 AUC/)).toBeVisible();
+
+  await search.fill('ciclosporine');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('Neoral');
+  await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('microémulsion');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/biodisponibilité Neoral/i).first()).toBeVisible();
+
+  await search.fill('MPA');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('sous-proportionnelle');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/0,513.*1,43/)).toBeVisible();
+});
+
+
+test('Gabapentin and pregabalin have opposite oral dose proportionality; digoxin needs postdistribution sampling', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search = page.getByTestId('tdm-target-search');
+  await search.fill('gabapentine');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('absorption orale saturable');
+  await expect(page.getByTestId('tdm-pk-routes')).toContainText('PO');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/≈60 % à 900 mg\/j/)).toBeVisible();
+
+  await search.fill('prégabaline');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('sous conditions');
+  await page.getByTestId('tdm-pk-details').locator('summary').click();
+  await expect(page.getByText(/biodisponibilité ≥90 % indépendante de la dose/)).toBeVisible();
+
+  await search.fill('lévétiracétam');
+  await expect(page.getByTestId('tdm-pk-linearity')).toContainText('plage étudiée');
+
+  await search.fill('digoxine');
+  await expect(page.getByTestId('tdm-pk-index')).toContainText('après distribution');
+  await expect(page.getByTestId('tdm-pk-sample')).toContainText('≥6 h');
+  await expect(page.getByTestId('tdm-pk-admin-mode')).toContainText('biodisponibilité différente');
+});
+
+
+test('AGNP 2026 banner identifies old psychiatric values without claiming replacement', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('halopéridol');
+  const review=page.getByTestId('tdm-agnp-2026-pending');
+  await expect(review).toBeVisible();
+  await expect(review).toContainText('tableau 5 AGNP 2026');
+  await expect(review.getByTestId('tdm-agnp-2026-verified')).toContainText('tableau 5 AGNP 2026');
+  await expect(review.getByRole('link')).toHaveAttribute('href','https://pubmed.ncbi.nlm.nih.gov/42392224/');
+  await search.fill('clonazépam');
+  await expect(page.getByTestId('tdm-agnp-2026-pending')).toContainText('pas encore été vérifiées ni substituées');
+  await search.fill('vancomycine');
+  await expect(page.getByTestId('tdm-agnp-2026-pending')).toHaveCount(0);
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('haloperidol');
+  await expect(page.getByTestId('tdm-agnp-2026-verified')).toContainText('original Table 5 range(s) individually checked');
+});
+
+
+test('Primary AGNP 2026 values coexist with older sources and sampling times are unambiguous', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+
+  await search.fill('halopéridol');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('1–5', {exact:true})).toBeVisible();
+  await expect(page.getByText('1–10', {exact:true})).toBeVisible();
+  await expect(page.getByText('C₁₂h (12 h après dose)', {exact:true})).toBeVisible();
+
+  await search.fill('trazodone');
+  await expect(page.getByText(/650–1.?500/).first()).toBeVisible();
+
+  await search.fill('levomilnacipran');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByText('30–90', {exact:true})).toBeVisible();
+  await expect(page.getByText('C₂₄h (24 h après dose)', {exact:true})).toBeVisible();
+
+  await search.fill('lacosamide');
+  await expect(page.getByText('1–12', {exact:true})).toBeVisible();
+  await search.fill('levetiracetam');
+  await expect(page.getByText('6–46', {exact:true})).toBeVisible();
+
+  await search.fill('clozapine');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-agnp-2026-verified')).toBeVisible();
+});
+
+
+test('AGNP 2026 monitoring strength is explicit and never inferred from a therapeutic range', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('halopéridol');
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('niveau 1');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('titration');
+  await expect(page.getByTestId('tdm-agnp-human-review-pending')).toContainText('validation pharmacologique indépendante en attente');
+
+  await search.fill('lévétiracétam');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('niveau 4');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('potentiellement utile en situations ciblées');
+  await expect(page.getByTestId('tdm-agnp-human-review-pending')).toBeVisible();
+
+  await search.fill('vancomycine');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toHaveCount(0);
+
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  await page.getByTestId('tdm-target-search').fill('levetiracetam');
+  await expect(page.getByTestId('tdm-agnp-recommendation-level')).toContainText('TDM potentially useful in specific situations');
+});
+
+
+test('CHU full exam index: theophylline peak target, abacavir assay-only and outsourced thiopurine metabolites', async ({page}) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('théophylline');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-society-monitoring')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toContainText('10–15');
+  await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href',/A3700/);
+  await search.fill('abacavir');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-no-validated-numeric-target')).toBeVisible();
+  await expect(page.getByTestId('tdm-chu-specific-assay')).toHaveAttribute('href',/A3838/);
+  await search.fill('6-TGN');
+  await expect(page.getByTestId('tdm-manual-entry')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-chu-outsourced-exam')).toHaveAttribute('href',/A3946/);
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+});
+test('IATDMCT anti-infective discovery does not assert routine monitoring or fabricate ranges', async ({page}) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=en');
+  const search=page.getByTestId('tdm-target-search');
+  await search.fill('isavuconazole');
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-society-monitoring')).toContainText('neither recommended nor discouraged');
+  await expect(page.getByTestId('tdm-no-validated-numeric-target')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-card')).toHaveCount(0);
+});
+
+test('TDM drug link directly opens MIPD library filtered to all models for that molecule', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('tacrolimus');
+  const link=page.getByTestId('tdm-mipd-drug-deep-link');
+  await expect(link).toHaveCount(1);
+  await expect(link).toContainText('Voir les modèles MIPD');
+  await expect(link).toContainText('(2)');
+  await expect(link).toHaveAttribute('href', /\/tdm\/\?drug=tacrolimus&lang=fr#modeles/);
+  await link.click();
+  await expect(page).toHaveURL(/\/tdm\/\?drug=tacrolimus&lang=fr#modeles/);
+  await expect(page.getByTestId('tdm-active-drug-deep-link')).toBeVisible();
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(2);
+  await expect(page.getByTestId('tdm-model-open-shiny')).toHaveCount(1);
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('vancomycine');
+  await expect(page.getByTestId('tdm-mipd-drug-deep-link')).toContainText('(3)');
+  await page.getByTestId('tdm-mipd-drug-deep-link').click();
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+  await page.goto('/pharmacometrie/cibles-tdm/?lang=fr');
+  await page.getByTestId('tdm-target-search').fill('lithium');
+  await expect(page.getByTestId('tdm-mipd-drug-deep-link')).toHaveCount(0);
+});
+
+test('MIPD deep-link accepts only known model library keys, including English', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=cefepime&lang=en#modeles');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+  await expect(page.getByTestId('tdm-active-drug-deep-link')).toContainText('Filtered by drug');
+  await page.goto('/pharmacometrie/tdm/?drug=invalid-unknown&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toBeVisible();
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(46);
+});
+
+test('Switching language after a guide deep link keeps the reader own filters', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=vanco&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+  const search = page.locator('.filters input[type="search"]');
+  await search.fill('goti');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(1);
+  // The language toggle rewrites the URL, which must not re-apply the deep link.
+  await page.locator('.language-toggle').getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.getByTestId('tdm-active-drug-deep-link')).toContainText('Filtered by drug');
+  await expect(search).toHaveValue('goti');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(1);
+});
+
+test('Choosing a molecule by hand clears the unknown-identifier notice', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=invalid-unknown&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toBeVisible();
+  await page.locator('.filters select').first().selectOption('vanco');
+  await expect(page.getByTestId('tdm-invalid-drug-deep-link')).toHaveCount(0);
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(3);
+});
+
+test('A MIPD model card links back to the TDM Guide entry of its molecule', async ({ page }) => {
+  await page.goto('/pharmacometrie/tdm/?drug=tacrolimus&lang=fr#modeles');
+  await expect(page.getByTestId('tdm-library-model-card')).toHaveCount(2);
+  const card = page.getByTestId('tdm-library-model-card').first();
+  // The actions live inside the collapsed details block.
+  await card.locator('details.model-details > summary').click();
+  const guideLink = card.getByTestId('tdm-model-guide-link');
+  await expect(guideLink).toHaveAttribute('href', /\/cibles-tdm\/\?drug=tac&lang=fr$/);
+  await guideLink.click();
+  // The guide opens already showing that molecule, and the search stays editable.
+  await expect(page.getByTestId('tdm-target-search')).toHaveValue(/tacrolimus/i);
+  await expect(page.getByTestId('tdm-drug-group')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-unknown-guide-drug-link')).toHaveCount(0);
+  // And the molecule offers the return trip to its models.
+  await expect(page.getByTestId('tdm-mipd-drug-deep-link')).toContainText('(2)');
+});
+
+test('An unknown molecule identifier on the guide warns instead of showing nothing', async ({ page }) => {
+  await page.goto('/pharmacometrie/cibles-tdm/?drug=not-a-molecule&lang=fr');
+  await expect(page.getByTestId('tdm-unknown-guide-drug-link')).toBeVisible();
+  await expect(page.getByTestId('tdm-target-search')).toHaveValue('');
 });
