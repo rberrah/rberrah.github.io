@@ -25,13 +25,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      # TEMPORARY CI helper: collect npm-registry lock metadata for a fully
-      # deterministic committed lockfile; remove this step before merge.
-      - name: Refresh npm lockfile metadata for reviewed security versions
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          node --input-type=module -e 'import fs from "node:fs"; const x=JSON.parse(fs.readFileSync("package-lock.json")); for (const k of ["node_modules/@sveltejs/kit","node_modules/@sveltejs/adapter-static"]) console.log("LOCK_META " + k + " " + JSON.stringify(x.packages[k]));'
-          git diff -- package-lock.json
       - run: npm ci
       - name: Reject all known npm advisories
         run: npm audit --audit-level=low
