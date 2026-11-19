@@ -1,7 +1,7 @@
 {
   "schema": "mipd-site-source.v1",
   "repository": "rberrah/MIPD-Engine",
-  "sha": "fec16cbdf8e33ed6c791226ccf236761333f8de8",
+  "sha": "354dbe969fe018ce87fd9b741d81e9f2c67d513a",
   "publicUrl": "https://tdmhub.shinyapps.io/MIPD_Engine",
   "requiredWorkflows": [
     "Standalone MIPD qualification",
@@ -14,8 +14,8 @@
   "productionCustomModels": false,
   "publicDeployment": {
     "status": "verified",
-    "verifiedSourceSha": "fec16cbdf8e33ed6c791226ccf236761333f8de8",
+    "verifiedSourceSha": "354dbe969fe018ce87fd9b741d81e9f2c67d513a",
     "fingerprintUrl": "https://tdmhub.shinyapps.io/MIPD_Engine/deployment-release.json",
-    "bundleId": "12702795"
+    "bundleId": "12814545"
   }
 }
