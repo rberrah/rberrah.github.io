@@ -54,6 +54,8 @@ export function simulate(input = {}) {
   const points = [];
   for (let i = 0; i <= n; i++) {
     const t = i * STEP;
+    // The endpoint immediately before a bolus belongs to the preceding AUC interval.
+    const predoseConcentration = a[1] / c.vc;
     const event = Math.round(t / c.tau);
     if (event < c.doses && Math.abs(t - event * c.tau) < STEP / 3) {
       const effective = c.dose * (c.route === 'oral' ? c.f : 1);
@@ -65,8 +67,8 @@ export function simulate(input = {}) {
     const p = { t, c: conc, gut: a[0], central: a[1], p1: a[2], p2: a[3], eliminated: a[4] };
     points.push(p);
     if (i > 0) {
-      auc += (points[i-1].c + conc) * STEP / 2;
-      if (conc >= c.targetLow && conc <= c.targetHigh) inside += STEP;
+      auc += (points[i-1].c + predoseConcentration) * STEP / 2;
+      if (points[i-1].c >= c.targetLow && points[i-1].c <= c.targetHigh) inside += STEP;
     }
     if (i < n) a = advance(a, c, STEP);
   }
