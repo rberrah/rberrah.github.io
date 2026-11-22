@@ -78,3 +78,14 @@
 @media(max-width:800px){#academy-mode{grid-template-columns:1fr}.quest-map{position:static}.quest-list{grid-template-columns:repeat(3,minmax(0,1fr))}.quest-index{display:none}.quest-list button{min-height:65px}.quest-list small{font-size:.67rem}.game-mode .mode-caption{width:100%;margin-left:0}}
 @media(max-width:560px){.quest-map{padding:15px}.quest-list{grid-template-columns:repeat(2,minmax(0,1fr))}.quest-list button{padding:9px}.quest-card,.tutor-panel{padding:14px}.quest-heading{padding:17px}.body-card{display:block}#body-figure{max-height:265px}.quest-actions>*{flex:1}}
 @media(prefers-reduced-motion:reduce){.map-progress>span{transition:none}}
+
+/* Accessible large flow illustration: never squash labels into a 250px sidebar. */
+.quest-visuals{grid-template-columns:minmax(0,1fr)}
+.quest-visuals.journey .body-card{order:-1}
+.body-card{display:block!important}
+#body-figure{max-height:none!important;aspect-ratio:820/415;border:1px solid #3f6561;background:#0d2630}
+.body-legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.body-legend span{min-width:0;border:1px solid #3b6661;background:#14343b;border-radius:10px;font-size:.84rem;padding:12px 10px}
+.body-legend b{display:block;font-size:1.04rem;margin-top:4px}
+.body-hint{font-size:.85rem!important;max-width:75ch;margin-top:10px!important}
+@media(max-width:650px){.body-legend{grid-template-columns:repeat(2,minmax(0,1fr))}.quest-visuals{gap:12px}.body-card{display:block}}
