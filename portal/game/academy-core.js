@@ -1,0 +1,144 @@
+// PMx Game Academy: authored, deterministic and scientifically bounded quests.
+// Dataset is synthetic: the generating configuration is NEVER a patient estimate.
+import { DEFAULTS, simulate, atTime } from './engine.js';
+
+export const QUESTS = Object.freeze([
+  {
+    id:'voyage', chapter:'Prologue', title:'Le premier voyage', tag:'Tutoriel',
+    summary:'Suivez le médicament depuis son administration.',
+    config:{model:2,route:'oral',dose:100,cl:5,vc:25,q1:7,vp1:35,ka:1.3,horizon:24},
+    scale:'linear', focus:'gut', xp:40,
+    question:'Après une prise orale, quel trajet illustre le mieux notre modèle pédagogique ?',
+    options:[
+      'Sang → intestin → tissus → élimination',
+      'Dépôt digestif → circulation centrale ↔ distribution → élimination',
+      'Foie → plasma → estomac, sans élimination'
+    ],
+    answer:1,
+    hint:'Repérez le lieu de l’administration, puis le compartiment où la concentration est mesurée.',
+    explanation:'Après la prise orale, la fraction biodisponible rejoint le dépôt d’absorption, puis le compartiment central. Les échanges périphériques sont réversibles, tandis que l’élimination est modélisée depuis le central. Ces compartiments ne sont pas des organes anatomiques.',
+    learning:'Observer la concentration et les quantités, sans confondre schéma physiologique et modèle PK.'
+  },
+  {
+    id:'mono',chapter:'Chapitre I · Lire',title:'La ligne qui se redresse',tag:'Échelle semi-log',
+    summary:'Le même profil, deux façons de le regarder.',
+    config:{model:1,route:'iv',dose:100,cl:4,vc:20,horizon:24},
+    scale:'linear',focus:'blood',xp:70,
+    question:'En IV bolus, si la décroissance devient une droite en semi-log, quelle structure simple est compatible avec ce profil idéal ?',
+    options:['1 compartiment, élimination du premier ordre','3 compartiments obligatoires','Absorption avec temps de latence'],
+    answer:0,
+    hint:'Passez de « Linéaire » à « Semi-log » et examinez la pente pendant tout le suivi.',
+    explanation:'Dans ce scénario IV 1C linéaire, C(t) est une exponentielle. Son logarithme est affine en fonction du temps. Une droite est compatible avec 1C sur la fenêtre observée ; elle ne prouve pas l’absence d’une phase rapide non échantillonnée.',
+    learning:'Une courbe exponentielle sur l’échelle normale apparaît droite en semi-log.'
+  },
+  {
+    id:'bi',chapter:'Chapitre I · Lire',title:'L’empreinte des deux pentes',tag:'Distribution',
+    summary:'Détectez une phase rapide puis une phase lente.',
+    config:{model:2,route:'iv',dose:100,vc:15,cl:4,q1:12,vp1:45,horizon:36},
+    scale:'log',focus:'tissue',xp:80,
+    question:'Dans ce modèle IV idéal, que suggère une décroissance d’abord raide puis moins raide en semi-log ?',
+    options:['Une unique exponentielle du début à la fin','Une disposition multiexponentielle compatible avec 2C','Une augmentation de dose au cours du temps'],
+    answer:1,
+    hint:'Comparez la pente près de t = 0 et celle de la queue de la courbe.',
+    explanation:'Le modèle 2C produit une somme d’exponentielles : la contribution rapide s’atténue, puis domine une composante plus lente. Le changement de pente ne signifie pas que l’élimination était absente au début. Il ne suffit pas, seul, à valider le modèle.',
+    learning:'Observer les composantes rapide et terminale sur une même courbe.'
+  },
+  {
+    id:'lag',chapter:'Chapitre II · Absorber',title:'Le départ retardé',tag:'Lag time',
+    summary:'Repérez le délai d’apparition plasmatique.',
+    config:{model:1,route:'oral',dose:100,f:0.9,ka:1.5,lag:2,vc:20,cl:4,horizon:24},
+    scale:'linear',focus:'gut',xp:80,
+    question:'La concentration reste nulle pendant les deux premières heures simulées, puis augmente. Quel mécanisme simple a été ajouté ?',
+    options:['Un temps de latence de l’absorption (Tlag)','Une augmentation du volume central uniquement','Une deuxième phase d’élimination'],
+    answer:0,
+    hint:'Cherchez le premier instant où apparaît une concentration strictement positive.',
+    explanation:'Un Tlag de 2 h retarde le début de l’entrée systémique dans cette simulation. Un Ka faible peut ralentir la montée mais n’impose pas un intervalle exactement nul. Dans des observations réelles, une limite de quantification ou un plan de prélèvement lacunaire peut imiter ce signal.',
+    learning:'Différencier retard d’apparition et vitesse d’absorption.'
+  },
+  {
+    id:'slope',chapter:'Chapitre II · Mesurer',title:'Le secret de la pente',tag:'Pente et demi-vie',
+    summary:'Déduisez k à partir de deux points.',
+    config:{model:1,route:'iv',dose:100,cl:5,vc:20,horizon:24},
+    scale:'log',focus:'blood',xp:90, markers:[2,6],
+    question:'Entre 2 h et 6 h, ln(C) diminue d’environ 1 unité. Quelle est la constante k = −Δln(C)/Δt ?',
+    options:['0,05 h⁻¹','0,25 h⁻¹','1,00 h⁻¹'],
+    answer:1,
+    hint:'Δt = 4 h. La valeur absolue de Δln(C) est environ 1.',
+    explanation:'k ≈ 1/4 = 0,25 h⁻¹ et t½ = ln(2)/k ≈ 2,77 h. Dans ce cas 1C IV, k = CL/Vc. Pour un modèle multicompartmental, la pente terminale ne correspond pas nécessairement à CL/Vc.',
+    learning:'Lire une pente logarithmique, puis estimer une demi-vie.'
+  },
+  {
+    id:'three',chapter:'Chapitre III · Enquêter',title:'Trois compartiments ?',tag:'Identifiabilité',
+    summary:'Évitez les conclusions excessives.',
+    config:{model:3,route:'iv',dose:100,vc:12,cl:5,q1:13,vp1:22,q2:2,vp2:85,horizon:72},
+    scale:'log',focus:'tissue',xp:90,
+    question:'Des changements de pente sont visibles avec un suivi prolongé. Quelle conclusion est scientifiquement défendable ?',
+    options:['Trois compartiments anatomiques sont démontrés','Le modèle 3C est plausible mais doit être comparé et ses paramètres estimables','Trois pentes impliquent nécessairement trois voies métaboliques'],
+    answer:1,
+    hint:'Une forme de courbe et une structure mécanistique prouvée ne sont pas équivalentes.',
+    explanation:'Une disposition multiexponentielle peut justifier de comparer 2C et 3C, mais les pentes visibles dépendent des paramètres, de la fenêtre, de l’erreur et des prélèvements. Il faut comparer des ajustements, examiner précision et identifiabilité ; les compartiments ne sont pas des organes prouvés.',
+    learning:'Distinguer compatibilité descriptive et identification de structure.'
+  },
+  {
+    id:'samples',chapter:'Chapitre III · Enquêter',title:'La chasse aux prélèvements',tag:'Plan de prélèvement',
+    summary:'Choisissez des temps informatifs.',
+    config:{model:2,route:'iv',dose:100,vc:15,cl:4,q1:12,vp1:45,horizon:36},
+    scale:'log',focus:'blood',xp:90, sampleTimes:[0.25,0.75,2,8,24],
+    question:'Quel plan de prélèvement aiderait à observer à la fois distribution rapide et phase terminale ?',
+    options:['1 h, 1,5 h, 2 h, 2,5 h, 3 h','24 h, 25 h, 26 h, 27 h, 28 h','0,25 h, 0,75 h, 2 h, 8 h, 24 h'],
+    answer:2,
+    hint:'Il faut couvrir l’intervalle initial et une partie tardive où la pente change.',
+    explanation:'Échantillonner tôt et tard rend mieux observables les composantes cinétiques. Cela ne garantit pas que tous les paramètres seront identifiables : le bruit, la quantification et la conception du protocole importent aussi.',
+    learning:'Voir pourquoi une fenêtre courte peut masquer des phases.'
+  },
+  {
+    id:'flip',chapter:'Chapitre IV · Douter',title:'Le piège de la demi-vie',tag:'Flip-flop',
+    summary:'La pente terminale peut refléter l’absorption.',
+    config:{model:1,route:'oral',dose:100,vc:20,cl:5,ka:0.12,f:0.9,horizon:72},
+    scale:'log',focus:'gut',xp:100,
+    question:'Ka = 0,12 h⁻¹ et CL/Vc = 0,25 h⁻¹. À quelle vitesse la pente terminale tend-elle dans ce modèle oral 1C ?',
+    options:['Ka ≈ 0,12 h⁻¹','Toujours CL/Vc = 0,25 h⁻¹','Ka + CL/Vc = 0,37 h⁻¹'],
+    answer:0,
+    hint:'Dans une somme de termes exponentiels, le terme qui décroît le plus lentement domine tardivement.',
+    explanation:'Comme Ka < CL/Vc, l’absorption est limitante et la pente terminale tend vers −Ka (flip-flop). Une courbe orale seule ne permet pas toujours de distinguer les constantes d’absorption et d’élimination sans information supplémentaire, comme une référence IV.',
+    learning:'Ne pas assimiler toute pente terminale à la clairance.'
+  },
+  {
+    id:'boss',chapter:'Final · Diagnostic',title:'Le dossier inconnu',tag:'Mission finale',
+    summary:'Croisez forme, échelle et voie d’administration.',
+    config:{model:2,route:'iv',dose:120,vc:16,cl:5,q1:14,vp1:54,horizon:36},
+    scale:'linear',focus:'blood',xp:120,
+    question:'C(0) est non nulle et la pente semi-log ralentit. Quelle hypothèse résume au mieux ce jeu de données idéal ?',
+    options:['Oral 1C avec Tlag','IV bolus 2C linéaire, à confirmer par ajustement','IV bolus 1C monoexponentiel certain'],
+    answer:1,
+    hint:'C(0) oriente vers un bolus IV ; en semi-log la courbure suggère plusieurs exponentielles.',
+    explanation:'Ce profil est compatible avec un bolus IV suivi d’une disposition multiexponentielle. Un modèle 2C est un candidat parcimonieux dans cet exercice synthétique ; dans des données réelles, une sélection de modèle et des diagnostics restent indispensables.',
+    learning:'Combiner plusieurs indices, sans transformer une hypothèse en certitude.'
+  }
+]);
+
+export function profileFor(quest) {
+  return simulate({...DEFAULTS, ...quest.config, doses:1});
+}
+export function logSlope(result, a, b) {
+  const ca=atTime(result,a).c, cb=atTime(result,b).c;
+  if(!(ca>0 && cb>0 && b>a)) throw new RangeError('Need positive concentrations at increasing times');
+  return (Math.log(cb)-Math.log(ca))/(b-a);
+}
+export function validateProgress(value) {
+  if(!value || typeof value!=='object')return {completed:[],xp:0};
+  const ids = new Set(QUESTS.map(q=>q.id));
+  const completed = Array.isArray(value.completed)
+    ? [...new Set(value.completed.filter(id=>typeof id==='string' && ids.has(id)))]
+    : [];
+  const xp = completed.reduce((sum,id)=>sum+QUESTS.find(q=>q.id===id).xp,0);
+  return {completed,xp};
+}
+export function unlockedIndex(completed) {
+  const found = new Set(completed);
+  const first = QUESTS.findIndex(q=>!found.has(q.id));
+  return first<0 ? QUESTS.length-1 : first;
+}
+export function grade(quest, choice) {
+  return {correct:choice===quest.answer, explanation:quest.explanation};
+}
