@@ -102,6 +102,10 @@ jobs:
           node scripts/configure_site_origin.mjs
           node scripts/add_portal_analytics.mjs
           npm run audit:public-artifact
+          if grep -q 'data-portal-analytics' dist/game/index.html; then
+            echo "::error::Hidden game must remain telemetry-free"
+            exit 1
+          fi
       - name: Verify canonical MultiOmics mount and legacy aliases (desktop/mobile)
         run: npx playwright test --config playwright.multiomics-mount.config.js --workers=1 --retries=0
       - name: Test assembled portal in browser
