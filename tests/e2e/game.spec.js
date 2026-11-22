@@ -208,7 +208,7 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
   await expect(page.locator('#adv-ddi-c0-ratio')).toHaveText('À estimer');
   await page.locator('#adv-ddi-prediction').fill('2');
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-feedback')).toContainText('répond');
+  await expect(page.locator('#advanced-feedback')).toContainText('ne correspond pas');
   // Incorrect predictions must not award XP or display the ground truth.
   await expect(page.locator('#advanced-count')).toHaveText('4/5');
   await page.locator('#adv-ddi-prediction').fill('3.93');
