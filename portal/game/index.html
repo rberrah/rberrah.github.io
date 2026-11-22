@@ -33,12 +33,92 @@
     @media(max-width:570px){.wrap{padding:16px 12px 35px}.panel-inner,.settings{padding:15px}.fields{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero h1{font-size:1.8rem}.bar{align-items:flex-start}.diagram{min-height:230px}.pill{font-size:.68rem}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
   </style>
+  <link rel="stylesheet" href="./academy.css">
 </head>
 <body>
 <div class="wrap">
   <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><span class="pill">Prototype pédagogique · sans données patients</span></header>
-  <section class="hero"><div class="eyebrow">Construire · Simuler · Comprendre</div><h1>Dessinez un modèle. Regardez le médicament circuler.</h1><p>Ajoutez des compartiments, déplacez-les sur le schéma et modifiez les paramètres. Les trajectoires illustrent les flux d'un système d'équations différentielles résolu en temps réel.</p></section>
-  <main>
+  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Devenez détective des courbes pharmacocinétiques.</h1><p>Neuf quêtes interactives pour reconnaître les phases PK, lire une échelle semi-logarithmique, estimer un lag time ou une pente et comprendre les limites des modèles. Débloquez ensuite le laboratoire pour expérimenter librement.</p></section>
+  <nav class="game-mode" aria-label="Choisir un mode">
+    <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
+    <button id="mode-lab" aria-pressed="false">Atelier libre · Construire</button>
+    <span class="mode-caption">Progression pédagogique sauvegardée uniquement dans ce navigateur.</span>
+  </nav>
+  <section id="academy-mode" aria-label="Parcours pédagogique PMx Game">
+    <aside class="panel quest-map">
+      <h2>Carte des quêtes</h2>
+      <p class="map-sub">Apprenez à lire une courbe avant de construire votre modèle. Les missions se débloquent une par une.</p>
+      <div class="quest-stats">
+        <div class="quest-stat"><span>Expérience</span><strong id="quest-xp">0 XP</strong></div>
+        <div class="quest-stat"><span>Quêtes</span><strong id="quest-count">0/9</strong></div>
+      </div>
+      <div class="map-progress" role="progressbar" aria-label="Progression du parcours" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0" id="quest-progress"><span id="quest-progress-bar"></span></div>
+      <div id="quest-list" class="quest-list" aria-label="Quêtes disponibles"></div>
+      <button id="quest-reset" class="reset-journey">Recommencer le parcours</button>
+    </aside>
+    <div class="academy-content">
+      <div class="quest-heading">
+        <span class="chapter" id="academy-chapter">Prologue</span><span class="quest-level" id="quest-level">Mission 1 / 9</span>
+        <h2 id="academy-title">Le premier voyage</h2>
+        <p id="academy-summary">Suivez le médicament depuis son administration.</p>
+      </div>
+      <div class="quest-visuals">
+        <section class="panel quest-card">
+          <h3>La pièce à conviction · Profil PK</h3>
+          <p>Les mêmes concentrations sont affichées sur deux échelles. Cliquez sur deux points pour mesurer une pente.</p>
+          <div class="quiz-chart-controls" role="group" aria-label="Échelle de concentration">
+            <button id="academy-linear" aria-pressed="true">Linéaire</button>
+            <button id="academy-log" aria-pressed="false">Semi-log</button>
+            <span class="axis-caption" id="academy-axis">Concentration (mg/L)</span>
+          </div>
+          <svg id="academy-chart" viewBox="0 0 750 340" role="img" aria-label="Courbe concentration plasmatique temps interactive"></svg>
+          <p class="quiz-probe" id="academy-probe" aria-live="polite">Cliquez deux fois sur la courbe pour mesurer une pente.</p>
+        </section>
+        <section class="panel quest-card body-card">
+          <h3>Le voyage dans le corps</h3>
+          <svg id="body-figure" viewBox="0 0 350 370" role="img" aria-label="Illustration conceptuelle de l'absorption, circulation, tissus et élimination"></svg>
+          <div>
+            <div class="body-legend"><span>Digestif : <b id="body-gut">0 mg</b></span><span>Circulation : <b id="body-central">0 mg</b></span><span>Tissus : <b id="body-tissue">0 mg</b></span><span>Éliminé : <b id="body-eliminated">0 mg</b></span></div>
+            <p class="body-hint">Schéma physiologique <strong>illustratif</strong> : les compartiments centraux et périphériques ne sont pas des organes. Les voies d’élimination ne sont pas réparties entre foie et reins par ce modèle.</p>
+            <div class="quest-timeline">
+              <button id="academy-play" aria-label="Lecture de la simulation">▶</button>
+              <input id="academy-time" type="range" min="0" max="24" step="0.25" value="0" aria-label="Explorer le temps de simulation">
+              <output id="academy-clock">0 h</output>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section class="panel tutor-panel" aria-label="Énigme pédagogique">
+        <div id="tutorial-panel">
+          <span class="tutorial-step" id="tutorial-step">Tutoriel · Étape 1 / 3</span>
+          <h3 id="tutorial-title">Votre première mission</h3>
+          <p id="tutorial-text" class="tutorial-notice">Observez comment le médicament entre et quitte le corps. Vous pouvez déplacer le curseur de temps.</p>
+          <button class="quest-btn primary" id="tutorial-next">Continuer le tutoriel</button>
+        </div>
+        <div id="academy-question" hidden>
+          <span class="tutorial-step" id="academy-tag">Défi</span>
+          <h3 id="academy-question-title">Votre énigme</h3>
+          <p id="academy-question-text"></p>
+          <form id="academy-form">
+            <div id="academy-answers" class="question-options"></div>
+            <div class="quest-actions">
+              <button type="submit" id="academy-verify" class="quest-btn primary">Vérifier ma réponse</button>
+              <button type="button" id="academy-hint" class="quest-btn">Un indice</button>
+            </div>
+          </form>
+          <p id="academy-hint-text" class="tutorial-notice" hidden></p>
+          <div id="academy-feedback" class="quest-feedback" role="status" aria-live="polite" hidden></div>
+          <div class="quest-finish">
+            <button id="academy-next" class="quest-btn primary" hidden>Quête suivante</button>
+            <button id="academy-explore" class="quest-btn" hidden>Tester dans l’atelier libre</button>
+          </div>
+        </div>
+      </section>
+      <p class="quest-caveat">Toutes les missions reposent sur des profils synthétiques déterministes. Les pentes ou courbures fournissent des indices, pas une identification de structure ou une preuve physiologique sans comparaison de modèles, prélèvements informatifs et diagnostics.</p>
+    </div>
+  </section>
+
+  <main id="lab-mode" hidden aria-label="Atelier de simulation libre">
     <aside class="panel settings" aria-label="Paramètres du modèle">
       <h2>Construire le modèle</h2>
       <div class="sub">Structure compartimentale (1C à 3C). Les nœuds se déplacent à la souris ou au doigt.</div>
@@ -88,4 +168,5 @@
   <div class="footer"><strong>PMx Explain · Prototype expérimental.</strong> Le calcul reproduit uniquement un modèle linéaire compartimental pédagogique (absorption d'ordre 1 ou bolus IV, élimination linéaire). Aucun modèle PBPK ni aucune adaptation posologique clinique. Pas d'enregistrement ni de transmission de données. Un lien non publié n'est pas un contrôle d'accès : cette page reste publiquement accessible à toute personne connaissant son adresse.</div>
 </div>
 <script type="module" src="./app.js"></script>
+<script type="module" src="./academy.js"></script>
 </body></html>
