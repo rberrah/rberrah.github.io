@@ -47,8 +47,8 @@ export const QUESTS = Object.freeze([
     id:'lag',chapter:'Chapitre II · Absorber',title:'Le départ retardé',tag:'Lag time',
     summary:'Repérez le délai d’apparition plasmatique.',
     config:{model:1,route:'oral',dose:100,f:0.9,ka:1.5,lag:2,vc:20,cl:4,horizon:24},
-    scale:'linear',focus:'gut',xp:80,
-    question:'La concentration reste nulle pendant les deux premières heures simulées, puis augmente. Quel mécanisme simple a été ajouté ?',
+    scale:'linear',focus:'gut',xp:80,answerMode:'number',answerValue:2,tolerance:0.25,
+    question:'Estimez le Tlag (en h) : à quel moment l’absorption commence-t-elle dans cette simulation idéale ?',
     options:['Un temps de latence de l’absorption (Tlag)','Une augmentation du volume central uniquement','Une deuxième phase d’élimination'],
     answer:0,
     hint:'Cherchez le premier instant où apparaît une concentration strictement positive.',
@@ -59,7 +59,7 @@ export const QUESTS = Object.freeze([
     id:'slope',chapter:'Chapitre II · Mesurer',title:'Le secret de la pente',tag:'Pente et demi-vie',
     summary:'Déduisez k à partir de deux points.',
     config:{model:1,route:'iv',dose:100,cl:5,vc:20,horizon:24},
-    scale:'log',focus:'blood',xp:90, markers:[2,6],
+    scale:'log',focus:'blood',xp:90,answerMode:'number',answerValue:0.25,tolerance:0.025, markers:[2,6],
     question:'Entre 2 h et 6 h, ln(C) diminue d’environ 1 unité. Quelle est la constante k = −Δln(C)/Δt ?',
     options:['0,05 h⁻¹','0,25 h⁻¹','1,00 h⁻¹'],
     answer:1,
@@ -140,5 +140,8 @@ export function unlockedIndex(completed) {
   return first<0 ? QUESTS.length-1 : first;
 }
 export function grade(quest, choice) {
-  return {correct:choice===quest.answer, explanation:quest.explanation};
+  const correct=quest.answerMode==='number'
+    ? Number.isFinite(Number(choice)) && choice!=='' && Math.abs(Number(choice)-quest.answerValue)<=quest.tolerance
+    : choice===quest.answer;
+  return {correct, explanation:quest.explanation};
 }
