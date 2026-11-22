@@ -108,7 +108,7 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
   await expect(page.locator('#academy-answers input[type="number"]')).toBeVisible();
   await page.locator('#academy-number').fill('1');
   await page.locator('#academy-verify').click();
-  await expect(page.locator('#academy-feedback')).toContainText('réessayez');
+  await expect(page.locator('#academy-feedback')).toContainText(/réessayez/i);
   await page.locator('#academy-number').fill('2');
   await page.locator('#academy-verify').click();
   await expect(page.locator('#academy-feedback')).toContainText('Tlag');
