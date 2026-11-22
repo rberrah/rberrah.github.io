@@ -1,7 +1,7 @@
 // Deterministic numerical and hidden-route regression tests for PMx Game.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { DEFAULTS, CHALLENGE, STEP, atTime, fitScore, simulate, validate } from '../portal/game/engine.mjs';
+import { DEFAULTS, CHALLENGE, STEP, atTime, fitScore, simulate, validate } from '../portal/game/engine.js';
 
 const near = (a,b,tol=1e-6) => assert.ok(Math.abs(a-b)<=tol, a + ' differs from ' + b);
 const iv = simulate({ model:1, route:'iv', dose:100, vc:20, cl:4, horizon:24 });
@@ -40,7 +40,7 @@ for(const bad of [{dose:0},{ka:Infinity},{vc:0},{model:4},{route:'inject'},{hori
 near(STEP,0.025);
 
 const page=readFileSync('portal/game/index.html','utf8');
-for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.mjs"','id="diagram"','id="chart"','id="challenge"'])
+for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','id="diagram"','id="chart"','id="challenge"'])
   assert.ok(page.includes(expected), expected + ' missing');
 for(const path of ['portal/index.html','portal/tools/index.html','portal/sitemap.xml']) {
   const text=readFileSync(path,'utf8');
