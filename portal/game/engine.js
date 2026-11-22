@@ -3,12 +3,12 @@
 export const STEP = 0.025;
 export const DEFAULTS = Object.freeze({
   model: 1, route: 'oral', dose: 100, doses: 1, tau: 24, horizon: 48,
-  f: 0.8, ka: 1.2, cl: 5, vc: 25, q1: 8, vp1: 35, q2: 4, vp2: 50,
+  f: 0.8, ka: 1.2, lag: 0, cl: 5, vc: 25, q1: 8, vp1: 35, q2: 4, vp2: 50,
   targetLow: 1, targetHigh: 4
 });
 export const LIMITS = Object.freeze({
   dose: [1, 500], doses: [1, 4], tau: [6, 48], horizon: [12, 96],
-  f: [0.1, 1], ka: [0.1, 6], cl: [0.1, 30], vc: [5, 150],
+  f: [0.1, 1], ka: [0.1, 6], lag: [0, 6], cl: [0.1, 30], vc: [5, 150],
   q1: [0.1, 25], vp1: [5, 150], q2: [0.1, 25], vp2: [5, 150],
   targetLow: [0.1, 20], targetHigh: [0.2, 30]
 });
@@ -56,8 +56,9 @@ export function simulate(input = {}) {
     const t = i * STEP;
     // The endpoint immediately before a bolus belongs to the preceding AUC interval.
     const predoseConcentration = a[1] / c.vc;
-    const event = Math.round(t / c.tau);
-    if (event < c.doses && Math.abs(t - event * c.tau) < STEP / 3) {
+    const doseOffset = c.route === 'oral' ? c.lag : 0;
+    const event = Math.round((t - doseOffset) / c.tau);
+    if (event >= 0 && event < c.doses && Math.abs(t - event * c.tau - doseOffset) < STEP / 3) {
       const effective = c.dose * (c.route === 'oral' ? c.f : 1);
       a[c.route === 'oral' ? 0 : 1] += effective;
       delivered += effective;
