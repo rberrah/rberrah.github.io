@@ -205,22 +205,43 @@ $('challenge').addEventListener('click',()=>{
 $('play').addEventListener('click',togglePlay);
 $('time').addEventListener('input',()=>{pause();time=Number($('time').value);showTime();});
 const diagram=$('diagram');
-diagram.addEventListener('pointerdown',ev=>{
-  const el=ev.target.closest('[data-node]');
-  if(!el || el.dataset.node==='eliminated') return;
-  dragging=el.dataset.node;
-  diagram.setPointerCapture(ev.pointerId);
-});
-diagram.addEventListener('pointermove',ev=>{
-  if(!dragging) return;
+function pickNode(ev) {
+  const el=ev.target?.closest?.('[data-node]');
+  if (el && el.dataset.node !== 'eliminated') return el.dataset.node;
+  // Fallback for SVG touch hit-testing, including letterboxed viewBox sizes.
+  const bounds=diagram.getBoundingClientRect();
+  const x=(ev.clientX-bounds.left)*820/bounds.width;
+  const y=(ev.clientY-bounds.top)*440/bounds.height;
+  return ['gut','central','p1','p2'].find(id=>{
+    if(id==='gut' && config.route!=='oral')return false;
+    if(id==='p1' && config.model<2)return false;
+    if(id==='p2' && config.model<3)return false;
+    return Math.abs(x-positions[id].x)<90 && Math.abs(y-positions[id].y)<55;
+  }) || null;
+}
+function beginDrag(ev) {
+  const id=pickNode(ev);
+  if(!id)return;
+  dragging=id;
+  if(ev.type==='pointerdown'){
+    try{diagram.setPointerCapture(ev.pointerId);}catch{/* Window listeners retain the drag. */}
+  }
+}
+function moveDrag(ev) {
+  if(!dragging)return;
   const bounds=diagram.getBoundingClientRect();
   positions[dragging].x=fit((ev.clientX-bounds.left)*820/bounds.width,100,716);
   positions[dragging].y=fit((ev.clientY-bounds.top)*440/bounds.height,72,374);
   drawDiagram();
-});
-const stopDrag=()=>dragging=null;
-diagram.addEventListener('pointerup',stopDrag);
-diagram.addEventListener('pointercancel',stopDrag);
+}
+function stopDrag(){ dragging=null; }
+diagram.addEventListener('pointerdown',beginDrag);
+diagram.addEventListener('mousedown',beginDrag);
+window.addEventListener('pointermove',moveDrag);
+window.addEventListener('mousemove',moveDrag);
+window.addEventListener('pointerup',stopDrag);
+window.addEventListener('mouseup',stopDrag);
+window.addEventListener('pointercancel',stopDrag);
 diagram.addEventListener('keydown',ev=>{
   const el=ev.target.closest('[data-node]');
   if(!el || el.dataset.node==='eliminated') return;
