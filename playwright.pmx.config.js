@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   testIgnore: [
     '**/portal.spec.js',
+    '**/game.spec.js',
     '**/stats-*.spec.js',
     '**/multiomics*.spec.js'
   ],

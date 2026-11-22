@@ -90,6 +90,9 @@ jobs:
           set -euo pipefail
           for file in \
             dist/index.html \
+            dist/game/index.html \
+            dist/game/engine.js \
+            dist/game/app.js \
             dist/assets/site.css \
             dist/a-propos/index.html \
             dist/communications/index.html \
@@ -101,6 +104,10 @@ jobs:
           node scripts/configure_site_origin.mjs
           node scripts/add_portal_analytics.mjs
           npm run audit:public-artifact
+          if grep -q 'data-portal-analytics' dist/game/index.html; then
+            echo "::error::Hidden game must remain telemetry-free"
+            exit 1
+          fi
       - name: Verify canonical MultiOmics mount and legacy aliases (desktop/mobile)
         run: npx playwright test --config playwright.multiomics-mount.config.js --workers=1 --retries=0
       - name: Test assembled portal in browser
@@ -142,7 +149,7 @@ jobs:
       - name: Materialize MIPD browser snapshot from immutable source
         run: npm run mipd:materialize
       - name: Test PMx laboratories and model imports
-        run: npm run test:labs && npm run test:mlxtran
+        run: npm run test:labs && npm run test:mlxtran && node scripts/test_game.mjs
 
   mipd-consumer:
     runs-on: ubuntu-latest
