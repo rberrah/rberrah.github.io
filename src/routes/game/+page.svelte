@@ -36,7 +36,7 @@
     vc = 20; q1 = 3; vp1 = 30; q2 = 1.5; vp2 = 60; playTime = 2; selected = 'central';
   }
 
-  const fmt = (x, decimals = 2) => Number(x).toFixed(decimals);
+  const fmt = (/** @type {number} */ x, decimals = 2) => Number(x).toFixed(decimals);
 </script>
 
 <svelte:head>
