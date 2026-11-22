@@ -95,6 +95,47 @@ export function renderPhysiology(svg,result,t,quest){
   const p=atTime(result,t);
   const total=Math.max(1,quest.config.dose*(quest.config.route==='oral'?(quest.config.f??0.8):1));
   const amounts={gut:p.gut,blood:p.central,tissue:p.p1+p.p2,exit:p.eliminated};
+
+  // Do not shrink 19px labels to 7px on phones: draw a genuine portrait layout.
+  const mobile=typeof window!=='undefined' && window.matchMedia('(max-width: 650px)').matches;
+  if(mobile){
+    svg.setAttribute('viewBox','0 0 390 760');
+    const defs='<defs><marker id="mobile-flow-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">'+
+      '<path d="M0 0 L8 4 L0 8" fill="none" stroke="#bee7dc" stroke-width="2"/></marker></defs>';
+    const block=(key,y,title,subtitle,color)=>{
+      const amount=Math.max(0,amounts[key]);
+      return '<g data-stage="'+key+'"><rect x="41" y="'+y+'" width="308" height="132" rx="17" fill="#14363e" stroke="'+color+'" stroke-width="2"/>'+
+        '<rect x="57" y="'+(y+14)+'" width="39" height="34" rx="11" fill="'+color+'" opacity=".24"/>'+
+        '<text x="76" y="'+(y+37)+'" text-anchor="middle" fill="'+color+'" font-size="15" font-weight="800">'+
+          (key==='gut'?'01':key==='blood'?'02':key==='tissue'?'03':'04')+'</text>'+
+        '<text x="108" y="'+(y+37)+'" fill="#f4fffa" font-size="21" font-weight="800">'+title+'</text>'+
+        '<text x="58" y="'+(y+72)+'" fill="#bfd9d3" font-size="15">'+subtitle+'</text>'+
+        '<text x="58" y="'+(y+105)+'" fill="'+color+'" font-size="21" font-weight="800">'+fmt(amount,1)+' mg</text>'+
+        '<rect x="222" y="'+(y+94)+'" width="108" height="12" fill="#33575b" rx="6"/>'+
+        '<rect x="222" y="'+(y+94)+'" width="'+(108*Math.min(1,amount/total)).toFixed(2)+'" height="12" fill="'+color+'" rx="6"/></g>';
+    };
+    let svgText=defs;
+    svgText+='<text x="195" y="18" font-size="15" font-weight="700" text-anchor="middle" fill="#a4c8be">Flux mathématiques · illustration physiologique</text>';
+    if(quest.config.route==='oral')
+      svgText+=block('gut',27,'INTESTIN','Dépôt après la prise','#dfb7f4');
+    else
+      svgText+=block('gut',27,'BOLUS IV','Le dépôt digestif est court-circuité','#dfb7f4');
+    svgText+=block('blood',215,'SANG','Circulation centrale','#8eead3');
+    svgText+=block('tissue',403,'TISSUS','Distribution réversible','#ecc88f');
+    svgText+=block('exit',591,'ÉLIMINATION','Sortie depuis le sang (CL)','#f0c29e');
+    svgText+='<path d="M195 162 V205" stroke="#d7c9e7" stroke-width="4" fill="none" marker-end="url(#mobile-flow-arrow)"/>';
+    svgText+='<path d="M177 350 V394" stroke="#bcebdc" stroke-width="3.7" fill="none" marker-end="url(#mobile-flow-arrow)"/>'+
+      '<path d="M215 394 V350" stroke="#bcebdc" stroke-width="3.7" fill="none" marker-end="url(#mobile-flow-arrow)"/>';
+    svgText+='<text x="236" y="379" font-size="14" fill="#bde7de" font-weight="700">Q</text>';
+    // Elimination branches from the central amount, not from the peripheral tissue.
+    svgText+='<path d="M42 283 H22 V655 H38" stroke="#f0c29e" stroke-width="3.7" fill="none" marker-end="url(#mobile-flow-arrow)"/>'+
+      '<text x="25" y="570" font-size="13" fill="#ffdaa9" font-weight="700" transform="rotate(-90 25 570)">CL depuis le sang</text>';
+    svgText+='<text x="195" y="753" text-anchor="middle" fill="#a7bdb7" font-size="12">Compartiments ≠ organes · Pas un modèle PBPK</text>';
+    svg.innerHTML=svgText;
+    return {gut:p.gut,central:p.central,tissue:p.p1+p.p2,eliminated:p.eliminated};
+  }
+  svg.setAttribute('viewBox','0 0 820 415');
+
   // A visual explanation of flux topology, NOT a PBPK map: there is no liver/renal CL split.
   const stage=(key,x,y,label,sub,fill,accent)=>{
     const amount=Math.max(0,amounts[key]);
