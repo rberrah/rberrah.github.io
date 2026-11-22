@@ -53,10 +53,31 @@ Les termes des périphériques absents valent zéro. En IV, Ag = 0 et le bolus e
 
 Les particules graphiques représentent les quantités et les flux approximativement. Leur animation n'est ni un calcul moléculaire, ni une carte anatomique, ni une estimation de vitesse de transit physiologique. Le défi affiche un score de proximité des courbes, non une preuve d'identifiabilité structurelle ou un BIC.
 
+## Deuxième parcours — constructions et défis avancés
+
+La campagne initiale de neuf quêtes reste intacte, mais un troisième onglet indépendant propose **cinq défis où l'élève doit agir**. Les progrès sont stockés localement et les réponses ne sont pas préremplies.
+
+1. **Dessiner un modèle oral 2C.** Ajouter quatre nœuds (dépôt, central, périphérique, élimination) puis dessiner quatre arcs dirigés : absorption, échanges bilatéraux, sortie depuis le central. La vérification est fondée sur la **structure du graphe**, sans être guidée par un dessin initial. Les arcs erronés peuvent être retirés.
+2. **Assembler toutes les ODE.** Composer les équations de quantité pour Ag, Ac, Ap et Ae en choisissant séparément signes et termes. Le contrôleur vérifie le système complet, y compris conservation de masse, flux intercompartimentaux et élimination.
+3. **Défi antibiotique synthétique / CMI.** Modèle IV bolus 1C répété à l'état stationnaire, CL=5 L/h, V=20 L, fraction libre=0,8, CMI=2 mg/L. Ajuster dose et intervalle pour satisfaire deux critères **inventés pour le jeu seulement**, fT>CMI ≥70 % et AUC24 ≤150 mg·h/L. Ce cas n'est **pas** un modèle clinique d'antibiothérapie, ni d'infusion de bêta-lactamine ; les seuils ne sont pas des recommandations.
+4. **Dose linéaire vs Michaelis–Menten.** Après bolus IV, viser la même AUC∞=60 mg·h/L pour deux molécules hypothétiques, l'une linéaire (AUC=D/CL), l'autre saturable (dA/dt=−Vmax·C/(Km+C)). L'AUC∞ saturable est calculée exactement pour ce schéma 1C, puis les profils sont affichés pour illustrer la disproportionnalité.
+5. **DDI et baisse de clairance.** Avec oral 1C à l'état stationnaire (sans changement de F ou Ka), régler CL puis **prédire**, avant révélation, le rapport des concentrations résiduelles C0. La formule orale 1C est évaluée explicitement : AUCτ=F·D/CL, mais C0 dépend aussi de l'accumulation. Ainsi, CL divisée par deux donne AUCτ ×2 et C0 environ ×3,93 pour les paramètres fictifs choisis.
+
+### Politique pédagogique
+
+- Aucune bonne réponse ne doit être déjà cochée, ni suggérée par le placeholder d'une saisie numérique, ni révélée par l'intitulé de l'exercice. L'ordre des options des QCM est mélangé.
+- Le graphique de **Tlag** ne marque plus la vraie position du délai avant la résolution.
+- Le chapitre historique **« piège de la demi-vie »** demande désormais si une pente terminale *orale* peut servir à inférer CL ; il ne demande plus une valeur de CL en proposant Ka comme réponse.
+- Le dessin du corps a été remplacé par un schéma explicite de flux dépôt→central, central↔périphérie, central→élimination avec grandes étiquettes et masses dynamiques. Sur smartphone, une variante SVG **verticale** évite la réduction illisible des inscriptions.
+- L'illustration est **inspirée de la physiologie sans être PBPK** : les périphériques ne correspondent pas à des organes, et le schéma n'infère ni contribution rénale ni contribution hépatique à CL.
+- Tous les exercices sont synthétiques, sans ordonnance patient. Aucun calcul ne peut être présenté comme un ajustement thérapeutique réel.
+
+Références pédagogiques consultées : [SFPT/SFAR, bêta-lactamines et fT>CMI](https://pmc.ncbi.nlm.nih.gov/articles/PMC6441232/), [revue des indices PK/PD anti-infectieux](https://pmc.ncbi.nlm.nih.gov/articles/PMC5039113/), [Principles of Pharmacokinetics, NCBI](https://www.ncbi.nlm.nih.gov/books/NBK12815/).
+
 ## Vérifications obligatoires
 
-- node scripts/test_game.mjs : solution analytique IV-1C, AUC, conservation de masse six structures/voies, retard oral, pente, notation des neuf missions, intégrité des XP, non-négativité, proportionnalité, bornes et route non listée.
-- npx playwright test --config playwright.portal.config.js : accès direct, tutoriel, échelles et mesure de pente, neuf quêtes, réponses numériques, XP locaux, affichage mobile, manipulation 1–3C, défi et absence d'entrée dans la navigation.
+- node scripts/test_game.mjs : analytique IV-1C, AUC, conservation de masse, retard oral, pente, correction des neuf quêtes, vérification du graphe et des quatre ODE, fT>CMI, AUC∞ linéaire/saturable, C0 et AUCτ après DDI, et absence de référencement.
+- npx playwright test --config playwright.portal.config.js : accès direct, tutoriel, échelles, mesure de pente, neuf quêtes et leurs réponses, parcours de cinq défis avancés, vérification des ODE et des cibles de jeu, versions graphique desktop/mobile, persistance locale, et absence d'entrée dans la navigation.
 - PMx CI scientific-js exécute le test numérique ; le build valide les fichiers montés, l'audit public, puis le navigateur.
 - La CI complète de PMx (5 jobs requis) demeure nécessaire à la fusion et au déploiement.
 
