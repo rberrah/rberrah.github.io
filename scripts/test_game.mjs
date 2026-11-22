@@ -8,6 +8,10 @@ const iv = simulate({ model:1, route:'iv', dose:100, vc:20, cl:4, horizon:24 });
 for(const t of [0,1,5,10,20,24]) near(atTime(iv,t).c,5*Math.exp(-0.2*t),1e-8);
 near(iv.auc,(100/4)*(1-Math.exp(-0.2*24)),0.001);
 near(iv.delivered,100);
+// An IV bolus at the last instant changes C(t), but adds zero AUC over [0, t].
+const boundaryBolus = simulate({ model:1, route:'iv', dose:100, vc:20, cl:4, horizon:24, tau:24, doses:2 });
+near(boundaryBolus.auc, iv.auc, 1e-9);
+near(boundaryBolus.cEnd, iv.cEnd+5, 1e-8);
 near(iv.points[0].c,5);
 near(iv.points[0].gut,0);
 
