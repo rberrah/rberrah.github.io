@@ -89,8 +89,8 @@ jobs:
           for file in \
             dist/index.html \
             dist/game/index.html \
-            dist/game/engine.mjs \
-            dist/game/app.mjs \
+            dist/game/engine.js \
+            dist/game/app.js \
             dist/assets/site.css \
             dist/a-propos/index.html \
             dist/communications/index.html \
