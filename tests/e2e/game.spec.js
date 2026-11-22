@@ -43,6 +43,9 @@ test('diagram interaction and responsive layout work without external requests',
   await page.goto(origin+'/game/');
   await expect(page.locator('h1')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1)).toBe(true);
+  // The mobile settings panel is taller than the viewport: mouse.move() does
+  // not scroll automatically, unlike locator.click(). Expose the SVG first.
+  await page.locator('#diagram').scrollIntoViewIfNeeded();
   const node=page.locator('[data-node="central"]');
   const oldX=Number(await node.locator('rect').getAttribute('x'));
   const box=await node.boundingBox();
