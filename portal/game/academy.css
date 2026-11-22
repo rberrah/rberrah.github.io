@@ -130,3 +130,5 @@
 .advanced-small{font-size:.8rem;color:#a9c4bb;line-height:1.55}
 @media(max-width:970px){#advanced-mode{grid-template-columns:1fr}.advanced-sidebar{position:static}.advanced-sidebar #advanced-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){.advanced-sidebar #advanced-list{grid-template-columns:repeat(2,minmax(0,1fr))}.advanced-stage,.advanced-sidebar{padding:15px}.advanced-control-grid{grid-template-columns:1fr}.advanced-metrics{grid-template-columns:1fr}.ode-term-options button{font-size:.72rem;padding:8px}.advanced-instruction{font-size:.84rem}}
+
+@media(max-width:650px){#body-figure{aspect-ratio:390/760!important;max-height:none!important}}
