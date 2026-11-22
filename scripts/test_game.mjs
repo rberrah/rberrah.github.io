@@ -46,4 +46,6 @@ for(const path of ['portal/index.html','portal/tools/index.html','portal/sitemap
   const text=readFileSync(path,'utf8');
   assert.ok(!text.includes('/game'), path + ' must not advertise the hidden route');
 }
+const injector=readFileSync('scripts/add_portal_analytics.mjs','utf8');
+assert.match(injector,/directory === target && entry.name === 'game'/);
 console.log('PASS: PMx Game analytic IV profile, AUC, mass conservation (6 structures/routes), linearity, bounds and unlisted URL.');
