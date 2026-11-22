@@ -32,6 +32,8 @@ jobs:
         run: node --test scripts/test_site_origin.mjs
       - name: Test PMx educational content and safety contracts
         run: npm run test:pmx
+      - name: Test hidden PK game numerical model
+        run: node scripts/test_pk_game.mjs
       - name: Test scientific communications
         run: npm run test:communications
       - name: Regenerate tracked artifacts and reject drift
