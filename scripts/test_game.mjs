@@ -108,7 +108,7 @@ assert.equal(nonlinearChallenge({linearDose:300,saturableDose:300}).ok,false);
 const mmCurve=oneDoseProfile(200,'mm');
 const linCurve=oneDoseProfile(200,'linear');
 near(mmCurve[0].c,10);near(linCurve[0].c,10);
-assert.ok(mmCurve.at(-1).c>linCurve.at(-1).c);
+assert.ok(mmCurve.find(p=>Math.abs(p.t-1)<1e-7).c>linCurve.find(p=>Math.abs(p.t-1)<1e-7).c);
 // AUCτ at SS follows FD/CL exactly; C0 does not generally scale in the same proportion.
 const baseline=steadyStateOral();
 const inhibited=steadyStateOral({cl:2.5});
