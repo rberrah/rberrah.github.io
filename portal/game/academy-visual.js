@@ -47,7 +47,7 @@ export function renderCurve(svg,result,quest,scale,solved,probes){
   const last=result.points.at(-1);
   if((scale!=='log'||last.c>0))points.push(g.x(last.t).toFixed(2)+','+g.y(last.c).toFixed(2));
   if(points.length>1)s+='<polyline points="'+points.join(' ')+'" fill="none" stroke="#8af2d4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
-  if(quest.id==='lag'){
+  if(quest.id==='lag' && solved){
     const x=g.x(2);
     s+='<line x1="'+x+'" x2="'+x+'" y1="27" y2="287" stroke="#e8bc83" stroke-dasharray="5 5" stroke-width="2"/>';
     if(solved)s+='<text x="'+(x+7)+'" y="50" fill="#f4d2a0" font-size="14">Tlag : 2 h</text>';
