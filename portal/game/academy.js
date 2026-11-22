@@ -35,10 +35,14 @@ function togglePlay(){
 }
 function showMode(name){
   const academy=name==='academy';
+  const lab=name==='lab';
+  const advanced=name==='advanced';
   $('academy-mode').hidden=!academy;
-  $('lab-mode').hidden=academy;
+  $('lab-mode').hidden=!lab;
+  $('advanced-mode').hidden=!advanced;
   $('mode-campaign').setAttribute('aria-pressed',String(academy));
-  $('mode-lab').setAttribute('aria-pressed',String(!academy));
+  $('mode-lab').setAttribute('aria-pressed',String(lab));
+  $('mode-advanced').setAttribute('aria-pressed',String(advanced));
   if(!academy)pause();
   else {
     const play=$('play');
@@ -203,6 +207,7 @@ function selectProbe(event){
 }
 $('mode-campaign').addEventListener('click',()=>showMode('academy'));
 $('mode-lab').addEventListener('click',()=>showMode('lab'));
+$('mode-advanced').addEventListener('click',()=>showMode('advanced'));
 $('tutorial-next').addEventListener('click',nextTutorial);
 $('academy-linear').addEventListener('click',()=>{scale='linear';probes=[];drawChart();});
 $('academy-log').addEventListener('click',()=>{scale='log';probes=[];drawChart();});
