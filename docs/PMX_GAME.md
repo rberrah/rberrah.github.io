@@ -5,7 +5,7 @@
 ## Distribution discrète
 
 - Page autonome /game/ (portal/game/index.html) sur le domaine racine.
-- Aucune entrée de navigation, aucun lien depuis le portail ou PMx, aucune entrée de sitemap. La page porte robots=noindex,nofollow,noarchive.
+- Aucune entrée de navigation, aucun lien depuis le portail ou PMx, aucune entrée de sitemap. Le script d'assemblage n'injecte pas GoatCounter dans ce sous-arbre. La page porte robots=noindex,nofollow,noarchive.
 - Le contenu est **public** sur GitHub Pages ; l'absence de lien n'est **pas** un contrôle d'accès. Ne jamais y traiter de données médicales ou personnelles.
 - Ne pas ajouter la route à /pharmacometrie/ ni modifier les contrats MIPD/MultiOmics.
 - Les modules ES sont servis depuis portal/game/*.js, compatibles avec le serveur de prévisualisation et son MIME text/javascript.
