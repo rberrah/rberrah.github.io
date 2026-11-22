@@ -89,3 +89,44 @@
 .body-legend b{display:block;font-size:1.04rem;margin-top:4px}
 .body-hint{font-size:.85rem!important;max-width:75ch;margin-top:10px!important}
 @media(max-width:650px){.body-legend{grid-template-columns:repeat(2,minmax(0,1fr))}.quest-visuals{gap:12px}.body-card{display:block}}
+
+
+/* Course missions, independent of the scientific/clinical PK laboratories */
+#advanced-mode{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,1fr);gap:18px;align-items:start;min-width:0}
+.advanced-sidebar{padding:20px;position:sticky;top:12px}
+.advanced-sidebar h2{font-size:1.13rem;margin:0 0 8px}
+.advanced-sidebar>p{font-size:.82rem;color:#a5c2c1;line-height:1.55}
+.advanced-content{display:grid;gap:16px;min-width:0}
+.advanced-stage{padding:23px;min-width:0}
+.advanced-instruction{color:#c5ddd7;line-height:1.65;font-size:.92rem;margin:0 0 21px}
+.advanced-instruction strong{color:#a8eed9}
+.advanced-palette{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+.advanced-graph{width:100%;height:auto;background:#102933;border:1px solid #32565b;border-radius:14px;display:block;min-height:210px}
+.advanced-graph [data-graph-node]{cursor:pointer}
+.advanced-graph [data-graph-node]:focus-visible rect{stroke:#ffdb9d;stroke-width:4}
+.advanced-prompt{color:#a7d0c8;font-size:.82rem}
+.advanced-arrows{display:flex;gap:8px;flex-wrap:wrap;margin:11px 0}
+.advanced-arrows .quest-btn{min-height:32px;font-size:.76rem;padding:8px 10px}
+.ode-editor{display:grid;gap:12px}
+.ode-row{border:1px solid #31585d;background:#142c34;border-radius:13px;padding:15px}
+.ode-row h3{display:inline-block;vertical-align:middle;font-size:1rem;color:#a2e9d9;margin:0 10px 10px 0}
+.ode-rhs{display:inline-block;vertical-align:middle;padding:9px 12px;background:#09242b;border-radius:9px;max-width:100%;word-break:break-word;color:#e4f9ee;font-size:.92rem;font-weight:700}
+.ode-term-options{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ode-term-options button{min-height:36px;border:1px solid #416262;border-radius:8px;padding:8px 10px;background:#254047;color:#dcece4;cursor:pointer;font-size:.78rem}
+.ode-term-options button[aria-pressed="true"]{background:#7be7cb;color:#092c27;border-color:#7be7cb;font-weight:800}
+.ode-term-options button[disabled]{opacity:.75}
+.advanced-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.advanced-control-grid label{font-size:.87rem;color:#c5dcd7;display:block;line-height:1.6;background:#14323a;padding:15px;border:1px solid #31575b;border-radius:11px}
+.advanced-control-grid label strong{display:block;color:#93f0d4;font-size:1.15rem;font-variant-numeric:tabular-nums;margin:7px 0}
+.advanced-control-grid input[type=range]{display:block;width:100%;accent-color:#77e6cf;margin-top:10px}
+.advanced-control-grid select,.advanced-control-grid input[type=number]{width:100%;padding:11px 12px;background:#0c262e;border:1px solid #4b7171;color:#effbf6;border-radius:9px;margin-top:10px}
+.advanced-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}
+.advanced-metrics span{background:#16373d;padding:14px;border:1px solid #356565;border-radius:11px;color:#b9d3cb;font-size:.82rem;min-width:0}
+.advanced-metrics strong{display:block;font-size:clamp(1.2rem,2.3vw,1.6rem);margin-top:6px;font-variant-numeric:tabular-nums;color:#a4f6d5}
+.advanced-chart{width:100%;height:auto;background:#10242d;border:1px solid #325358;border-radius:12px;margin:2px 0}
+.advanced-legend{display:flex;align-items:center;gap:9px;flex-wrap:wrap;color:#bfd8d0;font-size:.82rem;margin:6px 0}
+.legend-line{width:25px;height:4px;display:inline-block;vertical-align:middle;border-radius:4px}
+.legend-line.mint{background:#91e8d0}.legend-line.peach{background:#f3b980}
+.advanced-small{font-size:.8rem;color:#a9c4bb;line-height:1.55}
+@media(max-width:970px){#advanced-mode{grid-template-columns:1fr}.advanced-sidebar{position:static}.advanced-sidebar #advanced-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){.advanced-sidebar #advanced-list{grid-template-columns:repeat(2,minmax(0,1fr))}.advanced-stage,.advanced-sidebar{padding:15px}.advanced-control-grid{grid-template-columns:1fr}.advanced-metrics{grid-template-columns:1fr}.ode-term-options button{font-size:.72rem;padding:8px}.advanced-instruction{font-size:.84rem}}
