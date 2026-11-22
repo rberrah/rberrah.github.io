@@ -1,4 +1,4 @@
-/** @typedef {{route?: 'oral'|'iv', dose?: number, f?: number, ka?: number, cl?: number, vc?: number, q1?: number, vp1?: number, q2?: number, vp2?: number, compartments?: number, horizon?: number}} GameConfig */
+/** @typedef {{route?: string, dose?: number, f?: number, ka?: number, cl?: number, vc?: number, q1?: number, vp1?: number, q2?: number, vp2?: number, compartments?: number, horizon?: number}} GameConfig */
 import { rk4 } from './ode.js';
 
 // Amount-based mammillary PK model. Units: mg, L, h, mg/L.
