@@ -35,10 +35,14 @@ function togglePlay(){
 }
 function showMode(name){
   const academy=name==='academy';
+  const lab=name==='lab';
+  const advanced=name==='advanced';
   $('academy-mode').hidden=!academy;
-  $('lab-mode').hidden=academy;
+  $('lab-mode').hidden=!lab;
+  $('advanced-mode').hidden=!advanced;
   $('mode-campaign').setAttribute('aria-pressed',String(academy));
-  $('mode-lab').setAttribute('aria-pressed',String(!academy));
+  $('mode-lab').setAttribute('aria-pressed',String(lab));
+  $('mode-advanced').setAttribute('aria-pressed',String(advanced));
   if(!academy)pause();
   else {
     const play=$('play');
@@ -76,13 +80,15 @@ function createAnswers(){
     input.type='number';input.id='academy-number';input.name='number';
     input.min='0';input.max=quest.id==='slope'?'5':'6';
     input.step=quest.id==='slope'?'0.01':'0.25';
-    input.placeholder=quest.id==='slope'?'0.25':'2';
+    input.placeholder='Votre estimation';
     input.setAttribute('aria-label',quest.id==='slope'?'Constante k en h-1':'Tlag en heures');
     const unit=document.createElement('span');unit.textContent=quest.id==='slope'?'h⁻¹':'heures';
     parent.append(input,unit);
   }else{
     parent.className='question-options';
-    quest.options.forEach((option,i)=>{
+    const choices=quest.options.map((option,i)=>({option,i}));
+    for(let n=choices.length-1;n>0;n--){const j=Math.floor(Math.random()*(n+1));[choices[n],choices[j]]=[choices[j],choices[n]];}
+    choices.forEach(({option,i})=>{
       const label=document.createElement('label');label.className='answer-option';
       const input=document.createElement('input');input.type='radio';input.name='quest-option';input.value=String(i);
       const text=document.createElement('span');text.textContent=option;
@@ -134,10 +140,11 @@ function selectQuest(i){
   scale=quest.scale;t=0;probes=[];solved=progress.completed.includes(quest.id);
   tutorialStep=i===0&&!solved?0:2;
   $('academy-chapter').textContent=quest.chapter;
+  document.querySelector('.quest-visuals')?.classList.toggle('journey',quest.id==='voyage');
   $('quest-level').textContent='Mission '+(i+1)+' / '+QUESTS.length+' · '+quest.xp+' XP';
   $('academy-title').textContent=quest.title;$('academy-summary').textContent=quest.summary;
   $('academy-tag').textContent=quest.tag;
-  $('academy-question-title').textContent=quest.learning;
+  $('academy-question-title').textContent='Examinez les indices';
   $('academy-question-text').textContent=quest.question;
   $('academy-hint-text').textContent=quest.hint;
   $('academy-hint-text').hidden=true;
@@ -200,6 +207,7 @@ function selectProbe(event){
 }
 $('mode-campaign').addEventListener('click',()=>showMode('academy'));
 $('mode-lab').addEventListener('click',()=>showMode('lab'));
+$('mode-advanced').addEventListener('click',()=>showMode('advanced'));
 $('tutorial-next').addEventListener('click',nextTutorial);
 $('academy-linear').addEventListener('click',()=>{scale='linear';probes=[];drawChart();});
 $('academy-log').addEventListener('click',()=>{scale='log';probes=[];drawChart();});
@@ -218,5 +226,6 @@ $('quest-reset').addEventListener('click',()=>{
   if(!confirm('Recommencer les neuf quêtes sur ce navigateur ?'))return;
   pause();progress={completed:[],xp:0};save();selectQuest(0);
 });
+window.addEventListener('resize',()=>{if(!$('academy-mode').hidden)drawTime();});
 selectQuest(index);
 showMode('academy');

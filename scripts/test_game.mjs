@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DEFAULTS, CHALLENGE, STEP, atTime, fitScore, simulate, validate } from '../portal/game/engine.js';
 import { QUESTS, profileFor, grade, logSlope, validateProgress, unlockedIndex } from '../portal/game/academy-core.js';
+import { ADVANCED_MISSIONS, GRAPH_NODES, GRAPH_EDGES, ODE_STATES, validateGraph, validateOdes, steadyStateBolus, gradeMic, aucLinear, aucMichaelis, nonlinearChallenge, oneDoseProfile, steadyStateOral, ddiChallenge, gradeDdi } from '../portal/game/advanced-core.js';
 
 const near = (a,b,tol=1e-6) => assert.ok(Math.abs(a-b)<=tol, a + ' differs from ' + b);
 const iv = simulate({ model:1, route:'iv', dose:100, vc:20, cl:4, horizon:24 });
@@ -81,8 +82,58 @@ assert.equal(unlockedIndex(QUESTS.map(q=>q.id)),8);
 assert.ok(profileFor(QUESTS[2]).points.length>profileFor(QUESTS[1]).points.length);
 
 
+
+// Course exercises are deterministic and must not endorse clinical prescriptions.
+assert.equal(ADVANCED_MISSIONS.length,5);
+assert.deepEqual(ADVANCED_MISSIONS.map(m=>m.id),['graph','odes','mic','nonlinear','ddi']);
+assert.equal(validateGraph(GRAPH_NODES.map(n=>n.id),GRAPH_EDGES).ok,true);
+assert.equal(validateGraph(['gut','central','peripheral','exit'],['gut>central','central>peripheral']).ok,false);
+assert.equal(validateGraph(GRAPH_NODES.map(n=>n.id),[...GRAPH_EDGES,'peripheral>exit']).ok,false);
+const correctOdes=Object.fromEntries(ODE_STATES.map(row=>[row.id,row.expected]));
+assert.equal(validateOdes(correctOdes).ok,true);
+assert.deepEqual(validateOdes({...correctOdes,central:['gut_in','elimination']}).wrong,['central']);
+const metric=steadyStateBolus({dose:200,tau:8});
+near(metric.fT,0.7658539094943748,1e-10);
+near(metric.auc24,120,1e-12);
+assert.equal(gradeMic({dose:200,tau:8}).ok,true);
+assert.equal(gradeMic({dose:100,tau:8}).ok,false);
+assert.equal(gradeMic({dose:300,tau:8}).ok,false);
+near(aucLinear(200),40);
+near(aucLinear(300),60);
+near(aucMichaelis(100),15);
+near(aucMichaelis(200),140/3,1e-9);
+assert.ok(aucMichaelis(200)/aucMichaelis(100)>2.9);
+assert.equal(nonlinearChallenge({linearDose:300,saturableDose:230}).ok,true);
+assert.equal(nonlinearChallenge({linearDose:300,saturableDose:300}).ok,false);
+const mmCurve=oneDoseProfile(200,'mm');
+const linCurve=oneDoseProfile(200,'linear');
+near(mmCurve[0].c,10);near(linCurve[0].c,10);
+assert.ok(mmCurve.find(p=>Math.abs(p.t-1)<1e-7).c>linCurve.find(p=>Math.abs(p.t-1)<1e-7).c);
+// AUCτ at SS follows FD/CL exactly; C0 does not generally scale in the same proportion.
+const baseline=steadyStateOral();
+const inhibited=steadyStateOral({cl:2.5});
+near(baseline.auc,16);
+near(inhibited.auc,32);
+near(inhibited.auc/baseline.auc,2);
+assert.ok(inhibited.cmin/baseline.cmin>3.5);
+assert.ok(steadyStateOral({cl:2.5}).points.every(p=>Number.isFinite(p.c)&&p.c>0));
+const dd=ddiChallenge(2.5);
+assert.equal(gradeDdi(2.5,dd.troughRatio).ok,true);
+assert.equal(gradeDdi(2.5,dd.aucRatio).ok,false);
+assert.equal(gradeDdi(4.5,1.3).ok,false);
+assert.throws(()=>steadyStateOral({cl:0}),RangeError);
+assert.throws(()=>steadyStateBolus({mic:0}),RangeError);
+// No answers are rendered in numerical placeholders or lag annotations before solving.
+const academySource=readFileSync('portal/game/academy.js','utf8');
+const visualSource=readFileSync('portal/game/academy-visual.js','utf8');
+assert.match(academySource,/input.placeholder='Votre estimation'/);
+assert.match(academySource,/choices.length-1/);
+assert.match(visualSource,/quest.id==='lag' && solved/);
+assert.ok(QUESTS.find(q=>q.id==='flip').question.toLowerCase().includes('clairance'));
+assert.ok(QUESTS.find(q=>q.id==='flip').options[QUESTS.find(q=>q.id==='flip').answer].includes('pente orale'));
+
 const page=readFileSync('portal/game/index.html','utf8');
-for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','src="./academy.js"','href="./academy.css"','id="academy-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
+for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','src="./academy.js"','href="./academy.css"','id="academy-mode"','id="advanced-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
   assert.ok(page.includes(expected), expected + ' missing');
 for(const path of ['portal/index.html','portal/tools/index.html','portal/sitemap.xml']) {
   const text=readFileSync(path,'utf8');

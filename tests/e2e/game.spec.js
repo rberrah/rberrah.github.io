@@ -75,6 +75,8 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
   await expect(page.locator('#quest-count')).toHaveText('0/9');
   await expect(page.locator('#quest-list button[disabled]')).toHaveCount(8);
   await expect(page.locator('#body-figure')).toContainText('INTESTIN');
+  await expect(page.locator('#body-figure [data-stage]')).toHaveCount(4);
+  await expect(page.locator('#academy-answers input:checked')).toHaveCount(0);
   await expect(page.locator('#tutorial-step')).toContainText('1 / 3');
   await page.locator('#tutorial-next').click();
   await expect(page.locator('#tutorial-step')).toContainText('2 / 3');
@@ -106,6 +108,8 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
   await page.locator('#academy-next').click();
   await expect(page.locator('#academy-title')).toHaveText('Le départ retardé');
   await expect(page.locator('#academy-answers input[type="number"]')).toBeVisible();
+  await expect(page.locator('#academy-number')).toHaveAttribute('placeholder','Votre estimation');
+  await expect(page.locator('#academy-chart')).not.toContainText('Tlag : 2 h');
   await page.locator('#academy-number').fill('1');
   await page.locator('#academy-verify').click();
   await expect(page.locator('#academy-feedback')).toContainText(/réessayez/i);
@@ -117,7 +121,7 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
   await page.locator('#academy-number').fill('0.25');
   await page.locator('#academy-verify').click();
   await expect(page.locator('#academy-feedback')).toContainText('2,77 h');
-  for(const correct of [1,2,0,1]){
+  for(const correct of [1,2,1,1]){
     await page.locator('#academy-next').click();
     await page.locator('input[name="quest-option"][value="'+correct+'"]').check();
     await page.locator('#academy-verify').click();
@@ -143,5 +147,89 @@ test('campaign renders at narrow width without horizontal scrolling, with locall
   await expect(page.locator('script[data-portal-analytics]')).toHaveCount(0);
   await page.locator('#academy-time').evaluate(el=>{el.value='5';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await expect(page.locator('#academy-clock')).toHaveText('5,0 h');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
+
+
+test('advanced curriculum requires drawing 2C, full ODE assembly and three dose optimizations', async ({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/game/');
+  await page.locator('#mode-advanced').click();
+  await expect(page.locator('#advanced-mode')).toBeVisible();
+  await expect(page.locator('#academy-mode')).toBeHidden();
+  await expect(page.locator('#advanced-count')).toHaveText('0/5');
+  await expect(page.locator('#advanced-list button[disabled]')).toHaveCount(4);
+
+  for(const id of ['gut','central','peripheral','exit']){
+    await page.locator('[data-add-node="'+id+'"]').click();
+  }
+  for(const [a,b] of [['gut','central'],['central','peripheral'],['peripheral','central'],['central','exit']]){
+    await page.locator('[data-graph-node="'+a+'"]').click();
+    await page.locator('[data-graph-node="'+b+'"]').click();
+  }
+  await expect(page.locator('#adv-graph-edges button')).toHaveCount(4);
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('1/5');
+  await expect(page.locator('#advanced-feedback')).toContainText('Défi validé');
+  await page.locator('#advanced-next').click();
+
+  for(const [state,token] of [
+    ['gut','gut_out'],['central','gut_in'],['central','elimination'],
+    ['central','tissue_out'],['peripheral','tissue_in'],['eliminated','elim_accum']
+  ])await page.locator('[data-ode-state="'+state+'"][data-term="'+token+'"]').click();
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('2/5');
+  await expect(page.locator('#advanced-feedback')).toContainText('conservent la masse');
+  await page.locator('#advanced-next').click();
+
+  await expect(page.locator('#advanced-title')).toHaveText('Mission CMI');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-feedback')).toContainText('Objectif du jeu non atteint');
+  await page.locator('#adv-mic-dose').evaluate(el=>{
+    el.value='200';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await expect(page.locator('#adv-mic-ft')).toContainText('76,6 %');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('3/5');
+  await page.locator('#advanced-next').click();
+
+  await page.locator('#adv-linear-dose').evaluate(el=>{
+    el.value='300';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await page.locator('#adv-mm-dose').evaluate(el=>{
+    el.value='230';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await expect(page.locator('#adv-linear-auc')).toContainText('60,0');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('4/5');
+  await page.locator('#advanced-next').click();
+
+  await expect(page.locator('#adv-ddi-auc-ratio')).toContainText('×2,00');
+  await expect(page.locator('#adv-ddi-c0-ratio')).toHaveText('À estimer');
+  await page.locator('#adv-ddi-prediction').fill('2');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-feedback')).toContainText('ne correspond pas');
+  // Incorrect predictions must not award XP or display the ground truth.
+  await expect(page.locator('#advanced-count')).toHaveText('4/5');
+  await page.locator('#adv-ddi-prediction').fill('3.93');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('5/5');
+  await expect(page.locator('#advanced-xp')).toHaveText('580 XP');
+  await expect(page.locator('#adv-ddi-c0-ratio')).toContainText('×3,93');
+  await page.reload();
+  await page.locator('#mode-advanced').click();
+  await expect(page.locator('#advanced-count')).toHaveText('5/5');
+  expect(errors).toEqual([]);
+});
+
+test('advanced model editor and physiology remain readable on mobile without page overflow',async({page})=>{
+  await page.setViewportSize({width:360,height:760});
+  await page.goto(origin+'/game/');
+  await expect(page.locator('#body-figure')).toHaveAttribute('viewBox','0 0 390 760');
+  await expect(page.locator('.body-legend span')).toHaveCount(4);
+  await page.locator('#mode-advanced').click();
+  await expect(page.locator('#adv-graph-svg')).toBeVisible();
+  await page.locator('[data-add-node="central"]').click();
+  await expect(page.locator('[data-graph-node="central"]')).toHaveCount(1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });

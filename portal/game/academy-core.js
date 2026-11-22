@@ -44,14 +44,14 @@ export const QUESTS = Object.freeze([
     learning:'Observer les composantes rapide et terminale sur une même courbe.'
   },
   {
-    id:'lag',chapter:'Chapitre II · Absorber',title:'Le départ retardé',tag:'Lag time',
+    id:'lag',chapter:'Chapitre II · Absorber',title:'Le départ retardé',tag:'Absorption retardée',
     summary:'Repérez le délai d’apparition plasmatique.',
     config:{model:1,route:'oral',dose:100,f:0.9,ka:1.5,lag:2,vc:20,cl:4,horizon:24},
     scale:'linear',focus:'gut',xp:80,answerMode:'number',answerValue:2,tolerance:0.25,
     question:'Estimez le Tlag (en h) : à quel moment l’absorption commence-t-elle dans cette simulation idéale ?',
     options:['Un temps de latence de l’absorption (Tlag)','Une augmentation du volume central uniquement','Une deuxième phase d’élimination'],
     answer:0,
-    hint:'Cherchez le premier instant où apparaît une concentration strictement positive.',
+    hint:'Le premier échantillon non nul apparaît après une période de concentration quasi nulle ; zoomez sur le début de la courbe.',
     explanation:'Un Tlag de 2 h retarde le début de l’entrée systémique dans cette simulation. Un Ka faible peut ralentir la montée mais n’impose pas un intervalle exactement nul. Dans des observations réelles, une limite de quantification ou un plan de prélèvement lacunaire peut imiter ce signal.',
     learning:'Différencier retard d’apparition et vitesse d’absorption.'
   },
@@ -60,10 +60,10 @@ export const QUESTS = Object.freeze([
     summary:'Déduisez k à partir de deux points.',
     config:{model:1,route:'iv',dose:100,cl:5,vc:20,horizon:24},
     scale:'log',focus:'blood',xp:90,answerMode:'number',answerValue:0.25,tolerance:0.025, markers:[2,6],
-    question:'Entre 2 h et 6 h, ln(C) diminue d’environ 1 unité. Quelle est la constante k = −Δln(C)/Δt ?',
+    question:'Mesurez les concentrations à 2 h et 6 h en semi-log, puis calculez k = −[ln C(6) − ln C(2)] / 4 h (en h⁻¹).',
     options:['0,05 h⁻¹','0,25 h⁻¹','1,00 h⁻¹'],
     answer:1,
-    hint:'Δt = 4 h. La valeur absolue de Δln(C) est environ 1.',
+    hint:'Mesurez les concentrations, calculez leur logarithme naturel, puis divisez la différence par l’intervalle de 4 h.',
     explanation:'k ≈ 1/4 = 0,25 h⁻¹ et t½ = ln(2)/k ≈ 2,77 h. Dans ce cas 1C IV, k = CL/Vc. Pour un modèle multicompartmental, la pente terminale ne correspond pas nécessairement à CL/Vc.',
     learning:'Lire une pente logarithmique, puis estimer une demi-vie.'
   },
@@ -92,16 +92,16 @@ export const QUESTS = Object.freeze([
     learning:'Voir pourquoi une fenêtre courte peut masquer des phases.'
   },
   {
-    id:'flip',chapter:'Chapitre IV · Douter',title:'Le piège de la demi-vie',tag:'Flip-flop',
-    summary:'La pente terminale peut refléter l’absorption.',
+    id:'flip',chapter:'Chapitre IV · Douter',title:'Le piège de la demi-vie',tag:'Interprétation critique',
+    summary:'La courbe orale raconte-t-elle toujours la clairance ?',
     config:{model:1,route:'oral',dose:100,vc:20,cl:5,ka:0.12,f:0.9,horizon:72},
     scale:'log',focus:'gut',xp:100,
-    question:'Ka = 0,12 h⁻¹ et CL/Vc = 0,25 h⁻¹. À quelle vitesse la pente terminale tend-elle dans ce modèle oral 1C ?',
-    options:['Ka ≈ 0,12 h⁻¹','Toujours CL/Vc = 0,25 h⁻¹','Ka + CL/Vc = 0,37 h⁻¹'],
-    answer:0,
-    hint:'Dans une somme de termes exponentiels, le terme qui décroît le plus lentement domine tardivement.',
+    question:'La pente terminale après une prise orale vaut environ −0,12 h⁻¹, contre −0,25 h⁻¹ après administration IV. Quelle conclusion concernant l’estimation de la clairance est justifiée ?',
+    options:['La clairance est nécessairement réduite de moitié par la voie orale','La pente orale peut refléter une absorption lente : elle ne permet pas, seule, d’estimer CL','La biodisponibilité détermine automatiquement la constante d’élimination'], 
+    answer:1,
+    hint:'Pour estimer une clairance, demandez-vous si la phase terminale reflète bien l’élimination et quelles données complémentaires permettraient de le vérifier.',
     explanation:'Comme Ka < CL/Vc, l’absorption est limitante et la pente terminale tend vers −Ka (flip-flop). Une courbe orale seule ne permet pas toujours de distinguer les constantes d’absorption et d’élimination sans information supplémentaire, comme une référence IV.',
-    learning:'Ne pas assimiler toute pente terminale à la clairance.'
+    learning:'Interpréter une pente terminale orale sans en déduire abusivement CL.'
   },
   {
     id:'boss',chapter:'Final · Diagnostic',title:'Le dossier inconnu',tag:'Mission finale',

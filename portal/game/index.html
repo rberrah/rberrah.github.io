@@ -38,9 +38,10 @@
 <body>
 <div class="wrap">
   <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><span class="pill">Prototype pédagogique · sans données patients</span></header>
-  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Devenez détective des courbes pharmacocinétiques.</h1><p>Neuf quêtes interactives pour reconnaître les phases PK, lire une échelle semi-logarithmique, estimer un lag time ou une pente et comprendre les limites des modèles. Débloquez ensuite le laboratoire pour expérimenter librement.</p></section>
+  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Neuf quêtes et cinq défis avancés pour reconnaître les phases PK, lire une échelle semi-logarithmique, estimer un lag time ou une pente et comprendre les limites des modèles. Débloquez ensuite le laboratoire pour expérimenter librement.</p></section>
   <nav class="game-mode" aria-label="Choisir un mode">
     <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
+    <button id="mode-advanced" aria-pressed="false">Parcours avancé · 5 défis</button>
     <button id="mode-lab" aria-pressed="false">Atelier libre · Construire</button>
     <span class="mode-caption">Progression pédagogique sauvegardée uniquement dans ce navigateur.</span>
   </nav>
@@ -75,11 +76,11 @@
           <p class="quiz-probe" id="academy-probe" aria-live="polite">Cliquez deux fois sur la courbe pour mesurer une pente.</p>
         </section>
         <section class="panel quest-card body-card">
-          <h3>Le voyage dans le corps</h3>
-          <svg id="body-figure" viewBox="0 0 350 370" role="img" aria-label="Illustration conceptuelle de l'absorption, circulation, tissus et élimination"></svg>
+          <h3>Le voyage dans le corps · quatre étapes</h3>
+          <svg id="body-figure" viewBox="0 0 820 415" role="img" aria-label="Illustration conceptuelle de l'absorption, circulation, tissus et élimination"></svg>
           <div>
             <div class="body-legend"><span>Digestif : <b id="body-gut">0 mg</b></span><span>Circulation : <b id="body-central">0 mg</b></span><span>Tissus : <b id="body-tissue">0 mg</b></span><span>Éliminé : <b id="body-eliminated">0 mg</b></span></div>
-            <p class="body-hint">Schéma physiologique <strong>illustratif</strong> : les compartiments centraux et périphériques ne sont pas des organes. Les voies d’élimination ne sont pas réparties entre foie et reins par ce modèle.</p>
+            <p class="body-hint"><strong>Suivez les flèches :</strong> le dépôt digestif alimente la circulation ; le sang échange avec les tissus et porte aussi la voie d’élimination. Représentation pédagogique, pas un modèle PBPK : les tissus ne sont pas des compartiments anatomiques et la clairance n’est pas séparée entre foie et reins.</p>
             <div class="quest-timeline">
               <button id="academy-play" aria-label="Lecture de la simulation">▶</button>
               <input id="academy-time" type="range" min="0" max="24" step="0.25" value="0" aria-label="Explorer le temps de simulation">
@@ -115,6 +116,41 @@
         </div>
       </section>
       <p class="quest-caveat">Toutes les missions reposent sur des profils synthétiques déterministes. Les pentes ou courbures fournissent des indices, pas une identification de structure ou une preuve physiologique sans comparaison de modèles, prélèvements informatifs et diagnostics.</p>
+    </div>
+  </section>
+
+
+  <section id="advanced-mode" hidden aria-label="Parcours avancé de pharmacocinétique">
+    <aside class="panel advanced-sidebar">
+      <h2>À vous de construire</h2>
+      <p>De nouvelles missions pour apprendre en manipulant des structures, des équations et des paramètres simulés.</p>
+      <div class="quest-stats">
+        <div class="quest-stat"><span>Défis validés</span><strong id="advanced-count">0/5</strong></div>
+        <div class="quest-stat"><span>Expérience</span><strong id="advanced-xp">0 XP</strong></div>
+      </div>
+      <div id="advanced-list" class="quest-list" aria-label="Défis avancés"></div>
+      <button id="advanced-reset" class="reset-journey">Réinitialiser les défis avancés</button>
+    </aside>
+    <div class="advanced-content">
+      <header class="quest-heading">
+        <span id="advanced-chapter" class="chapter">Architecture PK</span>
+        <span id="advanced-level" class="quest-level">Mission 1 / 5</span>
+        <h2 id="advanced-title">Dessiner le modèle</h2>
+        <p id="advanced-intro">Composez un modèle pharmacocinétique et vérifiez sa cohérence.</p>
+      </header>
+      <section class="panel advanced-stage" id="advanced-stage" aria-label="Défi à réaliser"></section>
+      <div class="panel tutor-panel">
+        <div class="tutorial-step">Conseils de l'enseignant</div>
+        <p id="advanced-teacher">Manipulez les éléments, puis vérifiez la solution lorsque vous avez terminé.</p>
+        <div id="advanced-feedback" class="quest-feedback" role="status" aria-live="polite" hidden></div>
+        <div class="quest-actions">
+          <button id="advanced-check" class="quest-btn primary">Vérifier ma solution</button>
+          <button id="advanced-hint" class="quest-btn">Demander un indice</button>
+          <button id="advanced-next" class="quest-btn primary" hidden>Défi suivant</button>
+        </div>
+        <p id="advanced-hint-text" class="tutorial-notice" hidden></p>
+      </div>
+      <p class="quest-caveat"><strong>Exercices fictifs uniquement.</strong> Les paramètres, objectifs d'AUC, CMI et concentrations ont été inventés pour l'apprentissage. Les résultats ne constituent ni une cible thérapeutique validée, ni une adaptation posologique clinique. Les schémas structurels sont des abstractions PK et non un modèle PBPK.</p>
     </div>
   </section>
 
@@ -170,4 +206,5 @@
 </div>
 <script type="module" src="./app.js"></script>
 <script type="module" src="./academy.js"></script>
+<script type="module" src="./advanced.js"></script>
 </body></html>
