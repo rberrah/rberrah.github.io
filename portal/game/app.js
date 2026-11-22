@@ -205,13 +205,21 @@ $('challenge').addEventListener('click',()=>{
 $('play').addEventListener('click',togglePlay);
 $('time').addEventListener('input',()=>{pause();time=Number($('time').value);showTime();});
 const diagram=$('diagram');
+function pointerCoordinates(ev) {
+  const screen=diagram.getScreenCTM();
+  if(screen){
+    const point=diagram.createSVGPoint();
+    point.x=ev.clientX; point.y=ev.clientY;
+    return point.matrixTransform(screen.inverse());
+  }
+  const bounds=diagram.getBoundingClientRect();
+  return {x:(ev.clientX-bounds.left)*820/bounds.width,y:(ev.clientY-bounds.top)*440/bounds.height};
+}
 function pickNode(ev) {
   const el=ev.target?.closest?.('[data-node]');
   if (el && el.dataset.node !== 'eliminated') return el.dataset.node;
   // Fallback for SVG touch hit-testing, including letterboxed viewBox sizes.
-  const bounds=diagram.getBoundingClientRect();
-  const x=(ev.clientX-bounds.left)*820/bounds.width;
-  const y=(ev.clientY-bounds.top)*440/bounds.height;
+  const {x,y}=pointerCoordinates(ev);
   return ['gut','central','p1','p2'].find(id=>{
     if(id==='gut' && config.route!=='oral')return false;
     if(id==='p1' && config.model<2)return false;
@@ -229,9 +237,9 @@ function beginDrag(ev) {
 }
 function moveDrag(ev) {
   if(!dragging)return;
-  const bounds=diagram.getBoundingClientRect();
-  positions[dragging].x=fit((ev.clientX-bounds.left)*820/bounds.width,100,716);
-  positions[dragging].y=fit((ev.clientY-bounds.top)*440/bounds.height,72,374);
+  const {x,y}=pointerCoordinates(ev);
+  positions[dragging].x=fit(x,100,716);
+  positions[dragging].y=fit(y,72,374);
   drawDiagram();
 }
 function stopDrag(){ dragging=null; }
