@@ -2,7 +2,7 @@ import { DEFAULTS, CHALLENGE, simulate, atTime, fitScore } from './engine.js';
 
 const $ = id => document.getElementById(id);
 const fmt = (x, digits = 1) => Number(x).toLocaleString('fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
-const UNIT = { dose: 'mg', f: '', ka: 'h⁻¹', cl: 'L/h', vc: 'L', q1: 'L/h', vp1: 'L', q2: 'L/h', vp2: 'L' };
+const UNIT = { dose: 'mg', f: '', ka: 'h⁻¹', lag: 'h', cl: 'L/h', vc: 'L', q1: 'L/h', vp1: 'L', q2: 'L/h', vp2: 'L' };
 const positions = {
   gut: { x: 138, y: 135 }, central: { x: 386, y: 223 },
   p1: { x: 655, y: 109 }, p2: { x: 655, y: 350 },
