@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DEFAULTS, CHALLENGE, STEP, atTime, fitScore, simulate, validate } from '../portal/game/engine.js';
+import { QUESTS, profileFor, grade, logSlope, validateProgress, unlockedIndex } from '../portal/game/academy-core.js';
 
 const near = (a,b,tol=1e-6) => assert.ok(Math.abs(a-b)<=tol, a + ' differs from ' + b);
 const iv = simulate({ model:1, route:'iv', dose:100, vc:20, cl:4, horizon:24 });
@@ -43,8 +44,45 @@ for(const bad of [{dose:0},{ka:Infinity},{vc:0},{model:4},{route:'inject'},{hori
   assert.throws(()=>validate(bad),RangeError);
 near(STEP,0.025);
 
+const delayed=simulate({model:1,route:'oral',lag:2,ka:1.5,horizon:24});
+near(atTime(delayed,1.975).c,0);
+near(atTime(delayed,2).gut,80);
+assert.ok(atTime(delayed,2.05).c>0);
+const immediate=simulate({model:1,route:'oral',lag:0,ka:1.5,horizon:24});
+assert.ok(atTime(immediate,1).c>0);
+assert.throws(()=>simulate({lag:6.25}),RangeError);
+const ivWithLag=simulate({model:1,route:'iv',lag:2});
+near(ivWithLag.points[0].c,100/25);
+
+assert.equal(QUESTS.length,9);
+assert.deepEqual(QUESTS.map(q=>q.id),['voyage','mono','bi','lag','slope','three','samples','flip','boss']);
+for(const quest of QUESTS){
+  const profile=profileFor(quest);
+  assert.ok(profile.points.every(p=>p.c>=0 && Number.isFinite(p.c)));
+  assert.equal(profile.config.doses,1);
+  assert.equal(grade(quest,quest.answerMode==='number'?quest.answerValue:quest.answer).correct,true,quest.id);
+  if(quest.answerMode==='number')assert.equal(grade(quest,quest.answerValue+1).correct,false,quest.id);
+  else assert.equal(grade(quest,(quest.answer+1)%quest.options.length).correct,false,quest.id);
+}
+const slopeData=profileFor(QUESTS.find(q=>q.id==='slope'));
+near(logSlope(slopeData,2,6),-0.25,1e-8);
+const lagQuest=QUESTS.find(q=>q.id==='lag');
+near(atTime(profileFor(lagQuest),1.975).c,0);
+assert.equal(grade(lagQuest,2.25).correct,true);
+assert.equal(grade(lagQuest,2.5).correct,false);
+assert.equal(grade(QUESTS.find(q=>q.id==='slope'),0.25).correct,true);
+assert.equal(grade(QUESTS.find(q=>q.id==='slope'),'').correct,false);
+const cleaned=validateProgress({completed:['mono','mono','fake','voyage'],xp:999999});
+assert.deepEqual(cleaned.completed,['mono','voyage']);
+assert.equal(cleaned.xp,110);
+assert.equal(unlockedIndex([]),0);
+assert.equal(unlockedIndex(['voyage','mono']),2);
+assert.equal(unlockedIndex(QUESTS.map(q=>q.id)),8);
+assert.ok(profileFor(QUESTS[2]).points.length>profileFor(QUESTS[1]).points.length);
+
+
 const page=readFileSync('portal/game/index.html','utf8');
-for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','id="diagram"','id="chart"','id="challenge"'])
+for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','src="./academy.js"','href="./academy.css"','id="academy-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
   assert.ok(page.includes(expected), expected + ' missing');
 for(const path of ['portal/index.html','portal/tools/index.html','portal/sitemap.xml']) {
   const text=readFileSync(path,'utf8');
