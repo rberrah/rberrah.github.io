@@ -225,7 +225,7 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
 test('advanced model editor and physiology remain readable on mobile without page overflow',async({page})=>{
   await page.setViewportSize({width:360,height:760});
   await page.goto(origin+'/game/');
-  await expect(page.locator('#body-figure')).toHaveAttribute('viewBox','0 0 820 415');
+  await expect(page.locator('#body-figure')).toHaveAttribute('viewBox','0 0 390 760');
   await expect(page.locator('.body-legend span')).toHaveCount(4);
   await page.locator('#mode-advanced').click();
   await expect(page.locator('#adv-graph-svg')).toBeVisible();
