@@ -1,7 +1,9 @@
+/** @typedef {{route?: 'oral'|'iv', dose?: number, f?: number, ka?: number, cl?: number, vc?: number, q1?: number, vp1?: number, q2?: number, vp2?: number, compartments?: number, horizon?: number}} GameConfig */
 import { rk4 } from './ode.js';
 
 // Amount-based mammillary PK model. Units: mg, L, h, mg/L.
 // Peripheral exchanges use Q * (Acentral/Vc - Aperipheral/Vp).
+/** @param {GameConfig} config */
 export function simulateGame(config) {
   const { route = 'oral', dose = 100, f = 1, ka = 1.2, cl = 5, vc = 20,
     q1 = 3, vp1 = 30, q2 = 1.5, vp2 = 60, compartments = 2, horizon = 24 } = config;
@@ -12,6 +14,7 @@ export function simulateGame(config) {
     throw new Error('Invalid PK parameters');
   }
   const init = [route === 'oral' ? dose * f : 0, route === 'iv' ? dose : 0, 0, 0, 0];
+  /** @type {(t:number, y:number[]) => number[]} */
   const derivatives = (_t, y) => {
     const [depot, central, p1, p2] = y;
     const c = central / vc;
