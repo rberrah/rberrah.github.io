@@ -1,0 +1,80 @@
+/* Dedicated game UI. Standalone, no external fonts, assets, scripts or telemetry. */
+[hidden]{display:none!important}
+.game-mode{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:0 0 20px}
+.game-mode button{border:1px solid #386664;background:#17383d;color:#cfe6e0;border-radius:12px;padding:12px 18px;min-height:45px;font-weight:700}
+.game-mode button[aria-pressed=true]{background:#77e9cd;color:#0b2625;border-color:#77e9cd}
+.game-mode .mode-caption{margin-left:auto;font-size:.79rem;color:#97b4b5}
+#lab-mode[hidden]{display:none!important}
+#academy-mode{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,1fr);gap:17px;align-items:start;min-width:0}
+.quest-map{padding:20px;position:sticky;top:12px}
+.quest-map h2{margin:0 0 4px;font-size:1.16rem}
+.quest-map .map-sub{margin:0 0 16px;color:#a8bfbd;font-size:.79rem;line-height:1.5}
+.quest-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.quest-stat{background:#16343a;border:1px solid #2e5756;border-radius:11px;padding:10px}
+.quest-stat span{display:block;font-size:.71rem;color:#a7c5bf}
+.quest-stat strong{display:block;margin-top:4px;font-size:1.25rem;color:#9cf5dc;font-variant-numeric:tabular-nums}
+.map-progress{height:7px;border-radius:99px;background:#2d4b4b;overflow:hidden;margin-bottom:17px}
+.map-progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#43a4a5,#8bf1c7);transition:width .25s}
+.quest-list{display:grid;gap:7px}
+.quest-list button{display:flex;align-items:center;text-align:left;gap:10px;width:100%;border:1px solid #284b50;border-radius:12px;padding:10px;background:#142b33;color:#d5e6e1;min-height:57px}
+.quest-list button[aria-current=step]{border-color:#7ce3c5;background:#1c4746}
+.quest-list button[disabled]{opacity:.48;cursor:not-allowed}
+.quest-index{flex-shrink:0;width:30px;height:30px;border:1px solid #4b7979;border-radius:9px;display:grid;place-items:center;font-size:.78rem;font-weight:800}
+.quest-list button.completed .quest-index{background:#73dfc1;color:#10312a;border-color:#73dfc1}
+.quest-list strong{display:block;font-size:.79rem;line-height:1.35}
+.quest-list small{display:block;font-size:.71rem;line-height:1.35;color:#a4bdba;margin-top:3px}
+.reset-journey{margin-top:17px;background:none;border:0;text-decoration:underline;color:#a8c3c1;cursor:pointer;font-size:.74rem;padding:5px}
+.academy-content{display:grid;gap:16px;min-width:0}
+.quest-heading{padding:21px 24px;background:linear-gradient(110deg,#153c3d,#0d262c);border:1px solid #2f5857;border-radius:17px}
+.quest-heading .chapter{font-size:.76rem;color:#80e1ce;letter-spacing:.07em;text-transform:uppercase;font-weight:750}
+.quest-heading h2{font-size:clamp(1.4rem,2.6vw,2.1rem);margin:8px 0;letter-spacing:-.03em}
+.quest-heading p{font-size:.91rem;color:#b0c9c6;margin:0;line-height:1.5}
+.quest-level{display:inline-block;margin-left:9px;background:#214a46;border:1px solid #3c7e6e;border-radius:999px;padding:4px 8px;font-size:.72rem;color:#9ff3d3}
+.quest-visuals{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,.8fr);gap:15px;align-items:stretch}
+.quest-card{padding:17px;min-width:0}
+.quest-card h3{margin:0 0 8px;font-size:.94rem;color:#d9f4e7}
+.quest-card p{margin:0;color:#abc4c0;font-size:.79rem;line-height:1.5}
+.quiz-chart-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:15px 0 10px}
+.quiz-chart-controls button{border:1px solid #406669;padding:8px 10px;border-radius:8px;background:#193840;color:#c5dcd7;font-size:.79rem;min-height:37px}
+.quiz-chart-controls button[aria-pressed=true]{background:#8ce7d2;border-color:#8ce7d2;color:#082a27;font-weight:800}
+.quiz-chart-controls .axis-caption{margin-left:auto;font-size:.73rem;color:#97b8b3}
+#academy-chart{width:100%;height:auto;display:block;background:#091c24;border-radius:12px;border:1px solid #284a4a;cursor:crosshair;touch-action:manipulation}
+.quiz-probe{margin:9px 0 0!important;padding:8px 10px;min-height:38px;border-radius:9px;background:#14343b;color:#d8e9dd!important;font-size:.77rem!important}
+#body-figure{width:100%;max-height:280px;display:block;margin:4px auto;background:radial-gradient(ellipse at 50% 55%,#173d41,#0b252d 75%);border-radius:13px}
+.body-legend{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 8px}
+.body-legend span{font-size:.69rem;color:#c4dbd7;border:1px solid #355659;padding:5px 7px;border-radius:7px}
+.body-legend b{color:#9eead5}
+.body-hint{font-size:.75rem!important;line-height:1.47!important}
+.quest-timeline{display:flex;align-items:center;gap:8px;margin:13px 0 2px}
+.quest-timeline input{width:100%;min-width:50px;accent-color:#83e3ce}
+.quest-timeline output{min-width:55px;font-size:.78rem;color:#a7e4d8;text-align:right;font-variant-numeric:tabular-nums}
+.quest-timeline button{border:1px solid #426563;background:#254244;color:#e8f3ee;border-radius:7px;padding:7px;min-width:40px}
+.tutor-panel{padding:20px}
+.tutor-panel h3{font-size:1.07rem;margin:0 0 9px}
+.tutor-panel p{font-size:.87rem;line-height:1.65;color:#bfd5d0;margin:7px 0 13px}
+.tutorial-notice{border-left:3px solid #83e9c4;padding:9px 12px;background:#153940;border-radius:0 9px 9px 0}
+.tutorial-step{font-size:.75rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7bdbc5}
+.question-options{display:grid;gap:9px;margin:12px 0 18px}
+.answer-option{display:flex;align-items:flex-start;gap:10px;border:1px solid #39565b;border-radius:10px;padding:12px 13px;background:#143039;cursor:pointer;line-height:1.43;font-size:.87rem}
+.answer-option:has(input:checked){background:#21564e;border-color:#82e4c8}
+.answer-option input{accent-color:#7be0c6;margin:3px 0 0;flex-shrink:0}
+.number-answer{display:flex;align-items:center;gap:10px;margin:12px 0 16px;flex-wrap:wrap}
+.number-answer input{border:1px solid #547570;color:#eefaf5;background:#1b3c41;border-radius:10px;padding:12px;font-size:1.15rem;font-weight:800;width:145px}
+.number-answer span{color:#9bbab3;font-weight:700}
+.quest-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.quest-btn{background:#18383c;color:#e0f0e9;border:1px solid #426361;border-radius:10px;padding:11px 16px;font-weight:700;min-height:43px}
+.quest-btn.primary{background:#80e8cb;color:#0a2e2b;border-color:#80e8cb}
+.quest-btn[disabled]{cursor:not-allowed;opacity:.5}
+.quest-feedback{border:1px solid #416966;background:#183d3b;padding:14px;border-radius:12px;margin:14px 0}
+.quest-feedback.error{border-color:#a47c55;background:#49372c}
+.quest-feedback strong{display:block;margin-bottom:7px}
+.quest-feedback p{margin:0;font-size:.82rem}
+.quest-feedback .reward{margin-top:10px;color:#9ef2d7;font-weight:800}
+.quest-finish{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
+.quest-award{border:1px solid #4b846f;background:#183b36;border-radius:13px;padding:13px;margin-top:13px;font-size:.86rem;color:#cfede4}
+.quest-badge{font-size:.75rem;color:#93e9d6;margin-top:6px}
+.quest-caveat{font-size:.76rem;color:#99b6b1;line-height:1.55}
+@media(max-width:1170px){#academy-mode{grid-template-columns:minmax(190px,220px) minmax(0,1fr)}.quest-visuals{grid-template-columns:1fr}.body-card{display:grid;grid-template-columns:minmax(180px,1fr) minmax(200px,1fr);gap:14px;align-items:center}.body-card h3,.body-card .body-hint{grid-column:1/-1}#body-figure{max-height:215px}}
+@media(max-width:800px){#academy-mode{grid-template-columns:1fr}.quest-map{position:static}.quest-list{grid-template-columns:repeat(3,minmax(0,1fr))}.quest-index{display:none}.quest-list button{min-height:65px}.quest-list small{font-size:.67rem}.game-mode .mode-caption{width:100%;margin-left:0}}
+@media(max-width:560px){.quest-map{padding:15px}.quest-list{grid-template-columns:repeat(2,minmax(0,1fr))}.quest-list button{padding:9px}.quest-card,.tutor-panel{padding:14px}.quest-heading{padding:17px}.body-card{display:block}#body-figure{max-height:265px}.quest-actions>*{flex:1}}
+@media(prefers-reduced-motion:reduce){.map-progress>span{transition:none}}
