@@ -97,7 +97,7 @@ export function oneDoseProfile(dose,kind='linear',horizon=32){
   return points;
 }
 export const DDI_BASE={dose:100,tau:12,volume:25,f:0.8,ka:1.2,cl:5};
-export fnction steadyStateOral({dose=DDI_BASE.dose,tau=DDI_BASE.tau,volume=DDI_BASE.volume,f=DDI_BASE.f,ka=DDI_BASE.ka,cl=DDI_BASE.cl}={}){
+export function steadyStateOral({dose=DDI_BASE.dose,tau=DDI_BASE.tau,volume=DDI_BASE.volume,f=DDI_BASE.f,ka=DDI_BASE.ka,cl=DDI_BASE.cl}={}){
   if(![dose,tau,volume,f,ka,cl].every(Number.isFinite) || Math.min(dose,tau,volume,f,ka,cl)<=0 || f>1)
     throw new RangeError('Invalid oral parameters');
   const k=cl/volume;
@@ -112,13 +112,13 @@ export fnction steadyStateOral({dose=DDI_BASE.dose,tau=DDI_BASE.tau,volume=DDI_B
   const trough=cAt(tau);
   return {auc:f*dose/cl,cmin:trough,points:Array.from({length:97},(_,i)=>({t:i*tau/96,c:cAt(i*tau/96)}))};
 }
-export fnction ddiChallenge(newCl=2.5){
+export function ddiChallenge(newCl=2.5){
   if(!Number.isFinite(newCl)||newCl<1.5||newCl>5)throw new RangeError('Invalid DDI scenario');
   const before=steadyStateOral();
   const after=steadyStateOral({...DDI_BASE,cl:newCl});
   return {before,after,newCl,aucRatio:after.auc/before.auc,troughRatio:after.cmin/before.cmin};
 }
-export fnction gradeDdi(newCl,prediction){
+export function gradeDdi(newCl,prediction){
   const r=ddiChallenge(newCl);
   return {...r,ok:r.aucRatio>=1.7&&Number.isFinite(prediction)&&Math.abs(prediction-r.troughRatio)<=.22};
 }
