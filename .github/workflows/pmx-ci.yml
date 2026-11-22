@@ -88,6 +88,9 @@ jobs:
           set -euo pipefail
           for file in \
             dist/index.html \
+            dist/game/index.html \
+            dist/game/engine.mjs \
+            dist/game/app.mjs \
             dist/assets/site.css \
             dist/a-propos/index.html \
             dist/communications/index.html \
@@ -140,7 +143,7 @@ jobs:
       - name: Materialize MIPD browser snapshot from immutable source
         run: npm run mipd:materialize
       - name: Test PMx laboratories and model imports
-        run: npm run test:labs && npm run test:mlxtran
+        run: npm run test:labs && npm run test:mlxtran && node scripts/test_game.mjs
 
   mipd-consumer:
     runs-on: ubuntu-latest
