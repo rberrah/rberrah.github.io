@@ -61,6 +61,8 @@ for(const p of [p0,p1,p2]){
 }
 assert.ok(p2.clCI[1]-p2.clCI[0] < p0.clCI[1]-p0.clCI[0]);
 assert.ok(Math.abs(p2.meanCL-CASE.trueCL)<.3);
+assert.ok(Math.abs(p2.mapCL-CASE.trueCL)<.4);
+assert.ok(Math.abs(p2.mapV-CASE.trueV)<4);
 assert.ok(Math.abs(p2.meanV-CASE.trueV)<3);
 assert.ok(chooseDose(p2).dose===900);
 assert.ok(doseEvaluation(p2,900).within);
