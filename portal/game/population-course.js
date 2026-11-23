@@ -4,6 +4,7 @@ import {POPULATION_META,TIMES,SUBJECTS,OBSERVATIONS,PD_OBSERVATIONS,FITS,ADVANCE
   modelComparison,populationPredict,gradeStructureConclusion,assessMapping,chooseChecks} from './saem-replay.js';
 import {WARFARIN_ROWS} from './warfarin-study.js';
 import {DIAGNOSTIC_OPTIONS,drawDiagnostic,diagnosticsSummary} from './warfarin-diagnostics.js';
+import {NATIVE_GOF} from './warfarin-native-gof.js';
 const $=id=>document.getElementById(id);
 const STEPS=[
   {title:'Données et colonnes',chapter:'Dossier source',desc:'Identifier doses, concentrations et PCA dans le vrai jeu historique de warfarine.'},
@@ -176,17 +177,19 @@ function renderSAEM(){
 }
 function renderDiagnostics(){
  const summary=diagnosticsSummary();
- $('population-workspace').innerHTML=story('Voici les principaux graphiques utilisés dans une revue PopPK. Les <strong>observations et les paramètres fixes</strong> proviennent de l’étude et du notebook. Les graphes PRED, IPRED*, WRES* et VPC* sont des <strong>reconstructions explicitement approximatives</strong>, car les sorties individuelles complètes du SAEM n’ont pas été exportées.','QUALIFICATION · DIAGNOSTICS DÉTAILLÉS')+
+ $('population-workspace').innerHTML=story('Voici les principaux graphiques utilisés dans une revue PopPK. Les <strong>observations et les paramètres fixes</strong> proviennent de l’étude et du notebook. Trois graphes GOF sont également repris <strong>à l’identique du fit nlmixr2 exécuté</strong>. Les graphes PRED, IPRED*, WRES* et VPC* sont des <strong>reconstructions explicitement approximatives</strong>, car les sorties individuelles complètes du SAEM n’ont pas été exportées.','QUALIFICATION · DIAGNOSTICS DÉTAILLÉS')+
  '<div class="career-metrics">'+metric('PK observées',summary.n)+metric('PCA observées',summary.originalPCA)+metric('Volontaires',summary.subjects)+'</div>'+
- '<div class="career-chart-toolbar"><label>Diagnostic <select id="pop-diagnostic-key">'+DIAGNOSTIC_OPTIONS.map(o=>
+ '<div class="career-chart-toolbar"><label>Diagnostic <select id="pop-diagnostic-key">'+[...Object.values(NATIVE_GOF),...DIAGNOSTIC_OPTIONS].map(o=>
   '<option value="'+o.id+'">'+o.title+'</option>').join('')+'</select></label>'+
  '<label>Volontaire (profil individuel) <select id="pop-diagnostic-subject">'+SUBJECTS.map(p=>
   '<option value="'+p.id+'">S'+p.id+'</option>').join('')+'</select></label></div>'+
- '<div class="career-diagnostic-gallery" id="pop-diagnostic-gallery">'+DIAGNOSTIC_OPTIONS.map(o=>
+ '<div class="career-legend"><span><i style="background:#94edcf"></i> 3 figures originales du fit nlmixr2 (images du notebook)</span><span><i style="background:#f0c28d"></i> 12 reconstructions ou vues explicatives (*)</span></div>'+ 
+ '<div class="career-diagnostic-gallery" id="pop-diagnostic-gallery">'+[...Object.values(NATIVE_GOF),...DIAGNOSTIC_OPTIONS].map(o=>
   '<button type="button" class="career-diag-button" data-diagnostic="'+o.id+'" aria-pressed="false">'+o.title+'</button>').join('')+'</div>'+
+ '<img id="pop-native-chart" class="career-chart" hidden alt="Figure diagnostique native calculée par nlmixr2 et enregistrée dans le notebook du site">'+
  '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 300" role="img" aria-label="Diagnostic pharmacométrique sélectionné"></svg>'+
  '<p id="pop-diagnostic-desc" class="career-note"></p>'+
- '<div class="career-alert"><strong>Limite d’extraction :</strong> le notebook conserve les BIC et certains paramètres mais pas les tableaux individuels complets. Les CWRES et NPDE originaux, les RSE, les historiques SAEM et les vrais EBE ne sont donc <strong>pas disponibles</strong>. Des représentations approximatives explicitement marquées par * ne doivent pas leur être substituées.</div>'+
+ '<div class="career-alert"><strong>Limite d’extraction :</strong> le notebook conserve les BIC et certains paramètres mais pas les tableaux individuels complets. Le <strong>graphe CWRES vs temps original</strong> est disponible mais pas ses valeurs numériques. NPDE, RSE, historiques SAEM et vrais EBE ne sont <strong>pas disponibles</strong>. Des représentations approximatives explicitement marquées par * ne doivent pas leur être substituées.</div>'+
  '<p class="career-note">Pour qualifier une analyse : confronter observations/prédictions, résidus conditionnels, distributions, VPC et stabilité/identifiabilité. Sélectionnez les contrôles indispensables.</p>'+
  checkboxes([['gof','Comparer DV à PRED/IPRED et examiner les résidus.'],
  ['vpc','Examiner les observations versus simulations sur le plan de prélèvement.'],
@@ -195,9 +198,17 @@ function renderDiagnostics(){
  function draw(){
   diagnosticKey=$('pop-diagnostic-key').value;
   const sub=Number($('pop-diagnostic-subject').value);
-  drawDiagnostic($('pop-diagnostic-chart'),diagnosticKey,sub);
-  const entry=DIAGNOSTIC_OPTIONS.find(o=>o.id===diagnosticKey);
-  $('pop-diagnostic-desc').textContent=entry.desc;
+  const native=NATIVE_GOF[diagnosticKey];
+  $('pop-native-chart').hidden=!native;
+  $('pop-diagnostic-chart').hidden=!!native;
+  if(native){
+   $('pop-native-chart').src=native.src;
+   $('pop-diagnostic-desc').textContent='Figure originale du fit nlmixr2 du notebook de warfarine (cellule 13). La figure est authentique, mais ses observations/résidus individuels ne sont pas exportés sous forme de tableau dans le dépôt.';
+  }else{
+   drawDiagnostic($('pop-diagnostic-chart'),diagnosticKey,sub);
+   const entry=DIAGNOSTIC_OPTIONS.find(o=>o.id===diagnosticKey);
+   $('pop-diagnostic-desc').textContent=entry.desc;
+  }
   $('pop-diagnostic-gallery').querySelectorAll('button').forEach(b=>
    b.setAttribute('aria-pressed',String(b.dataset.diagnostic===diagnosticKey)));
  }
