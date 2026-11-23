@@ -132,3 +132,12 @@
 @media(max-width:560px){.advanced-sidebar #advanced-list{grid-template-columns:repeat(2,minmax(0,1fr))}.advanced-stage,.advanced-sidebar{padding:15px}.advanced-control-grid{grid-template-columns:1fr}.advanced-metrics{grid-template-columns:1fr}.ode-term-options button{font-size:.72rem;padding:8px}.advanced-instruction{font-size:.84rem}}
 
 @media(max-width:650px){#body-figure{aspect-ratio:390/760!important;max-height:none!important}}
+
+/* Drug-journey artwork: high-contrast anatomical drawings and mass bars. */
+.journey-subtitle{margin:0 0 12px!important;font-size:.9rem!important;color:#bedbd5!important}
+#body-figure{aspect-ratio:920/534!important;max-height:none!important;background:#0d2b35;border:1px solid #497376;overflow:hidden}
+.body-card{padding:clamp(14px,2vw,23px)}
+.body-legend span{font-size:.84rem;line-height:1.4;background:#173840}
+.body-legend b{font-size:1.14rem}
+#academy-mode .journey .body-card{order:-1}
+@media(max-width:650px){#body-figure{aspect-ratio:430/848!important;max-height:none!important}.body-card{padding:12px}.journey-subtitle{font-size:.8rem!important}}
