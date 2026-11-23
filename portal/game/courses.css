@@ -61,5 +61,12 @@
 .career-timeline{display:grid;gap:8px}
 .career-step-confirm{display:inline-block;border:1px solid #457d66;border-radius:8px;padding:7px 10px;color:#abefcb;font-size:.78rem;margin-top:9px}
 .career-footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:12px;color:#a7c6bf;font-size:.81rem}
+/* Diagnostic gallery: all panels available, keyboard-openable and responsive. */
+.career-workspace details{border:1px solid #3c6663;background:#112e36;border-radius:13px;padding:12px 14px;margin:15px 0}
+.career-workspace details summary{cursor:pointer;font-size:.9rem;color:#c5f1df;padding:6px 2px;line-height:1.45}
+.career-workspace details[open]>summary{margin-bottom:12px}
+.career-workspace details .career-chart{margin:6px 0 16px}
+.career-workspace #mipd-criterion,.career-workspace #pop-trace-param{background:#112f36;border:1px solid #598277;border-radius:9px;color:#e1f7ec;padding:11px;font:inherit;max-width:100%}
+.career-workspace #mipd-criterion{display:block;width:min(100%,480px);margin-bottom:16px}
 @media(max-width:970px){.career-layout{grid-template-columns:1fr}.career-sidebar{position:static}.career-step-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.career-step-list{grid-template-columns:repeat(2,minmax(0,1fr))}.career-sidebar,.career-workspace{padding:14px}.career-story{padding:13px}.career-metrics{grid-template-columns:1fr 1fr}.career-field-grid{grid-template-columns:1fr}.career-flow{grid-template-columns:1fr}.career-choices label{font-size:.84rem}.career-table{font-size:.76rem}.career-table td,.career-table th{padding:8px}.career-main .quest-heading{display:block}.career-main .quest-heading h2{margin-top:8px}}
