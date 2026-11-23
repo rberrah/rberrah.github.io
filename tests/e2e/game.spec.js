@@ -304,7 +304,13 @@ test('population career uses historical study, actual nlmixr2 scores and all lab
  await expect(page.locator('#population-progress')).toHaveText('3 / 7');
  await page.locator('#population-next').click();
 
- await expect(page.locator('#pop-diagnostic-gallery button')).toHaveCount(12);
+ await expect(page.locator('#pop-diagnostic-gallery button')).toHaveCount(15);
+ for(const key of ['native-pred','native-ipred','native-cwres']){
+  await page.locator('[data-diagnostic="'+key+'"]').click();
+  await expect(page.locator('#pop-native-chart')).toBeVisible();
+  await expect(page.locator('#pop-native-chart')).toHaveAttribute('src',/^data:image\/png;base64,/);
+ }
+
  for(const kind of ['gof-pred','gof-ipred','wres-time','wres-pred','iwres-hist','iwres-qq',
   'eta-wt','individual','pd-time','pd-cp','vpc','unavailable']){
   await page.locator('[data-diagnostic="'+kind+'"]').click();
