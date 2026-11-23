@@ -2,6 +2,9 @@
 // Translate DOM text nodes, including dynamically rendered lessons, without
 // touching simulations, user input, chart coordinates or stored progress.
 import {FR_EN} from './locale-en.js';
+import {FR_EN_LESSONS} from './locale-en-lessons.js';
+import {FR_EN_MIPD} from './locale-en-mipd.js';
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
@@ -45,7 +48,7 @@ const phraseRules=[
 function translate(fr){
   const trimmed=fr.trim();
   if(!trimmed)return fr;
-  const direct=FR_EN[trimmed];
+  const direct=DICTIONARY[trimmed];
   if(direct!==undefined)return fr.replace(trimmed,direct);
   let en=fr;
   for(const [from,to] of phraseRules){
