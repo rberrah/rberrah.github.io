@@ -5,6 +5,7 @@ import {WARFARIN_ROWS,WARFARIN_PK,WARFARIN_PD,WARFARIN_PROVENANCE} from '../port
 import {POPULATION_META,SUBJECTS,OBSERVATIONS as POP_OBS,FITS,ADVANCED_FITS,FINAL_FIT,
  modelComparison,populationPredict,assessMapping,gradeStructureConclusion,chooseChecks}
  from '../portal/game/saem-replay.js';
+import {NATIVE_GOF} from '../portal/game/warfarin-native-gof.js';
 import {DIAGNOSTIC_OPTIONS,DIAG_ROWS,VPC_DEMO,diagnosticsSummary,estimateCLProxy,drawDiagnostic}
  from '../portal/game/warfarin-diagnostics.js';
 import {CASE,DOSES,OBSERVATIONS as MIPD_OBS,infusionAt,posterior,doseEvaluation,candidateDoses,chooseDose,
@@ -50,6 +51,8 @@ assert.equal(estimateCLProxy().size,32);
 assert.equal(diagnosticsSummary().n,251);
 assert.equal(diagnosticsSummary().originalPCA,232);
 assert.equal(DIAGNOSTIC_OPTIONS.length,12);
+assert.deepEqual(Object.keys(NATIVE_GOF).sort(),['native-cwres','native-ipred','native-pred']);
+assert.ok(Object.values(NATIVE_GOF).every(o=>o.src.startsWith('data:image/png;base64,')&&o.src.length>15000));
 assert.ok(VPC_DEMO.length>=5);
 assert.ok(VPC_DEMO.every(v=>[v.obsMedian,v.simMedian,v.lower,v.upper].every(Number.isFinite)));
 for(const item of DIAGNOSTIC_OPTIONS){
