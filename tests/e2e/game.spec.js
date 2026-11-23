@@ -288,6 +288,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-progress')).toHaveText('1 / 7');
   await page.locator('#population-next').click();
 
+  await expect(page.locator('#pop-spaghetti polyline')).toHaveCount(32);
   await page.locator('#pop-log').click();
   await expect(page.locator('#pop-log')).toHaveAttribute('aria-pressed','true');
   await page.locator('#pop-subject').selectOption('3');
@@ -311,7 +312,9 @@ test('population pharmacometrician route runs from mapping through archived gene
   await page.locator('#population-next').click();
 
   await expect(page.locator('#pop-vpc')).toBeVisible();
-  for(const id of ['pop-gof-pred','pop-gof-ipred','pop-resid-time','pop-resid-pred','pop-resid-hist','pop-resid-qq','pop-eta-weight','pop-eta-hist'])await expect(page.locator('#'+id)).toBeVisible();
+  await expect(page.locator('#pop-variability-metrics')).toContainText('IIV CL');
+  await expect(page.locator('#pop-ruv-metrics')).toContainText('σlog');
+  for(const id of ['pop-gof-pred','pop-gof-ipred','pop-resid-time','pop-resid-pred','pop-resid-hist','pop-resid-qq','pop-eta-weight','pop-eta-hist','pop-iiv-density','pop-ruv-shape'])await expect(page.locator('#'+id)).toBeVisible();
   await page.locator('#pop-diagnostic-model').selectOption('two');
   for(const key of ['gof','vpc','stability'])await page.locator('input[name="pop-checks"][value="'+key+'"]').check();
   await page.locator('#population-validate').click();
@@ -404,4 +407,24 @@ test('both clinical-workflow teaching routes fit narrow screens without horizont
     await expect(page.locator(mode)).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   }
+});
+
+
+test('game is bilingual on canonical route and root legacy URL retains full content',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/game/?lang=en');
+  await expect(page.locator('#mode-population')).toBeVisible();
+  await expect(page.locator('#game-lang-en')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+  await expect(page.locator('.hero h1')).toContainText('Learn pharmacokinetics');
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#population-title')).toContainText('Data and columns');
+  await page.goto(origin+'/pharmacometrie/game/?lang=en');
+  await expect(page.locator('#mode-mipd')).toContainText('Precision dosing');
+  await page.locator('#mode-mipd').click();
+  await expect(page.locator('#mipd-title')).toContainText('Review');
+  await page.locator('#game-lang-fr').click();
+  await expect(page.locator('html')).toHaveAttribute('lang','fr');
+  await expect(page.locator('.hero h1')).toContainText('Apprenez la pharmacocinétique');
+  expect(errors).toEqual([]);
 });
