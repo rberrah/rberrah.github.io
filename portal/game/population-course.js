@@ -244,7 +244,8 @@ function report(){
     '4. MODEL DIAGNOSTICS\n'+
     'Benchmark checks: DV/PRED, DV/IPRED, individual fits, log-standardized residuals vs time and IPRED, QQ plot, EBE vs weight, IIV/RUV and VPC P5/P50/P95 from 120 replicates. Not available: exact CWRES, NPDE, covariance matrix, RSE, bootstrap, IOV, pcVPC or external validation.\n'+
     '5. PK/PD AND CONCLUSION\n'+
-    'The experimental PCA response time course differs from the PK concentration course, motivating evaluation of effect-compartment or turnover models. No joint PK/PD model was fitted. In the independent simulated benchmark, 1C vs 1C + Tlag cannot be differentiated by BIC alone; diagnostic precision and identifiability remain unresolved. These simulated parameter estimates cannot be transferred to the 32 experimental participants. Next: fit and qualify a model directly on the experimental cohort with uncertainty and predictive checks.\n';
+    'According to the official Monolix tutorial using the original study, the one-compartment model with first-order absorption and Tlag is preferred: Tlag improves early and peak fits, while the two-compartment model has unstable, imprecise peripheral parameter estimates. Following parsimony, retain 1C + Tlag as the structural base. The tutorial subsequently selects a combined2 residual-error model and assesses weight and age covariates; these tutorial fits were not recomputed here. The distinct simulated benchmark (ΔBIC 0.23) cannot establish or refute Tlag in the real study. PCA supports a delayed effect, addressed in the Monolix PK/PD workflow; no PK/PD model was refitted in this game.\n'+
+    'Monolix reference: https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
   return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
     '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
     'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
@@ -256,7 +257,8 @@ function report(){
     '4. MODEL DIAGNOSTICS / CONTRÔLES\n'+
     'Examinés sur le benchmark : DV/PRED, DV/IPRED, profils individuels, résidus log-standardisés versus temps/IPRED et QQ-plot, EBE-versus-poids, IIV/RUV et VPC P5/P50/P95 à 120 réplications. Ne sont pas estimés : CWRES exacts, NPDE, matrice de covariance, RSE, bootstrap, IOV, pcVPC et validation externe.\n'+
     '5. PK/PD AND CONCLUSION\n'+
-    'La série PCA expérimentale présente une cinétique distincte des concentrations PK, ce qui motive de comparer un modèle d’effet retardé/turnover. Aucune relation PK/PD n’a été estimée ici. Sur le benchmark simulé, les structures 1C et 1C + Tlag ne sont pas départagées avec un ΔBIC inférieur à 2 ; une sélection mécanistique nécessite des diagnostics supplémentaires. Les résultats du benchmark ne sont pas transférables tels quels aux 32 volontaires expérimentaux. Étape suivante : estimation conjointe ou séquentielle sur l’étude d’origine, puis qualification des paramètres, du modèle résiduel et de la prédiction.\n';
+    'Le tutoriel officiel Monolix retient sur les observations originales le modèle 1C avec absorption d’ordre 1 et Tlag : les ajustements précoces et des pics sont améliorés, tandis que le 2C ajoute des paramètres périphériques peu précis et moins stables. Le principe de parcimonie conduit à privilégier 1C + Tlag ; le tutoriel poursuit avec une RUV combinée 2 et l’évaluation d’effets du poids et de l’âge. Ces ajustements Monolix n’ont pas été recalculés dans ce jeu. Le ΔBIC = 0,23 du benchmark simulé ne permet ni de prouver ni de réfuter Tlag dans les données réelles. Le décalage PCA–PK motive une relation indirecte/turnover ; aucune analyse PK/PD nouvelle n’a été refaite ici.\n'+
+    'Référence Monolix : https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
 }
 function renderImport(){
   const subj=STUDY_SUBJECTS[0],pk=STUDY_PK.filter(x=>x.id===subj.id).slice(0,4),
@@ -426,12 +428,30 @@ function renderSAEM(){
   redraw();
 }
 const DIAG_QUESTIONS=Object.freeze([
-  {key:'gof',correct:'trends',ask:'Que contrôler dans DV/PRED, DV/IPRED et les profils individuels ?',options:[['trends','Biais, écart à l’identité, structure des résidus et profils atypiques'],['r2','Uniquement la corrélation globale des prédictions']]},
-  {key:'residual',correct:'patterns',ask:'Que recherchent résidus versus temps/IPRED et QQ-plot ?',options:[['patterns','Tendance, hétéroscédasticité, asymétrie et queues incohérentes avec le modèle'],['ignore','Une tendance ascendante est toujours rassurante']]},
-  {key:'iiv',correct:'careful',ask:'Que signifient ηCL versus poids, IIV et shrinkage ?',options:[['careful','Explorer covariables, distribution des EBE et shrinkage, sans inférer un effet causal du nuage'],['causal','Une pente des EBE prouve une covariable mécanistique']]},
-  {key:'ruv',correct:'form',ask:'Quelle question poser sur le modèle d’erreur ?',options:[['form','La dispersion dépend-elle de la concentration, et la forme choisie est-elle plausible ?'],['zero','Il faut toujours fixer l’erreur résiduelle à zéro']]},
-  {key:'vpc',correct:'bands',ask:'Que vérifier sur P5/P50/P95 du VPC ?',options:[['bands','Position des quantiles observés par rapport aux simulations, y compris les extrêmes et le temps'],['median','Seule la médiane est informative']]},
-  {key:'stability',correct:'uncertainty',ask:'Quels diagnostics supplémentaires réclamer avant la qualification ?',options:[['uncertainty','Précision RSE/IC, stabilité, identifiabilité et validation externe ou simulation-estimation'],['bic','Aucun, le BIC minimal suffit']]}
+  {key:'gof',correct:'trends',ask:'DV/PRED s’écarte de l’identité aux faibles concentrations, mais DV/IPRED se rapproche de la diagonale. Quelle interprétation faut-il examiner ?',options:[
+    ['trends','Les effets individuels expliquent une partie de la dispersion ; il faut rechercher un biais systématique restant, notamment selon le temps.'],
+    ['r2','Le meilleur DV/IPRED démontre que le modèle structural et les covariables sont corrects.'],
+    ['overfit','Il faut ajouter un compartiment dès qu’un sujet possède un écart important.']]},
+  {key:'residual',correct:'patterns',ask:'L’histogramme résiduel est centré, mais les résidus varient avec IPRED et le QQ-plot s’écarte dans les queues. Quelle suite est justifiée ?',options:[
+    ['patterns','Tester les formes de RUV et vérifier les tendances selon temps et prédiction : une moyenne proche de zéro ne suffit pas.'],
+    ['ignore','Accepter le modèle, car la moyenne des résidus est proche de zéro.'],
+    ['exclude','Supprimer systématiquement les valeurs extrêmes pour forcer la normalité.']]},
+  {key:'iiv',correct:'careful',ask:'ηCL semble associé au poids, tandis que la distribution des EBE paraît plus resserrée que Ω. Quelle est la bonne démarche ?',options:[
+    ['careful','Quantifier le shrinkage, tester un effet du poids, réestimer Ω et vérifier si la relation et les diagnostics s’améliorent.'],
+    ['causal','Inclure automatiquement le poids sur CL : l’association visuelle démontre la causalité.'],
+    ['ignore','Ignorer les covariables puisque les EBE peuvent être shrinkés.']]},
+  {key:'ruv',correct:'form',ask:'La dispersion absolue augmente lorsque les concentrations prédites sont élevées. Quelle comparaison est informative ?',options:[
+    ['form','Comparer des erreurs additives, proportionnelles et combinées par ajustement et diagnostics résiduels, en gardant la précision analytique en tête.'],
+    ['zero','Réduire uniquement σ à zéro pour améliorer la vraisemblance.'],
+    ['cl','Modifier CL plutôt que la structure de RUV, sans analyser les résidus.']]},
+  {key:'vpc',correct:'bands',ask:'La médiane observée suit la bande du VPC mais P5 et P95 s’en écartent. Que conclure ?',options:[
+    ['bands','La tendance centrale peut être correcte alors que la variabilité et les extrêmes sont mal reproduits ; revoir Ω, RUV et les temps.'],
+    ['median','Le VPC est validé dès que P50 est bien reproduit.'],
+    ['replicates','Augmenter uniquement le nombre de réplications suffit à corriger les quantiles.']]},
+  {key:'stability',correct:'uncertainty',ask:'Un modèle 2C améliore légèrement −2LL mais Q/Vp sont imprécis et les départs multiples divergent. Quelle décision privilégier ?',options:[
+    ['uncertainty','Comparer le critère pénalisé, l’identifiabilité, la stabilité et la prédiction ; retenir le modèle plus simple si son ajustement suffit.'],
+    ['bic','Choisir automatiquement le modèle avec la plus faible −2LL, quel que soit le nombre de paramètres.'],
+    ['fix','Fixer les paramètres mal identifiés arbitrairement sans nouvelle vérification.']]}
 ]);
 export function gradeDiagnosticQuestions(answers){return DIAG_QUESTIONS.every(q=>answers[q.key]===q.correct);}
 function diagnosticQuiz(key){
@@ -523,6 +543,7 @@ function renderDecision(){
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Modèle</th><th>BIC approximatif</th><th>ΔBIC</th><th>Paramètres libres</th></tr></thead><tbody>'+
     modelComparison().map(x=>'<tr><td>'+x.label+'</td><td>'+fmt(x.bic)+'</td><td>'+fmt(x.deltaBic)+'</td><td>'+x.parameters+'</td></tr>').join('')+
     '</tbody></table></div>'+
+    '<p class="career-note"><strong>Interprétation :</strong> le replay ne permet pas d’arbitrer Tlag. Sur les observations originales, la formation Monolix obtient au contraire un meilleur ajustement avec Tlag et préfère 1C+Tlag au modèle 2C moins robuste (rasoir d’Occam). Ne pas mélanger les deux analyses.</p>'+ 
     radio([['lag-proved','Le 1C avec Tlag est démontré meilleur : ΔBIC = 0,23 suffit pour conclure.'],
       ['equivocal','1C ± Tlag restent presque équivalents ; le modèle 2C est moins soutenu. Il faut confirmer par stabilité et diagnostics.'],
       ['two-certain','Le 2C doit être retenu car il possède le plus grand nombre de paramètres.']]);
@@ -549,10 +570,12 @@ function renderPD(){
 
 function renderFinal(){
   $('population-workspace').innerHTML=story('Concluez comme dans un rapport de pharmacométrie : séparez données, modèles candidats, précision, diagnostics et résultat PK/PD. Une conclusion ne peut s’appliquer qu’au jeu de données effectivement estimé.','SYNTHÈSE SCIENTIFIQUE')+
-    '<div class="career-alert"><strong>Résultat principal :</strong> les 32 volontaires Warfarine ont été explorés graphiquement. Les BIC et variabilités affichés concernent un benchmark distinct de 28 sujets simulés : 1C et 1C avec Tlag ont des BIC presque identiques ; aucune preuve indépendante n’a sélectionné la structure pour les vrais sujets.</div>'+
-    '<p class="career-note">Quelle conclusion résume correctement les résultats ?</p>'+
-    radio([['conditional','Le Tlag reste indécidable sur le benchmark ; la cohorte expérimentale nécessite son propre ajustement PK/PD et ses diagnostics.'],
-      ['certain','Le Tlag est confirmé dans les 32 volontaires et le modèle est validé.']],'pop-conclusion')+
+    '<div class="career-alert"><strong>Conclusion — principe de parcimonie :</strong> dans le tutoriel officiel Monolix, le 1C sans délai surestime les premières observations et sous-estime certains pics ; l’ajout de Tlag améliore les diagnostics. Un 2C avec Tlag est essayé mais présente une estimation des paramètres périphériques moins précise et moins stable. Le <strong>1C avec Tlag</strong> est donc retenu comme base structurale ; le développement se poursuit avec une RUV combinée et des covariables. Les BIC du replay simulé ne sont pas ceux de Monolix.</div>'+
+    '<p class="career-note"><a href="https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics" target="_blank" rel="noopener noreferrer">Voir les ajustements et la comparaison de convergence de la formation Monolix</a></p>'+
+    '<p class="career-note">Quelle interprétation concilie les diagnostics de l’étude réelle et les résultats du benchmark distinct ?</p>'+
+    radio([['conditional','Sur les données réelles, Monolix retient le 1C + Tlag pour l’amélioration du fit et la robustesse face au 2C ; le petit ΔBIC simulé ne permet pas de généraliser les paramètres du replay.'],
+      ['certain','Le seul ΔBIC = 0,23 du replay prouve que Tlag est supérieur sur l’étude originale.'],
+      ['always-simple','Le rasoir d’Occam impose le 1C sans Tlag même si ses diagnostics sont moins bons.']],'pop-conclusion')+
     '<pre id="pop-report" class="career-code">'+escapeText(report())+'</pre>'+
     '<div class="career-file-actions"><button type="button" class="career-action" id="pop-copy-report">Copier le rapport scientifique</button>'+
     '<a href="'+POPULATION_META.tutorialUrl+'" target="_blank" rel="noopener noreferrer" class="career-action">Source de l’étude</a></div>';
