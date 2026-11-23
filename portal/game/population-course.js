@@ -218,16 +218,20 @@ function navigation(){
   $('population-steps').replaceChildren(frag);
 }
 function report(){
-  const cmp=modelComparison(),winner=cmp.find(x=>x.id==='lag'),base=cmp.find(x=>x.id==='one'),v=variabilitySummary('lag');
-  return 'PMx Game — Dossier étude Warfarine et atelier distinct SAEM\n'+
-    'ÉTUDE EXPÉRIMENTALE : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures PK et '+STUDY_META.nPD+' mesures PCA après dose orale unique de 1,5 mg/kg. Source : '+STUDY_META.sourceUrl+'\n'+
-    'ATELIER DE MÉTHODE DISTINCT : replay de généralized-SAEM réalisé sur '+POPULATION_META.nSubjects+' sujets ARTIFICIELS avec '+POPULATION_META.nObservations+' concentrations générées ; aucun des BIC ci-après ne s’applique à la cohorte réelle.\n'+
-    '1C sans Tlag BIC '+fmt(base.bic)+' ; 1C avec Tlag BIC '+fmt(winner.bic)+' ; 2C BIC '+fmt(cmp.find(x=>x.id==='two').bic)+'. ΔBIC faible et non conclusif.\n'+
-    'Exemple IIV/RUV (1C avec Tlag, modèle NON sélectionné avec certitude) : ωCL '+fmt(v.omega,3)+' (IIV CL '+fmt(v.omegaCv,1)+' %) ; σlog '+fmt(v.sigma,3)+' (CV résiduel '+fmt(v.sigmaCv,1)+' %) ; shrinkage EBE/ω descriptif '+fmt(v.shrinkage,1)+' %.\n'+
-    'Diagnostics du replay : DV/PRED, DV/IPRED, profils individuels, distribution et covariables de ηCL, IIV log-normale (ωCL), erreur résiduelle log-normale (σlog), résidus log-standardisés, QQ/histogrammes, VPC 120 réplications, trajectoires SAEM. Bilan explicite des contrôles non disponibles (CWRES, NPDE, RSE, bootstrap, IOV, diagnostics externes).\n'+
-    'Les mesures PCA de l’étude réelle sont affichées, sans estimation du modèle PD.\n'+
-    'À compléter : ajustement SAEM/FOCEi sur les 32 sujets réels, diagnostics et BIC recalculés, validation sur données indépendantes si applicable.\n'+
-    'Ce rapport n’est pas une expertise clinique ni une recommandation thérapeutique.';
+  const comparisons=modelComparison(),ref=comparisons.find(m=>m.id==='one'),lag=comparisons.find(m=>m.id==='lag');
+  const v=variabilitySummary('lag');
+  return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
+    '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
+    'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
+    '2. STRUCTURAL MODEL / MODÈLE STRUCTURAL\n'+
+    'L’exploration de la cohorte expérimentale met en évidence une phase d’absorption et une décroissance multitemporelle ; la structure ne peut être déterminée sur les courbes exploratoires seules. Aucun modèle NLME n’a été ajusté sur ces 32 volontaires dans cette analyse.\n'+
+    'Benchmark distinct : '+POPULATION_META.nSubjects+' individus simulés, '+POPULATION_META.nObservations+' observations simulées. Comparaison par SAEM archivé : BIC 1C = '+fmt(ref.bic)+' ; 1C + Tlag = '+fmt(lag.bic)+' ; 2C = '+fmt(comparisons.find(m=>m.id==='two').bic)+'. ΔBIC(1C,Tlag) = '+fmt(Math.abs(ref.bic-lag.bic))+', non discriminant.\n'+
+    '3. INTERINDIVIDUAL AND RESIDUAL VARIABILITY\n'+
+    'Benchmark 1C + Tlag : ωCL = '+fmt(v.omega,3)+' (IIV CV lognormal '+fmt(v.omegaCv,1)+' %) ; σlog = '+fmt(v.sigma,3)+' (RUV CV lognormal '+fmt(v.sigmaCv,1)+' %) ; shrinkage descriptif des EBE de CL = '+fmt(v.shrinkage,1)+' %. Aucun effet aléatoire sur V, Ka, Tlag dans ce replay.\n'+
+    '4. MODEL DIAGNOSTICS / CONTRÔLES\n'+
+    'Examinés sur le benchmark : DV/PRED, DV/IPRED, profils individuels, résidus log-standardisés versus temps/IPRED et QQ-plot, EBE-versus-poids, IIV/RUV et VPC P5/P50/P95 à 120 réplications. Ne sont pas estimés : CWRES exacts, NPDE, matrice de covariance, RSE, bootstrap, IOV, pcVPC et validation externe.\n'+
+    '5. PK/PD AND CONCLUSION\n'+
+    'La série PCA expérimentale présente une cinétique distincte des concentrations PK, ce qui motive de comparer un modèle d’effet retardé/turnover. Aucune relation PK/PD n’a été estimée ici. Sur le benchmark simulé, les structures 1C et 1C + Tlag ne sont pas départagées avec un ΔBIC inférieur à 2 ; une sélection mécanistique nécessite des diagnostics supplémentaires. Les résultats du benchmark ne sont pas transférables tels quels aux 32 volontaires expérimentaux. Étape suivante : estimation conjointe ou séquentielle sur l’étude d’origine, puis qualification des paramètres, du modèle résiduel et de la prédiction.\n';
 }
 function renderImport(){
   const subj=STUDY_SUBJECTS[0],pk=STUDY_PK.filter(x=>x.id===subj.id).slice(0,4),
@@ -494,15 +498,14 @@ function renderPD(){
 }
 
 function renderFinal(){
-  $('population-workspace').innerHTML=story('Rédigez un résultat qui distingue les données, le modèle candidat, les diagnostics et ce qui reste non démontré. Votre dossier peut être copié comme exercice de synthèse.','ENQUÊTE N° 07 · RAPPORT FINAL')+
-    '<p class="career-note">Cochez les informations que le rapport de pharmacométrie doit conserver.</p>'+
-    checkboxes([['data','Citer les observations expérimentales 32 sujets (PK/PCA) et distinguer l’atelier SAEM artificiel.'],
-      ['inference','Signaler les limites du SAEM éducatif, du BIC et de l’identifiabilité.'],
-      ['pd','Préciser que le lien PK/PD retardé n’a pas été ajusté sur ce jeu de données.'],
-      ['clinical','Présenter les estimations comme utilisables pour prescrire de la warfarine.']],'pop-final')+
+  $('population-workspace').innerHTML=story('Concluez comme dans un rapport de pharmacométrie : séparez données, modèles candidats, précision, diagnostics et résultat PK/PD. Une conclusion ne peut s’appliquer qu’au jeu de données effectivement estimé.','SYNTHÈSE SCIENTIFIQUE')+
+    '<div class="career-alert"><strong>Résultat principal :</strong> les 32 volontaires Warfarine ont été explorés graphiquement. Les BIC et variabilités affichés concernent un benchmark distinct de 28 sujets simulés : 1C et 1C avec Tlag ont des BIC presque identiques ; aucune preuve indépendante n’a sélectionné la structure pour les vrais sujets.</div>'+
+    '<p class="career-note">Quelle conclusion résume correctement les résultats ?</p>'+
+    radio([['conditional','Le Tlag reste indécidable sur le benchmark ; la cohorte expérimentale nécessite son propre ajustement PK/PD et ses diagnostics.'],
+      ['certain','Le Tlag est confirmé dans les 32 volontaires et le modèle est validé.']],'pop-conclusion')+
     '<pre id="pop-report" class="career-code">'+escapeText(report())+'</pre>'+
-    '<div class="career-file-actions"><button type="button" class="career-action" id="pop-copy-report">Copier le rapport pédagogique</button>'+
-    '<a href="'+POPULATION_META.tutorialUrl+'" target="_blank" rel="noopener noreferrer" class="career-action">Tutoriel de référence</a></div>';
+    '<div class="career-file-actions"><button type="button" class="career-action" id="pop-copy-report">Copier le rapport scientifique</button>'+
+    '<a href="'+POPULATION_META.tutorialUrl+'" target="_blank" rel="noopener noreferrer" class="career-action">Source de l’étude</a></div>';
   $('pop-copy-report').addEventListener('click',()=>navigator.clipboard?.writeText(report()));
 }
 function render(){
@@ -522,7 +525,7 @@ function render(){
     'Une bonne qualification associe plusieurs contrôles ; aucun score ne suffit isolément.',
     'Lisez la différence de BIC et la parcimonie sans présenter une petite différence comme décisive.',
     'Un effet retardé exige une hypothèse dynamique à estimer et à confronter aux données.',
-    'Le rapport doit mentionner ce que le travail ne démontre pas.'
+    'Une conclusion robuste dépend des données effectivement ajustées et des diagnostics chiffrés.'
   ][index];
   $('population-hint-text').textContent=[
     'Le fichier source a DVID=1 pour PK, DVID=2 pour PCA et AMT pour la dose ; il ne possède pas EVID.',
@@ -531,7 +534,7 @@ function render(){
     'Contrôlez GOF, IIV, modèle résiduel, EBE, covariables, VPC et robustesse/identifiabilité.',
     'ΔBIC inférieur à 2 n’apporte pas ici d’argument discriminant solide.',
     'Le retard peut provenir d’une dynamique d’effet ou de turnover ; la courbe seule ne prouve rien.',
-    'Les observations viennent de l’étude O’Reilly, mais les estimations archivées sont issues d’une simulation distincte.'
+    'Séparez résultats du benchmark, structure suggérée et modèle non encore estimé sur la cohorte expérimentale.'
   ][index];
   [
     renderImport,renderEDA,renderSAEM,renderDiagnostics,renderDecision,renderPD,renderFinal
