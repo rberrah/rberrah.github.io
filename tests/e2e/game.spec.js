@@ -322,7 +322,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#pop-vpc')).toBeVisible();
   await expect(page.locator('#pop-variability-metrics')).toContainText('IIV CL');
   await expect(page.locator('#pop-ruv-metrics')).toContainText('σlog');
-  await expect(page.locator('#pop-iiv-density rect')).toHaveCount(8); // background + 7 appropriately sized EBE bins
+  await expect(page.locator('#pop-iiv-density rect')).toHaveCount(7); // background + 6 bins for 28 EBEs
   await expect(page.locator('#pop-iiv-density polyline')).toHaveCount(1);
   await expect(page.locator('#pop-ruv-shape polyline')).toHaveCount(3);
   await expect(page.locator('#pop-ruv-shape polygon')).toHaveCount(1);
