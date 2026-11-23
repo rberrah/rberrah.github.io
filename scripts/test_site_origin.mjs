@@ -8,7 +8,7 @@ import { configureSiteOrigin } from './configure_site_origin.mjs';
 
 async function materializeExternallyMountedRoutes(directory) {
   for (const route of ['multiomics', 'multiomics/tool', 'multiomics/learn', 'multiomics/ecosystem', 'multiomics/disciplines', 'multiomics/resources',
-    'multiomics/glossary', 'multiomics/references']) {
+    'multiomics/glossary', 'multiomics/references', 'pharmacometrie/game']) {
     const target = path.join(directory, route);
     await mkdir(target, { recursive: true });
     await writeFile(path.join(target, 'index.html'), '<!doctype html><title>external mount fixture</title>');
