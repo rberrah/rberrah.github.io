@@ -10,7 +10,7 @@ await cp('src/lib/analytics.js', path.join(target, 'assets/analytics.js'));
 async function inject(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     if (entry.name === 'pharmacometrie') continue;
-    // The opt-in PMx game is intentionally unlisted and must not emit visit telemetry.
+    // PMx Game remains telemetry-free even after official publication under PMx Explain.
     if (directory === target && entry.name === 'game') continue;
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) { await inject(file); continue; }
