@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DEFAULTS, CHALLENGE, STEP, atTime, fitScore, simulate, validate } from '../portal/game/engine.js';
 import { QUESTS, profileFor, grade, logSlope, validateProgress, unlockedIndex } from '../portal/game/academy-core.js';
-import { ADVANCED_MISSIONS, GRAPH_NODES, GRAPH_EDGES, ODE_STATES, validateGraph, validateOdes, steadyStateBolus, gradeMic, aucLinear, aucMichaelis, nonlinearChallenge, oneDoseProfile, steadyStateOral, ddiChallenge, gradeDdi } from '../portal/game/advanced-core.js';
+import { ADVANCED_MISSIONS, GRAPH_NODES, GRAPH_OPTIONS, GRAPH_EDGES, ODE_STATES, validateGraph, validateOdes, steadyStateBolus, gradeMic, aucLinear, aucMichaelis, nonlinearChallenge, oneDoseProfile, steadyStateOral, ddiChallenge, gradeDdi, loadingChallenge, repeatedBolus, accumulationChallenge, fractionationChallenge, ambiguityChallenge } from '../portal/game/advanced-core.js';
 
 const near = (a,b,tol=1e-6) => assert.ok(Math.abs(a-b)<=tol, a + ' differs from ' + b);
 const iv = simulate({ model:1, route:'iv', dose:100, vc:20, cl:4, horizon:24 });
@@ -84,9 +84,10 @@ assert.ok(profileFor(QUESTS[2]).points.length>profileFor(QUESTS[1]).points.lengt
 
 
 // Course exercises are deterministic and must not endorse clinical prescriptions.
-assert.equal(ADVANCED_MISSIONS.length,5);
-assert.deepEqual(ADVANCED_MISSIONS.map(m=>m.id),['graph','odes','mic','nonlinear','ddi']);
+assert.equal(ADVANCED_MISSIONS.length,9);
+assert.deepEqual(ADVANCED_MISSIONS.map(m=>m.id),['graph','odes','mic','nonlinear','ddi','loading','accumulation','fraction','ambiguity']);
 assert.equal(validateGraph(GRAPH_NODES.map(n=>n.id),GRAPH_EDGES).ok,true);
+assert.equal(validateGraph(GRAPH_OPTIONS.map(n=>n.id),GRAPH_EDGES).ok,false);
 assert.equal(validateGraph(['gut','central','peripheral','exit'],['gut>central','central>peripheral']).ok,false);
 assert.equal(validateGraph(GRAPH_NODES.map(n=>n.id),[...GRAPH_EDGES,'peripheral>exit']).ok,false);
 const correctOdes=Object.fromEntries(ODE_STATES.map(row=>[row.id,row.expected]));
@@ -119,10 +120,44 @@ assert.ok(inhibited.cmin/baseline.cmin>3.5);
 assert.ok(steadyStateOral({cl:2.5}).points.every(p=>Number.isFinite(p.c)&&p.c>0));
 const dd=ddiChallenge(2.5);
 assert.equal(gradeDdi(2.5,dd.troughRatio).ok,true);
+assert.equal(gradeDdi(2.5,'trough').ok,true);
+assert.equal(gradeDdi(2.5,'auc').ok,false);
+assert.equal(gradeDdi(2.5,'same').ok,false);
 assert.equal(gradeDdi(2.5,dd.aucRatio).ok,false);
 assert.equal(gradeDdi(4.5,1.3).ok,false);
 assert.throws(()=>steadyStateOral({cl:0}),RangeError);
 assert.throws(()=>steadyStateBolus({mic:0}),RangeError);
+
+assert.equal(loadingChallenge(60,108).ok,true);
+assert.equal(loadingChallenge(108,60).ok,false);
+near(loadingChallenge(60,108).initial,3);
+near(loadingChallenge(60,108).average,3);
+assert.equal(repeatedBolus(60,108).length,241);
+near(repeatedBolus(60,108)[0].c,3);
+assert.equal(accumulationChallenge({cl:0.75,doses:6}).ok,true);
+assert.equal(accumulationChallenge({cl:0.75,doses:5}).ok,false);
+assert.equal(accumulationChallenge({cl:1,doses:4}).ok,true);
+assert.equal(accumulationChallenge({cl:2,doses:2}).ok,true);
+near(fractionationChallenge(6).auc24,fractionationChallenge(12).auc24);
+assert.equal(fractionationChallenge(6).ok,true);
+assert.equal(fractionationChallenge(12).ok,false);
+assert.ok(fractionationChallenge(6).fluctuation<fractionationChallenge(12).fluctuation);
+assert.equal(ambiguityChallenge(0.4,2).ok,true);
+assert.equal(ambiguityChallenge(0.8,4).ok,false); // same parameters are not a second explanation
+assert.equal(ambiguityChallenge(0.8,6).ok,false);
+near(ambiguityChallenge(0.4,2).auc,20);
+assert.throws(()=>ambiguityChallenge(0,4),RangeError);
+assert.throws(()=>fractionationChallenge(7),RangeError);
+assert.throws(()=>accumulationChallenge({doses:0}),RangeError);
+const journeySource=readFileSync('portal/game/journey-art.js','utf8');
+assert.ok(journeySource.includes('data-stage'));
+assert.ok(journeySource.includes('journey-arrow'));
+const additionalSource=readFileSync('portal/game/advanced-more.js','utf8');
+assert.ok(additionalSource.includes('setupExtended'));
+const advancedSource=readFileSync('portal/game/advanced.js','utf8');
+assert.ok(!advancedSource.includes('id="adv-ddi-prediction"'));
+assert.ok(advancedSource.includes('name="ddi-comparison"'));
+
 // No answers are rendered in numerical placeholders or lag annotations before solving.
 const academySource=readFileSync('portal/game/academy.js','utf8');
 const visualSource=readFileSync('portal/game/academy-visual.js','utf8');
@@ -133,7 +168,7 @@ assert.ok(QUESTS.find(q=>q.id==='flip').question.toLowerCase().includes('clairan
 assert.ok(QUESTS.find(q=>q.id==='flip').options[QUESTS.find(q=>q.id==='flip').answer].includes('pente orale'));
 
 const page=readFileSync('portal/game/index.html','utf8');
-for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','src="./academy.js"','href="./academy.css"','id="academy-mode"','id="advanced-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
+for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','src="./academy.js"','src="./advanced.js"','href="./academy.css"','id="academy-mode"' ,'id="advanced-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
   assert.ok(page.includes(expected), expected + ' missing');
 for(const path of ['portal/index.html','portal/tools/index.html','portal/sitemap.xml']) {
   const text=readFileSync(path,'utf8');
