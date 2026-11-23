@@ -107,6 +107,7 @@ function setLanguage(lang){
   history.replaceState(history.state,'',url.pathname+url.search+url.hash);
   try{localStorage.setItem('pharmacometrie-language',lang);}catch{}
   refresh();
+  window.dispatchEvent(new CustomEvent('pmx-game-language-change',{detail:{lang}}));
 }
 document.getElementById('game-lang-fr')?.addEventListener('click',()=>setLanguage('fr'));
 document.getElementById('game-lang-en')?.addEventListener('click',()=>setLanguage('en'));
