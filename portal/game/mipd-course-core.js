@@ -16,12 +16,13 @@ export const CASE=Object.freeze({
   consensus:'https://doi.org/10.1097/FTD.0000000000000871',
   heartGuideline:'https://www.ishlt.org/docs/default-source/standards-guidelines/2022_guideline_ishlt_careofhtxrecipients.pdf',
   lss:'https://pubmed.ncbi.nlm.nih.gov/18641552/',
+  label:'https://www.medicines.org.uk/emc/medicine/1679/spc',
   berrah:'https://doi.org/10.1097/FTD.0000000000001413',
   hughes:'https://doi.org/10.1002/psp4.12684'
  }
 });
 export const SAMPLING_TIMES=Object.freeze([.5,1,2]);
-export const DOSES=Object.freeze([250,500,750,1000,1250,1500,1750,2000]);
+export const DOSES=Object.freeze([250,500,750,1000,1250,1500]);
 export function mpaConcentration(t,{dose=CASE.dose,cl=CASE.priorCL,v=CASE.priorV,ka=CASE.ka,tau=CASE.tau}={}){
  if(![t,dose,cl,v,ka,tau].every(Number.isFinite)||dose<=0||cl<=0||v<=0||ka<=0||tau<=0||t<0)
   throw new RangeError('Invalid MPA oral PK inputs');
@@ -81,9 +82,9 @@ export function targetAssessment(auc,c0){
    aboveContext:auc>CASE.targetAucContextUpper};
 }
 export function doseMetrics(post,dose,{clFactor=1}={}){
- if(!post||!Number.isFinite(dose)||dose<250||dose>3000||
+ if(!post||!Number.isFinite(dose)||dose<250||dose>1500||
    !Number.isFinite(clFactor)||clFactor<.4||clFactor>1.5)
-  throw new RangeError('Dose must be 250–3000 mg and CL multiplier 0.4–1.5');
+  throw new RangeError('Dose must be 250–1500 mg per administration and CL multiplier 0.4–1.5');
  const cl=post.mapCL*clFactor,v=post.mapV;
  const auc=dose/cl,c0=mpaConcentration(CASE.tau,{dose,cl,v});
  const curve=Array.from({length:121},(_,i)=>({
