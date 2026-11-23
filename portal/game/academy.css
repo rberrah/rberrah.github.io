@@ -132,3 +132,41 @@
 @media(max-width:560px){.advanced-sidebar #advanced-list{grid-template-columns:repeat(2,minmax(0,1fr))}.advanced-stage,.advanced-sidebar{padding:15px}.advanced-control-grid{grid-template-columns:1fr}.advanced-metrics{grid-template-columns:1fr}.ode-term-options button{font-size:.72rem;padding:8px}.advanced-instruction{font-size:.84rem}}
 
 @media(max-width:650px){#body-figure{aspect-ratio:390/760!important;max-height:none!important}}
+
+/* Drug-journey artwork: high-contrast anatomical drawings and mass bars. */
+.journey-subtitle{margin:0 0 12px!important;font-size:.9rem!important;color:#bedbd5!important}
+#body-figure{aspect-ratio:920/534!important;max-height:none!important;background:#0d2b35;border:1px solid #497376;overflow:hidden}
+.body-card{padding:clamp(14px,2vw,23px)}
+.body-legend span{font-size:.84rem;line-height:1.4;background:#173840}
+.body-legend b{font-size:1.14rem}
+#academy-mode .journey .body-card{order:-1}
+@media(max-width:650px){#body-figure{aspect-ratio:430/848!important;max-height:none!important}.body-card{padding:12px}.journey-subtitle{font-size:.8rem!important}}
+
+/* New hands-on lessons and comparison-friendly interpretation. */
+.advanced-stage .adv-scenario{padding:17px 20px;margin-bottom:17px;background:linear-gradient(120deg,#12383e,#182d38);border:1px solid #396462;border-radius:16px}
+.adv-scenario-label{display:block;color:#8ae5d3;font-size:.73rem;letter-spacing:.12em;font-weight:850;margin-bottom:7px}
+.adv-scenario p{margin:0;color:#cce6df;font-size:.92rem;line-height:1.65}
+.advanced-stage .advanced-small{margin:10px 0;color:#a8c9c2;line-height:1.6}
+.advanced-bar-track{height:12px;border-radius:99px;background:#304b52;overflow:hidden;min-width:0}
+.advanced-bar-track>div{height:100%;background:linear-gradient(90deg,#4ba3a2,#86e5d0);border-radius:99px;transition:width .2s}
+.advanced-overlap{display:grid;gap:14px;border:1px solid #345e5d;background:#13363d;border-radius:14px;padding:18px;margin:15px 0}
+.advanced-overlap>div{display:grid;grid-template-columns:130px 1fr;align-items:center;gap:12px;font-size:.83rem;color:#d2e8e1}
+.ddi-table{background:#16373e;border:1px solid #376464;padding:13px;border-radius:12px;display:grid;gap:8px;color:#c3ded5;font-size:.82rem}
+.ddi-table>strong{font-size:.85rem;color:#9df4da}
+.ddi-table>div{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.ddi-table span,.ddi-table b{font-variant-numeric:tabular-nums;color:#f1f8f4}
+.ddi-bars{padding:16px;background:#142f37;border:1px solid #35585b;border-radius:12px;margin:10px 0}
+.ddi-bars>div{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;margin:10px 0}
+.ddi-bars>div>span{font-weight:800;color:#c4ded4}
+.ddi-comparison{border:1px solid #44716a;border-radius:13px;padding:14px;display:grid;gap:9px;margin:15px 0}
+.ddi-comparison legend{font-size:.92rem;color:#e8f5ed;padding:0 7px;font-weight:750}
+.ddi-comparison label{display:flex;align-items:center;gap:10px;border:1px solid #345963;border-radius:9px;padding:11px;background:#173b42;cursor:pointer}
+.ddi-comparison label:has(input:checked){border-color:#9af0d5;background:#28584f}
+.ddi-comparison input{accent-color:#85e5cc}
+.advanced-graph{background:radial-gradient(ellipse at 50% 30%,#1a4447,#102832)}
+@media(max-width:650px){
+  .advanced-overlap>div{grid-template-columns:1fr;gap:5px}
+  .ddi-table>div{font-size:.78rem}
+  .ddi-comparison label{font-size:.83rem}
+  .advanced-stage .adv-scenario{padding:12px}
+}

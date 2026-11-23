@@ -38,10 +38,10 @@
 <body>
 <div class="wrap">
   <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><span class="pill">Prototype pédagogique · sans données patients</span></header>
-  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Neuf quêtes et cinq défis avancés pour reconnaître les phases PK, lire une échelle semi-logarithmique, estimer un lag time ou une pente et comprendre les limites des modèles. Débloquez ensuite le laboratoire pour expérimenter librement.</p></section>
+  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Neuf quêtes et neuf défis avancés pour reconnaître les phases PK, lire une échelle semi-logarithmique, estimer un lag time ou une pente et comprendre les limites des modèles. Débloquez ensuite le laboratoire pour expérimenter librement.</p></section>
   <nav class="game-mode" aria-label="Choisir un mode">
     <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
-    <button id="mode-advanced" aria-pressed="false">Parcours avancé · 5 défis</button>
+    <button id="mode-advanced" aria-pressed="false">Parcours avancé · 9 défis</button>
     <button id="mode-lab" aria-pressed="false">Atelier libre · Construire</button>
     <span class="mode-caption">Progression pédagogique sauvegardée uniquement dans ce navigateur.</span>
   </nav>
@@ -76,11 +76,11 @@
           <p class="quiz-probe" id="academy-probe" aria-live="polite">Cliquez deux fois sur la courbe pour mesurer une pente.</p>
         </section>
         <section class="panel quest-card body-card">
-          <h3>Le voyage dans le corps · quatre étapes</h3>
-          <svg id="body-figure" viewBox="0 0 820 415" role="img" aria-label="Illustration conceptuelle de l'absorption, circulation, tissus et élimination"></svg>
+          <h3>Le voyage dans le corps</h3><p class="journey-subtitle">Suivez la dose : des organes illustrés, des quantités calculées et des flèches indiquant les échanges.</p>
+          <svg id="body-figure" viewBox="0 0 920 534" role="img" aria-label="Illustration conceptuelle de l'absorption, circulation, tissus et élimination"></svg>
           <div>
-            <div class="body-legend"><span>Digestif : <b id="body-gut">0 mg</b></span><span>Circulation : <b id="body-central">0 mg</b></span><span>Tissus : <b id="body-tissue">0 mg</b></span><span>Éliminé : <b id="body-eliminated">0 mg</b></span></div>
-            <p class="body-hint"><strong>Suivez les flèches :</strong> le dépôt digestif alimente la circulation ; le sang échange avec les tissus et porte aussi la voie d’élimination. Représentation pédagogique, pas un modèle PBPK : les tissus ne sont pas des compartiments anatomiques et la clairance n’est pas séparée entre foie et reins.</p>
+            <div class="body-legend"><span>Absorption <b id="body-gut">0 mg</b></span><span>Circulation <b id="body-central">0 mg</b></span><span>Distribution <b id="body-tissue">0 mg</b></span><span>Élimination <b id="body-eliminated">0 mg</b></span></div>
+            <p class="body-hint">Les flèches matérialisent les échanges du modèle mathématique. Les pictogrammes évoquent le corps, mais les compartiments ne sont pas des organes PBPK. L’élimination part du compartiment central.</p>
             <div class="quest-timeline">
               <button id="academy-play" aria-label="Lecture de la simulation">▶</button>
               <input id="academy-time" type="range" min="0" max="24" step="0.25" value="0" aria-label="Explorer le temps de simulation">
@@ -125,7 +125,7 @@
       <h2>À vous de construire</h2>
       <p>De nouvelles missions pour apprendre en manipulant des structures, des équations et des paramètres simulés.</p>
       <div class="quest-stats">
-        <div class="quest-stat"><span>Défis validés</span><strong id="advanced-count">0/5</strong></div>
+        <div class="quest-stat"><span>Défis validés</span><strong id="advanced-count">0/9</strong></div>
         <div class="quest-stat"><span>Expérience</span><strong id="advanced-xp">0 XP</strong></div>
       </div>
       <div id="advanced-list" class="quest-list" aria-label="Défis avancés"></div>

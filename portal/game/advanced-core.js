@@ -4,7 +4,11 @@ export const ADVANCED_MISSIONS=Object.freeze([
  {id:'odes',title:'Écrire les équations',chapter:'Systèmes dynamiques',summary:'Assemblez toutes les équations d’état, sans terme manquant ni double comptage.',xp:110},
  {id:'mic',title:'Mission CMI',chapter:'Antibiothérapie simulée',summary:'Jouez sur la dose et l’intervalle pour atteindre un objectif fictif de fT > CMI.',xp:120},
  {id:'nonlinear',title:'Le piège de la dose',chapter:'Linéaire ou saturable ?',summary:'Atteignez la même AUC avec une élimination linéaire puis saturable.',xp:120},
- {id:'ddi',title:'Interaction : AUC et C0',chapter:'Dose et clairance',summary:'Modifiez CL et estimez la variation de C0 par rapport à l’AUC.',xp:130}
+ {id:'ddi',title:'Quand la clairance change',chapter:'Interaction médicamenteuse',summary:'Comparez les conséquences d’une baisse de CL sur AUC et C0.',xp:130},
+ {id:'loading',title:'Le premier jour du traitement',chapter:'Dose de charge',summary:'Séparez l’objectif immédiat et l’exposition d’entretien.',xp:110},
+ {id:'accumulation',title:'Le temps d’atteindre un plateau',chapter:'État stationnaire',summary:'Combien de doses faut-il selon la vitesse d’élimination ?',xp:110},
+ {id:'fraction',title:'Une même dose quotidienne',chapter:'Fractionnement',summary:'Même AUC quotidienne, mais pics et creux différents.',xp:120},
+ {id:'ambiguity',title:'Deux patients, une seule AUC',chapter:'Biodisponibilité apparente',summary:'Découvrez pourquoi F et CL ne se déduisent pas d’une AUC orale isolée.',xp:130}
 ]);
 export const GRAPH_NODES=Object.freeze([
  {id:'gut',label:'Dépôt oral',x:90,y:150},
@@ -12,6 +16,11 @@ export const GRAPH_NODES=Object.freeze([
  {id:'peripheral',label:'Périphérique',x:470,y:150},
  {id:'exit',label:'Éliminé',x:280,y:310}
 ]);
+export const GRAPH_DISTRACTORS=Object.freeze([
+ {id:'iv_input',label:'Injection IV',x:90,y:310},
+ {id:'p2',label:'2e périphérique',x:470,y:310}
+]);
+export const GRAPH_OPTIONS=Object.freeze([...GRAPH_NODES,...GRAPH_DISTRACTORS]);
 export const GRAPH_EDGES=Object.freeze(['gut>central','central>peripheral','peripheral>central','central>exit']);
 function equalSet(a,b){return a.length===b.length && a.every(v=>b.includes(v));}
 export function validateGraph(nodes,edges){
@@ -120,5 +129,63 @@ export function ddiChallenge(newCl=2.5){
 }
 export function gradeDdi(newCl,prediction){
   const r=ddiChallenge(newCl);
+  const observation=prediction==='trough' ? 'trough' : prediction==='auc' ? 'auc' : prediction==='same' ? 'same' : null;
+  if(observation!==null)return {...r,ok:r.aucRatio>=1.7 && observation==='trough' && r.troughRatio>r.aucRatio};
   return {...r,ok:r.aucRatio>=1.7&&Number.isFinite(prediction)&&Math.abs(prediction-r.troughRatio)<=.22};
+}
+
+
+// All following examples have fictional units, thresholds and no patient data.
+export const LOADING_CASE=Object.freeze({volume:20,cl:3,tau:12,target:3});
+export function loadingChallenge(loadingDose,maintenanceDose){
+  if(![loadingDose,maintenanceDose].every(Number.isFinite)||loadingDose<=0||maintenanceDose<=0)
+    throw new RangeError('Invalid loading/maintenance quantities');
+  const {volume,cl,tau,target}=LOADING_CASE;
+  const initial=loadingDose/volume,average=maintenanceDose/(cl*tau);
+  return {initial,average,target,ok:Math.abs(initial-target)<=0.2 && Math.abs(average-target)<=0.18};
+}
+export function repeatedBolus(loadingDose,maintenanceDose,caseParams=LOADING_CASE){
+  const {volume,cl,tau}=caseParams;
+  if(![loadingDose,maintenanceDose,volume,cl,tau].every(Number.isFinite)||
+    Math.min(loadingDose,maintenanceDose,volume,cl,tau)<=0)throw new RangeError('Invalid repeated doses');
+  const k=cl/volume;
+  const points=[];
+  for(let i=0;i<=4*60;i++){
+    const time=i*tau/60;
+    let c=0;
+    for(let doseNo=0;doseNo<=3;doseNo++){
+      const timeOfDose=doseNo*tau;
+      if(time>=timeOfDose){
+        const amount=doseNo===0?loadingDose:maintenanceDose;
+        c+=amount/volume*Math.exp(-k*(time-timeOfDose));
+      }
+    }
+    points.push({t:time,c});
+  }
+  return points;
+}
+export function accumulationChallenge({cl=0.75,volume=20,tau=12,doses=3}={}){
+  if(![cl,volume,tau,doses].every(Number.isFinite)||Math.min(cl,volume,tau)<=0||
+    !Number.isInteger(doses)||doses<1||doses>20)throw new RangeError('Invalid accumulation parameters');
+  const k=cl/volume;
+  const fraction=1-Math.exp(-doses*k*tau);
+  const minimumDoses=Math.ceil(-Math.log(0.1)/(k*tau)-1e-12);
+  return {fraction,minimumDoses,halfLife:Math.log(2)/k,
+    ok:doses===minimumDoses};
+}
+export function fractionationChallenge(tau=12){
+  if(![6,8,12,24].includes(tau))throw new RangeError('Unsupported fictional dose interval');
+  const cl=4,volume=20,dailyDose=240,k=cl/volume,dose=dailyDose*tau/24;
+  const peak=dose/volume/(1-Math.exp(-k*tau));
+  const trough=peak*Math.exp(-k*tau);
+  const auc24=dailyDose/cl;
+  return {dose,tau,auc24,peak,trough,fluctuation:peak/trough,
+    ok:peak/trough<4};
+}
+export function ambiguityChallenge(f=1,cl=6){
+  if(![f,cl].every(Number.isFinite)||f<=0||f>1||cl<=0)throw new RangeError('Invalid hypothetical bioavailability');
+  const baseline={f:.8,cl:4,dose:100,auc:20};
+  const auc=100*f/cl;
+  const independent=Math.abs(f-baseline.f)>=0.1 && Math.abs(cl-baseline.cl)>=0.5;
+  return {baseline,auc,f,cl,independent,ok:Math.abs(auc-baseline.auc)<=.5&&independent};
 }
