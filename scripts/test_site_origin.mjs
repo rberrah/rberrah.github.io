@@ -72,7 +72,7 @@ test('a stale application build or a missing sitemap destination blocks assembly
   await materializeExternallyMountedRoutes(directory);
   const origin = 'https://pharmacology.example';
   const app = path.join(directory, 'pharmacometrie');
-  await mkdir(app);
+  await mkdir(app, { recursive: true });
   await writeFile(path.join(app, 'sitemap.xml'), '<urlset><url><loc>https://old.example/pharmacometrie/</loc></url></urlset>');
   await assert.rejects(configureSiteOrigin(directory, origin), /Origin mismatch/);
   await writeFile(path.join(app, 'sitemap.xml'), `<urlset><url><loc>${origin}/pharmacometrie/missing/</loc></url></urlset>`);
