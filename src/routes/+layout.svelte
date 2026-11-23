@@ -33,7 +33,7 @@
   let links = $derived([
     { href: '/', key: 'home', label: copy.nav.home },
     { href: '/chapitres', key: 'course', label: copy.nav.course },
-    { href: '/game', key: 'game', label: 'PMx Game' }
+    { href: '/game', key: 'game', label: 'PMx Game' },
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
