@@ -1,8 +1,9 @@
 import {
-  ADVANCED_MISSIONS,GRAPH_NODES,GRAPH_EDGES,ODE_TERMS,ODE_STATES,
+  ADVANCED_MISSIONS,GRAPH_NODES,GRAPH_OPTIONS,GRAPH_EDGES,ODE_TERMS,ODE_STATES,
   validateGraph,validateOdes,gradeMic,nonlinearChallenge,oneDoseProfile,
   gradeDdi,ddiChallenge,NONLINEAR
 } from './advanced-core.js';
+import { setupExtended } from './advanced-more.js';
 
 const $=id=>document.getElementById(id);
 const STORAGE='pmx-game-advanced-v1';
@@ -16,6 +17,7 @@ let current=ADVANCED_MISSIONS.findIndex(m=>!progress.completed.includes(m.id));
 if(current<0)current=ADVANCED_MISSIONS.length-1;
 let completed=false;
 let graphNodes=[],graphEdges=[],graphStart=null;
+let extended=null;
 let odePicks={};
 let micDose=100,micTau=8,linearDose=180,mmDose=180,ddiCl=2.5;
 
@@ -24,14 +26,22 @@ const explanations={
  odes:'Les équations de quantités conservent la masse : les échanges entre central et périphérique se compensent, l’absorption quitte le dépôt et rejoint le central, et l’élimination est comptabilisée dans Ae.',
  mic:'Pour ce médicament fictif à distribution 1C après bolus IV, fT > CMI dépend de la fraction libre, de la CMI et de la vitesse de décroissance. La valeur de 70 % et la limite AUC24 sont des objectifs inventés, non des cibles thérapeutiques recommandées.',
  nonlinear:'Pour une élimination linéaire, AUC∞=Dose/CL. Dans l’exemple Michaelis–Menten, la vitesse d’élimination se sature ; AUC∞ croît plus vite que la dose. Les deux doses nécessaires pour une même cible AUC peuvent donc différer.',
- ddi:'Dans ce modèle oral linéaire avec administrations répétées, AUC sur un intervalle varie comme 1/CL, alors que C0 dépend aussi de l’accumulation et de l’absorption. Une même modification de CL n’implique donc pas la même variation relative de C0 et d’AUC.'
+ ddi:'Dans ce modèle oral linéaire avec administrations répétées, AUC sur un intervalle varie comme 1/CL, alors que C0 dépend aussi de l’accumulation et de l’absorption. Une même modification de CL n’implique donc pas la même variation relative de C0 et d’AUC.',
+ loading:'La dose de charge dépend du volume apparent et de la concentration recherchée immédiatement ; la dose d’entretien dépend de CL, de l’intervalle et de la concentration moyenne visée.',
+ accumulation:'À intervalle donné, une élimination plus lente implique davantage d’administrations avant l’état stationnaire.',
+ fraction:'Pour une PK linéaire, la dose journalière totale constante préserve AUC24 ; le fractionnement atténue les pics et remonte les creux.',
+ ambiguity:'L’AUC après voie orale dépend de F/CL. Une AUC isolée n’identifie donc pas séparément F et CL.'
 };
 const hints={
  graph:'Le dépôt ne représente pas la clairance. Les tissus doivent pouvoir échanger dans les deux sens avec le central, et la sortie se fait depuis la circulation.',
  odes:'Écrivez les variations des quantités (mg/h), pas celles des concentrations. Un flux retiré d’un état doit apparaître avec le signe opposé dans l’état où il arrive.',
  mic:'L’objectif porte sur la concentration libre pendant un intervalle complet. Une dose trop forte peut respecter fT > CMI mais dépasser la limite AUC du jeu. Testez aussi l’intervalle.',
  nonlinear:'Commencez par le cas linéaire, puis considérez que la vitesse maximale d’élimination du second modèle est limitée. Comparez les AUC plutôt que les Cmax.',
- ddi:'L’AUC est inversement proportionnelle à CL. C0 est mesurée juste avant la dose suivante et dépend de la fraction restante après plusieurs intervalles. Estimez sa variation sur le graphique.'
+ ddi:'Observez séparément AUC et C0 avant/après. Il suffit de comparer leurs augmentations relatives, vous n’avez pas à calculer un rapport de tête.',
+ loading:'Utilisez les deux mesures simulées. Elles ne visent pas le même instant ni la même définition de concentration.',
+ accumulation:'Observez la première barre dépassant le seuil 90 % ; comparez l’effet de CL.',
+ fraction:'La dose par administration doit diminuer lorsqu’on administre plus fréquemment une même dose totale quotidienne.',
+ ambiguity:'Même dose × F / CL : si F diminue, quel changement de CL peut conserver ce rapport ?'
 };
 function save(){
   try{localStorage.setItem(STORAGE,JSON.stringify(progress));}catch{/*Private browsing*/ }
@@ -63,7 +73,7 @@ function feedback(correct,message){
   el.append(head,text);
   if(correct) {
     const reward=document.createElement('div');reward.className='reward';
-    reward.textContent=ADVANCED_MISSIONS[current].xp+' XP · '+progress.completed.length+'/5 défis avancés';
+    reward.textContent=ADVANCED_MISSIONS[current].xp+' XP · '+progress.completed.length+'/'+ADVANCED_MISSIONS.length+' défis avancés';
     el.append(reward);
   }
 }
@@ -81,7 +91,7 @@ function select(i){
   if(i>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[i].id))return;
   current=i;const m=ADVANCED_MISSIONS[i];
   completed=progress.completed.includes(m.id);
-  graphNodes=[];graphEdges=[];graphStart=null;
+  graphNodes=[];graphEdges=[];graphStart=null;extended=null;
   odePicks=Object.fromEntries(ODE_STATES.map(s=>[s.id,[]]));
   micDose=100;micTau=8;linearDose=180;mmDose=180;ddiCl=2.5;
   $('advanced-chapter').textContent=m.chapter;
@@ -94,14 +104,19 @@ function select(i){
   $('advanced-next').hidden=true;
   $('advanced-check').disabled=completed;
   $('advanced-teacher').textContent={
-    graph:'Ajoutez les blocs, puis cliquez sur un nœud de départ et un nœud d’arrivée pour dessiner chaque flèche. Une flèche inverse se dessine séparément.',
+    graph:'Déduisez une structure compatible avec les indices. Cliquez sur les blocs que vous retenez, puis dessinez les transferts : un départ et une arrivée par flèche. Des blocs proposés sont inutiles.',
     odes:'Pour chacun des quatre états, assemblez les termes qui appartiennent à son dérivé. Le système entier doit conserver la masse.',
     mic:'Médicament imaginaire : CMI = 2 mg/L, fraction libre 80 %, bolus IV répétés, modèle 1C. Atteignez fT > CMI ≥ 70 % et AUC24 ≤ 150 mg·h/L.',
     nonlinear:'Après un bolus IV, adaptez deux doses pour obtenir une AUC∞ de 60 mg·h/L avec chacune des lois d’élimination.',
-    ddi:'Un inhibiteur fictif réduit CL ; dose et intervalle sont constants. Obtenez une augmentation d’AUC ≥ 1,7 fois puis estimez le rapport C0 avec une tolérance de ±0,22.'
+    ddi:'Explorez une diminution de CL. Pour le scénario choisi, comparez les augmentations relatives de AUC et de C0, à partir des valeurs et des courbes.',
+    loading:'Deux réglages : concentration immédiatement après la première dose et concentration moyenne d’entretien. Observez les mesures simulées.',
+    accumulation:'Votre but est de choisir la première dose après laquelle la part de l’état stationnaire atteint 90 %.',
+    fraction:'Même dose sur 24 h, mais administrations plus ou moins rapprochées : testez l’amplitude des fluctuations.',
+    ambiguity:'Deux personnes ont exactement la même AUC orale : reconstruisez un autre couple F/CL compatible.'
   }[m.id];
   renderStage();
   if(completed){
+    extended?.reveal();
     $('advanced-feedback').hidden=false;
     feedback(true,explanations[m.id]);
     $('advanced-next').hidden=i===ADVANCED_MISSIONS.length-1;
@@ -109,7 +124,7 @@ function select(i){
   nav();
 }
 function graphPath(from,to){
-  const a=GRAPH_NODES.find(n=>n.id===from),b=GRAPH_NODES.find(n=>n.id===to);
+  const a=GRAPH_OPTIONS.find(n=>n.id===from),b=GRAPH_OPTIONS.find(n=>n.id===to);
   const vx=b.x-a.x,vy=b.y-a.y,len=Math.hypot(vx,vy);
   if(!len)return '';
   const ux=vx/len,uy=vy/len;
@@ -125,7 +140,7 @@ function renderGraph(){
     const [from,to]=edge.split('>');
     out+='<path d="'+graphPath(from,to)+'" fill="none" stroke="#8cd7cf" stroke-width="3.6" marker-end="url(#adv-arrow)"/>';
   }
-  for(const node of GRAPH_NODES){
+  for(const node of GRAPH_OPTIONS){
     if(!graphNodes.includes(node.id))continue;
     const selected=node.id===graphStart;
     out+='<g data-graph-node="'+node.id+'" role="button" tabindex="0" aria-label="'+node.label+
@@ -134,12 +149,19 @@ function renderGraph(){
       '" stroke-width="2.6"/><text x="'+node.x+'" y="'+(node.y+5)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#f3fdf8">'+node.label+'</text></g>';
   }
   svg.innerHTML=out;
-  $('adv-graph-status').textContent=graphStart?'Départ sélectionné : '+GRAPH_NODES.find(n=>n.id===graphStart).label+'. Cliquez sur le nœud d’arrivée.':
-    graphNodes.length+' nœud(s) · '+graphEdges.length+' flèche(s). Cliquez sur un départ puis sur une arrivée.';
+  $('adv-graph-status').textContent=graphStart?'Départ sélectionné : '+GRAPH_OPTIONS.find(n=>n.id===graphStart).label+'. Cliquez sur le nœud d’arrivée.':
+    graphNodes.length+' bloc(s) placés · '+graphEdges.length+' transfert(s). Cliquez sur un départ puis sur une arrivée.';
   $('adv-graph-palette').querySelectorAll('button').forEach(b=>b.disabled=graphNodes.includes(b.dataset.addNode)||completed);
+  const nodesArea=$('adv-graph-nodes');
+  nodesArea.replaceChildren(...graphNodes.map(id=>{
+    const b=document.createElement('button');b.type='button';b.className='quest-btn';
+    b.textContent='Retirer '+GRAPH_OPTIONS.find(n=>n.id===id).label;b.disabled=completed;
+    b.addEventListener('click',()=>{graphNodes=graphNodes.filter(n=>n!==id);graphEdges=graphEdges.filter(e=>!e.split('>').includes(id));graphStart=null;renderGraph();});
+    return b;
+  }));
   $('adv-graph-edges').replaceChildren(...graphEdges.map(edge=>{
     const b=document.createElement('button');b.type='button';b.className='quest-btn';
-    const [a,z]=edge.split('>');b.textContent='× '+GRAPH_NODES.find(n=>n.id===a).label+' → '+GRAPH_NODES.find(n=>n.id===z).label;
+    const [a,z]=edge.split('>');b.textContent='× '+GRAPH_OPTIONS.find(n=>n.id===a).label+' → '+GRAPH_OPTIONS.find(n=>n.id===z).label;
     b.disabled=completed;
     b.addEventListener('click',()=>{graphEdges=graphEdges.filter(e=>e!==edge);renderGraph();});return b;
   }));
@@ -154,10 +176,10 @@ function graphClick(node){
   graphStart=null;renderGraph();
 }
 function setupGraph(){
-  $('advanced-stage').innerHTML='<p class="advanced-instruction">Mission : construisez le <strong>modèle mammillaire oral 2C</strong> avec dépôt, central, périphérique et élimination. Ajoutez chaque bloc et reliez les flux dans le bon sens.</p>'+
-    '<div class="advanced-palette" id="adv-graph-palette">'+GRAPH_NODES.map(n=>'<button data-add-node="'+n.id+'" class="quest-btn">+ '+n.label+'</button>').join('')+'</div>'+
+  $('advanced-stage').innerHTML='<p class="advanced-instruction">Une substance est <strong>avalée</strong> : la concentration mesurée est d’abord nulle, monte, puis la décroissance présente une phase rapide et une queue lente en semi-log. Quel <strong>schéma compartimental minimal</strong> proposeriez-vous parmi les blocs disponibles ? Certains sont des leurres. Reliez vos blocs sans aide sur les flèches.</p>'+
+    '<div class="advanced-palette" id="adv-graph-palette">'+GRAPH_OPTIONS.map(n=>'<button data-add-node="'+n.id+'" class="quest-btn">+ '+n.label+'</button>').join('')+'</div>'+
     '<svg id="adv-graph-svg" viewBox="0 0 570 375" class="advanced-graph" role="img" aria-label="Dessinez les compartiments et les flèches du modèle"></svg>'+
-    '<p id="adv-graph-status" class="advanced-prompt"></p><div id="adv-graph-edges" class="advanced-arrows"></div>'+
+    '<p id="adv-graph-status" class="advanced-prompt"></p><div class="advanced-arrows" id="adv-graph-nodes"></div><div id="adv-graph-edges" class="advanced-arrows"></div>'+
     '<button type="button" id="adv-graph-clear" class="quest-btn">Recommencer le dessin</button>';
   $('adv-graph-palette').addEventListener('click',ev=>{
     const b=ev.target.closest('[data-add-node]');
@@ -298,6 +320,7 @@ function renderStage(){
     case 'mic':return setupMic();
     case 'nonlinear':return setupNonlinear();
     case 'ddi':return setupDdi();
+    default:extended=setupExtended(ADVANCED_MISSIONS[current].id,$('advanced-stage'),completed);return;
   }
 }
 function check(){
@@ -306,8 +329,7 @@ function check(){
     case 'graph': {
       const r=validateGraph(graphNodes,graphEdges);
       if(r.ok)complete();
-      else feedback(false,'Dessin incomplet : '+r.missingNodes.length+' bloc(s) manquant(s), '+r.missingEdges.length+
-        ' flèche(s) manquante(s), '+r.extraEdges.length+' flèche(s) en trop. Vérifiez le sens des transferts.');
+      else feedback(false,'Votre proposition n’est pas encore cohérente avec le scénario : revoyez les éléments retenus, les échanges éventuels et le sens des flux. Les blocs inutiles sont à retirer.');
       return;
     }
     case 'odes': {
@@ -330,11 +352,17 @@ function check(){
       return;
     }
     case 'ddi': {
-      const element=$('adv-ddi-prediction');
-      if(!element.value.trim()||!Number.isFinite(element.valueAsNumber)){element.focus();return;}
-      const r=gradeDdi(ddiCl,element.valueAsNumber);
+      const element=$('advanced-stage').querySelector('input[name="ddi-comparison"]:checked');
+      if(!element){$('advanced-stage').querySelector('input[name="ddi-comparison"]')?.focus();return;}
+      const r=gradeDdi(ddiCl,element.value);
       if(r.ok){complete('AUC ×'+fmt(r.aucRatio,2)+' ; C0 ×'+fmt(r.troughRatio,2)+'.');ddiUpdate();}
-      else feedback(false,'Soit la variation d’AUC est insuffisante, soit votre prédiction de C0 ne correspond pas à la courbe simulée. Explorez l’intervalle entier.');
+      else feedback(false,'Comparez les changements avant/après pour chaque indicateur : ce sont les variations relatives qui comptent, pas les écarts absolus.');
+      return;
+    }
+    default: {
+      const r=extended.check();
+      if(r.ok){complete(r.message);extended.reveal();}
+      else feedback(false,r.message);
       return;
     }
   }
