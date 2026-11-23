@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tools &amp; Projects | Racym Berrah</title>
-  <meta name="description" content="Scientific software by Racym Berrah: Stats, Multiomics, MIPD Engine, TacDDI, MissedDose and GRAD.">
+  <meta name="description" content="Research software and teaching resources by Racym Berrah: Stat &amp; Biologie, Multiomics, MIPD Engine, TacDDI, MissedDose and GRAD.">
   <meta name="author" content="Racym Berrah">
   <link rel="canonical" href="__SITE_ORIGIN__/tools/">
   <link rel="me" href="https://orcid.org/0009-0001-6432-2880">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_GB">
   <meta property="og:title" content="Tools &amp; Projects | Racym Berrah">
-  <meta property="og:description" content="Scientific software by Racym Berrah: Stats, MIPD Engine, TacDDI, MissedDose and GRAD.">
+  <meta property="og:description" content="Research software and teaching resources by Racym Berrah: Stat &amp; Biologie, Multiomics, MIPD Engine, TacDDI, MissedDose and GRAD.">
   <meta property="og:url" content="__SITE_ORIGIN__/tools/">
   <meta property="og:image" content="__SITE_ORIGIN__/assets/distribution-lab.png">
   <meta property="og:image:alt" content="Two-compartment distribution experiment in PMx Explain">
@@ -21,18 +21,6 @@
   <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "SoftwareApplication",
-      "@id": "__SITE_ORIGIN__/stats/#software",
-      "name": "Stats",
-      "description": "Guided statistical analysis in the browser with explicit assumptions and limitations.",
-      "url": "__SITE_ORIGIN__/stats/",
-      "hasPart": {"@type": "SoftwareSourceCode", "name": "Stats source code", "codeRepository": "https://github.com/rberrah/stats"},
-      "author": {"@id": "__SITE_ORIGIN__/#racym-berrah"},
-      "applicationCategory": "ScienceApplication",
-      "operatingSystem": "Web browser",
-      "isAccessibleForFree": true
-    },
     {
       "@type": "SoftwareApplication",
       "@id": "__SITE_ORIGIN__/multiomics/#software",
@@ -66,13 +54,14 @@
 <main id="main" tabindex="-1">
 <div class="wrap page-heading"><p class="eyebrow">Scientific software</p><h1>Tools &amp; Projects</h1><p class="lede">Research tools for quantitative pharmacology, statistics, precision dosing and biomedical AI.</p></div>
 <div class="wrap">
-<nav class="section-nav" aria-label="Projects"><a href="#stats">Stats</a><a href="#multiomics">Multiomics</a><a href="#mipd">MIPD Engine</a><a href="#tacddi">TacDDI</a><a href="#misseddose">MissedDose</a><a href="#autonomous">Autonomous Pharmacometrics</a><a href="#grad">GRAD</a></nav>
-<article class="project-detail band" id="stats"><div><p class="eyebrow">Statistics</p><h2>Stats</h2><p class="project-status">Research / educational software</p></div><div>
-<p class="lede">Guided statistical testing with explicit rules and plain-language interpretation.</p><p>Stats starts from the scientific question and study design rather than requiring users to know the test name. The browser proposes a compatible method using deterministic rules, computes the analysis locally, and reports effect estimates, confidence intervals, p-values, effect sizes, assumptions and limitations.</p>
-<ul><li>Independent and paired quantitative comparisons.</li><li>Three or more independent groups.</li><li>Contingency tables and proportions.</li><li>Pearson / Spearman correlation and simple linear regression.</li><li>Built-in demonstrations, contextual help and French / English interface.</li></ul>
-<p class="note">Browser-only research and educational calculator. High-stakes analyses and small-sample rank tests should be verified with reference statistical software.</p>
-<p><strong>Technical evidence:</strong> The repository documents supported statistical designs, deterministic selection rules and test limitations, enabling the methods to be inspected rather than inferred from the interface.</p>
-<div class="links"><a class="btn primary" href="/stats/">Open Stats <span aria-hidden="true">&rarr;</span></a><a href="https://github.com/rberrah/stats">Source code &amp; validation notes</a></div>
+<nav class="section-nav" aria-label="Projects"><a href="#stats">Stat &amp; Biologie</a><a href="#multiomics">Multiomics</a><a href="#mipd">MIPD Engine</a><a href="#tacddi">TacDDI</a><a href="#misseddose">MissedDose</a><a href="#autonomous">Autonomous Pharmacometrics</a><a href="#grad">GRAD</a></nav>
+<article class="project-detail band" id="stats"><div><p class="eyebrow">Biostatistics education</p><h2>Stat &amp; Biologie</h2><p class="project-status">Interactive course · French</p></div><div>
+<p class="lede">Understand statistical reasoning before applying statistical formulas.</p>
+<p>A French-language interactive biostatistics course for medicine and biomedical science, combining explanations, quantitative visualisations, worked exercises and a guided decision tree for choosing a test.</p>
+<ul><li>Sampling variability, confidence intervals and statistical hypothesis tests.</li><li>Chi-square and Fisher tests, t tests, ANOVA and nonparametric comparisons.</li><li>Correlation, regression, clinical epidemiology and survival concepts.</li><li>Interactive diagrams, self-assessment exercises and links to relevant lessons.</li></ul>
+<p><strong>Technical evidence:</strong> The public repository contains the chapter sources, interactive visualisations, exercises and the explicit test-selection decision tree. The decision tree explains which method may fit a study design; it is not a dataset-analysis calculator.</p>
+<p class="note">Educational resource, not a substitute for statistical analysis performed with validated reference software. The course is in French.</p>
+<div class="links"><a class="btn primary" href="/stats/">Open Stat &amp; Biologie <span aria-hidden="true">&rarr;</span></a><a href="https://github.com/rberrah/stats">Course source and methods</a></div>
 </div></article>
 <article class="project-detail band" id="multiomics"><div><p class="eyebrow">Omics analysis</p><h2>Multiomics</h2><p class="project-status">Research / educational software</p></div><div>
 <p class="lede">Analyze one omics layer or integrate transcriptomics, proteomics and metabolomics.</p>
