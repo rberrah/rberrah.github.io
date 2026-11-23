@@ -34,14 +34,17 @@
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
   </style>
   <link rel="stylesheet" href="./academy.css">
+  <link rel="stylesheet" href="./courses.css">
 </head>
 <body>
 <div class="wrap">
   <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><span class="pill">Prototype pédagogique · sans données patients</span></header>
-  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Neuf quêtes et neuf défis avancés pour reconnaître les phases PK, lire une échelle semi-logarithmique, estimer un lag time ou une pente et comprendre les limites des modèles. Débloquez ensuite le laboratoire pour expérimenter librement.</p></section>
+  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Quatre parcours pour découvrir la PK : comprendre les courbes, construire des modèles, mener une étude de pharmacométrie de population et individualiser une dose sur un cas entièrement fictif. Un atelier libre complète les missions.</p></section>
   <nav class="game-mode" aria-label="Choisir un mode">
     <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
     <button id="mode-advanced" aria-pressed="false">Parcours avancé · 9 défis</button>
+    <button id="mode-population" aria-pressed="false">Parcours 3 · Pharmacométrie</button>
+    <button id="mode-mipd" aria-pressed="false">Parcours 4 · MIPD</button>
     <button id="mode-lab" aria-pressed="false">Atelier libre · Construire</button>
     <span class="mode-caption">Progression pédagogique sauvegardée uniquement dans ce navigateur.</span>
   </nav>
@@ -154,7 +157,68 @@
     </div>
   </section>
 
-  <main id="lab-mode" hidden aria-label="Atelier de simulation libre">
+  <section id="population-mode" class="career-layout" hidden aria-label="Parcours pharmacométricien de population">
+  <aside class="panel career-sidebar">
+    <div class="career-kicker">PARCOURS 3 · ANALYSE POPPK</div>
+    <h2>De données au modèle final</h2>
+    <p>Une étude de warfarine <strong>synthétique</strong>, inspirée du cas pédagogique Monolix. Ajustements déjà calculés : aucun SAEM n'est lancé dans le navigateur.</p>
+    <div class="career-progress"><strong id="population-progress">0 / 7</strong><span>missions terminées</span></div>
+    <div id="population-steps" class="career-step-list"></div>
+    <button id="population-reset" class="reset-journey">Réinitialiser ce parcours</button>
+  </aside>
+  <div class="career-main">
+    <div class="quest-heading">
+      <span class="chapter" id="population-chapter">Préparation des données</span>
+      <span class="quest-level" id="population-level">Étape 1 / 7</span>
+      <h2 id="population-title">Importer l'étude</h2>
+      <p id="population-description">Distinguez sujets, doses, concentrations et horaires avant d'estimer un modèle.</p>
+    </div>
+    <section id="population-workspace" class="panel career-workspace" aria-label="Analyse et activités pharmacométriques"></section>
+    <section class="panel tutor-panel" aria-label="Validation scientifique de l’étape">
+      <p id="population-help" class="career-help"></p>
+      <div id="population-feedback" class="quest-feedback" role="status" aria-live="polite" hidden></div>
+      <div class="quest-actions">
+        <button id="population-validate" class="quest-btn primary">Vérifier l'analyse</button>
+        <button id="population-hint" class="quest-btn">Indice</button>
+        <button id="population-next" class="quest-btn primary" hidden>Étape suivante</button>
+      </div>
+      <p id="population-hint-text" class="tutorial-notice" hidden></p>
+    </section>
+    <p class="quest-caveat">Cohorte totalement artificielle, inspirée des méthodes de pharmacométrie. Le SAEM pré-enregistré est un pilote pédagogique non validé, distinct de Monolix et nlmixr2. Aucun résultat ne doit guider une décision clinique.</p>
+  </div>
+</section>
+<section id="mipd-mode" class="career-layout" hidden aria-label="Parcours MIPD et individualisation posologique pédagogique">
+  <aside class="panel career-sidebar">
+    <div class="career-kicker">PARCOURS 4 · MIPD</div>
+    <h2>Du patient fictif à la dose</h2>
+    <p>Observations simulées, estimation Bayésienne MAP, évaluation d'une grille de doses et décisions face à une clairance changeante.</p>
+    <div class="career-progress"><strong id="mipd-progress">0 / 6</strong><span>missions terminées</span></div>
+    <div id="mipd-steps" class="career-step-list"></div>
+    <button id="mipd-reset" class="reset-journey">Réinitialiser ce parcours</button>
+  </aside>
+  <div class="career-main">
+    <div class="quest-heading">
+      <span class="chapter" id="mipd-chapter">Le cas clinique fictif</span>
+      <span class="quest-level" id="mipd-level">Étape 1 / 6</span>
+      <h2 id="mipd-title">Lire l'ordonnance</h2>
+      <p id="mipd-description">Découvrez un traitement simulé avant de choisir des prélèvements informatifs.</p>
+    </div>
+    <section id="mipd-workspace" class="panel career-workspace" aria-label="Dosage individualisé expérimental"></section>
+    <section class="panel tutor-panel" aria-label="Validation pédagogique MIPD">
+      <p id="mipd-help" class="career-help"></p>
+      <div id="mipd-feedback" class="quest-feedback" role="status" aria-live="polite" hidden></div>
+      <div class="quest-actions">
+        <button id="mipd-validate" class="quest-btn primary">Vérifier ma décision</button>
+        <button id="mipd-hint" class="quest-btn">Indice</button>
+        <button id="mipd-next" class="quest-btn primary" hidden>Mission suivante</button>
+      </div>
+      <p id="mipd-hint-text" class="tutorial-notice" hidden></p>
+    </section>
+    <p class="quest-caveat">Modèle fictif simplifié à un compartiment et perfusion IV ; cibles AUC inventées pour l'exercice. Calcul MAP réel par intégration sur grille bornée, mais sans validation externe, ni recommandations thérapeutiques. Ne pas utiliser pour un patient.</p>
+  </div>
+</section>
+
+<main id="lab-mode" hidden aria-label="Atelier de simulation libre">
     <aside class="panel settings" aria-label="Paramètres du modèle">
       <h2>Construire le modèle</h2>
       <div class="sub">Structure compartimentale (1C à 3C). Les nœuds se déplacent à la souris ou au doigt.</div>
@@ -207,4 +271,6 @@
 <script type="module" src="./app.js"></script>
 <script type="module" src="./academy.js"></script>
 <script type="module" src="./advanced.js"></script>
+<script type="module" src="./population-course.js"></script>
+<script type="module" src="./mipd-course.js"></script>
 </body></html>
