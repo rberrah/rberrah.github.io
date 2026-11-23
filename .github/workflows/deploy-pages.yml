@@ -31,10 +31,19 @@ jobs:
           path: dist
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
+      # Use a distinct artifact on each attempt: GitHub retains previous
+      # artifacts on retry and deploy-pages refuses duplicate artifact names.
       - name: Create Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: dist
+      # GitHub artifact metadata can be eventually consistent immediately
+      # after a large upload; a short delay prevents false "not found" errors.
+      - name: Wait for artifact indexing
+        run: sleep 12
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
