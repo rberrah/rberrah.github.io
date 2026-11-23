@@ -268,3 +268,131 @@ test('advanced model editor and physiology remain readable on mobile without pag
   await expect(page.locator('[data-graph-node="central"]')).toHaveCount(1);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
+
+
+test('population pharmacometrician route runs from mapping through archived generalized-SAEM to justified report',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/game/');
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#population-mode')).toBeVisible();
+  await expect(page.locator('#academy-mode')).toBeHidden();
+  await expect(page.locator('#population-progress')).toHaveText('0 / 7');
+  for(const [key,value] of Object.entries({id:'id',time:'time',dose:'dose',concentration:'dv',event:'evid'})){
+    await page.locator('[data-pk-map="'+key+'"]').selectOption(value);
+  }
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('1 / 7');
+  await page.locator('#population-next').click();
+
+  await page.locator('#pop-log').click();
+  await expect(page.locator('#pop-log')).toHaveAttribute('aria-pressed','true');
+  await page.locator('#pop-subject').selectOption('3');
+  await page.locator('input[name="pop-choice"][value="simple"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('2 / 7');
+  await page.locator('#population-next').click();
+
+  await expect(page.locator('#pop-fit-rows')).toContainText('À examiner');
+  for(const kind of ['one','lag','two']){
+    await page.locator('[data-pop-model="'+kind+'"]').click();
+    await expect(page.locator('#pop-iteration-label')).toContainText('170');
+  }
+  await expect(page.locator('#pop-fit-rows')).toContainText('-224,01');
+  await page.locator('#pop-iteration').evaluate(el=>{
+    el.value='3';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await expect(page.locator('#pop-iteration-label')).toContainText('40');
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('3 / 7');
+  await page.locator('#population-next').click();
+
+  await expect(page.locator('#pop-vpc')).toBeVisible();
+  await page.locator('#pop-diagnostic-model').selectOption('two');
+  for(const key of ['gof','vpc','stability'])await page.locator('input[name="pop-checks"][value="'+key+'"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('4 / 7');
+  await page.locator('#population-next').click();
+
+  await expect(page.locator('#population-workspace')).toContainText('0,23');
+  await page.locator('input[name="pop-choice"][value="lag-proved"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-feedback')).toContainText('petite différence');
+  await page.locator('input[name="pop-choice"][value="equivocal"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('5 / 7');
+  await page.locator('#population-next').click();
+
+  await expect(page.locator('#pop-pd-chart')).toBeVisible();
+  await page.locator('input[name="pop-choice"][value="delay"]').check();
+  await page.locator('#population-validate').click();
+  await page.locator('#population-next').click();
+
+  await expect(page.locator('#pop-report')).toContainText('non qualifié');
+  for(const key of ['data','inference','pd'])await page.locator('input[name="pop-final"][value="'+key+'"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('7 / 7');
+  await page.reload();
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#population-progress')).toHaveText('7 / 7');
+  expect(errors).toEqual([]);
+});
+
+test('MIPD route demonstrates timed sampling, live Bayesian MAP, dose probability, changing CL and safety gate',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/game/');
+  await page.locator('#mode-mipd').click();
+  await expect(page.locator('#mipd-mode')).toBeVisible();
+  await expect(page.locator('#mipd-progress')).toHaveText('0 / 6');
+
+  await page.locator('input[name="mipd-choice"][value="audit"]').check();
+  await page.locator('#mipd-validate').click();
+  await page.locator('#mipd-next').click();
+
+  await page.locator('input[name="mipd-samples"][value="post-infusion"]').check();
+  await page.locator('input[name="mipd-samples"][value="trough"]').check();
+  await page.locator('#mipd-validate').click();
+  await page.locator('#mipd-next').click();
+
+  await expect(page.locator('#mipd-post-chart')).toBeVisible();
+  await page.locator('[data-mipd-post="1"]').click();
+  await page.locator('[data-mipd-post="2"]').click();
+  await expect(page.locator('#mipd-post-metrics')).toContainText('3,67');
+  await page.locator('input[name="mipd-choice"][value="bayes"]').check();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('3 / 6');
+  await page.locator('#mipd-next').click();
+
+  await expect(page.locator('#mipd-dose-rows')).toContainText('93 %');
+  await page.locator('[data-mipd-dose="600"]').click();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-feedback')).toContainText('insuffisante');
+  await page.locator('[data-mipd-dose="900"]').click();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('4 / 6');
+  await page.locator('#mipd-next').click();
+
+  await expect(page.locator('#mipd-shift-rows')).toContainText('70 %');
+  await page.locator('[data-shift-dose="600"]').click();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('5 / 6');
+  await page.locator('#mipd-next').click();
+
+  await expect(page.locator('#mipd-report')).toContainText('PAS des recommandations');
+  for(const key of ['validate','verify','monitor'])await page.locator('input[name="mipd-safety"][value="'+key+'"]').check();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('6 / 6');
+  await page.reload();
+  await page.locator('#mode-mipd').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('6 / 6');
+  expect(errors).toEqual([]);
+});
+
+test('both clinical-workflow teaching routes fit narrow screens without horizontal overflow',async({page})=>{
+  await page.setViewportSize({width:360,height:760});
+  await page.goto(origin+'/game/');
+  for(const [tab,mode] of [['#mode-population','#population-mode'],['#mode-mipd','#mipd-mode']]){
+    await page.locator(tab).click();
+    await expect(page.locator(mode)).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  }
+});

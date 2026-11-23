@@ -1,3 +1,4 @@
+import './test_game_careers.mjs';
 // Deterministic numerical and hidden-route regression tests for PMx Game.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
