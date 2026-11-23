@@ -259,7 +259,7 @@ function stage4(){
    tr('AUC au-dessus du seuil de 36 mg·h/L ; examiner l’intervalle P5–P95 et la tolérance.','AUC exceeds 36 mg·h/L; assess the P5–P95 interval and tolerability.'):
    tr('AUC en dessous de 36 mg·h/L ; revoir dose, modèle et incertitude.','AUC is below 36 mg·h/L; reassess dose, model and uncertainty.');
  }
- $('mipd-dose-input').addEventListener('input',draw);draw();
+ $('mipd-dose-input').addEventListener('input',()=>{doseTouched=true;draw();});draw();
 }
 function stage5(){
  const post=dosePost();
