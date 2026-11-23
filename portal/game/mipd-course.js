@@ -121,10 +121,6 @@ function stage2(){
   function draw(n){
     viewed.add(n);
     const post=[P0,P1,P2][n];
-    $('mipd-post-metrics').innerHTML=metrics([
-      ['E[CL] après '+n+' mesure(s)',fmt(post.meanCL,2)+' L/h'],
-      ['CL P5–P95',fmt(post.clCI[0],1)+'–'+fmt(post.clCI[1],1)],
-      ['E[V]',fmt(post.meanV,1)+' L']]).replace('<div class="career-metrics">','').replace('</div></div></div>','</div></div>'); // replaced below with robust markup
     $('mipd-post-metrics').innerHTML=[
       ['E[CL]',fmt(post.meanCL,2)+' L/h'],
       ['CL P5–P95',fmt(post.clCI[0],1)+'–'+fmt(post.clCI[1],1)+' L/h'],
