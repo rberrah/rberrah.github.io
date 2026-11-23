@@ -436,7 +436,9 @@ test('game is bilingual at canonical address and legacy address redirects',async
   await expect(page.locator('#mode-mipd')).toContainText('Precision dosing');
   await page.locator('#mode-mipd').click();
   await expect(page.locator('#mipd-title')).toContainText('The transplant case');
-  await page.locator('#mipd-steps button').nth(5).evaluate(el=>{el.disabled=false;});
+  await page.evaluate(()=>localStorage.setItem('pmx-game-mipd-mpa-v3','[0,1,2,3,4,5]'));
+  await page.reload();
+  await page.locator('#mode-mipd').click();
   await page.locator('#mipd-steps button').nth(5).click();
   await expect(page.locator('#mipd-title')).toContainText('What if clearance changes?');
   await page.locator('#game-lang-fr').click();
