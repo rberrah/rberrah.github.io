@@ -108,3 +108,35 @@
 .career-auc-caption .auc-threshold{width:4px;height:15px;background:#f4cc91}
 @media(max-width:1150px){.career-bayes-layout{grid-template-columns:1fr}.career-bayes-controls{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.career-bayes-controls h3,.career-bayes-controls .career-note{grid-column:1/-1}}
 @media(max-width:560px){.career-bayes-controls{grid-template-columns:1fr}.career-bayes-charts .career-chart-key{font-size:.7rem}}
+
+/* Version 5 — legible model diagnostics, compact evidence groupings and restrained color. */
+.career-workspace details{background:#102e36;border-color:#46716b;padding:0;overflow:hidden;box-shadow:0 4px 16px rgba(2,14,19,.12)}
+.career-workspace details>summary{position:relative;list-style:none;font-size:.94rem;line-height:1.5;padding:15px 45px 15px 18px;color:#e0f2e9;background:#173940}
+.career-workspace details>summary::-webkit-details-marker{display:none}
+.career-workspace details>summary::after{content:"+";position:absolute;right:16px;top:50%;transform:translateY(-50%);width:25px;height:25px;display:grid;place-items:center;border:1px solid #608f84;color:#9be9cf;border-radius:50%;font-size:1.1rem}
+.career-workspace details[open]>summary{border-bottom:1px solid #3e6a63;background:#215047;margin:0 0 8px}
+.career-workspace details[open]>summary::after{content:"−"}
+.career-workspace details>:not(summary){margin-left:16px;margin-right:16px}
+.career-workspace details>.career-chart{display:block;width:calc(100% - 32px);margin:14px 16px 18px;border-color:#4b7771;background:#102d39}
+.career-workspace details>.career-note{margin-top:13px;margin-bottom:14px;max-width:82ch}
+.career-workspace details>.career-diagnostic-question{margin:22px 16px 19px;border-color:#679589;background:#193e40}
+.career-diagnostic-question legend{line-height:1.5;color:#e3f4e9;font-size:.9rem}
+.career-diagnostic-question label{padding:9px 11px;border:1px solid #365f5e;border-radius:8px;background:#12333a;cursor:pointer}
+.career-diagnostic-question label:has(input:checked){border-color:#8ceaca;background:#245046}
+.career-chart-legend{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;color:#c5dbd3}
+.career-chart-legend span{display:inline-flex;gap:8px;align-items:center}
+.career-chart-legend i{height:4px;width:20px;display:inline-block;border-radius:4px}
+.career-workspace details>.career-metrics{margin-top:16px;margin-bottom:16px}
+.career-bayes-controls{gap:16px;background:#153a3d;border-color:#59897a}
+.career-bayes-slider{font-size:.85rem;line-height:1.4}
+.career-bayes-slider output{font-size:1rem;color:#a2f8da}
+.career-bayes-slider input[type=range]{height:20px}
+.career-bayes-charts .career-chart{border-color:#4d7874}
+.career-workspace .career-chart-toolbar{background:#173b3e;border:1px solid #3f6b65;padding:12px;border-radius:12px}
+.career-workspace .career-metrics>div{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+@media(max-width:650px){
+  .career-workspace details>summary{padding:14px 40px 14px 13px}
+  .career-workspace details>:not(summary){margin-left:12px;margin-right:12px}
+  .career-workspace details>.career-chart{width:calc(100% - 24px);margin:10px 12px 14px}
+  .career-workspace details>.career-diagnostic-question{margin:18px 12px}
+}
