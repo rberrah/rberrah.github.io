@@ -104,7 +104,7 @@ Cas « antibiotique V » entièrement fictif, sans référence de prescription :
 
 1. Audit des conditions d'emploi du modèle.
 2. Choix de deux prélèvements horodatés informatifs.
-3. **Bayes/MAP réellement recalculé** dans le navigateur sur une grille CL × V de 57 × 49 points ; posterior proportionnel au prior et à la vraisemblance des 0, 1 ou 2 dosages, avec CV analytique fictif de 9 % et SD plancher 0,35 mg/L. Moyennes, intervalle P5–P95 et distribution des paramètres.
+3. **Bayes/MAP réellement recalculé** dans le navigateur sur une grille CL × V de 57 × 49 points ; posterior proportionnel au prior et à la vraisemblance des 0, 1 ou 2 dosages, avec CV analytique fictif de 9 % et SD plancher 0,35 mg/L. Maximum a posteriori conjoint (MAP CL/V), moyennes postérieures (distinctes du MAP), intervalle P5–P95 de CL et distribution des paramètres.
 4. Grille de cinq doses fictives q12h : 600/750/900/1050/1200 mg. Cible **inventée pour le jeu** : AUC24 de 440–560 mg·h/L, avec seuil de passage P(cible) ≥ 68 %. Intégration de la distribution postérieure, pas uniquement de CL moyenne.
 5. Scénario hypothétique CL ×0,6 : prévision conditionnelle sans nouveau dosage et **sans mise à jour du posterior**, avec exigence de recontrôle.
 6. Portes de sécurité : validation externe, indication, dose et horaire, données analytiques, nouvelle appréciation de CL et interdiction de transposer les doses simulées à des patients.
