@@ -74,7 +74,7 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
   await expect(page.locator('#lab-mode')).toBeHidden();
   await expect(page.locator('#quest-count')).toHaveText('0/9');
   await expect(page.locator('#quest-list button[disabled]')).toHaveCount(8);
-  await expect(page.locator('#body-figure')).toContainText('INTESTIN');
+  await expect(page.locator('#body-figure')).toContainText('ABSORPTION');
   await expect(page.locator('#body-figure [data-stage]')).toHaveCount(4);
   await expect(page.locator('#academy-answers input:checked')).toHaveCount(0);
   await expect(page.locator('#tutorial-step')).toContainText('1 / 3');
@@ -157,9 +157,12 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
   await page.locator('#mode-advanced').click();
   await expect(page.locator('#advanced-mode')).toBeVisible();
   await expect(page.locator('#academy-mode')).toBeHidden();
-  await expect(page.locator('#advanced-count')).toHaveText('0/5');
-  await expect(page.locator('#advanced-list button[disabled]')).toHaveCount(4);
+  await expect(page.locator('#advanced-count')).toHaveText('0/9');
+  await expect(page.locator('#advanced-list button[disabled]')).toHaveCount(8);
 
+  // Try a plausible but unnecessary compartment: it must be removable.
+  await page.locator('[data-add-node="p2"]').click();
+  await page.getByRole('button',{name:'Retirer 2e périphérique'}).click();
   for(const id of ['gut','central','peripheral','exit']){
     await page.locator('[data-add-node="'+id+'"]').click();
   }
@@ -169,7 +172,7 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
   }
   await expect(page.locator('#adv-graph-edges button')).toHaveCount(4);
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-count')).toHaveText('1/5');
+  await expect(page.locator('#advanced-count')).toHaveText('1/9');
   await expect(page.locator('#advanced-feedback')).toContainText('Défi validé');
   await page.locator('#advanced-next').click();
 
@@ -178,7 +181,7 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
     ['central','tissue_out'],['peripheral','tissue_in'],['eliminated','elim_accum']
   ])await page.locator('[data-ode-state="'+state+'"][data-term="'+token+'"]').click();
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-count')).toHaveText('2/5');
+  await expect(page.locator('#advanced-count')).toHaveText('2/9');
   await expect(page.locator('#advanced-feedback')).toContainText('conservent la masse');
   await page.locator('#advanced-next').click();
 
@@ -190,7 +193,7 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
   });
   await expect(page.locator('#adv-mic-ft')).toContainText('76,6 %');
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-count')).toHaveText('3/5');
+  await expect(page.locator('#advanced-count')).toHaveText('3/9');
   await page.locator('#advanced-next').click();
 
   await page.locator('#adv-linear-dose').evaluate(el=>{
@@ -201,31 +204,63 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
   });
   await expect(page.locator('#adv-linear-auc')).toContainText('60,0');
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-count')).toHaveText('4/5');
+  await expect(page.locator('#advanced-count')).toHaveText('4/9');
   await page.locator('#advanced-next').click();
 
   await expect(page.locator('#adv-ddi-auc-ratio')).toContainText('×2,00');
-  await expect(page.locator('#adv-ddi-c0-ratio')).toHaveText('À estimer');
-  await page.locator('#adv-ddi-prediction').fill('2');
+  await expect(page.locator('#adv-ddi-c0-ratio')).toHaveText('À interpréter');
+  await expect(page.locator('#adv-ddi-c0-before')).not.toHaveText('');
+  await expect(page.locator('#adv-ddi-c0-after')).not.toHaveText('');
+  await page.locator('input[name="ddi-comparison"][value="auc"]').check();
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-feedback')).toContainText('ne correspond pas');
-  // Incorrect predictions must not award XP or display the ground truth.
-  await expect(page.locator('#advanced-count')).toHaveText('4/5');
-  await page.locator('#adv-ddi-prediction').fill('3.93');
+  await expect(page.locator('#advanced-feedback')).toContainText('variations relatives');
+  await expect(page.locator('#advanced-count')).toHaveText('4/9');
+  await page.locator('input[name="ddi-comparison"][value="trough"]').check();
   await page.locator('#advanced-check').click();
-  await expect(page.locator('#advanced-count')).toHaveText('5/5');
-  await expect(page.locator('#advanced-xp')).toHaveText('580 XP');
+  await expect(page.locator('#advanced-count')).toHaveText('5/9');
   await expect(page.locator('#adv-ddi-c0-ratio')).toContainText('×3,93');
+
+  await page.locator('#advanced-next').click();
+  await expect(page.locator('#advanced-title')).toHaveText('Le premier jour du traitement');
+  await page.locator('#adv-load-dose').evaluate(el=>{el.value='60';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.locator('#adv-maint-dose').evaluate(el=>{el.value='108';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await expect(page.locator('#adv-load-average')).toContainText('3,00 mg/L');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('6/9');
+
+  await page.locator('#advanced-next').click();
+  await expect(page.locator('#advanced-title')).toHaveText('Le temps d’atteindre un plateau');
+  await page.locator('#adv-acc-doses').evaluate(el=>{el.value='6';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await expect(page.locator('#adv-acc-pct')).toContainText('93,3 %');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('7/9');
+
+  await page.locator('#advanced-next').click();
+  await expect(page.locator('#advanced-title')).toHaveText('Une même dose quotidienne');
+  await page.locator('#adv-frac-tau').selectOption('6');
+  await expect(page.locator('#adv-frac-ratio')).toContainText('×3,32');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('8/9');
+
+  await page.locator('#advanced-next').click();
+  await expect(page.locator('#advanced-title')).toHaveText('Deux patients, une seule AUC');
+  await page.locator('#adv-amb-f-slider').evaluate(el=>{el.value='0.4';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await page.locator('#adv-amb-cl-slider').evaluate(el=>{el.value='2';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await expect(page.locator('#adv-amb-b')).toContainText('20,0 mg·h/L');
+  await page.locator('#advanced-check').click();
+  await expect(page.locator('#advanced-count')).toHaveText('9/9');
+  await expect(page.locator('#advanced-xp')).toHaveText('1050 XP');
   await page.reload();
   await page.locator('#mode-advanced').click();
-  await expect(page.locator('#advanced-count')).toHaveText('5/5');
+  await expect(page.locator('#advanced-count')).toHaveText('9/9');
+  await expect(page.locator('#advanced-title')).toHaveText('Deux patients, une seule AUC');
   expect(errors).toEqual([]);
 });
 
 test('advanced model editor and physiology remain readable on mobile without page overflow',async({page})=>{
   await page.setViewportSize({width:360,height:760});
   await page.goto(origin+'/game/');
-  await expect(page.locator('#body-figure')).toHaveAttribute('viewBox','0 0 390 760');
+  await expect(page.locator('#body-figure')).toHaveAttribute('viewBox','0 0 430 848');
   await expect(page.locator('.body-legend span')).toHaveCount(4);
   await page.locator('#mode-advanced').click();
   await expect(page.locator('#adv-graph-svg')).toBeVisible();
