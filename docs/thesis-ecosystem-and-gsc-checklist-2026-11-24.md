@@ -63,3 +63,7 @@ The portal sitemap's `lastmod` values for `/`, `/tools/` and `/a-propos/` were s
 - Use an evidence ladder for project cards: public source, independent data, publication stage, clinical-use caveat.
 - Measure impressions/queries/coverage in Search Console once authorised; the source-controlled verification file alone does not establish current GSC property state.
 - Keep canonical URLs in the sitemap; avoid indexation of compatibility redirects and duplicate language variants where the content/canonical is not distinct.
+
+## Build qualification correction
+
+The first PR build correctly rejected internal-looking `/communications/...` anchors from the SvelteKit PMx application, because the public communication pages are assembled by the separate portal rather than exported as SvelteKit routes. These links now use absolute canonical `https://rberrah.github.io/communications/...` URLs so the SvelteKit prerender does not attempt to resolve absent application routes; their live destination remains the original portal communication page. The corresponding browser href assertions have been updated.
