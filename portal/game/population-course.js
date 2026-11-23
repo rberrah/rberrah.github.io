@@ -11,9 +11,9 @@ const STEPS=[
   {title:'Diagnostics complets',chapter:'Qualification PopPK',desc:'Explorer GOF, IIV, erreur résiduelle, covariables, VPC et stabilité avant de conclure.'},
   {title:'Arbitrage de modèle',chapter:'Sélection',desc:'Interpréter une différence de BIC faible, sans surconclure.'},
   {title:'Effet retardé',chapter:'PK → PD',desc:'Séparer la cinétique de la concentration de celle de la réponse.'},
-  {title:'Rapport final',chapter:'Publication',desc:'Conclure avec limites, traçabilité et hypothèses.'}
+  {title:'Conclusion scientifique',chapter:'Interprétation',desc:'Confronter résultats des modèles, diagnostics, incertitudes et décisions à étayer.'}
 ];
-const KEY='pmx-game-population-v3';
+const KEY='pmx-game-population-v4';
 const read=()=>{
   try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x)){
     const done=[];for(let i=0;i<STEPS.length;i++){if(x.includes(i))done.push(i);else break;}return done;
@@ -254,16 +254,25 @@ function renderImport(){
 
 function renderEDA(){
   $('population-workspace').innerHTML=story('Explorez les <strong>mesures expérimentales</strong> de warfarine de l’étude : les sujets n’ont pas tous le même nombre d’échantillons ni les mêmes horaires. Une courbe descriptive ne suffit pas à identifier formellement une structure.','ÉTUDE RÉELLE · EXPLORATION GRAPHIQUE')+
-    '<p class="career-note"><strong>Vue populationnelle :</strong> superposition des profils individuels réels de la cohorte (spaghetti plot). La dispersion exploratoire n’est pas encore une estimation de l’IIV.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg>'+ 
+    '<p class="career-note"><strong>Vue populationnelle :</strong> profils des 32 volontaires, le sujet choisi est mis en évidence en orange. Changer de sujet ou d’échelle modifie simultanément les deux graphiques.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg><p id="pop-overview-legend" class="career-note"></p>'+ 
     '<div class="career-chart-toolbar"><button id="pop-linear" aria-pressed="true">Linéaire</button><button id="pop-log" aria-pressed="false">Semi-log</button><label>Sujet <select id="pop-subject">'+STUDY_SUBJECTS.map(p=>'<option value="'+p.id+'">S'+p.id+' · '+fmt(p.wt,1)+' kg</option>').join('')+'</select></label></div>'+
     '<svg id="pop-eda-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations expérimentales de warfarine, source Monolix"></svg>'+
-    '<p class="career-note">Points = observations originales DVID=1, y compris les valeurs nulles à l’échelle linéaire. Les zéros sont exclus uniquement de l’axe logarithmique. Aucune courbe de modèle simulé n’est superposée aux observations réelles.</p>'+
+    '<p class="career-note">Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les segments de la vue d’ensemble sont descriptifs et ne sont pas des prédictions d’un modèle. Les prélèvements ne sont pas synchrones entre volontaires.</p>'+
     radio([['simple','Un modèle oral 1C est un candidat à ajuster et comparer : les observations seules ne prouvent pas sa structure.'],
       ['three','La pente terminale démontre exactement trois compartiments.'],
       ['fixed','La dispersion entre sujets prouve que tous les paramètres sont parfaitement identifiables.']]);
   function draw(){
-    const all=STUDY_SUBJECTS.map(s=>STUDY_PK.filter(p=>p.id===s.id).sort((a,b)=>a.t-b.t));
-    graph($('pop-spaghetti'),{series:all.map(values=>({values,color:'#9be9cf',opacity:.22,width:1.6})),maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.08});
+    const all=STUDY_SUBJECTS.map(subject=>({id:subject.id,values:STUDY_PK.filter(p=>
+      p.id===subject.id&&Number.isFinite(p.t)&&Number.isFinite(p.c)).sort((a,b)=>a.t-b.t)}));
+    const chosen=all.find(a=>a.id===selectedSubject),rest=all.filter(a=>a.id!==selectedSubject);
+    graph($('pop-spaghetti'),{
+      series:[...rest.map((a,i)=>({values:a.values,color:i%2?'#94afca':'#85c1ad',opacity:.38,width:1.4})),
+        ...(chosen?[{values:chosen.values,color:'#ffca86',opacity:1,width:3.5}]:[])],
+      points:chosen?chosen.values.map(p=>({...p,color:'#ffca86'})):[],
+      maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.09,log:scale==='log'
+    });
+    $('pop-overview-legend').textContent='32 sujets · '+STUDY_PK.length+' observations PK · sujet S'+selectedSubject+
+      ' mis en évidence ('+(chosen?.values.length||0)+' prélèvements). Les segments relient uniquement ses propres observations.';
     $('pop-linear').setAttribute('aria-pressed',String(scale==='linear'));
     $('pop-log').setAttribute('aria-pressed',String(scale==='log'));
     const obs=STUDY_PK.filter(o=>o.id===selectedSubject);
