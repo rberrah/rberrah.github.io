@@ -13,7 +13,7 @@ const STEPS=[
   {title:'Effet retardé',chapter:'PK → PD',desc:'Séparer la cinétique de la concentration de celle de la réponse.'},
   {title:'Rapport final',chapter:'Publication',desc:'Conclure avec limites, traçabilité et hypothèses.'}
 ];
-const KEY='pmx-game-population-v1';
+const KEY='pmx-game-population-v2';
 const read=()=>{
   try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x)){
     const done=[];for(let i=0;i<STEPS.length;i++){if(x.includes(i))done.push(i);else break;}return done;
@@ -339,7 +339,7 @@ function renderDiagnostics(){
   draw();
 }
 function renderDecision(){
-  $('population-workspace').innerHTML=story('Vous disposez des BIC marginals du replay, des profils de concentration et de diagnostics limités. Formulez une conclusion défendable pour une étude exploratoire.','ENQUÊTE N° 05 · DÉCISION ARGUMENTÉE')+
+  $('population-workspace').innerHTML=story('Vous disposez des BIC de l’atelier SAEM sur cohorte artificielle, indépendamment des 32 volontaires de l’étude expérimentale. Ce replay ne qualifie pas le modèle pour les données réelles. Formulez une conclusion défendable pour une étude exploratoire.','ENQUÊTE N° 05 · DÉCISION ARGUMENTÉE')+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Modèle</th><th>BIC approximatif</th><th>ΔBIC</th><th>Paramètres libres</th></tr></thead><tbody>'+
     modelComparison().map(x=>'<tr><td>'+x.label+'</td><td>'+fmt(x.bic)+'</td><td>'+fmt(x.deltaBic)+'</td><td>'+x.parameters+'</td></tr>').join('')+
     '</tbody></table></div>'+
