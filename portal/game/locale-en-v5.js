@@ -49,6 +49,7 @@ export const FR_EN_V5 = {
   "l’intervalle prédictif conditionnel P5–P95": "the conditional P5–P95 prediction interval",
   "est [IPRED × exp(−1,645σlog) ; IPRED × exp(+1,645σlog)]. Cet intervalle n’inclut ni l’IIV ni l’incertitude paramétrique.": "is [IPRED × exp(−1.645σlog), IPRED × exp(+1.645σlog)]. It excludes IIV and parameter uncertainty.",
   "Médiane (IPRED)": "Median (IPRED)",
+  "Zone ombrée : intervalle conditionnel central à 90 %. Aucune RUV additive ou combinée n’a été ajustée.": "Shaded: central 90% conditional interval. No additive or combined RUV was fitted.",
   "5. VPC : P5 / P50 / P95 et incertitude": "5. VPC: P5 / P50 / P95 and uncertainty",
   "VPC": "VPC",
   "simulé de nouveau": "re-simulated",
