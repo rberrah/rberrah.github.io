@@ -277,7 +277,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-mode')).toBeVisible();
   await expect(page.locator('#academy-mode')).toBeHidden();
   await expect(page.locator('#population-progress')).toHaveText('0 / 7');
-  for(const [key,value] of Object.entries({id:'id',time:'time',dose:'dose',concentration:'dv'})){
+  for(const [key,value] of Object.entries({id:'id',time:'time',dose:'dose',concentration:'dv',event:'evid'})){
     await page.locator('[data-pk-map="'+key+'"]').selectOption(value);
   }
   await page.locator('#population-validate').click();
