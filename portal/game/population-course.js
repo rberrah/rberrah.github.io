@@ -371,6 +371,20 @@ function renderSAEM(){
   $('pop-trace-param').addEventListener('change',redraw);
   redraw();
 }
+const DIAG_QUESTIONS=Object.freeze([
+  {key:'gof',correct:'trends',ask:'Que contrôler dans DV/PRED, DV/IPRED et les profils individuels ?',options:[['trends','Biais, écart à l’identité, structure des résidus et profils atypiques'],['r2','Uniquement la corrélation globale des prédictions']]},
+  {key:'residual',correct:'patterns',ask:'Que recherchent résidus versus temps/IPRED et QQ-plot ?',options:[['patterns','Tendance, hétéroscédasticité, asymétrie et queues incohérentes avec le modèle'],['ignore','Une tendance ascendante est toujours rassurante']]},
+  {key:'iiv',correct:'careful',ask:'Que signifient ηCL versus poids, IIV et shrinkage ?',options:[['careful','Explorer covariables, distribution des EBE et shrinkage, sans inférer un effet causal du nuage'],['causal','Une pente des EBE prouve une covariable mécanistique']]},
+  {key:'ruv',correct:'form',ask:'Quelle question poser sur le modèle d’erreur ?',options:[['form','La dispersion dépend-elle de la concentration, et la forme choisie est-elle plausible ?'],['zero','Il faut toujours fixer l’erreur résiduelle à zéro']]},
+  {key:'vpc',correct:'bands',ask:'Que vérifier sur P5/P50/P95 du VPC ?',options:[['bands','Position des quantiles observés par rapport aux simulations, y compris les extrêmes et le temps'],['median','Seule la médiane est informative']]},
+  {key:'stability',correct:'uncertainty',ask:'Quels diagnostics supplémentaires réclamer avant la qualification ?',options:[['uncertainty','Précision RSE/IC, stabilité, identifiabilité et validation externe ou simulation-estimation'],['bic','Aucun, le BIC minimal suffit']]}
+]);
+export function gradeDiagnosticQuestions(answers){return DIAG_QUESTIONS.every(q=>answers[q.key]===q.correct);}
+function diagnosticQuiz(key){
+  const q=DIAG_QUESTIONS.find(q=>q.key===key);
+  return '<fieldset class="career-diagnostic-question" data-diagnostic-question="'+key+'"><legend>'+escapeText(q.ask)+'</legend>'+
+    q.options.map(([v,label])=>'<label><input type="radio" name="pop-diagnostic-'+key+'" value="'+v+'"><span>'+escapeText(label)+'</span></label>').join('')+'</fieldset>';
+}
 function renderDiagnostics(){
   $('population-workspace').innerHTML=story('Cette galerie de diagnostics porte <strong>uniquement sur le replay SAEM artificiel</strong> (28 sujets). Le dataset expérimental Warfarine présenté précédemment ne possède pas encore de résultats SAEM associés. Lisez GOF, résidus, EBE, simulation prédictive et convergence, puis jugez quelles preuves manquent.','ATELIER SAEM · DIAGNOSTICS DISPONIBLES')+
     '<div class="career-chart-toolbar"><label>Modèle <select id="pop-diagnostic-model">'+Object.entries(FITS).map(([k,v])=>'<option value="'+k+'">'+v.label+'</option>').join('')+'</select></label>'+
@@ -379,37 +393,33 @@ function renderDiagnostics(){
     '<p class="career-note">Points DV ; courbe bleu pâle PRED (population) ; courbe verte IPRED (EBE CL). Les deux GOF ci-dessous confrontent les valeurs observées aux prédictions ; ligne pointillée = identité.</p>'+
     '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Fit individuel DV, PRED et IPRED"></svg>'+
     '<p class="career-note">DV versus PRED (population)</p><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus population predictions"></svg>'+
-    '<p class="career-note">DV versus IPRED (individuel)</p><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg></details>'+
-    '<details open><summary><strong>2. Résidus et leur distribution</strong></summary>'+
+    '<p class="career-note">DV versus IPRED (individuel)</p><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg>'+diagnosticQuiz('gof')+'</details>'+
+    '<details><summary><strong>2. Résidus et leur distribution</strong></summary>'+
     '<p class="career-note">Résidus conditionnels <em>approximatifs</em> : [log(DV) − log(IPRED)] / σlog. Ce ne sont <strong>ni des CWRES, ni des NPDE</strong> : les calculs correspondants ne sont pas disponibles.</p>'+
     '<p class="career-note">Résidus versus temps</p><svg id="pop-resid-time" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus temps"></svg>'+
     '<p class="career-note">Résidus versus IPRED</p><svg id="pop-resid-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus prédiction individuelle"></svg>'+
     '<p class="career-note">Histogramme des résidus</p><svg id="pop-resid-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme des résidus log-standardisés"></svg>'+
-    '<p class="career-note">QQ-plot normal théorique</p><svg id="pop-resid-qq" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="QQ-plot des résidus"></svg></details>'+
-    '<details open><summary><strong>3. Variabilité interindividuelle (IIV), EBE et shrinkage</strong></summary>'+
+    '<p class="career-note">QQ-plot normal théorique</p><svg id="pop-resid-qq" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="QQ-plot des résidus"></svg>'+diagnosticQuiz('residual')+'</details>'+
+    '<details><summary><strong>3. Variabilité interindividuelle (IIV), EBE et shrinkage</strong></summary>'+
     '<p class="career-note">ETA_CL versus poids (sans conclure à une covariable à partir du seul graphe)</p><svg id="pop-eta-weight" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="ETA CL versus poids"></svg>'+
     '<p class="career-note">Distribution des ETA_CL</p><svg id="pop-eta-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme ETA CL"></svg>'+ 
     '<div id="pop-variability-metrics" class="career-metrics"></div>'+ 
     '<p class="career-note">Comparaison de la distribution des EBE de CL et de la loi N(0,ωCL²) retenue pour la population. Le shrinkage descriptif = 1 − SD(EBE)/ωCL ; il ne valide ni l’IIV ni le mécanisme. Seule CL porte un effet aléatoire dans cet atelier ; V, Ka, Q, Vp et Tlag n’ont pas d’IIV estimée.</p>'+ 
     '<svg id="pop-iiv-density" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Densité des effets individuels et distribution normale populationnelle"></svg>'+ 
-    '<p class="career-note">Recherche exploratoire de covariables : ETA_CL en fonction du poids, montré ci-dessus. Attention : le poids détermine également la dose dans cette simulation ; association visuelle ≠ sélection statistique ou causalité. Pour une véritable analyse : graphique ETA/covariable, sélection prudente, réestimation du modèle complet, IC, pertinence clinique et vérification hors échantillon.</p></details>'+ 
-    '<details open><summary><strong>4. Modèle d’erreur résiduelle (RUV)</strong></summary>'+ 
+    '<p class="career-note">Recherche exploratoire de covariables : ETA_CL en fonction du poids, montré ci-dessus. Attention : le poids détermine également la dose dans cette simulation ; association visuelle ≠ sélection statistique ou causalité. Pour une véritable analyse : graphique ETA/covariable, sélection prudente, réestimation du modèle complet, IC, pertinence clinique et vérification hors échantillon.</p>'+diagnosticQuiz('iiv')+'</details>'+ 
+    '<details><summary><strong>4. Modèle d’erreur résiduelle (RUV)</strong></summary>'+ 
     '<p class="career-note">Le replay est ajusté avec log(DV) = log(IPRED) + ε, ε ~ N(0,σlog²). Le modèle implique une erreur approximativement proportionnelle sur l’échelle de concentration. Aucun modèle additif ou combiné n’a été estimé ; la ligne pointillée est une erreur additive théorique normalisée à 10 mg/L uniquement pour illustrer la différence de forme.</p>'+ 
     '<div id="pop-ruv-metrics" class="career-metrics"></div>'+ 
     '<svg id="pop-ruv-shape" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Erreur résiduelle lognormale versus concentration, comparateur additif pédagogique"></svg>'+ 
-    '<p class="career-note"><span style="color:#9be9cf">━</span> Approximation σlog × IPRED du modèle de démonstration ; <span style="color:#f6c28e">┄</span> forme additive théorique, non ajustée. La comparaison formelle de RUV additif, proportionnel, combiné, et la dépendance des résidus à l’heure/dose restent nécessaires dans un vrai projet.</p></details>'+
-    '<details open><summary><strong>5. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
+    '<p class="career-note"><span style="color:#9be9cf">━</span> Approximation σlog × IPRED du modèle de démonstration ; <span style="color:#f6c28e">┄</span> forme additive théorique, non ajustée. La comparaison formelle de RUV additif, proportionnel, combiné, et la dépendance des résidus à l’heure/dose restent nécessaires dans un vrai projet.</p>'+diagnosticQuiz('ruv')+'</details>'+
+    '<details><summary><strong>5. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
     '<p class="career-note">VPC <strong>simulé de nouveau</strong> par 120 réplications déterministes sous le modèle sélectionné, aux mêmes temps/sujets que le replay. Chaque courbe = médiane des quantiles simulés ; zone transparente = intervalle empirique 5–95 % entre les réplications. Points = quantiles observés dans la cohorte artificielle. Pas de correction pcVPC, ni bootstrap de paramètres.</p>'+
     '<svg id="pop-vpc" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="VPC observé vs simulé, 5e 50e et 95e centiles avec intervalle de simulation"></svg>'+
-    '<p class="career-note"><span style="color:#f6c28e">●</span> P5 observé ; <span style="color:#9be9cf">●</span> P50 observé ; <span style="color:#c8a6f5">●</span> P95 observé. Bandes de la même couleur = distribution simulée de ce quantile.</p></details>'+
-    '<details open><summary><strong>6. Stabilité, précision, identifiabilité et validation</strong></summary>'+ 
+    '<p class="career-note"><span style="color:#f6c28e">●</span> P5 observé ; <span style="color:#9be9cf">●</span> P50 observé ; <span style="color:#c8a6f5">●</span> P95 observé. Bandes de la même couleur = distribution simulée de ce quantile.</p>'+diagnosticQuiz('vpc')+'</details>'+
+    '<details><summary><strong>6. Stabilité, précision, identifiabilité et validation</strong></summary>'+ 
     '<p class="career-note">Séquence du pharmacométricien : contrôle des données et BLQ → modèle structural → choix des effets aléatoires (IIV/IOV, corrélations Ω) et du modèle résiduel (additif/proportionnel/combiné) → choix des covariables → estimation / convergence → GOF et diagnostics individuels → VPC/pcVPC/NPDE → précision (RSE/IC, bootstrap), shrinkage, sensibilité et validation externe → décision documentée.</p>'+ 
-    '<div class="career-alert"><strong>Non disponibles pour ce replay :</strong> CWRES exacts, NPDE, pcVPC, RSE et matrice de covariance, corrélations entre effets aléatoires (une seule η), IOV, bootstrap, simulation-estimation, analyse de sensibilité, départs multiples, prédictions externes. Ne pas tracer de valeurs fictives à la place de diagnostics statistiques non calculés. Le shrinkage descriptif EBE/ω est visible mais ne remplace pas les évaluations de précision.</div></details>'+
-    '<p class="career-note">Quels contrôles conserver pour qualifier un modèle ?</p>'+
-    checkboxes([['gof','Examiner DV/PRED, DV/IPRED et résidus.'],
-      ['vpc','Examiner P5/P50/P95 et leurs distributions simulées.'],
-      ['stability','Vérifier stabilité numérique, précision, identifiabilité et validation externe si pertinente.'],
-      ['bic-only','Conclure uniquement à partir du BIC.']]);
+    '<div class="career-alert"><strong>Non disponibles pour ce replay :</strong> CWRES exacts, NPDE, pcVPC, RSE et matrice de covariance, corrélations entre effets aléatoires (une seule η), IOV, bootstrap, simulation-estimation, analyse de sensibilité, départs multiples, prédictions externes. Ne pas tracer de valeurs fictives à la place de diagnostics statistiques non calculés. Le shrinkage descriptif EBE/ω est visible mais ne remplace pas les évaluations de précision.</div>'+diagnosticQuiz('stability')+'</details>'+
+    '<p class="career-note">La validation exige une réponse à chacune des six questions associées aux graphiques ci-dessus.</p>';
   function draw(){
     const kind=$('pop-diagnostic-model').value,id=+$('pop-diagnostic-subject').value,
       subj=SUBJECTS.find(s=>s.id===id),fit=FITS[kind];
@@ -555,11 +565,17 @@ function validate(){
     return viewed.size===3?success('Trois calculs archivés ont été comparés. Les paramètres et BIC ne suffisent pas encore à valider le modèle.'):
       failure('Examinez les trois structures, pas seulement la première sélectionnée.');
   }
-  if(index===3 || index===6){
-    const inputs=[...w.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
-    if(index===3)return chooseChecks(inputs)?success('GOF, VPC et stabilité restent complémentaires.'):failure('Sélectionnez les contrôles utiles, sans retenir « BIC seul ».');
-    return inputs.length===3&&['data','inference','pd'].every(x=>inputs.includes(x))?
-      success('Le rapport décrit la source, les résultats exploratoires et leurs limites.'):failure('Distinguez mesures expérimentales, replay SAEM sur cohorte artificielle, limites du modèle et PD non estimée.');
+  if(index===3){
+    const answers=Object.fromEntries(DIAG_QUESTIONS.map(q=>[q.key,w.querySelector('input[name="pop-diagnostic-'+q.key+'"]:checked')?.value]));
+    return gradeDiagnosticQuestions(answers)?
+      success('Six domaines examinés : GOF, résidus, IIV/covariables, RUV, VPC, stabilité et précision.'):
+      failure('Répondez à chaque question, puis analysez les divergences entre graphiques et modèle.');
+  }
+  if(index===6){
+    const answer=w.querySelector('input[name="pop-conclusion"]:checked')?.value;
+    return answer==='conditional'?
+      success('Conclusion conditionnelle justifiée par les comparaisons et par la disponibilité des diagnostics.'):
+      failure('Ne généralisez pas au jeu expérimental les résultats estimés sur le replay distinct.');
   }
   const option=w.querySelector('input[name="pop-choice"]:checked')?.value;
   if(!option)return failure('Choisissez une conclusion avant de valider.');
