@@ -315,7 +315,7 @@ function plotSAEMConvergence(svg,kind,param,step){
     const final=fit.trace.at(-1)[pos+1];
     return [{id,values:fit.trace.map(row=>({t:row[0],v:100*(row[pos+1]-final)/(Math.abs(final)||1)}))}];
   });
-  const max=Math.max(10,Math.ceil(Math.min(100,Math.max(...available.flatMap(a=>a.values.map(p=>Math.abs(p.v)))))/5)*5);
+  const max=Math.max(10,Math.ceil(Math.max(...available.flatMap(a=>a.values.map(p=>Math.abs(p.v))))/5)*5);
   const xx=x=>70+x/170*605, yy=y=>135-y/max*90;
   let out='<rect x="70" y="37" width="605" height="206" rx="8" fill="#0c2530"/>'+
     '<rect x="70" y="'+yy(5)+'" width="605" height="'+(yy(-5)-yy(5))+'" fill="#388e74" opacity=".22"/>';
