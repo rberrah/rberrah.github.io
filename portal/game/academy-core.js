@@ -48,7 +48,7 @@ export const QUESTS = Object.freeze([
     summary:'Repérez le délai d’apparition plasmatique.',
     config:{model:1,route:'oral',dose:100,f:0.9,ka:1.5,lag:2,vc:20,cl:4,horizon:24},
     scale:'linear',focus:'gut',xp:80,answerMode:'number',answerValue:2,tolerance:0.25,
-    question:'Avant que la concentration apparaisse dans le sang, combien d’heures s’écoulent environ ? Répondez en heures.'
+    question:'Avant que la concentration apparaisse dans le sang, combien d’heures s’écoulent environ ? Répondez en heures.',
     options:['Un temps de latence de l’absorption (Tlag)','Une augmentation du volume central uniquement','Une deuxième phase d’élimination'],
     answer:0,
     hint:'Le premier échantillon non nul apparaît après une période de concentration quasi nulle ; zoomez sur le début de la courbe.',
