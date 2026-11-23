@@ -5,7 +5,8 @@ import {FR_EN} from './locale-en.js';
 import {FR_EN_LESSONS} from './locale-en-lessons.js';
 import {FR_EN_MIPD} from './locale-en-mipd.js';
 import {FR_EN_CLASSIC} from './locale-en-classic.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC};
+import {FR_EN_V3} from './locale-en-v3.js';
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
@@ -44,7 +45,13 @@ const phraseRules=[
   ['Moyenne','Mean'],['Écart-type','Standard deviation'],
   ['Sujets','Subjects'],['Volontaires','Volunteers'],['Temps depuis début','Time since start'],
   ['Observation','Observation'],['Doses','Doses'],
-  ['une valeur','a value']
+  ['une valeur','a value'],
+  ['sujets ·','subjects ·'],['observations PK','PK observations'],
+  ['mis en évidence','highlighted'],['prélèvements','samples'],
+  ['Les segments relient uniquement ses propres observations.','The segments connect that subject\'s observations only.'],
+  ['Effectif ·','Count ·'],['État sauvegardé :','Recorded state:'],
+  ['À examiner','To review'],['Rejoué','Reviewed'],['Rapport scientifique','Scientific report'],
+  ['Comparaison des courbes','Comparison of curves']
 ];
 function translate(fr){
   const trimmed=fr.trim();
@@ -107,6 +114,7 @@ function setLanguage(lang){
   history.replaceState(history.state,'',url.pathname+url.search+url.hash);
   try{localStorage.setItem('pharmacometrie-language',lang);}catch{}
   refresh();
+  window.dispatchEvent(new CustomEvent('pmx-game-language-change',{detail:{lang}}));
 }
 document.getElementById('game-lang-fr')?.addEventListener('click',()=>setLanguage('fr'));
 document.getElementById('game-lang-en')?.addEventListener('click',()=>setLanguage('en'));

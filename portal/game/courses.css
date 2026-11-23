@@ -70,3 +70,19 @@
 .career-workspace #mipd-criterion{display:block;width:min(100%,480px);margin-bottom:16px}
 @media(max-width:970px){.career-layout{grid-template-columns:1fr}.career-sidebar{position:static}.career-step-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.career-step-list{grid-template-columns:repeat(2,minmax(0,1fr))}.career-sidebar,.career-workspace{padding:14px}.career-story{padding:13px}.career-metrics{grid-template-columns:1fr 1fr}.career-field-grid{grid-template-columns:1fr}.career-flow{grid-template-columns:1fr}.career-choices label{font-size:.84rem}.career-table{font-size:.76rem}.career-table td,.career-table th{padding:8px}.career-main .quest-heading{display:block}.career-main .quest-heading h2{margin-top:8px}}
+
+/* Diagnostic questions are paired with the corresponding plot, not a global checklist. */
+.career-diagnostic-question{border:1px solid #496269;border-radius:12px;margin:16px 0 8px;padding:13px;background:#17343a;display:grid;gap:9px;min-width:0}
+.career-diagnostic-question legend{font-weight:700;font-size:.88rem;padding:0 6px;color:#c8e8dd;max-width:95%}
+.career-diagnostic-question label{display:flex;gap:9px;align-items:flex-start;line-height:1.45;color:#d8e7e1;font-size:.83rem}
+.career-diagnostic-question input{accent-color:#8deacf;margin-top:4px;flex:none}
+.career-chart-key{display:flex;flex-wrap:wrap;gap:17px;color:#cadbd4;font-size:.8rem}
+.career-chart-key span{display:inline-flex;gap:7px;align-items:center}
+.career-chart-key i{display:inline-block;height:4px;width:26px;border-radius:4px}
+.career-auc-scale{margin:16px 0 20px}
+.career-auc-track{height:27px;border:1px solid #56747a;background:#102e39;position:relative;border-radius:8px;overflow:visible}
+.career-auc-reference{position:absolute;top:-3px;bottom:-3px;width:2px;background:#f5d59b;z-index:4}
+.career-auc-band{position:absolute;top:7px;height:12px;border-radius:5px;background:#69baa8;opacity:.5}
+.career-auc-point{position:absolute;top:-4px;height:33px;width:5px;background:#f8c48f;border-radius:4px;z-index:5}
+.career-workspace input[type=number]{min-height:43px;max-width:100%;width:100%;border:1px solid #55777a;border-radius:8px;background:#102a35;color:#f2f6f4;padding:8px 11px;font-size:1rem}
+.career-workspace select{max-width:100%}

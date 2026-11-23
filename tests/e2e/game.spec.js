@@ -298,6 +298,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-progress')).toHaveText('2 / 7');
   await page.locator('#population-next').click();
 
+  await expect(page.locator('#pop-bic')).toBeVisible();
   await expect(page.locator('#pop-fit-rows')).toContainText('À examiner');
   for(const kind of ['one','lag','two']){
     await page.locator('[data-pop-model="'+kind+'"]').click();
@@ -312,12 +313,14 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-progress')).toHaveText('3 / 7');
   await page.locator('#population-next').click();
 
+  await page.locator('#population-workspace details').evaluateAll(nodes=>nodes.forEach(el=>el.open=true));
   await expect(page.locator('#pop-vpc')).toBeVisible();
   await expect(page.locator('#pop-variability-metrics')).toContainText('IIV CL');
   await expect(page.locator('#pop-ruv-metrics')).toContainText('σlog');
   for(const id of ['pop-gof-pred','pop-gof-ipred','pop-resid-time','pop-resid-pred','pop-resid-hist','pop-resid-qq','pop-eta-weight','pop-eta-hist','pop-iiv-density','pop-ruv-shape'])await expect(page.locator('#'+id)).toBeVisible();
   await page.locator('#pop-diagnostic-model').selectOption('two');
-  for(const key of ['gof','vpc','stability'])await page.locator('input[name="pop-checks"][value="'+key+'"]').check();
+  for(const [k,value] of Object.entries({gof:'trends',residual:'patterns',iiv:'careful',ruv:'form',vpc:'bands',stability:'uncertainty'}))
+    await page.locator('input[name="pop-diagnostic-'+k+'"][value="'+value+'"]').check();
   await page.locator('#population-validate').click();
   await expect(page.locator('#population-progress')).toHaveText('4 / 7');
   await page.locator('#population-next').click();
@@ -336,8 +339,8 @@ test('population pharmacometrician route runs from mapping through archived gene
   await page.locator('#population-validate').click();
   await page.locator('#population-next').click();
 
-  await expect(page.locator('#pop-report')).toContainText('ATELIER DE MÉTHODE DISTINCT');
-  for(const key of ['data','inference','pd'])await page.locator('input[name="pop-final"][value="'+key+'"]').check();
+  await expect(page.locator('#pop-report')).toContainText('PHARMACOMETRIC ANALYSIS REPORT');
+  await page.locator('input[name="pop-conclusion"][value="conditional"]').check();
   await page.locator('#population-validate').click();
   await expect(page.locator('#population-progress')).toHaveText('7 / 7');
   await page.reload();
@@ -346,57 +349,65 @@ test('population pharmacometrician route runs from mapping through archived gene
   expect(errors).toEqual([]);
 });
 
-test('MIPD route demonstrates timed sampling, live Bayesian MAP, dose probability, changing CL and safety gate',async({page})=>{
+test('MPA heart-transplant path evaluates AUC, Bayesian sensitivity, free dose and CL change',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/pharmacometrie/game/');
   await page.locator('#mode-mipd').click();
-  await expect(page.locator('#mipd-mode')).toBeVisible();
-  await expect(page.locator('#mipd-progress')).toHaveText('0 / 6');
-
-  await page.locator('input[name="mipd-choice"][value="audit"]').check();
+  await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
+  await expect(page.locator('a[href^="/pharmacometrie/cibles-tdm/?drug=mpa"]')).toBeVisible();
+  await page.locator('input[name="mipd-choice"][value="auc"]').check();
   await page.locator('#mipd-validate').click();
   await page.locator('#mipd-next').click();
 
-  await page.locator('input[name="mipd-sampling-verdict"][value="yes"]').check();
-  await page.locator('input[name="mipd-sampling-reason"][value="complement"]').check();
+  await expect(page.locator('#mipd-workspace')).toContainText('0,5 h');
+  await page.locator('input[name="mipd-sampling"][value="three"]').check();
   await page.locator('#mipd-validate').click();
   await page.locator('#mipd-next').click();
 
   await expect(page.locator('#mipd-post-chart')).toBeVisible();
   await expect(page.locator('#mipd-post-v')).toBeVisible();
+  await expect(page.locator('.career-chart-key')).toContainText('Prior fixe');
   await page.locator('[data-mipd-post="1"]').click();
-  await page.locator('[data-mipd-post="2"]').click();
-  await expect(page.locator('#mipd-post-metrics')).toContainText('3,67');
-  await page.locator('input[name="mipd-choice"][value="fixed"]').check();
+  await page.locator('[data-mipd-post="3"]').click();
+  await expect(page.locator('#mipd-post-metrics')).toContainText('CL/F');
+  await page.locator('input[name="mipd-choice"][value="likelihood"]').check();
   await page.locator('#mipd-validate').click();
-  await expect(page.locator('#mipd-progress')).toHaveText('3 / 6');
+  await expect(page.locator('#mipd-progress')).toHaveText('3 / 7');
   await page.locator('#mipd-next').click();
 
-  await expect(page.locator('#mipd-dose-rows')).toContainText('900 mg');
+  await page.locator('#mipd-iiv').selectOption('1.75');
+  await page.locator('#mipd-ruv').selectOption('0.01');
+  await page.locator('#mipd-prior-weight').selectOption('0.125');
+  await expect(page.locator('#mipd-sensitivity-metrics')).toContainText('MAP CL/F');
+  await page.locator('input[name="mipd-sensitivity-answer"][value="balance"]').check();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('4 / 7');
+  await page.locator('#mipd-next').click();
+
   await expect(page.locator('#mipd-dose-chart')).toBeVisible();
-  await page.locator('[data-mipd-dose="600"]').click();
+  await expect(page.locator('#mipd-dose-input')).toHaveValue('1000');
+  await expect(page.locator('#mipd-workspace')).not.toContainText('toxic trough');
+  await page.locator('#mipd-dose-input').fill('1250');
+  await expect(page.locator('#mipd-dose-metrics')).toContainText('AUC');
   await page.locator('#mipd-validate').click();
-  await expect(page.locator('#mipd-feedback')).toContainText('ne satisfait pas');
-  await page.locator('[data-mipd-dose="900"]').click();
-  await page.locator('#mipd-validate').click();
-  await expect(page.locator('#mipd-progress')).toHaveText('4 / 6');
+  await expect(page.locator('#mipd-progress')).toHaveText('5 / 7');
   await page.locator('#mipd-next').click();
 
   await expect(page.locator('#mipd-shift-chart')).toBeVisible();
-  await expect(page.locator('#mipd-workspace')).toContainText('540 mg');
-  await page.locator('input[name="mipd-shift-auc"][value="0.60"]').check();
-  await page.locator('input[name="mipd-shift-safety"][value="0.50"]').check();
+  await page.locator('#mipd-shift-dose-input').fill('750');
+  await page.locator('input[name="mipd-shift-shape"][value="shape"]').check();
   await page.locator('#mipd-validate').click();
-  await expect(page.locator('#mipd-progress')).toHaveText('5 / 6');
+  await expect(page.locator('#mipd-progress')).toHaveText('6 / 7');
   await page.locator('#mipd-next').click();
 
-  await expect(page.locator('#mipd-report')).toContainText('PAS des recommandations');
-  for(const key of ['validate','verify','monitor'])await page.locator('input[name="mipd-safety"][value="'+key+'"]').check();
+  await expect(page.locator('#mipd-report')).toContainText('GREFFE CARDIAQUE');
+  await expect(page.locator('#mipd-report')).toContainText('AUC0');
+  await page.locator('input[name="mipd-report-interpretation"][value="conditional"]').check();
   await page.locator('#mipd-validate').click();
-  await expect(page.locator('#mipd-progress')).toHaveText('6 / 6');
+  await expect(page.locator('#mipd-progress')).toHaveText('7 / 7');
   await page.reload();
   await page.locator('#mode-mipd').click();
-  await expect(page.locator('#mipd-progress')).toHaveText('6 / 6');
+  await expect(page.locator('#mipd-progress')).toHaveText('7 / 7');
   expect(errors).toEqual([]);
 });
 
@@ -411,9 +422,10 @@ test('both clinical-workflow teaching routes fit narrow screens without horizont
 });
 
 
-test('game is bilingual on canonical route and root legacy URL retains full content',async({page})=>{
+test('game is bilingual at canonical address and legacy address redirects',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/game/?lang=en');
+  await expect(page).toHaveURL(/\/pharmacometrie\/game\/\?lang=en/);
   await expect(page.locator('#mode-population')).toBeVisible();
   await expect(page.locator('#game-lang-en')).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('html')).toHaveAttribute('lang','en');
@@ -423,7 +435,22 @@ test('game is bilingual on canonical route and root legacy URL retains full cont
   await page.goto(origin+'/pharmacometrie/game/?lang=en');
   await expect(page.locator('#mode-mipd')).toContainText('Precision dosing');
   await page.locator('#mode-mipd').click();
-  await expect(page.locator('#mipd-title')).toContainText('Review');
+  await expect(page.locator('#mipd-title')).toContainText('The transplant case');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-mipd-mpa-v3','[0,1,2,3,4,5]'));
+  await page.reload();
+  await page.locator('#mode-mipd').click();
+  await page.locator('#mipd-steps button').nth(5).click();
+  await expect(page.locator('#mipd-title')).toContainText('What if clearance changes?');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-mipd-mpa-v3','[0,1,2,3,4,5,6]'));
+  await page.reload();
+  await page.locator('#mode-mipd').click();
+  await expect(page.locator('#mipd-report')).toContainText('HEART TRANSPLANT');
+  await expect(page.locator('#mipd-report')).not.toContainText('Greffe cardiaque');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[0,1,2,3,4,5,6]'));
+  await page.reload();
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#pop-report')).toContainText('STUDY POPULATION');
+  await expect(page.locator('#pop-report')).not.toContainText('ÉTUDE EXPÉRIMENTALE');
   await page.locator('#game-lang-fr').click();
   await expect(page.locator('html')).toHaveAttribute('lang','fr');
   await expect(page.locator('.hero h1')).toContainText('Apprenez la pharmacocinétique');

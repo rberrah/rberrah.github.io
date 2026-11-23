@@ -1,320 +1,430 @@
-// PMx Game track 4: bounded MAP-BE pharmacometrics, fictional infusion antibiotic.
-// Never expose this widget as a patient dose calculator or link it as clinical MIPD Engine.
-import {CASE,DOSES,OBSERVATIONS,infusionAt,posterior,doseEvaluation,candidateDoses,chooseDose,
-  simulatorCurve,sampleTimingGrade,qualityGate,PKPD,evaluateEndpoints,scenarioComparison} from './mipd-course-core.js';
+// PMx Game path 4 — MPA after heart transplantation (fictional patient).
+// The numeric target is documented; the structural model and observations are
+// deliberately simulated, and not an externally validated MPA PopPK model.
+import {CASE,OBSERVATIONS,SAMPLING_TIMES,posterior,doseMetrics,scenarioComparison,
+  mpaConcentration,qualityGate} from './mipd-course-core.js';
 const $=id=>document.getElementById(id);
-const STEPS=[
-  {title:'Recevoir le dossier',chapter:'Audit du modèle',desc:'Vérifier le caractère fictif du modèle et ce qui manque à une décision clinique.'},
-  {title:'Évaluer le plan de dosage',chapter:'Stratégie TDM',desc:'Vérifier si un plan de prélèvement proposé convient à ce modèle et à cette administration.'},
-  {title:'Actualisation MAP-BE',chapter:'Inférence individuelle',desc:'Observer comment deux concentrations modifient la distribution des paramètres.'},
-  {title:'Tester une posologie',chapter:'Prévision PK/PD',desc:'Comparer des courbes et choisir une cible C0, AUC24 ou temps au-dessus de 2×CMI.'},
-  {title:'Et si CL change ?',chapter:'Projection dynamique',desc:'Raisonner sur AUC ∝ dose/CL, puis vérifier le creux toxique.'},
-  {title:'Décision responsable',chapter:'Sécurité et rapport',desc:'Identifier les étapes nécessaires avant toute véritable utilisation clinique.'}
-];
-const KEY='pmx-game-mipd-v2';
-const read=()=>{try{
-  const x=JSON.parse(localStorage.getItem(KEY)||'null');
-  if(Array.isArray(x)){const r=[];for(let i=0;i<STEPS.length;i++){if(x.includes(i))r.push(i);else break;}return r;}
-}catch{}return [];};
-let done=read(),index=Math.min(done.length,STEPS.length-1),selectedDose=null;
-let viewed=new Set(),observationsSelected=new Set(),decision=null,afterShiftDose=null;
-let selectedCriterion='auc',shiftAnswer='',safetyAnswer='';
-const fmt=(n,k=1)=>Number(n).toLocaleString('fr-FR',{minimumFractionDigits:k,maximumFractionDigits:k});
+const tr=(fr,en)=>lang()==='en'?en:fr;
+function lang(){
+ const selected=new URLSearchParams(location.search).get('lang');
+ let stored='fr';try{stored=localStorage.getItem('pharmacometrie-language')||'fr';}catch{}
+ return selected==='en'||!selected&&(document.documentElement.lang==='en'||stored==='en')?'en':'fr';
+}
+const fmt=(v,n=1)=>Number(v).toLocaleString(lang()==='en'?'en-US':'fr-FR',
+ {minimumFractionDigits:n,maximumFractionDigits:n});
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P0=posterior({samples:0}),P1=posterior({samples:1}),P2=posterior({samples:2});
-function story(text,kicker='MISSION D’INDIVIDUALISATION'){
-  return '<div class="career-story"><span class="career-eyebrow">'+kicker+'</span><p>'+text+'</p></div>';
+const STEPS=[
+ {title:['Le dossier de greffe','The transplant case'],chapter:['Contexte','Clinical context'],
+  desc:['Choisir le bon indicateur d’exposition du MPA en transplantation cardiaque.','Choose an exposure endpoint for MPA after heart transplantation.']},
+ {title:['Évaluer un plan de prélèvement','Assess a sampling schedule'],chapter:['Stratégie STP','Sampling strategy'],
+  desc:['Interpréter les heures proposées pour une estimation d’AUC.','Assess proposed sampling times for estimating AUC.']},
+ {title:['Actualisation MAP-BE','MAP Bayesian update'],chapter:['Inférence individuelle','Individual inference'],
+  desc:['Passer de la distribution de population au posterior individuel.','Update the population distribution using individual observations.']},
+ {title:['Modifier IIV, RUV et le prior','Change IIV, RUV and prior'],chapter:['Analyse de sensibilité','Sensitivity analysis'],
+  desc:['Tester l’effet du poids du prior et de l’erreur résiduelle sur l’estimation.','Explore the effect of the prior weight and residual error.']},
+ {title:['Tester une posologie','Test a dosing regimen'],chapter:['AUC du MPA','MPA AUC'],
+  desc:['Choisir librement une dose et interpréter l’AUC et la C0.','Enter a dose and interpret AUC and trough concentration.']},
+ {title:['Et si la clairance change ?','What if clearance changes?'],chapter:['Scénario prospectif','Prospective scenario'],
+  desc:['Proposer une nouvelle dose et vérifier l’AUC plutôt que choisir une réponse prédéfinie.','Enter a revised dose and reassess AUC after a clearance change.']},
+ {title:['Compte rendu pharmacométrique','Pharmacometric report'],chapter:['Synthèse du dossier','Case summary'],
+  desc:['Conclure sur exposition, incertitude, sensibilité et limites des estimations.','Conclude on exposure, uncertainty, sensitivity and model limitations.']}
+];
+const KEY='pmx-game-mipd-mpa-v3';
+function read(){
+ try{
+  const raw=JSON.parse(localStorage.getItem(KEY)||'null');if(!Array.isArray(raw))return [];
+  let done=[];for(let i=0;i<STEPS.length;i++){if(raw.includes(i))done.push(i);else break;}return done;
+ }catch{return [];}
 }
-function metrics(items){return '<div class="career-metrics">'+items.map(([name,value])=>
-  '<div><span>'+name+'</span><strong>'+value+'</strong></div>').join('')+'</div>';}
-function choices(arr,name='mipd-choice'){
-  return '<div class="career-choices">'+arr.map(([value,label])=>
-    '<label><input type="radio" name="'+name+'" value="'+value+'"><span>'+label+'</span></label>').join('')+'</div>';
+let done=read(),index=Math.min(done.length,STEPS.length-1),selectedDose=1000,revisedDose=600;
+let sampleView=new Set(),sensitivityIIV=1,sensitivityRUV=.12,priorWeight=1,doseTouched=false;
+let sensitivityChanged=new Set(),interpretation='';
+const P0=posterior({samples:0}),P1=posterior({samples:1}),P3=posterior({samples:3});
+function currentPosterior(){
+ return posterior({samples:3,omegaFactor:sensitivityIIV,ruvCV:sensitivityRUV,priorWeight});
 }
-function checkboxes(arr,name){
-  return '<div class="career-checkboxes">'+arr.map(([value,label])=>
-    '<label><input type="checkbox" name="'+name+'" value="'+value+'"><span>'+label+'</span></label>').join('')+'</div>';
+function dosePost(){return currentPosterior();}
+function story(fr,en,kickerFr='DOSSIER CLINIQUE',kickerEn='CLINICAL CASE'){
+ return '<div class="career-story"><span class="career-eyebrow">'+tr(kickerFr,kickerEn)+
+  '</span><p>'+tr(fr,en)+'</p></div>';
 }
-function graph(el,series,opts={}){
-  const maxTime=opts.maxTime??12,high=opts.high??40,min=0;
-  const x=t=>65+624*t/maxTime,y=c=>27+217*(1-(c-min)/(high-min));
-  let s='<rect x="65" y="27" width="624" height="217" rx="10" fill="#102830"/>';
-  for(let i=0;i<=4;i++){
-    const xx=x(i*maxTime/4),yy=y(i*high/4);
-    s+='<path d="M65 '+yy+' H689" stroke="#36545a" stroke-dasharray="4 7"/>'+
-    '<text x="55" y="'+(yy+5)+'" font-size="13" fill="#aacfc4" text-anchor="end">'+fmt(i*high/4,1)+'</text>'+
-    '<text x="'+xx+'" y="269" font-size="13" fill="#aacfc4" text-anchor="middle">'+fmt(i*maxTime/4,0)+' h</text>';
-  }
-  for(const mark of (opts.thresholds||[])){
-    if(mark.value<0||mark.value>high)continue;
-    s+='<path d="M65 '+y(mark.value)+' H689" stroke="'+mark.color+'" stroke-width="1.8" stroke-dasharray="6 5"/>';
-  }
-  for(const line of series){
-    const pairs=line.values.map(v=>x(v.t).toFixed(1)+','+y(v.c).toFixed(1)).join(' ');
-    s+='<polyline points="'+pairs+'" fill="none" stroke="'+(line.color||'#91e9d4')+'" stroke-width="3.3"/>';
-  }
-  if(opts.dots)for(const p of opts.dots){
-    s+='<circle cx="'+x(p.t)+'" cy="'+y(p.c??p.value)+'" r="6" fill="#f7c68a" stroke="#142b34" stroke-width="2"/>';
-  }
-  el.innerHTML=s;
+function metric(label,value){return '<div><span>'+label+'</span><strong>'+value+'</strong></div>';}
+function metrics(rows){return '<div class="career-metrics">'+rows.map(r=>metric(r[0],r[1])).join('')+'</div>';}
+function options(list,name){
+ return '<div class="career-choices" role="radiogroup">'+list.map(item=>'<label><input type="radio" name="'+name+
+  '" value="'+item[0]+'"><span>'+tr(item[1],item[2])+'</span></label>').join('')+'</div>';
 }
-function distribution(el,one,two,key='cl'){
-  const isV=key==='v',keys=Array.from({length:26},(_,i)=>isV?18.6+i*1.08:1.8+i*.22);
-  const half=isV?.54:.11;
-  const hist=post=>keys.map(k=>post.rows.filter(r=>r[key]>=k-half&&r[key]<k+half).reduce((sum,r)=>sum+r.w,0));
-  const a=hist(one),b=hist(two),max=Math.max(.0001,...a,...b)*1.1;
-  const x=i=>52+i*23,y=v=>218-183*v/max;
-  let svg='<rect x="44" y="23" width="610" height="195" fill="#0b2530" rx="10"/>';
-  for(let i=0;i<keys.length;i++){
-    svg+='<rect x="'+x(i)+'" y="'+y(a[i]).toFixed(1)+'" width="8" height="'+(218-y(a[i])).toFixed(1)+'" fill="#48757d"/>'+
-      '<rect x="'+(x(i)+9)+'" y="'+y(b[i]).toFixed(1)+'" width="8" height="'+(218-y(b[i])).toFixed(1)+'" fill="#a2efce"/>';
-  }
-  for(let i=0;i<=4;i++){
-    const ix=Math.min(i*6,25);
-    svg+='<text x="'+x(ix)+'" y="249" fill="#c8dad3" font-size="13" text-anchor="middle">'+fmt(keys[ix],1)+'</text>';
-  }
-  el.innerHTML=svg+'<text x="54" y="16" fill="#b7d8ce" font-size="13">Masse par classe · '+(isV?'V (L)':'CL (L/h)')+'</text>';
+function chart(svg,series,{maxTime=12,high=20,dots=[],bands=[]}={}){
+ const x=t=>64+t/maxTime*626,y=c=>243-c/high*201;
+ let out='<rect x="64" y="42" width="626" height="201" rx="9" fill="#0b2630"/>';
+ for(let i=0;i<=4;i++){
+  out+='<path d="M64 '+y(high*i/4)+' H690" stroke="#43636c" stroke-dasharray="4 5"/>'+
+   '<text x="54" y="'+(y(high*i/4)+4)+'" fill="#c3d8d0" text-anchor="end" font-size="11">'+fmt(high*i/4,1)+'</text>'+
+   '<text x="'+x(maxTime*i/4)+'" y="261" fill="#c3d8d0" text-anchor="middle" font-size="11">'+fmt(maxTime*i/4,1)+'</text>';
+ }
+ for(const b of bands){
+  const pts=[...b.lower,...b.upper.slice().reverse()].map(p=>x(p.t).toFixed(1)+','+y(p.c).toFixed(1)).join(' ');
+  out+='<polygon points="'+pts+'" fill="'+(b.color||'#87dfc3')+'" opacity=".15"/>';
+ }
+ for(const entry of series){
+  out+='<polyline fill="none" stroke="'+(entry.color||'#87dfc3')+
+   '" stroke-width="'+(entry.width||3)+'" points="'+entry.values.map(p=>x(p.t).toFixed(1)+','+y(p.c).toFixed(1)).join(' ')+'"/>';
+ }
+ for(const p of dots){out+='<circle cx="'+x(p.t)+'" cy="'+y(p.c||p.value)+'" r="5" fill="#f8c48f" stroke="#17323a" stroke-width="1.5"/>';}
+ svg.innerHTML=out+'<text x="65" y="26" fill="#d3e8e0" font-size="12">'+tr('Concentration totale MPA (mg/L)','Total MPA concentration (mg/L)')+
+  '</text><text x="376" y="280" text-anchor="middle" fill="#c4dad2" font-size="12">'+tr('Temps après prise (h)','Time after dose (h)')+'</text>';
 }
-function distributionLegend(){
-  return '<p class="career-note"><span style="color:#48757d">■</span> A priori (identique dans les trois affichages) · '+
-    '<span style="color:#a2efce">■</span> Distribution affichée (a priori, posterior à 1 dosage ou posterior à 2 dosages). '+
-    'La vraisemblance apporte l’information des dosages ; elle ne modifie pas le prior.</p>';
+function marginal(post,key){
+ const result=new Map();
+ for(const row of post.rows){
+  const x=row[key];result.set(x,(result.get(x)||0)+row.w);
+ }
+ return [...result].sort((a,b)=>a[0]-b[0]).map(([x,y])=>({x,y}));
 }
-
+function posteriorChart(svg,left,right,key){
+ const a=marginal(left,key),b=marginal(right,key);
+ const xmax=Math.max(...a.map(r=>r.x),...b.map(r=>r.x));
+ const xmin=Math.min(...a.map(r=>r.x),...b.map(r=>r.x));
+ const ymax=Math.max(...a.map(r=>r.y),...b.map(r=>r.y))*1.18;
+ const x=v=>68+606*(v-xmin)/(xmax-xmin),y=v=>238-192*v/ymax;
+ let out='<rect x="68" y="37" width="606" height="201" rx="9" fill="#0b2630"/>';
+ for(let i=0;i<=4;i++){
+  out+='<text x="'+x(xmin+(xmax-xmin)*i/4)+'" y="257" fill="#c3d8d0" text-anchor="middle" font-size="11">'+fmt(xmin+(xmax-xmin)*i/4,0)+'</text>';
+ }
+ for(const [series,color] of [[a,'#a0bbcc'],[b,'#f3bb80']]){
+  out+='<polyline fill="none" stroke="'+color+'" stroke-width="3.2" points="'+
+   series.map(p=>x(p.x).toFixed(1)+','+y(p.y).toFixed(1)).join(' ')+'"/>';
+ }
+ svg.innerHTML=out+'<text x="68" y="22" fill="#d3e8e0" font-size="13">'+
+   (key==='cl'?'CL/F (L/h)':'V/F (L)')+'</text>';
+}
+function legend(a,b){
+ return '<p class="career-chart-key"><span><i style="background:#a0bbcc"></i>'+a+
+   '</span><span><i style="background:#f3bb80"></i>'+b+'</span></p>';
+}
+function aucBar(x){
+ const lo=0,hi=Math.max(90,x.auc*1.4),px=v=>Math.min(100,Math.max(0,v/hi*100));
+ return '<div class="career-auc-scale" role="img" aria-label="AUC interval and evidence threshold">'+
+  '<div class="career-auc-track"><div class="career-auc-reference" style="left:'+px(CASE.targetAucMinimum)+'%"></div>'+
+  '<div class="career-auc-band" style="left:'+px(x.aucCI[0])+'%;width:'+Math.max(0,px(x.aucCI[1])-px(x.aucCI[0]))+'%"></div>'+
+  '<div class="career-auc-point" style="left:'+px(x.auc)+'%"></div></div>'+
+  '<p class="career-note">'+tr('Trait = AUC du MAP ; bande = intervalle descriptif P5–P95 propagé depuis CL/F ; seuil vertical = 36 mg·h/L.',
+   'Marker = MAP AUC; band = descriptive P5–P95 interval propagated from CL/F; vertical threshold = 36 mg·h/L.')+'</p></div>';
+}
 function nav(){
-  $('mipd-progress').textContent=done.length+' / '+STEPS.length;
-  const frag=document.createDocumentFragment();
-  STEPS.forEach((s,i)=>{
-    const b=document.createElement('button');b.type='button';b.disabled=i>done.length;
-    if(i===index)b.setAttribute('aria-current','step');
-    const n=document.createElement('span');n.className='career-step-num';n.textContent=done.includes(i)?'✓':String(i+1);
-    const m=document.createElement('span');m.textContent=s.title;
-    const sub=document.createElement('small');sub.textContent=done.includes(i)?'Validée':b.disabled?'Verrouillée':s.chapter;
-    m.append(sub);b.append(n,m);b.addEventListener('click',()=>select(i));frag.append(b);
-  });
-  $('mipd-steps').replaceChildren(frag);
+ $('mipd-progress').textContent=done.length+' / '+STEPS.length;
+ const fragment=document.createDocumentFragment();
+ STEPS.forEach((step,i)=>{
+  const b=document.createElement('button');b.type='button';b.disabled=i>done.length;
+  if(i===index)b.setAttribute('aria-current','step');
+  const num=document.createElement('span');num.className='career-step-num';num.textContent=done.includes(i)?'✓':String(i+1);
+  const title=document.createElement('span');title.textContent=tr(step.title[0],step.title[1]);
+  const small=document.createElement('small');
+  small.textContent=done.includes(i)?tr('Validée','Completed'):b.disabled?tr('Verrouillée','Locked'):tr(step.chapter[0],step.chapter[1]);
+  title.append(small);b.append(num,title);b.addEventListener('click',()=>select(i));fragment.append(b);
+ });
+ $('mipd-steps').replaceChildren(fragment);
 }
 function stage0(){
-  $('mipd-workspace').innerHTML=story('Vous prenez en charge un dossier pédagogique : <strong>antibiotique V fictif</strong>, perfusion IV de 1 h répétée toutes les 12 h. Le modèle de population 1C possède des paramètres typiques CL et V et une variabilité interindividuelle. Qu’est-ce qui doit être vérifié avant toute application ?','FICHE TECHNIQUE · PATIENT IMAGINAIRE')+
-    metrics([['Administration',fmt(CASE.dose,0)+' mg / 12 h'],['Prior CL',fmt(CASE.priorCL)+' L/h'],['Prior V',fmt(CASE.priorV,0)+' L']])+
-    '<div class="career-flow"><div>Dose programmée</div><span>→</span><div>Prédiction de population</div></div>'+
-    '<p class="career-note">Modèle <strong>entièrement inventé</strong> ; un vrai logiciel MIPD exige une source validée, des prélèvements horodatés, des cibles spécifiques au contexte et une validation externe.</p>'+
-    choices([['only-prior','Le modèle de population suffit à prédire une exposition individuelle certaine.'],
-      ['audit','Le modèle est un point de départ, mais il faut contrôler ses domaines de validité et exploiter les concentrations mesurées.'],
-      ['therapeutic','Les chiffres affichés constituent une recommandation thérapeutique vérifiée.']]);
+ $('mipd-workspace').innerHTML=story(
+  'Deux mois après une transplantation cardiaque, une personne reçoit <strong>MMF 1 000 mg toutes les 12 h</strong> avec tacrolimus et corticostéroïdes. On s’interroge sur une exposition insuffisante au <strong>MPA</strong>. Quel indicateur permet l’évaluation la plus informative ?',
+  'Two months after heart transplantation, a patient takes <strong>MMF 1,000 mg every 12 hours</strong> with tacrolimus and corticosteroids. MPA underexposure is suspected. Which exposure endpoint is most informative?')+
+  metrics([[tr('Molécule administrée','Administered drug'),'MMF'],
+   [tr('Analyte dosé','Measured analyte'),'MPA'],[tr('Intervalle','Interval'),'12 h'],
+   [tr('Contexte','Context'),tr('Greffe cardiaque précoce','Early heart transplant')]])+
+  '<div class="career-alert">'+tr('Dans la transplantation cardiaque précoce, le consensus décrit une AUC₀–₁₂h supérieure à 36 mg·h/L comme seuil de référence, sans borne supérieure consensuelle. La corrélation entre C0 et AUC est limitée.',
+   'In early heart transplantation, consensus literature describes AUC₀–₁₂h above 36 mg·h/L as an exposure reference, without a consensus upper bound. Trough C0 is a limited surrogate for AUC.')+'</div>'+
+  '<div class="career-file-actions"><a class="career-action" href="'+CASE.references.guide+'&lang='+lang()+'" target="_blank" rel="noopener">'+
+   tr('Consulter la cible MPA dans Cibles‑TDM','View MPA target in TDM Targets')+'</a>'+
+   '<a class="career-action" href="'+CASE.references.consensus+'" target="_blank" rel="noopener">'+tr('Consensus IATDMCT','IATDMCT consensus')+'</a></div>'+
+  options([['auc','L’AUC₀–₁₂h du MPA, estimée à partir des prélèvements et d’un modèle adapté.','MPA AUC₀–₁₂h, estimated from samples using an appropriate model.'],
+   ['c0','La C0 suffit toujours à reconstituer l’AUC.','A trough C0 always suffices to recover AUC.'],
+   ['mmf','La dose prescrite indique directement l’AUC sans variabilité.','Prescribed dose directly determines AUC without variability.']],'mipd-choice');
 }
 function stage1(){
-  $('mipd-workspace').innerHTML=story('Pour ce modèle <strong>1 compartiment IV, perfusion de 1 h toutes les 12 h</strong>, le laboratoire propose un prélèvement à 2 h et un autre à 11 h après le début de la perfusion. Vous ne choisissez pas les horaires : <strong>évaluez ce plan proposé</strong> et son intérêt. Un autre modèle, une perfusion continue ou un autre objectif exigeraient un plan différent.','TDM · AUDIT D’UN PLAN PROPOSÉ')+
-    metrics([['Perfusion','0–1 h'],['Premier prélèvement','2 h'],['Second prélèvement','11 h · pré-dose']])+
-    choices([['yes','Plan adapté pour ce cas fictif 1C IV.'],['no','Plan nécessairement inadapté, quelles que soient les conditions.']],'mipd-sampling-verdict')+
-    '<p class="career-note">Quelle justification est correcte ?</p>'+
-    choices([['complement','La mesure après perfusion et le creux renseignent des portions différentes du profil ; la pertinence dépend de la structure et de la voie.'],['universal','Ces deux heures sont universelles pour tous les médicaments, modèles et voies.'],['no-time','Le temps exact de prélèvement n’influence jamais l’estimation.']],'mipd-sampling-reason');
+ $('mipd-workspace').innerHTML=story(
+  'Pour une forme orale à libération immédiate, un schéma limité <strong>0,5 h, 1 h, 2 h</strong> a été étudié chez des greffés cardiaques pour estimer l’AUC du MPA. Évaluez sa pertinence <em>dans ce contexte</em>, sans généraliser à d’autres modèles ni formulations.',
+  'For immediate-release oral MMF, a limited sampling schedule at <strong>0.5 h, 1 h, 2 h</strong> has been studied in heart transplant recipients to estimate MPA AUC. Evaluate it <em>in context</em>; do not generalize to other models or formulations.')+
+  metrics([[tr('Prélèvement 1','Sample 1'),'0.5 h'],[tr('Prélèvement 2','Sample 2'),'1 h'],[tr('Prélèvement 3','Sample 3'),'2 h'],
+   [tr('Voie et formulation','Route and formulation'),tr('MMF oral immédiat','Immediate-release oral MMF')]])+
+  '<p class="career-note">'+tr('Les horaires sont proposés : il faut vérifier leur justification dans la littérature et leur compatibilité avec le modèle retenu.',
+   'Sampling times are proposed: verify supporting evidence and compatibility with the selected model.')+'</p>'+
+  options([['three','Ce plan est documenté dans cette situation, mais sa précision dépend du modèle, de la formulation et du contexte.','This plan has supporting evidence in this setting, but accuracy depends on model, formulation and context.'],
+   ['universal','Ces horaires sont universels et identifient toute recirculation entérohépatique.','These times universally identify enterohepatic recirculation.']],'mipd-sampling')+
+  '<p class="career-note"><a href="'+CASE.references.lss+'" target="_blank" rel="noopener">'+tr('Étude des stratégies de prélèvement limité','Limited sampling strategy study')+'</a></p>';
 }
-
 function stage2(){
-  $('mipd-workspace').innerHTML=story('Le prior du modèle est <strong>fixé avant de voir les observations</strong>. Avec une puis deux mesures, c’est la vraisemblance et donc le posterior qui changent. Explorez séparément les distributions de CL et de V : MAP-BE n’équivaut pas à modifier la moyenne du prior.','BAYES · PRIOR × VRAISEMBLANCE → POSTERIOR')+
-    '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Temps depuis début de perfusion</th><th>Concentration pédagogique</th></tr></thead><tbody>'+
-    OBSERVATIONS.map(o=>'<tr><td>'+fmt(o.t,0)+' h</td><td>'+fmt(o.value,2)+' mg/L</td></tr>').join('')+'</tbody></table></div>'+
-    '<div class="career-model-buttons"><button data-mipd-post="0">A priori seul</button><button data-mipd-post="1">Après 1 dosage</button><button data-mipd-post="2">Après 2 dosages</button></div>'+
-    '<div id="mipd-post-metrics" class="career-metrics"></div>'+
-    '<p class="career-note"><strong>Distribution de CL</strong></p><svg id="mipd-post-chart" class="career-chart" viewBox="0 0 730 275" role="img" aria-label="Histogrammes CL : prior inchangé et posterior actualisé"></svg>'+
-    '<p class="career-note"><strong>Distribution de V</strong></p><svg id="mipd-post-v" class="career-chart" viewBox="0 0 730 275" role="img" aria-label="Histogrammes V : prior inchangé et posterior actualisé"></svg>'+
-    distributionLegend()+
-    choices([['fixed','Le prior reste inchangé ; la vraisemblance des concentrations actualise le posterior de CL et V.'],['prior-change','Chaque nouveau dosage modifie directement la distribution a priori de population.'],['certain','Deux dosages suppriment toute incertitude sur CL et V.']]);
-  function draw(n){
-    viewed.add(n);
-    const post=[P0,P1,P2][n];
-    $('mipd-post-metrics').innerHTML=[
-      ['E[CL | observations]',fmt(post.meanCL,2)+' L/h'],
-      ['MAP(CL)',fmt(post.mapCL,2)+' L/h'],
-      ['CL P5–P95',fmt(post.clCI[0],1)+'–'+fmt(post.clCI[1],1)+' L/h'],
-      ['MAP(V)',fmt(post.mapV,1)+' L']
-    ].map(([name,value])=>'<div><span>'+name+'</span><strong>'+value+'</strong></div>').join('');
-    distribution($('mipd-post-chart'),P0,post,'cl');
-    distribution($('mipd-post-v'),P0,post,'v');
-    $('mipd-workspace').querySelectorAll('[data-mipd-post]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.mipdPost===n)));
-  }
-  $('mipd-workspace').querySelectorAll('[data-mipd-post]').forEach(b=>b.addEventListener('click',()=>draw(+b.dataset.mipdPost)));
-  draw(0);
+ $('mipd-workspace').innerHTML=story(
+  'Le prior populationnel reste défini avant les observations. Les concentrations simulées modifient la <strong>vraisemblance</strong> et le <strong>posterior</strong>. Visualisez chaque mise à jour de CL/F et V/F ; les histogrammes partagent leur échelle.',
+  'The population prior remains fixed before observations. Simulated drug levels update the <strong>likelihood</strong> and <strong>posterior</strong>. Compare CL/F and V/F marginals on consistent axes.',
+  'BAYES · PRIOR × VRAISEMBLANCE','BAYES · PRIOR × LIKELIHOOD')+
+  '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>'+tr('Temps','Time')+'</th><th>MPA (mg/L)</th></tr></thead><tbody>'+
+  OBSERVATIONS.map(o=>'<tr><td>'+fmt(o.t,1)+' h</td><td>'+fmt(o.value,2)+'</td></tr>').join('')+'</tbody></table></div>'+
+  '<div class="career-model-buttons"><button type="button" data-mipd-post="0">'+tr('Prior seul','Prior only')+'</button>'+
+  '<button type="button" data-mipd-post="1">'+tr('Après 1 dosage','After 1 sample')+'</button>'+
+  '<button type="button" data-mipd-post="3">'+tr('Après 3 dosages','After 3 samples')+'</button></div>'+
+  '<div id="mipd-post-metrics" class="career-metrics"></div>'+
+  legend(tr('Prior fixe','Fixed prior'),tr('Posterior sélectionné','Selected posterior'))+
+  '<svg id="mipd-post-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="CL posterior marginal"></svg>'+
+  '<svg id="mipd-post-v" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="V posterior marginal"></svg>'+
+  options([['likelihood','Le prior est fixe ; la vraisemblance des dosages modifie le posterior.','The prior stays fixed; observed concentrations update the posterior via the likelihood.'],
+   ['prior','La moyenne du prior doit changer après chaque prélèvement.','The prior mean must change after each sample.']],'mipd-choice');
+ function draw(n){
+  sampleView.add(n);
+  const p=n===0?P0:n===1?P1:P3;
+  $('mipd-post-metrics').innerHTML=metrics([
+   ['MAP CL/F',fmt(p.mapCL,1)+' L/h'],['MAP V/F',fmt(p.mapV,0)+' L'],
+   ['CL/F P5–P95',fmt(p.clCI[0],1)+'–'+fmt(p.clCI[1],1)+' L/h']]);
+  posteriorChart($('mipd-post-chart'),P0,p,'cl');posteriorChart($('mipd-post-v'),P0,p,'v');
+  $('mipd-workspace').querySelectorAll('[data-mipd-post]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.mipdPost===n)));
+ }
+ $('mipd-workspace').querySelectorAll('[data-mipd-post]').forEach(b=>b.addEventListener('click',()=>draw(+b.dataset.mipdPost)));
+ draw(0);
 }
-
-function doseRow(dose){
-  const x=evaluateEndpoints(P2,dose);
-  return '<tr data-selected="'+(selectedDose===dose)+'"><td><button type="button" class="career-action" data-mipd-dose="'+dose+'" aria-pressed="'+(selectedDose===dose)+'">'+fmt(dose,0)+' mg</button></td>'+
-    '<td>'+fmt(x.auc,0)+'</td><td>'+fmt(x.c0,1)+'</td><td>'+fmt(x.timeAbovePct,0)+' %</td><td>'+(x.toxic?'C0 toxique':'—')+'</td></tr>';
-}
-function concentrationLegend(){
-  return '<p class="career-note"><span style="color:#9cebd5">━</span> Profil prédit · '+
-    '<span style="color:#c8a6f5">┄</span> CMI = '+fmt(PKPD.mic,0)+' mg/L · '+
-    '<span style="color:#f6c28e">┄</span> 2 × CMI = '+fmt(PKPD.mic*PKPD.micMultiple,0)+' mg/L · '+
-    '<span style="color:#f08080">┄</span> Seuil de C0 toxique = '+fmt(PKPD.troughToxic,0)+' mg/L (appliqué <strong>au creux seulement</strong>, pas au pic).</p>';
-}
-const concentrationMarks=[
-  {value:PKPD.mic,color:'#c8a6f5'},
-  {value:PKPD.mic*PKPD.micMultiple,color:'#f6c28e'},
-  {value:PKPD.troughToxic,color:'#f08080'}
-];
 function stage3(){
-  $('mipd-workspace').innerHTML=story('Choisissez d’abord un <strong>critère pharmacocinétique/pharmacodynamique</strong>, puis testez différentes posologies en comparant les courbes avec la CMI et un seuil de C0 toxique. Cibles et seuils sont inventés pour l’enseignement : AUC24 de 440 à 560 mg·h/L, C0 ≥ 8 mg/L ou temps au-dessus de 2×CMI ≥ 90 % de l’intervalle.','SIMULATIONS · EFFICACITÉ / TOXICITÉ')+
-    metrics([['CMI fictive',fmt(PKPD.mic,0)+' mg/L'],['Seuil de C0 toxique',fmt(PKPD.troughToxic,0)+' mg/L'],['Durée de perfusion','1 h / 12 h']])+
-    '<label class="career-note" for="mipd-criterion">Critère à atteindre</label> <select id="mipd-criterion"><option value="auc">AUC24 : 440–560 mg·h/L</option><option value="trough">C0 ≥ 8 mg/L</option><option value="time">Temps &gt; 2 × CMI ≥ 90 %</option></select>'+
-    '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Dose toutes les 12 h</th><th>AUC24</th><th>C0</th><th>Temps &gt; 2×CMI</th><th>Signal sécurité</th></tr></thead><tbody id="mipd-dose-rows"></tbody></table></div>'+
-    '<svg id="mipd-dose-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Courbe concentration-temps avec seuils CMI, deux fois CMI et C0 toxique"></svg>'+
-    concentrationLegend()+
-    '<p id="mipd-dose-caption" class="career-note">Sélectionnez une dose pour confronter son profil à la cible choisie et au seuil toxique.</p>';
-  function draw(){
-    $('mipd-criterion').value=selectedCriterion;
-    $('mipd-dose-rows').innerHTML=DOSES.map(doseRow).join('');
-    const dose=selectedDose??CASE.dose,x=evaluateEndpoints(P2,dose);
-    graph($('mipd-dose-chart'),[{values:x.curve,color:'#9cebd5'}],{maxTime:12,high:Math.max(44,...x.curve.map(p=>p.c))*1.1,thresholds:concentrationMarks});
-    if(selectedDose!==null){
-      $('mipd-dose-caption').textContent=fmt(dose,0)+' mg q12h : AUC24 '+fmt(x.auc,0)+' mg·h/L, C0 '+fmt(x.c0,1)+' mg/L, temps > 2×CMI '+fmt(x.timeAbovePct,0)+' % ; cible '+(x.meets[selectedCriterion]?'atteinte':'non atteinte')+' ; '+(x.toxic?'C0 au-dessus du seuil toxique.':'C0 sous le seuil toxique.');
-    }
-  }
-  $('mipd-criterion').addEventListener('change',e=>{selectedCriterion=e.target.value;draw();});
-  $('mipd-dose-rows').addEventListener('click',e=>{
-    const b=e.target.closest('[data-mipd-dose]');if(!b)return;selectedDose=+b.dataset.mipdDose;draw();
-  });
-  draw();
+ $('mipd-workspace').innerHTML=story(
+  'Dans MAP-BE, la <strong>variabilité interindividuelle (IIV)</strong> définit la dispersion du prior, alors que la <strong>variabilité résiduelle (RUV)</strong> intervient dans la vraisemblance. Le « flattened prior » de Hughes diminue explicitement le poids du prior. Changez ces trois composantes <em>séparément</em> et regardez CL/F, V/F et l’AUC prédite.',
+  'In MAP estimation, <strong>interindividual variability (IIV)</strong> controls prior spread, while <strong>residual unexplained variability (RUV)</strong> controls the likelihood. Hughes et al. proposed selectively <strong>flattening the prior</strong>. Change each component separately and examine CL/F, V/F and predicted AUC.',
+  'SENSIBILITÉ DU POSTERIOR','POSTERIOR SENSITIVITY')+
+  '<div class="career-field-grid">'+
+  '<label>'+tr('Amplitude de l’IIV','IIV scale')+' <select id="mipd-iiv"><option value="0.5">× 0.50</option><option value="1">× 1.00</option><option value="1.75">× 1.75</option></select></label>'+
+  '<label>'+tr('Erreur résiduelle proportionnelle','Proportional RUV')+' <select id="mipd-ruv"><option value="0.01">1 %</option><option value="0.12">12 %</option><option value="0.25">25 %</option></select></label>'+
+  '<label>'+tr('Poids du prior','Prior weight')+' <select id="mipd-prior-weight"><option value="1">MAP ×1</option><option value="0.125">Flattened ×⅛</option></select></label></div>'+
+  legend(tr('MAP de référence','Baseline MAP'),tr('Scénario modifié','Modified settings'))+
+  '<div id="mipd-sensitivity-metrics" class="career-metrics"></div>'+
+  '<svg id="mipd-sensitive-cl" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="CL prior sensitivity"></svg>'+
+  '<svg id="mipd-sensitive-v" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="V prior sensitivity"></svg>'+
+  '<p class="career-note">'+tr('Attention : une RUV artificiellement proche de zéro peut surajuster des concentrations bruitées ; aplatir le prior n’est pas toujours meilleur. Ces manipulations ne réestiment pas le modèle populationnel. Le modèle RUV inclut aussi un plancher fixe de 0,08 mg/L.',
+   'A near-zero RUV may overfit noisy concentrations; flattening the prior is not always beneficial. These controls do not refit the population model. RUV also includes a fixed 0.08 mg/L error floor.')+'</p>'+
+  '<p class="career-note"><a href="'+CASE.references.berrah+'" target="_blank" rel="noopener">'+tr('Berrah et al. (2026) · influence de l’erreur résiduelle en MIPD','Berrah et al. (2026) · residual error as a lever in MIPD')+'</a> · <a href="'+CASE.references.hughes+'" target="_blank" rel="noopener">'+tr('Hughes et al. (2021) · prior aplati','Hughes et al. (2021) · flattened priors')+'</a></p>'+
+  options([['balance','IIV et prior modifient la pénalisation populationnelle ; RUV modifie le poids des dosages. Une RUV trop faible risque le surajustement.',
+    'IIV and prior weight control population shrinkage; RUV controls observation weight. Excessively small RUV may overfit.'],
+   ['all','Baisser la RUV et aplatir le prior améliorent toujours les prédictions.',
+    'Reducing RUV and flattening the prior always improve predictions.']],'mipd-sensitivity-answer');
+ function draw(){
+  const p=currentPosterior(),ref=P3;
+  $('mipd-sensitivity-metrics').innerHTML=metrics([
+   ['MAP CL/F',fmt(ref.mapCL,1)+' → '+fmt(p.mapCL,1)+' L/h'],
+   ['P5–P95 CL/F',fmt(p.clCI[0],1)+'–'+fmt(p.clCI[1],1)],
+   ['MAP V/F',fmt(ref.mapV,0)+' → '+fmt(p.mapV,0)+' L'],
+   ['AUC₀–₁₂h @ 1000 mg',fmt(doseMetrics(ref,1000).auc,1)+' → '+fmt(doseMetrics(p,1000).auc,1)]]);
+  posteriorChart($('mipd-sensitive-cl'),ref,p,'cl');
+  posteriorChart($('mipd-sensitive-v'),ref,p,'v');
+ }
+ $('mipd-iiv').value=String(sensitivityIIV);
+ $('mipd-ruv').value=String(sensitivityRUV);
+ $('mipd-prior-weight').value=String(priorWeight);
+ for(const [id,key,assign] of [
+  ['mipd-iiv','iiv',v=>sensitivityIIV=v],['mipd-ruv','ruv',v=>sensitivityRUV=v],
+  ['mipd-prior-weight','prior',v=>priorWeight=v]
+ ]){
+  $(id).addEventListener('change',e=>{assign(+e.target.value);sensitivityChanged.add(key);draw();});
+ }
+ draw();
 }
-
+function doseInput(id,value,help){
+ return '<div class="career-field-grid"><label>'+tr('Nouvelle dose de MMF toutes les 12 h (mg)','New MMF dose every 12 hours (mg)')+
+ '<input id="'+id+'" type="number" min="250" max="1500" step="50" value="'+value+'" inputmode="decimal"></label>'+
+ '<p class="career-note">'+help+'</p></div>';
+}
 function stage4(){
-  const scenario=scenarioComparison(P2,900,.6);
-  const entries=[['Initial : CL inchangée',scenario.unchanged],['CL × 0,6 ; dose inchangée',scenario.sameDose],
-    ['CL × 0,6 ; dose × 0,6',scenario.aucMatched],['CL × 0,6 ; dose × 0,5',scenario.safetyReduced]];
-  $('mipd-workspace').innerHTML=story('Partons d’une dose de <strong>900 mg toutes les 12 h</strong>. Dans un scénario hypothétique, la clairance diminue de 40 %. Comment conserver l’AUC initiale ? Puis vérifiez le C0 : la réduction conservant l’AUC peut dépasser le seuil toxique. Il faut alors arbitrer le bénéfice et le risque, sans prétendre qu’une dose unique satisfait toutes les cibles.','SCÉNARIO · CL DIMINUÉE')+
-    metrics([['Dose de référence','900 mg / 12 h'],['Nouvelle CL','CL initiale × 0,60'],['Seuil fictif C0',fmt(PKPD.troughToxic,0)+' mg/L']])+
-    '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Scénario</th><th>Dose q12h</th><th>AUC24</th><th>C0</th><th>C0 toxique ?</th></tr></thead><tbody>'+
-    entries.map(([label,x])=>'<tr><td>'+label+'</td><td>'+fmt(x.dose,0)+' mg</td><td>'+fmt(x.auc,0)+'</td><td>'+fmt(x.c0,1)+'</td><td>'+(x.toxic?'Oui':'Non')+'</td></tr>').join('')+'</tbody></table></div>'+
-    '<svg id="mipd-shift-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Comparaison des courbes sous clairance réduite"></svg>'+
-    '<p class="career-note"><span style="color:#9cebd5">━</span> 900 mg / CL initiale · <span style="color:#f6c28e">━</span> 540 mg / CL ×0,6 · <span style="color:#c8a6f5">━</span> 450 mg / CL ×0,6</p>'+concentrationLegend()+
-    '<p class="career-note"><strong>Question 1.</strong> À clairance diminuée de 40 %, quel facteur de dose maintient l’AUC24, en PK linéaire et à intervalle constant ?</p>'+
-    choices([['0.60','Dose × 0,60'],['1.00','Dose inchangée'],['0.50','Dose × 0,50']],'mipd-shift-auc')+
-    '<p class="career-note"><strong>Question 2.</strong> Si le creux du schéma ×0,60 dépasse le seuil toxique, quelle mesure est défendable parmi ces propositions ?</p>'+
-    choices([['0.50','Tester dose ×0,50 : C0 inférieur au seuil, mais AUC désormais inférieure à la cible ; réévaluer la stratégie.'],['0.60','Conserver ×0,60 quoi qu’il arrive : l’AUC cible garantit l’absence de toxicité.'],['no-change','Conserver la dose initiale, malgré la baisse de CL.']],'mipd-shift-safety')+
-    '<p class="career-note">Indice : AUC24 à l’état stationnaire = dose quotidienne / CL (PK linéaire). Cette égalité ne permet pas d’en déduire que C0 reste constant ; V et l’intervalle influencent le profil.</p>';
-  graph($('mipd-shift-chart'),[
-    {values:scenario.unchanged.curve,color:'#9cebd5'},
-    {values:scenario.aucMatched.curve,color:'#f6c28e'},
-    {values:scenario.safetyReduced.curve,color:'#c8a6f5'}
-  ],{maxTime:12,high:44,thresholds:concentrationMarks});
+ const post=dosePost();
+ $('mipd-workspace').innerHTML=story(
+  'L’AUC₀–₁₂h du MPA est l’indicateur prioritaire pour ce scénario de greffe cardiaque précoce. Vous fixez vous-même la <strong>dose de MMF</strong> ; les concentrations affichées représentent le <strong>MPA</strong>. La cible de référence est AUC &gt; 36 mg·h/L. Une AUC &gt; 60 mg·h/L appelle un examen du contexte, mais 60 n’est pas ici une limite de toxicité cardiaque validée.',
+  'MPA AUC₀–₁₂h is the priority endpoint for this early heart-transplant case. Enter a new <strong>MMF dose</strong>; plotted concentrations are <strong>MPA</strong>. The reference is AUC &gt; 36 mg·h/L. AUC &gt; 60 mg·h/L merits contextual review, but 60 is not a validated heart-transplant toxicity cutoff.',
+  'SIMULATIONS D’EXPOSITION','EXPOSURE PROJECTIONS')+
+  doseInput('mipd-dose-input',selectedDose,tr('Choisissez une dose de 250 à 1500 mg par prise dans le cadre du cas. La même dose n’implique pas la même AUC chez tous les patients.',
+   'Enter a dose from 250 to 1,500 mg per administration for this case. Equal doses do not guarantee equal exposure.'))+
+  '<div id="mipd-dose-metrics" class="career-metrics"></div><div id="mipd-dose-auc"></div>'+
+  '<svg id="mipd-dose-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="MPA concentration time prediction"></svg>'+
+  '<p class="career-chart-key"><span><i style="background:#9debd2"></i>'+tr('Profil MPA estimé par MAP','MAP-predicted MPA curve')+'</span></p>'+
+  '<p id="mipd-dose-assessment" class="career-note"></p>'+
+  '<p class="career-note">'+tr('AUC et C0 sont deux résumés différents : les courbes du MPA peuvent présenter une recirculation entérohépatique que le modèle oral 1C de cet exercice ne représente pas. La tolérance exige aussi clinique, NFS et recherche d’infections.',
+   'AUC and trough are different summaries. Real MPA may show enterohepatic recirculation, which this simple oral one-compartment model omits. Safety assessment also requires symptoms, blood counts and infection review.')+'</p>'+
+  '<p><a href="'+CASE.references.guide+'&lang='+lang()+'" target="_blank" rel="noopener">'+tr('Voir la cible et ses sources dans Cibles‑TDM','View the target and sources in TDM Targets')+'</a> · <a href="'+CASE.references.label+'" target="_blank" rel="noopener">'+tr('RCP CellCept · posologie cardiaque adulte','CellCept SmPC · adult heart transplant dose')+'</a></p>';
+ function draw(){
+  const raw=+$('mipd-dose-input').value;
+  if(!Number.isFinite(raw)||raw<250||raw>1500){
+   $('mipd-dose-assessment').textContent=tr('Saisir une dose entre 250 et 1500 mg.','Enter a dose between 250 and 1,500 mg.');return;
+  }
+  selectedDose=raw;
+  const x=doseMetrics(post,raw);
+  $('mipd-dose-metrics').innerHTML=metrics([['AUC₀–₁₂h',fmt(x.auc,1)+' mg·h/L'],
+   ['P5–P95 AUC',fmt(x.aucCI[0],1)+'–'+fmt(x.aucCI[1],1)],
+   ['C0',fmt(x.c0,2)+' mg/L'],['MAP CL/F',fmt(x.cl,1)+' L/h']]);
+  $('mipd-dose-auc').innerHTML=aucBar(x);
+  chart($('mipd-dose-chart'),[{values:x.curve,color:'#9debd2'}],{
+   high:Math.max(18,...x.curve.map(p=>p.c))*1.1});
+  $('mipd-dose-assessment').textContent=x.meets.auc?
+   tr('AUC au-dessus du seuil de 36 mg·h/L ; examiner l’intervalle P5–P95 et la tolérance.','AUC exceeds 36 mg·h/L; assess the P5–P95 interval and tolerability.'):
+   tr('AUC en dessous de 36 mg·h/L ; revoir dose, modèle et incertitude.','AUC is below 36 mg·h/L; reassess dose, model and uncertainty.');
+ }
+ $('mipd-dose-input').addEventListener('input',()=>{doseTouched=true;draw();});draw();
 }
-
 function stage5(){
-  const assessment=qualityGate({dose:selectedDose??900,modelValidated:false,changingCL:true,missingTimes:false});
-  $('mipd-workspace').innerHTML=story('Votre choix a été évalué mathématiquement. Mais le modèle est fictif, les données ont été simulées et CL peut évoluer. Quelles informations et garanties exigeriez-vous avant de transposer le raisonnement à un médicament réel ?','RELECTURE CRITIQUE · FIN DE MISSION')+
-    '<div class="career-alert">'+assessment.reasons.map(s=>'<div>• '+safe(s)+'</div>').join('')+'</div>'+
-    checkboxes([['validate','Exiger un modèle populationnel adapté et validé extérieurement.'],
-      ['verify','Vérifier dose, modalités, horodatage, analytique et indication.'],
-      ['monitor','Réévaluer après modification de la fonction d’élimination ou des observations.'],
-      ['prescribe','Utiliser directement la posologie fictive comme prescription réelle.']],'mipd-safety')+
-    '<pre id="mipd-report" class="career-code">'+safe(report())+'</pre>'+
-    '<div class="career-file-actions"><button type="button" class="career-action" id="mipd-copy">Copier le compte rendu fictif</button></div>';
-  $('mipd-copy').addEventListener('click',()=>navigator.clipboard?.writeText(report()));
+ const post=dosePost();
+ $('mipd-workspace').innerHTML=story(
+  'Supposez que la clairance apparente <strong>CL/F diminue de 40 %</strong> entre deux consultations, sans modification de F ni de la formulation. Saisissez une <strong>nouvelle dose libre</strong> : votre objectif est de préserver l’AUC du schéma précédent. Observez si la C0 change malgré une AUC proche.',
+  'Suppose apparent <strong>CL/F decreases by 40%</strong> between visits with no change in F or formulation. Enter any <strong>revised dose</strong>, aiming to preserve the preceding regimen’s AUC. Check whether trough changes even when AUC is preserved.',
+  'PROJECTION · CHANGEMENT DE CL/F','PROJECTION · CHANGING CL/F')+
+  metrics([[tr('Dose initiale','Baseline dose'),fmt(selectedDose,0)+' mg q12h'],
+   ['CL/F',tr('× 0,60 (hypothèse)','× 0.60 (hypothesis)')],
+   [tr('Objectif','Goal'),tr('Préserver l’AUC initiale','Preserve baseline AUC')]])+
+  doseInput('mipd-shift-dose-input',revisedDose,tr('La dose à choisir n’est pas proposée dans une table : déduisez-la, puis comparez AUC et C0.',
+   'No regimen table provides the answer: derive a dose, then compare AUC and trough.'))+
+  '<div id="mipd-shift-metrics" class="career-metrics"></div>'+
+  '<svg id="mipd-shift-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="AUC preserving dose and changing clearance"></svg>'+
+  '<p class="career-chart-key"><span><i style="background:#9debd2"></i>'+tr('Avant diminution de CL/F','Before CL/F change')+'</span>'+
+  '<span><i style="background:#f1bd86"></i>'+tr('Après modification : dose choisie','After change: your chosen dose')+'</span></p>'+
+  '<p id="mipd-shift-comment" class="career-note"></p>'+
+  options([['shape','Même à AUC égale, la C0 peut différer car la cinétique dans l’intervalle dépend de CL/F et V/F.',
+    'Even with equal AUC, trough can differ because the profile depends on CL/F and V/F.'],
+   ['equal','Même AUC impose toujours une C0 identique.',
+    'Equal AUC always implies identical trough.']],'mipd-shift-shape');
+ function draw(){
+  const raw=+$('mipd-shift-dose-input').value;
+  if(!Number.isFinite(raw)||raw<250||raw>3000){$('mipd-shift-comment').textContent=tr('Dose invalide.','Invalid dose.');return;}
+  revisedDose=raw;
+  const x=scenarioComparison(post,selectedDose,.6,raw);
+  $('mipd-shift-metrics').innerHTML=metrics([
+   [tr('AUC initiale','Baseline AUC'),fmt(x.baseline.auc,1)],
+   [tr('AUC avec nouvelle dose','Revised AUC'),fmt(x.revised.auc,1)],
+   [tr('C0 avant → après','Trough before → after'),fmt(x.baseline.c0,2)+' → '+fmt(x.revised.c0,2)],
+   [tr('Écart relatif d’AUC','Relative AUC change'),fmt(100*(x.revised.auc/x.baseline.auc-1),1)+' %']]);
+  chart($('mipd-shift-chart'),[{values:x.baseline.curve,color:'#9debd2'},
+   {values:x.revised.curve,color:'#f1bd86'}],{
+   high:Math.max(18,...x.baseline.curve.map(p=>p.c),...x.revised.curve.map(p=>p.c))*1.1});
+  $('mipd-shift-comment').textContent=tr('L’AUC stationnaire est proportionnelle à dose/(CL/F). Le changement prospectif de CL/F n’a pas été confirmé par une nouvelle concentration.',
+   'At steady state, AUC is proportional to dose/(CL/F). No new observation confirms the prospective CL/F change.');
+ }
+ $('mipd-shift-dose-input').addEventListener('input',draw);draw();
 }
-function report(){
-  const x=selectedDose!==null?evaluateEndpoints(P2,selectedDose):evaluateEndpoints(P2,900);
-  const shift=scenarioComparison(P2,900,.6);
-  return 'PMx Game — Étude MIPD purement pédagogique\n'+
-    'Antibiotique V fictif ; perfusion IV 1 h toutes les 12 h ; CMI = 4 mg/L, seuil de C0 toxique = 12 mg/L : valeurs inventées.\n'+
-    'Prior : CL médiane 4,5 L/h, V médian 32 L ; distribution lognormale et résidu hétéroscédastique. Le prior ne change pas avec les observations.\n'+
-    'Deux dosages simulés : t=2 h '+fmt(OBSERVATIONS[0].value,2)+' mg/L ; t=11 h '+fmt(OBSERVATIONS[1].value,2)+' mg/L. La vraisemblance actualise le posterior.\n'+
-    'Posterior sur grille : MAP(CL) '+fmt(P2.mapCL,2)+' L/h ; MAP(V) '+fmt(P2.mapV,1)+' L ; E[CL] '+fmt(P2.meanCL,2)+' L/h.\n'+
-    'Dose étudiée '+fmt(x.dose,0)+' mg q12h : AUC24 '+fmt(x.auc,0)+' mg·h/L ; C0 '+fmt(x.c0,1)+' mg/L ; temps >2×CMI '+fmt(x.timeAbovePct,0)+' %.\n'+
-    'Scénario CL ×0,6, dose initiale 900 mg : dose ×0,6 donne AUC24 '+fmt(shift.aucMatched.auc,0)+' et C0 '+fmt(shift.aucMatched.c0,1)+' ; dose ×0,5 donne AUC24 '+fmt(shift.safetyReduced.auc,0)+' et C0 '+fmt(shift.safetyReduced.c0,1)+'. Rechercher un compromis ou ajuster le schéma après contrôles.\n'+
-    'Les chiffres ne sont PAS des recommandations cliniques. Les objectifs et la toxicité sont fictifs. CL modifiée est une hypothèse, sans nouvelle observation ni validation. MIPD Engine clinique non appelé.';
+function caseReport(){
+ const p=dosePost(),a=doseMetrics(p,selectedDose),shift=scenarioComparison(p,selectedDose,.6,revisedDose);
+ const sensitivity=tr('IIV multipliée par ','IIV multiplied by ')+fmt(sensitivityIIV,2)+
+  tr(' ; RUV proportionnelle ','; proportional RUV ')+fmt(100*sensitivityRUV,0)+' %'+
+  tr(' ; poids du prior ','; prior weight ')+fmt(priorWeight,3);
+ const aster=tr('Non calculé : risque de rejet, leucopénie, infection ou effet clinique ; aucune donnée de tolérance, NFS ni évolution rénale individuelle.',
+   'Not computed: rejection, cytopenia, infection or other clinical outcomes; no individual tolerability, CBC or renal trajectory was provided.');
+ return tr('COMPTE RENDU PHARMACOMÉTRIQUE — MPA, GREFFE CARDIAQUE\n','PHARMACOMETRIC CASE REPORT — MPA, HEART TRANSPLANT\n')+
+  tr('Indication : greffe cardiaque, deuxième mois. MMF oral, associé à tacrolimus et corticostéroïdes.\n',
+    'Indication: heart transplant, month 2. Oral MMF with tacrolimus and corticosteroids.\n')+
+  tr('Objectif d’exposition : AUC0–12h MPA > 36 mg·h/L, référence contextualisée (cibles-TDM / consensus). Aucune borne supérieure cardiaque consensuelle.\n',
+    'Exposure reference: MPA AUC0–12h > 36 mg·h/L, contextual consensus target. No consensus heart-transplant upper bound.\n')+
+  tr('DOSAGES ET MÉTHODE\n','OBSERVATIONS AND METHODS\n')+
+  'MPA '+OBSERVATIONS.map(o=>fmt(o.t,1)+' h: '+fmt(o.value,2)+' mg/L').join('; ')+'\n'+
+  tr('Modèle de démonstration : oral 1C, absorption du 1er ordre, CL/F et V/F estimés par MAP sur grille ; recirculation entérohépatique non modélisée. Données PK générées, non issues d’un patient.\n',
+    'Demonstration model: oral 1C, first-order absorption, CL/F and V/F estimated by grid-based MAP. Enterohepatic recirculation omitted. PK concentrations generated, not sourced from a patient.\n')+
+  tr('SENSIBILITÉ : ','SENSITIVITY: ')+sensitivity+'\n'+
+  tr('ESTIMATIONS INDIVIDUELLES\n','INDIVIDUAL ESTIMATES\n')+
+  'MAP CL/F '+fmt(p.mapCL,1)+' L/h ; MAP V/F '+fmt(p.mapV,0)+' L ; CL/F P5–P95 '+fmt(p.clCI[0],1)+'–'+fmt(p.clCI[1],1)+' L/h\n'+
+  tr('Dose évaluée : ','Evaluated dose: ')+fmt(selectedDose,0)+' mg q12h ; AUC0–12h '+fmt(a.auc,1)+' mg·h/L ; C0 '+fmt(a.c0,2)+' mg/L ; AUC P5–P95 '+fmt(a.aucCI[0],1)+'–'+fmt(a.aucCI[1],1)+'\n'+
+  tr('SCÉNARIO : CL/F ×0,60, nouvelle dose ','SCENARIO: CL/F ×0.60, revised dose ')+fmt(revisedDose,0)+
+   ' mg q12h ; AUC '+fmt(shift.revised.auc,1)+' mg·h/L ; C0 '+fmt(shift.revised.c0,2)+' mg/L\n'+
+  tr('CONCLUSION\n','CONCLUSION\n')+
+  (a.meets.auc?tr('L’exposition MAP atteint le seuil AUC inférieur indiqué. ','The MAP exposure meets the stated lower AUC threshold. '):
+   tr('L’exposition MAP n’atteint pas le seuil AUC inférieur indiqué. ','The MAP exposure falls below the stated lower AUC threshold. '))+
+  tr('La sensibilité aux hypothèses d’IIV, de RUV et de prior et les intervalles de CL/F limitent l’interprétation individuelle. Le C0 n’est pas utilisé comme substitution à l’AUC. ',
+   'Sensitivity to IIV/RUV/prior assumptions and uncertainty in CL/F limit individual interpretation. Trough is not treated as an AUC substitute. ')+aster+'\n'+
+  tr('Suites nécessaires : utiliser un modèle de MPA qualifié pour le schéma et la population, contrôler les dosages et horaires, confronter AUC à clinique/NFS/tolérance et réévaluer en cas de variation de CL/F.',
+   'Next steps: use an MPA model qualified for population/formulation, verify sampling/dosing, interpret AUC alongside symptoms/CBC/tolerability, and reassess when CL/F changes.');
 }
-
+function stage6(){
+ const p=dosePost(),x=doseMetrics(p,selectedDose),a=qualityGate({changingCL:true});
+ $('mipd-workspace').innerHTML=story(
+  'Vous avez évalué une exposition individuelle, exploré la sensibilité du posterior et testé deux schémas. Concluez en confrontant les résultats à une cible documentée et aux éléments qui manquent à l’interprétation clinique.',
+  'You assessed individual exposure, tested prior and residual-error sensitivity, and compared dosing scenarios. Write a conclusion consistent with the target evidence and available clinical information.',
+  'RAPPORT D’ANALYSE','ANALYSIS REPORT')+
+  metrics([[tr('Dose étudiée','Evaluated dose'),fmt(selectedDose,0)+' mg q12h'],
+   ['MAP AUC₀–₁₂h',fmt(x.auc,1)+' mg·h/L'],
+   ['MAP CL/F',fmt(p.mapCL,1)+' L/h'],
+   [tr('Incertitude CL/F','CL/F uncertainty'),fmt(p.clCI[0],1)+'–'+fmt(p.clCI[1],1)]])+
+  '<p class="career-note">'+tr('Quelle conclusion peut être défendue avec les résultats disponibles ?',
+   'Which conclusion is justified by these data?')+'</p>'+
+  options([['conditional','Rapporter la valeur MAP, les intervalles, le choix d’AUC, la sensibilité IIV/RUV et les contrôles cliniques manquants.',
+    'Report MAP AUC, uncertainty, IIV/RUV sensitivity, and missing clinical checks.'],
+   ['prescribe','Prescrire automatiquement la dose MAP, sans validation du modèle ni NFS.',
+    'Prescribe the MAP dose without model validation or blood count review.']],'mipd-report-interpretation')+
+  '<pre id="mipd-report" class="career-code">'+safe(caseReport())+'</pre>'+
+  '<div class="career-file-actions"><button type="button" class="career-action" id="mipd-copy">'+tr('Copier le compte rendu','Copy case report')+'</button>'+
+  '<a href="'+CASE.references.guide+'&lang='+lang()+'" class="career-action" target="_blank" rel="noopener">'+tr('Source cible MPA','MPA target evidence')+'</a></div>';
+ $('mipd-copy').addEventListener('click',()=>navigator.clipboard?.writeText(caseReport()));
+}
+const SCREENS=[stage0,stage1,stage2,stage3,stage4,stage5,stage6];
 function render(){
-  const step=STEPS[index];
-  $('mipd-chapter').textContent=step.chapter;
-  $('mipd-level').textContent='Étape '+(index+1)+' / '+STEPS.length;
-  $('mipd-title').textContent=step.title;
-  $('mipd-description').textContent=step.desc;
-  $('mipd-feedback').hidden=true;
-  $('mipd-validate').disabled=done.includes(index);
-  $('mipd-next').hidden=!done.includes(index)||index===STEPS.length-1;
-  $('mipd-hint-text').hidden=true;
-  const help=[
-    'Ne confondez pas un modèle validé pour un usage déterminé et une simulation éducative.',
-    'Évaluez le plan proposé au regard du modèle, de l’administration et de la cible.',
-    'Explorez les trois états de connaissance (a priori, un dosage, deux dosages).',
-    'Sélectionnez une cible AUC, C0 ou temps > 2×CMI et vérifiez séparément la toxicité au creux.',
-    'AUC ∝ dose/CL ; un ajustement d’AUC ne garantit pas une C0 non toxique.',
-    'La limite d’un modèle est une partie du résultat, pas une note de bas de page.'
-  ];
-  const hints=[
-    'Une structure, un jeu de données et une cible doivent être adaptés à l’indication avant le calcul.',
-    'Les horaires sont imposés dans cet exemple et ne sont pas universels.',
-    'Le prior reste identique ; c’est le posterior qui change avec la vraisemblance des mesures.',
-    'Une cible atteinte ne suffit pas : regardez aussi la ligne de C0 toxique.',
-    'Une dose ×0,6 conserve l’AUC lorsque CL ×0,6, mais peut augmenter C0 ; tester ×0,5 puis réévaluer.',
-    'Le modèle fictif n’a pas d’usage clinique ; privilégiez vérification, suivi et validation.'
-  ];
-  $('mipd-help').textContent=help[index];$('mipd-hint-text').textContent=hints[index];
-  [stage0,stage1,stage2,stage3,stage4,stage5][index]();
-  nav();
+ const st=STEPS[index];
+ $('mipd-chapter').textContent=tr(st.chapter[0],st.chapter[1]);
+ $('mipd-level').textContent=tr('Étape ','Step ')+(index+1)+' / '+STEPS.length;
+ $('mipd-title').textContent=tr(st.title[0],st.title[1]);
+ $('mipd-description').textContent=tr(st.desc[0],st.desc[1]);
+ $('mipd-feedback').hidden=true;
+ $('mipd-validate').disabled=done.includes(index);
+ $('mipd-next').hidden=!done.includes(index)||index===STEPS.length-1;
+ $('mipd-hint-text').hidden=true;
+ const hints=[
+  ['Choisissez l’indicateur le plus lié à l’exposition, plutôt que le seul creux.','Choose a measure of total exposure rather than trough alone.'],
+  ['Le schéma des prélèvements dépend du modèle et de la formulation.','Sampling depends on model and formulation.'],
+  ['Le prior est constant lorsque vous ajoutez des observations.','Adding observations does not change the prior.'],
+  ['Une faible RUV peut rapprocher les prédictions des données, mais surestimer leur précision.','Low RUV can pull estimates toward observations while overstating precision.'],
+  ['La cible à rechercher est l’AUC ; C0 ne la remplace pas systématiquement.','AUC is the target; trough cannot universally replace it.'],
+  ['AUC = dose/(CL/F) pour une administration orale à l’équilibre et une PK linéaire.','Steady-state oral AUC = dose/(CL/F) under linear PK.'],
+  ['Une note précise les estimations, les incertitudes et les vérifications indispensables.','A report states estimates, uncertainty and essential verification.']
+ ];
+ $('mipd-help').textContent=tr(hints[index][0],hints[index][1]);
+ $('mipd-hint-text').textContent=tr(hints[index][0],hints[index][1]);
+ SCREENS[index]();nav();
 }
-function select(i){
-  if(i<0||i>=STEPS.length||i>done.length)return;
-  index=i;viewed.clear();afterShiftDose=null;render();
+function select(i){if(i<0||i>=STEPS.length||i>done.length)return;index=i;render();}
+function success(fr,en){
+ if(index===done.length){done.push(index);try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
+ $('mipd-feedback').hidden=false;$('mipd-feedback').classList.remove('error');
+ $('mipd-feedback').innerHTML='<strong>'+tr('Étape validée','Step complete')+'</strong><p>'+safe(tr(fr,en))+'</p>';
+ $('mipd-validate').disabled=true;
+ $('mipd-next').hidden=index===STEPS.length-1;nav();
 }
-function success(message){
-  if(index===done.length){done.push(index);try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
-  $('mipd-feedback').hidden=false;$('mipd-feedback').classList.remove('error');
-  $('mipd-feedback').innerHTML='<strong>Mission validée</strong><p>'+safe(message)+'</p>';
-  $('mipd-validate').disabled=true;$('mipd-next').hidden=index===STEPS.length-1;nav();
+function failure(fr,en){
+ $('mipd-feedback').hidden=false;$('mipd-feedback').classList.add('error');
+ $('mipd-feedback').innerHTML='<strong>'+tr('À réexaminer','Review needed')+'</strong><p>'+safe(tr(fr,en))+'</p>';
 }
-function failure(message){
-  $('mipd-feedback').hidden=false;$('mipd-feedback').classList.add('error');
-  $('mipd-feedback').innerHTML='<strong>Décision à revoir</strong><p>'+safe(message)+'</p>';
-}
+function chosen(name){return $('mipd-workspace').querySelector('input[name="'+name+'"]:checked')?.value;}
 function validate(){
-  if(done.includes(index))return;
-  const w=$('mipd-workspace');
-  if(index===0){
-    const v=w.querySelector('input[name="mipd-choice"]:checked')?.value;
-    return v==='audit'?success('Un modèle de population ne remplace ni le contrôle des données ni l’individualisation.'):failure('Le modèle du jeu n’est pas validé pour un usage clinique.');
-  }
-  if(index===1){
-    const verdict=w.querySelector('input[name="mipd-sampling-verdict"]:checked')?.value;
-    const reason=w.querySelector('input[name="mipd-sampling-reason"]:checked')?.value;
-    return verdict==='yes'&&reason==='complement'?
-      success('Plan proposé cohérent pour CE modèle IV 1C ; les horaires dépendent de la structure, des modalités et de l’objectif.'):
-      failure('Il faut juger les deux heures proposées et expliquer pourquoi elles sont complémentaires dans ce cas, sans les généraliser.');
-  }
-
-  if(index===2){
-    const ans=w.querySelector('input[name="mipd-choice"]:checked')?.value;
-    return viewed.has(0)&&viewed.has(1)&&viewed.has(2)&&ans==='fixed'?
-      success('Après deux dosages, l’intervalle crédible de CL se resserre dans ce cas simulé.'):
-      failure('Explorez a priori, une observation et deux observations, puis distinguez réduction d’incertitude et certitude.');
-  }
-  if(index===3){
-    if(selectedDose===null)return failure('Choisissez une dose et une cible PK/PD.');
-    const r=evaluateEndpoints(P2,selectedDose);
-    if(!r.meets[selectedCriterion])return failure('La dose ne satisfait pas le critère '+selectedCriterion+'. Comparez les courbes et la cible.');
-    if(r.toxic)return failure('La cible peut être atteinte, mais le C0 franchit le seuil toxique : recherchez une autre stratégie.');
-    return success('Cible '+selectedCriterion+' satisfaite sans dépasser le seuil fictif de C0 toxique. Les autres critères restent à examiner.');
-  }
-  if(index===4){
-    const q1=w.querySelector('input[name="mipd-shift-auc"]:checked')?.value;
-    const q2=w.querySelector('input[name="mipd-shift-safety"]:checked')?.value;
-    return q1==='0.60'&&q2==='0.50'?
-      success('Dose ×0,6 conserve l’AUC en PK linéaire ; dose ×0,5 atténue le risque de C0 toxique mais peut sous-exposer en AUC. La stratégie nécessite une réévaluation.'):
-      failure('Appliquez la proportionnalité dose/CL pour l’AUC, puis vérifiez la C0 et le compromis bénéfice–risque.');
-  }
-
-  const a=[...w.querySelectorAll('input[name="mipd-safety"]:checked')].map(e=>e.value);
-  return a.length===3&&['validate','verify','monitor'].every(t=>a.includes(t))?
-    success('Dossier fermé : aucune des doses simulées ne constitue une recommandation pour un patient.'):
-    failure('Retenez validation, vérification des entrées et surveillance ; aucune prescription réelle n’est justifiée.');
+ if(done.includes(index))return;
+ if(index===0)return chosen('mipd-choice')==='auc'?
+   success('L’AUC₀–₁₂h est privilégiée pour apprécier l’exposition au MPA.','AUC₀–₁₂h is preferred for assessing MPA exposure.'):
+   failure('Comparez la corrélation limitée entre C0 et AUC.','Review the limited relationship between trough and AUC.');
+ if(index===1)return chosen('mipd-sampling')==='three'?
+   success('Le protocole doit rester lié au modèle et à la formulation.','The sampling schedule must match model and formulation.'):
+   failure('Les prélèvements ne sont pas universels.','Sampling times are not universal.');
+ if(index===2)return [0,1,3].every(x=>sampleView.has(x))&&chosen('mipd-choice')==='likelihood'?
+   success('Le prior reste fixe, et le posterior évolue avec la vraisemblance.','The prior stays fixed while likelihood updates the posterior.'):
+   failure('Explorez les trois distributions et distinguez prior et posterior.','Explore all three distributions and distinguish prior from posterior.');
+ if(index===3)return ['iiv','ruv','prior'].every(k=>sensitivityChanged.has(k))&&chosen('mipd-sensitivity-answer')==='balance'?
+   success('IIV, RUV et pondération du prior ont été comparées séparément.','IIV, RUV and prior weighting were varied separately.'):
+   failure('Modifiez les trois contrôles, puis expliquez comment ils pondèrent le posterior.','Change all three controls and explain their posterior effects.');
+ if(index===4){
+  const x=doseMetrics(dosePost(),selectedDose);
+  return doseTouched&&x.meets.auc?
+   success('La dose saisie atteint le seuil inférieur d’AUC. Interprétez aussi l’incertitude et la tolérance.','Your selected dose meets the lower AUC reference. Also assess uncertainty and tolerability.'):
+   failure('Saisissez vous-même une dose et confrontez son AUC au seuil de 36 mg·h/L. Aucune borne supérieure cardiaque n’est imposée.','Enter a dose and compare its AUC with the 36 mg·h/L reference. No validated upper heart-transplant bound is imposed.');
+ }
+ if(index===5){
+  const cmp=scenarioComparison(dosePost(),selectedDose,.6,revisedDose);
+  const percent=Math.abs(cmp.revised.auc/cmp.baseline.auc-1)*100;
+  return percent<=5&&chosen('mipd-shift-shape')==='shape'?
+   success('AUC proche de l’exposition initiale ; la C0 et l’incertitude peuvent changer.','AUC is close to baseline, but trough and uncertainty can change.'):
+   failure('Calculez une nouvelle dose correspondant à la réduction de CL/F, puis comparez les deux AUC.','Derive a revised dose for lower CL/F and compare the AUCs.');
+ }
+ return chosen('mipd-report-interpretation')==='conditional'?
+  success('Le rapport restitue les estimations et leurs limites sans extrapolation clinique.','The report states estimates and limitations without unsupported clinical extrapolation.'):
+  failure('Évaluez la validité du modèle, l’incertitude et la tolérance, au-delà du MAP.','Assess model validity, uncertainty and tolerability, not MAP alone.');
 }
 $('mipd-validate').addEventListener('click',validate);
 $('mipd-hint').addEventListener('click',()=>{$('mipd-hint-text').hidden=false;});
 $('mipd-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
 $('mipd-reset').addEventListener('click',()=>{
-  if(!confirm('Réinitialiser les missions MIPD de ce navigateur ?'))return;
-  done=[];try{localStorage.setItem(KEY,'[]');}catch{}select(0);
+ if(!confirm(tr('Réinitialiser ce dossier MIPD ?','Reset this MIPD case?')))return;
+ done=[];selectedDose=CASE.dose;revisedDose=600;sensitivityIIV=1;sensitivityRUV=.12;priorWeight=1;doseTouched=false;
+ sensitivityChanged.clear();sampleView.clear();try{localStorage.setItem(KEY,'[]');}catch{}select(0);
 });
+window.addEventListener('pmx-game-language-change',()=>render());
 select(index);

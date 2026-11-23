@@ -11,9 +11,9 @@ const STEPS=[
   {title:'Diagnostics complets',chapter:'Qualification PopPK',desc:'Explorer GOF, IIV, erreur résiduelle, covariables, VPC et stabilité avant de conclure.'},
   {title:'Arbitrage de modèle',chapter:'Sélection',desc:'Interpréter une différence de BIC faible, sans surconclure.'},
   {title:'Effet retardé',chapter:'PK → PD',desc:'Séparer la cinétique de la concentration de celle de la réponse.'},
-  {title:'Rapport final',chapter:'Publication',desc:'Conclure avec limites, traçabilité et hypothèses.'}
+  {title:'Conclusion scientifique',chapter:'Interprétation',desc:'Confronter résultats des modèles, diagnostics, incertitudes et décisions à étayer.'}
 ];
-const KEY='pmx-game-population-v3';
+const KEY='pmx-game-population-v4';
 const read=()=>{
   try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x)){
     const done=[];for(let i=0;i<STEPS.length;i++){if(x.includes(i))done.push(i);else break;}return done;
@@ -22,7 +22,7 @@ const read=()=>{
 let done=read(),index=Math.min(done.length,STEPS.length-1);
 let choice='',selectedFit='one',viewed=new Set(),selectedSubject=1,scale='linear',selectedChecks=new Set();
 let map={id:'',time:'',dose:'',concentration:'',event:''}, reportChecked=new Set(),reportText='';
-const fmt=(v,n=2)=>Number(v).toLocaleString('fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
+const fmt=(v,n=2)=>Number(v).toLocaleString((new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en')?'en-US':'fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
 function store(){try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
 function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function story(text,eyebrow='ENQUÊTE SCIENTIFIQUE'){
@@ -218,16 +218,36 @@ function navigation(){
   $('population-steps').replaceChildren(frag);
 }
 function report(){
-  const cmp=modelComparison(),winner=cmp.find(x=>x.id==='lag'),base=cmp.find(x=>x.id==='one'),v=variabilitySummary('lag');
-  return 'PMx Game — Dossier étude Warfarine et atelier distinct SAEM\n'+
-    'ÉTUDE EXPÉRIMENTALE : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures PK et '+STUDY_META.nPD+' mesures PCA après dose orale unique de 1,5 mg/kg. Source : '+STUDY_META.sourceUrl+'\n'+
-    'ATELIER DE MÉTHODE DISTINCT : replay de généralized-SAEM réalisé sur '+POPULATION_META.nSubjects+' sujets ARTIFICIELS avec '+POPULATION_META.nObservations+' concentrations générées ; aucun des BIC ci-après ne s’applique à la cohorte réelle.\n'+
-    '1C sans Tlag BIC '+fmt(base.bic)+' ; 1C avec Tlag BIC '+fmt(winner.bic)+' ; 2C BIC '+fmt(cmp.find(x=>x.id==='two').bic)+'. ΔBIC faible et non conclusif.\n'+
-    'Exemple IIV/RUV (1C avec Tlag, modèle NON sélectionné avec certitude) : ωCL '+fmt(v.omega,3)+' (IIV CL '+fmt(v.omegaCv,1)+' %) ; σlog '+fmt(v.sigma,3)+' (CV résiduel '+fmt(v.sigmaCv,1)+' %) ; shrinkage EBE/ω descriptif '+fmt(v.shrinkage,1)+' %.\n'+
-    'Diagnostics du replay : DV/PRED, DV/IPRED, profils individuels, distribution et covariables de ηCL, IIV log-normale (ωCL), erreur résiduelle log-normale (σlog), résidus log-standardisés, QQ/histogrammes, VPC 120 réplications, trajectoires SAEM. Bilan explicite des contrôles non disponibles (CWRES, NPDE, RSE, bootstrap, IOV, diagnostics externes).\n'+
-    'Les mesures PCA de l’étude réelle sont affichées, sans estimation du modèle PD.\n'+
-    'À compléter : ajustement SAEM/FOCEi sur les 32 sujets réels, diagnostics et BIC recalculés, validation sur données indépendantes si applicable.\n'+
-    'Ce rapport n’est pas une expertise clinique ni une recommandation thérapeutique.';
+  const comparisons=modelComparison(),ref=comparisons.find(m=>m.id==='one'),lag=comparisons.find(m=>m.id==='lag');
+  const v=variabilitySummary('lag');
+  const english=new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en';
+  if(english)return 'WARFARIN — POPULATION PHARMACOMETRIC ANALYSIS REPORT\n'+
+    '1. STUDY POPULATION\n'+STUDY_META.nSubjects+' volunteers; '+STUDY_META.nPK+' measured PK concentrations and '+
+     STUDY_META.nPD+' measured prothrombin complex activity values following single oral warfarin 1.5 mg/kg. Source: '+STUDY_META.sourceUrl+'\n'+
+    '2. STRUCTURAL MODEL\n'+
+    'Exploration of the experimental cohort supports assessing oral absorption and disposition phases. No population NLME model has been fitted to these 32 participants within this analysis.\n'+
+    'Separate simulation benchmark: '+POPULATION_META.nSubjects+' simulated subjects, '+POPULATION_META.nObservations+' simulated concentrations. Archived SAEM fits: one-compartment BIC '+fmt(ref.bic)+
+    '; one-compartment with Tlag '+fmt(lag.bic)+'; two-compartment '+fmt(comparisons.find(m=>m.id==='two').bic)+
+    '. One-compartment vs Tlag ΔBIC '+fmt(Math.abs(ref.bic-lag.bic))+' is not discriminative.\n'+
+    '3. INTERINDIVIDUAL AND RESIDUAL VARIABILITY\n'+
+    'Benchmark 1C + Tlag: ωCL '+fmt(v.omega,3)+' (lognormal CL IIV CV '+fmt(v.omegaCv,1)+'%); σlog '+fmt(v.sigma,3)+
+    ' (lognormal RUV CV '+fmt(v.sigmaCv,1)+'%); descriptive CL EBE shrinkage '+fmt(v.shrinkage,1)+'%. No fitted IIV for V, Ka or Tlag.\n'+
+    '4. MODEL DIAGNOSTICS\n'+
+    'Benchmark checks: DV/PRED, DV/IPRED, individual fits, log-standardized residuals vs time and IPRED, QQ plot, EBE vs weight, IIV/RUV and VPC P5/P50/P95 from 120 replicates. Not available: exact CWRES, NPDE, covariance matrix, RSE, bootstrap, IOV, pcVPC or external validation.\n'+
+    '5. PK/PD AND CONCLUSION\n'+
+    'The experimental PCA response time course differs from the PK concentration course, motivating evaluation of effect-compartment or turnover models. No joint PK/PD model was fitted. In the independent simulated benchmark, 1C vs 1C + Tlag cannot be differentiated by BIC alone; diagnostic precision and identifiability remain unresolved. These simulated parameter estimates cannot be transferred to the 32 experimental participants. Next: fit and qualify a model directly on the experimental cohort with uncertainty and predictive checks.\n';
+  return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
+    '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
+    'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
+    '2. STRUCTURAL MODEL / MODÈLE STRUCTURAL\n'+
+    'L’exploration de la cohorte expérimentale met en évidence une phase d’absorption et une décroissance multitemporelle ; la structure ne peut être déterminée sur les courbes exploratoires seules. Aucun modèle NLME n’a été ajusté sur ces 32 volontaires dans cette analyse.\n'+
+    'Benchmark distinct : '+POPULATION_META.nSubjects+' individus simulés, '+POPULATION_META.nObservations+' observations simulées. Comparaison par SAEM archivé : BIC 1C = '+fmt(ref.bic)+' ; 1C + Tlag = '+fmt(lag.bic)+' ; 2C = '+fmt(comparisons.find(m=>m.id==='two').bic)+'. ΔBIC(1C,Tlag) = '+fmt(Math.abs(ref.bic-lag.bic))+', non discriminant.\n'+
+    '3. INTERINDIVIDUAL AND RESIDUAL VARIABILITY\n'+
+    'Benchmark 1C + Tlag : ωCL = '+fmt(v.omega,3)+' (IIV CV lognormal '+fmt(v.omegaCv,1)+' %) ; σlog = '+fmt(v.sigma,3)+' (RUV CV lognormal '+fmt(v.sigmaCv,1)+' %) ; shrinkage descriptif des EBE de CL = '+fmt(v.shrinkage,1)+' %. Aucun effet aléatoire sur V, Ka, Tlag dans ce replay.\n'+
+    '4. MODEL DIAGNOSTICS / CONTRÔLES\n'+
+    'Examinés sur le benchmark : DV/PRED, DV/IPRED, profils individuels, résidus log-standardisés versus temps/IPRED et QQ-plot, EBE-versus-poids, IIV/RUV et VPC P5/P50/P95 à 120 réplications. Ne sont pas estimés : CWRES exacts, NPDE, matrice de covariance, RSE, bootstrap, IOV, pcVPC et validation externe.\n'+
+    '5. PK/PD AND CONCLUSION\n'+
+    'La série PCA expérimentale présente une cinétique distincte des concentrations PK, ce qui motive de comparer un modèle d’effet retardé/turnover. Aucune relation PK/PD n’a été estimée ici. Sur le benchmark simulé, les structures 1C et 1C + Tlag ne sont pas départagées avec un ΔBIC inférieur à 2 ; une sélection mécanistique nécessite des diagnostics supplémentaires. Les résultats du benchmark ne sont pas transférables tels quels aux 32 volontaires expérimentaux. Étape suivante : estimation conjointe ou séquentielle sur l’étude d’origine, puis qualification des paramètres, du modèle résiduel et de la prédiction.\n';
 }
 function renderImport(){
   const subj=STUDY_SUBJECTS[0],pk=STUDY_PK.filter(x=>x.id===subj.id).slice(0,4),
@@ -254,16 +274,25 @@ function renderImport(){
 
 function renderEDA(){
   $('population-workspace').innerHTML=story('Explorez les <strong>mesures expérimentales</strong> de warfarine de l’étude : les sujets n’ont pas tous le même nombre d’échantillons ni les mêmes horaires. Une courbe descriptive ne suffit pas à identifier formellement une structure.','ÉTUDE RÉELLE · EXPLORATION GRAPHIQUE')+
-    '<p class="career-note"><strong>Vue populationnelle :</strong> superposition des profils individuels réels de la cohorte (spaghetti plot). La dispersion exploratoire n’est pas encore une estimation de l’IIV.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg>'+ 
+    '<p class="career-note"><strong>Vue populationnelle :</strong> profils des 32 volontaires, le sujet choisi est mis en évidence en orange. Changer de sujet ou d’échelle modifie simultanément les deux graphiques.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg><p id="pop-overview-legend" class="career-note"></p>'+ 
     '<div class="career-chart-toolbar"><button id="pop-linear" aria-pressed="true">Linéaire</button><button id="pop-log" aria-pressed="false">Semi-log</button><label>Sujet <select id="pop-subject">'+STUDY_SUBJECTS.map(p=>'<option value="'+p.id+'">S'+p.id+' · '+fmt(p.wt,1)+' kg</option>').join('')+'</select></label></div>'+
     '<svg id="pop-eda-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations expérimentales de warfarine, source Monolix"></svg>'+
-    '<p class="career-note">Points = observations originales DVID=1, y compris les valeurs nulles à l’échelle linéaire. Les zéros sont exclus uniquement de l’axe logarithmique. Aucune courbe de modèle simulé n’est superposée aux observations réelles.</p>'+
+    '<p class="career-note">Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les segments de la vue d’ensemble sont descriptifs et ne sont pas des prédictions d’un modèle. Les prélèvements ne sont pas synchrones entre volontaires.</p>'+
     radio([['simple','Un modèle oral 1C est un candidat à ajuster et comparer : les observations seules ne prouvent pas sa structure.'],
       ['three','La pente terminale démontre exactement trois compartiments.'],
       ['fixed','La dispersion entre sujets prouve que tous les paramètres sont parfaitement identifiables.']]);
   function draw(){
-    const all=STUDY_SUBJECTS.map(s=>STUDY_PK.filter(p=>p.id===s.id).sort((a,b)=>a.t-b.t));
-    graph($('pop-spaghetti'),{series:all.map(values=>({values,color:'#9be9cf',opacity:.22,width:1.6})),maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.08});
+    const all=STUDY_SUBJECTS.map(subject=>({id:subject.id,values:STUDY_PK.filter(p=>
+      p.id===subject.id&&Number.isFinite(p.t)&&Number.isFinite(p.c)).sort((a,b)=>a.t-b.t)}));
+    const chosen=all.find(a=>a.id===selectedSubject),rest=all.filter(a=>a.id!==selectedSubject);
+    graph($('pop-spaghetti'),{
+      series:[...rest.map((a,i)=>({values:a.values,color:i%2?'#94afca':'#85c1ad',opacity:.38,width:1.4})),
+        ...(chosen?[{values:chosen.values,color:'#ffca86',opacity:1,width:3.5}]:[])],
+      points:chosen?chosen.values.map(p=>({...p,color:'#ffca86'})):[],
+      maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.09,log:scale==='log'
+    });
+    $('pop-overview-legend').textContent='32 sujets · '+STUDY_PK.length+' observations PK · sujet S'+selectedSubject+
+      ' mis en évidence ('+(chosen?.values.length||0)+' prélèvements). Les segments relient uniquement ses propres observations.';
     $('pop-linear').setAttribute('aria-pressed',String(scale==='linear'));
     $('pop-log').setAttribute('aria-pressed',String(scale==='log'));
     const obs=STUDY_PK.filter(o=>o.id===selectedSubject);
@@ -278,6 +307,43 @@ function renderEDA(){
   draw();
 }
 
+
+function plotSAEMConvergence(svg,kind,param,step){
+  const keys={one:['CL','V','Ka','omegaCL','sigmaLog'],lag:['CL','V','Ka','Tlag','omegaCL','sigmaLog'],two:['CL','Vc','Ka','Q','Vp','omegaCL','sigmaLog']};
+  const available=Object.entries(FITS).flatMap(([id,fit])=>{
+    const pos=keys[id].indexOf(param);if(pos<0)return [];
+    const final=fit.trace.at(-1)[pos+1];
+    return [{id,values:fit.trace.map(row=>({t:row[0],v:100*(row[pos+1]-final)/(Math.abs(final)||1)}))}];
+  });
+  const max=Math.max(10,Math.ceil(Math.max(...available.flatMap(a=>a.values.map(p=>Math.abs(p.v))))/5)*5);
+  const xx=x=>70+x/170*605, yy=y=>135-y/max*90;
+  let out='<rect x="70" y="37" width="605" height="206" rx="8" fill="#0c2530"/>'+
+    '<rect x="70" y="'+yy(5)+'" width="605" height="'+(yy(-5)-yy(5))+'" fill="#388e74" opacity=".22"/>';
+  for(const y of [-max,0,max])out+='<path d="M70 '+yy(y)+' H675" stroke="#527179" stroke-dasharray="4 5"/>'+
+    '<text x="62" y="'+(yy(y)+4)+'" fill="#d1e4df" text-anchor="end" font-size="12">'+fmt(y,0)+' %</text>';
+  available.forEach((a,i)=>{
+    const color={one:'#8cbdba',lag:'#f4c08e',two:'#c7a4f5'}[a.id];
+    out+='<polyline points="'+a.values.map(p=>xx(p.t).toFixed(1)+','+yy(p.v).toFixed(1)).join(' ')+
+      '" fill="none" stroke="'+color+'" opacity="'+(a.id===kind?1:.36)+'" stroke-width="'+(a.id===kind?3.5:1.7)+'"/>';
+  });
+  const iter=FITS[kind].trace[step][0];
+  out+='<path d="M'+xx(iter)+' 37 V243" stroke="#fff" stroke-dasharray="5 5"/>';
+  for(const t of [0,40,80,120,170])out+='<text x="'+xx(t)+'" y="261" text-anchor="middle" font-size="12" fill="#c8ddd8">'+t+'</text>';
+  svg.innerHTML=out+'<text x="70" y="23" fill="#c8ddd8" font-size="12">Écart relatif (%) à la dernière valeur enregistrée · estimation SAEM</text>'+
+    '<text x="70" y="280" fill="#b7ccc9" font-size="11">Bande verte ±5 % = repère visuel, pas un test de convergence</text>';
+}
+function plotBicEvidence(svg){
+  const rows=modelComparison(),min=Math.min(...rows.map(r=>r.bic)),range=Math.max(2,...rows.map(r=>r.bic-min));
+  let out='<rect x="245" y="37" width="440" height="209" rx="8" fill="#0c2530"/>';
+  for(const [i,row] of rows.entries()){
+    const delta=row.bic-min,y=55+i*62,w=410*delta/range;
+    out+='<text x="12" y="'+(y+17)+'" fill="#e2eee9" font-size="12">'+escapeText(row.label)+'</text>'+
+      '<rect x="248" y="'+y+'" width="'+Math.max(2,w)+'" height="25" rx="4" fill="'+['#99dccc','#f4c08e','#c7a4f5'][i]+'"/>'+
+      '<text x="'+(255+w)+'" y="'+(y+18)+'" fill="#f4eee5" font-size="12">ΔBIC '+fmt(delta,2)+'</text>';
+  }
+  svg.innerHTML=out+'<text x="245" y="22" fill="#c8ddd8" font-size="12">Écart au BIC minimal : plus petit = meilleur, faible écart = ambigu</text>';
+}
+
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
   $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
@@ -285,7 +351,9 @@ function renderSAEM(){
     '<div class="career-metrics">'+metric('Itérations enregistrées','170')+
     metric('Effets aléatoires','ηCL')+metric('Erreur','log-normale')+'</div>'+
     '<div class="career-chart-toolbar"><label>Paramètre <select id="pop-trace-param"></select></label><label>Itération du replay <input id="pop-iteration" type="range" min="0" max="8" value="8" step="1"></label><span id="pop-iteration-label" class="career-tag"></span></div>'+
-    '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Trajectoire CL et points réellement enregistrés du SAEM"></svg>'+
+    '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Convergence relative des paramètres SAEM"></svg>'+ 
+    '<p class="career-note">Chaque ligne indique le changement relatif du paramètre par rapport à sa valeur finale. Les modèles sont comparés uniquement lorsqu’ils possèdent ce paramètre ; le plateau ne prouve pas que la solution est identifiable.</p>'+ 
+    '<svg id="pop-bic" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Comparaison des écarts de BIC entre structures"></svg>'+
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
     '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
@@ -299,10 +367,8 @@ function renderSAEM(){
     if(traceField.options.length!==names.length || [...traceField.options].some((o,i)=>o.value!==names[i])){
       traceField.innerHTML=names.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
     }
-    const indexField=names.indexOf(traceField.value);
-    const values=fit.trace.map(r=>({t:r[0],c:r[indexField+1]}));
-    graph($('pop-trace'),{series:[{values,color:'#95f4d6'}],
-      points:values.map(p=>({...p,color:'#f6c28e'})),maxT:170,ymax:Math.max(...values.map(p=>p.c)) * 1.12});
+    plotSAEMConvergence($('pop-trace'),selectedFit,traceField.value,timeIndex);
+    plotBicEvidence($('pop-bic'));
     $('pop-fit-summary').innerHTML=metric('CL typique',fmt(fit.est.CL,4)+' L/h')+
       metric('BIC marginal',fmt(fit.bic))+
       metric('ωCL (log SD)',fmt(rr[rr.length-2],3));
@@ -325,6 +391,20 @@ function renderSAEM(){
   $('pop-trace-param').addEventListener('change',redraw);
   redraw();
 }
+const DIAG_QUESTIONS=Object.freeze([
+  {key:'gof',correct:'trends',ask:'Que contrôler dans DV/PRED, DV/IPRED et les profils individuels ?',options:[['trends','Biais, écart à l’identité, structure des résidus et profils atypiques'],['r2','Uniquement la corrélation globale des prédictions']]},
+  {key:'residual',correct:'patterns',ask:'Que recherchent résidus versus temps/IPRED et QQ-plot ?',options:[['patterns','Tendance, hétéroscédasticité, asymétrie et queues incohérentes avec le modèle'],['ignore','Une tendance ascendante est toujours rassurante']]},
+  {key:'iiv',correct:'careful',ask:'Que signifient ηCL versus poids, IIV et shrinkage ?',options:[['careful','Explorer covariables, distribution des EBE et shrinkage, sans inférer un effet causal du nuage'],['causal','Une pente des EBE prouve une covariable mécanistique']]},
+  {key:'ruv',correct:'form',ask:'Quelle question poser sur le modèle d’erreur ?',options:[['form','La dispersion dépend-elle de la concentration, et la forme choisie est-elle plausible ?'],['zero','Il faut toujours fixer l’erreur résiduelle à zéro']]},
+  {key:'vpc',correct:'bands',ask:'Que vérifier sur P5/P50/P95 du VPC ?',options:[['bands','Position des quantiles observés par rapport aux simulations, y compris les extrêmes et le temps'],['median','Seule la médiane est informative']]},
+  {key:'stability',correct:'uncertainty',ask:'Quels diagnostics supplémentaires réclamer avant la qualification ?',options:[['uncertainty','Précision RSE/IC, stabilité, identifiabilité et validation externe ou simulation-estimation'],['bic','Aucun, le BIC minimal suffit']]}
+]);
+export function gradeDiagnosticQuestions(answers){return DIAG_QUESTIONS.every(q=>answers[q.key]===q.correct);}
+function diagnosticQuiz(key){
+  const q=DIAG_QUESTIONS.find(q=>q.key===key);
+  return '<fieldset class="career-diagnostic-question" data-diagnostic-question="'+key+'"><legend>'+escapeText(q.ask)+'</legend>'+
+    q.options.map(([v,label])=>'<label><input type="radio" name="pop-diagnostic-'+key+'" value="'+v+'"><span>'+escapeText(label)+'</span></label>').join('')+'</fieldset>';
+}
 function renderDiagnostics(){
   $('population-workspace').innerHTML=story('Cette galerie de diagnostics porte <strong>uniquement sur le replay SAEM artificiel</strong> (28 sujets). Le dataset expérimental Warfarine présenté précédemment ne possède pas encore de résultats SAEM associés. Lisez GOF, résidus, EBE, simulation prédictive et convergence, puis jugez quelles preuves manquent.','ATELIER SAEM · DIAGNOSTICS DISPONIBLES')+
     '<div class="career-chart-toolbar"><label>Modèle <select id="pop-diagnostic-model">'+Object.entries(FITS).map(([k,v])=>'<option value="'+k+'">'+v.label+'</option>').join('')+'</select></label>'+
@@ -333,37 +413,33 @@ function renderDiagnostics(){
     '<p class="career-note">Points DV ; courbe bleu pâle PRED (population) ; courbe verte IPRED (EBE CL). Les deux GOF ci-dessous confrontent les valeurs observées aux prédictions ; ligne pointillée = identité.</p>'+
     '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Fit individuel DV, PRED et IPRED"></svg>'+
     '<p class="career-note">DV versus PRED (population)</p><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus population predictions"></svg>'+
-    '<p class="career-note">DV versus IPRED (individuel)</p><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg></details>'+
-    '<details open><summary><strong>2. Résidus et leur distribution</strong></summary>'+
+    '<p class="career-note">DV versus IPRED (individuel)</p><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg>'+diagnosticQuiz('gof')+'</details>'+
+    '<details><summary><strong>2. Résidus et leur distribution</strong></summary>'+
     '<p class="career-note">Résidus conditionnels <em>approximatifs</em> : [log(DV) − log(IPRED)] / σlog. Ce ne sont <strong>ni des CWRES, ni des NPDE</strong> : les calculs correspondants ne sont pas disponibles.</p>'+
     '<p class="career-note">Résidus versus temps</p><svg id="pop-resid-time" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus temps"></svg>'+
     '<p class="career-note">Résidus versus IPRED</p><svg id="pop-resid-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus prédiction individuelle"></svg>'+
     '<p class="career-note">Histogramme des résidus</p><svg id="pop-resid-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme des résidus log-standardisés"></svg>'+
-    '<p class="career-note">QQ-plot normal théorique</p><svg id="pop-resid-qq" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="QQ-plot des résidus"></svg></details>'+
-    '<details open><summary><strong>3. Variabilité interindividuelle (IIV), EBE et shrinkage</strong></summary>'+
+    '<p class="career-note">QQ-plot normal théorique</p><svg id="pop-resid-qq" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="QQ-plot des résidus"></svg>'+diagnosticQuiz('residual')+'</details>'+
+    '<details><summary><strong>3. Variabilité interindividuelle (IIV), EBE et shrinkage</strong></summary>'+
     '<p class="career-note">ETA_CL versus poids (sans conclure à une covariable à partir du seul graphe)</p><svg id="pop-eta-weight" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="ETA CL versus poids"></svg>'+
     '<p class="career-note">Distribution des ETA_CL</p><svg id="pop-eta-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme ETA CL"></svg>'+ 
     '<div id="pop-variability-metrics" class="career-metrics"></div>'+ 
     '<p class="career-note">Comparaison de la distribution des EBE de CL et de la loi N(0,ωCL²) retenue pour la population. Le shrinkage descriptif = 1 − SD(EBE)/ωCL ; il ne valide ni l’IIV ni le mécanisme. Seule CL porte un effet aléatoire dans cet atelier ; V, Ka, Q, Vp et Tlag n’ont pas d’IIV estimée.</p>'+ 
     '<svg id="pop-iiv-density" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Densité des effets individuels et distribution normale populationnelle"></svg>'+ 
-    '<p class="career-note">Recherche exploratoire de covariables : ETA_CL en fonction du poids, montré ci-dessus. Attention : le poids détermine également la dose dans cette simulation ; association visuelle ≠ sélection statistique ou causalité. Pour une véritable analyse : graphique ETA/covariable, sélection prudente, réestimation du modèle complet, IC, pertinence clinique et vérification hors échantillon.</p></details>'+ 
-    '<details open><summary><strong>4. Modèle d’erreur résiduelle (RUV)</strong></summary>'+ 
+    '<p class="career-note">Recherche exploratoire de covariables : ETA_CL en fonction du poids, montré ci-dessus. Attention : le poids détermine également la dose dans cette simulation ; association visuelle ≠ sélection statistique ou causalité. Pour une véritable analyse : graphique ETA/covariable, sélection prudente, réestimation du modèle complet, IC, pertinence clinique et vérification hors échantillon.</p>'+diagnosticQuiz('iiv')+'</details>'+ 
+    '<details><summary><strong>4. Modèle d’erreur résiduelle (RUV)</strong></summary>'+ 
     '<p class="career-note">Le replay est ajusté avec log(DV) = log(IPRED) + ε, ε ~ N(0,σlog²). Le modèle implique une erreur approximativement proportionnelle sur l’échelle de concentration. Aucun modèle additif ou combiné n’a été estimé ; la ligne pointillée est une erreur additive théorique normalisée à 10 mg/L uniquement pour illustrer la différence de forme.</p>'+ 
     '<div id="pop-ruv-metrics" class="career-metrics"></div>'+ 
     '<svg id="pop-ruv-shape" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Erreur résiduelle lognormale versus concentration, comparateur additif pédagogique"></svg>'+ 
-    '<p class="career-note"><span style="color:#9be9cf">━</span> Approximation σlog × IPRED du modèle de démonstration ; <span style="color:#f6c28e">┄</span> forme additive théorique, non ajustée. La comparaison formelle de RUV additif, proportionnel, combiné, et la dépendance des résidus à l’heure/dose restent nécessaires dans un vrai projet.</p></details>'+
-    '<details open><summary><strong>5. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
+    '<p class="career-note"><span style="color:#9be9cf">━</span> Approximation σlog × IPRED du modèle de démonstration ; <span style="color:#f6c28e">┄</span> forme additive théorique, non ajustée. La comparaison formelle de RUV additif, proportionnel, combiné, et la dépendance des résidus à l’heure/dose restent nécessaires dans un vrai projet.</p>'+diagnosticQuiz('ruv')+'</details>'+
+    '<details><summary><strong>5. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
     '<p class="career-note">VPC <strong>simulé de nouveau</strong> par 120 réplications déterministes sous le modèle sélectionné, aux mêmes temps/sujets que le replay. Chaque courbe = médiane des quantiles simulés ; zone transparente = intervalle empirique 5–95 % entre les réplications. Points = quantiles observés dans la cohorte artificielle. Pas de correction pcVPC, ni bootstrap de paramètres.</p>'+
     '<svg id="pop-vpc" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="VPC observé vs simulé, 5e 50e et 95e centiles avec intervalle de simulation"></svg>'+
-    '<p class="career-note"><span style="color:#f6c28e">●</span> P5 observé ; <span style="color:#9be9cf">●</span> P50 observé ; <span style="color:#c8a6f5">●</span> P95 observé. Bandes de la même couleur = distribution simulée de ce quantile.</p></details>'+
-    '<details open><summary><strong>6. Stabilité, précision, identifiabilité et validation</strong></summary>'+ 
+    '<p class="career-note"><span style="color:#f6c28e">●</span> P5 observé ; <span style="color:#9be9cf">●</span> P50 observé ; <span style="color:#c8a6f5">●</span> P95 observé. Bandes de la même couleur = distribution simulée de ce quantile.</p>'+diagnosticQuiz('vpc')+'</details>'+
+    '<details><summary><strong>6. Stabilité, précision, identifiabilité et validation</strong></summary>'+ 
     '<p class="career-note">Séquence du pharmacométricien : contrôle des données et BLQ → modèle structural → choix des effets aléatoires (IIV/IOV, corrélations Ω) et du modèle résiduel (additif/proportionnel/combiné) → choix des covariables → estimation / convergence → GOF et diagnostics individuels → VPC/pcVPC/NPDE → précision (RSE/IC, bootstrap), shrinkage, sensibilité et validation externe → décision documentée.</p>'+ 
-    '<div class="career-alert"><strong>Non disponibles pour ce replay :</strong> CWRES exacts, NPDE, pcVPC, RSE et matrice de covariance, corrélations entre effets aléatoires (une seule η), IOV, bootstrap, simulation-estimation, analyse de sensibilité, départs multiples, prédictions externes. Ne pas tracer de valeurs fictives à la place de diagnostics statistiques non calculés. Le shrinkage descriptif EBE/ω est visible mais ne remplace pas les évaluations de précision.</div></details>'+
-    '<p class="career-note">Quels contrôles conserver pour qualifier un modèle ?</p>'+
-    checkboxes([['gof','Examiner DV/PRED, DV/IPRED et résidus.'],
-      ['vpc','Examiner P5/P50/P95 et leurs distributions simulées.'],
-      ['stability','Vérifier stabilité numérique, précision, identifiabilité et validation externe si pertinente.'],
-      ['bic-only','Conclure uniquement à partir du BIC.']]);
+    '<div class="career-alert"><strong>Non disponibles pour ce replay :</strong> CWRES exacts, NPDE, pcVPC, RSE et matrice de covariance, corrélations entre effets aléatoires (une seule η), IOV, bootstrap, simulation-estimation, analyse de sensibilité, départs multiples, prédictions externes. Ne pas tracer de valeurs fictives à la place de diagnostics statistiques non calculés. Le shrinkage descriptif EBE/ω est visible mais ne remplace pas les évaluations de précision.</div>'+diagnosticQuiz('stability')+'</details>'+
+    '<p class="career-note">La validation exige une réponse à chacune des six questions associées aux graphiques ci-dessus.</p>';
   function draw(){
     const kind=$('pop-diagnostic-model').value,id=+$('pop-diagnostic-subject').value,
       subj=SUBJECTS.find(s=>s.id===id),fit=FITS[kind];
@@ -438,15 +514,14 @@ function renderPD(){
 }
 
 function renderFinal(){
-  $('population-workspace').innerHTML=story('Rédigez un résultat qui distingue les données, le modèle candidat, les diagnostics et ce qui reste non démontré. Votre dossier peut être copié comme exercice de synthèse.','ENQUÊTE N° 07 · RAPPORT FINAL')+
-    '<p class="career-note">Cochez les informations que le rapport de pharmacométrie doit conserver.</p>'+
-    checkboxes([['data','Citer les observations expérimentales 32 sujets (PK/PCA) et distinguer l’atelier SAEM artificiel.'],
-      ['inference','Signaler les limites du SAEM éducatif, du BIC et de l’identifiabilité.'],
-      ['pd','Préciser que le lien PK/PD retardé n’a pas été ajusté sur ce jeu de données.'],
-      ['clinical','Présenter les estimations comme utilisables pour prescrire de la warfarine.']],'pop-final')+
+  $('population-workspace').innerHTML=story('Concluez comme dans un rapport de pharmacométrie : séparez données, modèles candidats, précision, diagnostics et résultat PK/PD. Une conclusion ne peut s’appliquer qu’au jeu de données effectivement estimé.','SYNTHÈSE SCIENTIFIQUE')+
+    '<div class="career-alert"><strong>Résultat principal :</strong> les 32 volontaires Warfarine ont été explorés graphiquement. Les BIC et variabilités affichés concernent un benchmark distinct de 28 sujets simulés : 1C et 1C avec Tlag ont des BIC presque identiques ; aucune preuve indépendante n’a sélectionné la structure pour les vrais sujets.</div>'+
+    '<p class="career-note">Quelle conclusion résume correctement les résultats ?</p>'+
+    radio([['conditional','Le Tlag reste indécidable sur le benchmark ; la cohorte expérimentale nécessite son propre ajustement PK/PD et ses diagnostics.'],
+      ['certain','Le Tlag est confirmé dans les 32 volontaires et le modèle est validé.']],'pop-conclusion')+
     '<pre id="pop-report" class="career-code">'+escapeText(report())+'</pre>'+
-    '<div class="career-file-actions"><button type="button" class="career-action" id="pop-copy-report">Copier le rapport pédagogique</button>'+
-    '<a href="'+POPULATION_META.tutorialUrl+'" target="_blank" rel="noopener noreferrer" class="career-action">Tutoriel de référence</a></div>';
+    '<div class="career-file-actions"><button type="button" class="career-action" id="pop-copy-report">Copier le rapport scientifique</button>'+
+    '<a href="'+POPULATION_META.tutorialUrl+'" target="_blank" rel="noopener noreferrer" class="career-action">Source de l’étude</a></div>';
   $('pop-copy-report').addEventListener('click',()=>navigator.clipboard?.writeText(report()));
 }
 function render(){
@@ -466,7 +541,7 @@ function render(){
     'Une bonne qualification associe plusieurs contrôles ; aucun score ne suffit isolément.',
     'Lisez la différence de BIC et la parcimonie sans présenter une petite différence comme décisive.',
     'Un effet retardé exige une hypothèse dynamique à estimer et à confronter aux données.',
-    'Le rapport doit mentionner ce que le travail ne démontre pas.'
+    'Une conclusion robuste dépend des données effectivement ajustées et des diagnostics chiffrés.'
   ][index];
   $('population-hint-text').textContent=[
     'Le fichier source a DVID=1 pour PK, DVID=2 pour PCA et AMT pour la dose ; il ne possède pas EVID.',
@@ -475,7 +550,7 @@ function render(){
     'Contrôlez GOF, IIV, modèle résiduel, EBE, covariables, VPC et robustesse/identifiabilité.',
     'ΔBIC inférieur à 2 n’apporte pas ici d’argument discriminant solide.',
     'Le retard peut provenir d’une dynamique d’effet ou de turnover ; la courbe seule ne prouve rien.',
-    'Les observations viennent de l’étude O’Reilly, mais les estimations archivées sont issues d’une simulation distincte.'
+    'Séparez résultats du benchmark, structure suggérée et modèle non encore estimé sur la cohorte expérimentale.'
   ][index];
   [
     renderImport,renderEDA,renderSAEM,renderDiagnostics,renderDecision,renderPD,renderFinal
@@ -509,11 +584,17 @@ function validate(){
     return viewed.size===3?success('Trois calculs archivés ont été comparés. Les paramètres et BIC ne suffisent pas encore à valider le modèle.'):
       failure('Examinez les trois structures, pas seulement la première sélectionnée.');
   }
-  if(index===3 || index===6){
-    const inputs=[...w.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
-    if(index===3)return chooseChecks(inputs)?success('GOF, VPC et stabilité restent complémentaires.'):failure('Sélectionnez les contrôles utiles, sans retenir « BIC seul ».');
-    return inputs.length===3&&['data','inference','pd'].every(x=>inputs.includes(x))?
-      success('Le rapport décrit la source, les résultats exploratoires et leurs limites.'):failure('Distinguez mesures expérimentales, replay SAEM sur cohorte artificielle, limites du modèle et PD non estimée.');
+  if(index===3){
+    const answers=Object.fromEntries(DIAG_QUESTIONS.map(q=>[q.key,w.querySelector('input[name="pop-diagnostic-'+q.key+'"]:checked')?.value]));
+    return gradeDiagnosticQuestions(answers)?
+      success('Six domaines examinés : GOF, résidus, IIV/covariables, RUV, VPC, stabilité et précision.'):
+      failure('Répondez à chaque question, puis analysez les divergences entre graphiques et modèle.');
+  }
+  if(index===6){
+    const answer=w.querySelector('input[name="pop-conclusion"]:checked')?.value;
+    return answer==='conditional'?
+      success('Conclusion conditionnelle justifiée par les comparaisons et par la disponibilité des diagnostics.'):
+      failure('Ne généralisez pas au jeu expérimental les résultats estimés sur le replay distinct.');
   }
   const option=w.querySelector('input[name="pop-choice"]:checked')?.value;
   if(!option)return failure('Choisissez une conclusion avant de valider.');

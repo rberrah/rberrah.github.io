@@ -95,8 +95,6 @@ jobs:
             dist/game/index.html \
             dist/pharmacometrie/game/index.html \
             dist/pharmacometrie/game/population-course.js \
-            dist/game/engine.js \
-            dist/game/app.js \
             dist/assets/site.css \
             dist/a-propos/index.html \
             dist/communications/index.html \
