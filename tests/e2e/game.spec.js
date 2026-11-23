@@ -302,7 +302,8 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-progress')).toHaveText('2 / 7');
   await page.locator('#population-next').click();
 
-  await expect(page.locator('#pop-bic')).toBeVisible();
+  await expect(page.locator('#pop-bic')).toHaveCount(0);
+  await expect(page.locator('#pop-trace')).toBeVisible();
   await expect(page.locator('#pop-fit-rows')).toContainText('À examiner');
   for(const kind of ['one','lag','two']){
     await page.locator('[data-pop-model="'+kind+'"]').click();
@@ -321,6 +322,11 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#pop-vpc')).toBeVisible();
   await expect(page.locator('#pop-variability-metrics')).toContainText('IIV CL');
   await expect(page.locator('#pop-ruv-metrics')).toContainText('σlog');
+  await expect(page.locator('#pop-iiv-density rect')).toHaveCount(8); // background + 7 appropriately sized EBE bins
+  await expect(page.locator('#pop-iiv-density polyline')).toHaveCount(1);
+  await expect(page.locator('#pop-ruv-shape polyline')).toHaveCount(3);
+  await expect(page.locator('#pop-ruv-shape polygon')).toHaveCount(1);
+  await expect(page.locator('#pop-ruv-metrics')).toContainText('P5 / IPRED');
   for(const id of ['pop-gof-pred','pop-gof-ipred','pop-resid-time','pop-resid-pred','pop-resid-hist','pop-resid-qq','pop-eta-weight','pop-eta-hist','pop-iiv-density','pop-ruv-shape'])await expect(page.locator('#'+id)).toBeVisible();
   await page.locator('#pop-diagnostic-model').selectOption('two');
   for(const [k,value] of Object.entries({gof:'trends',residual:'patterns',iiv:'careful',ruv:'form',vpc:'bands',stability:'uncertainty'}))
@@ -350,6 +356,29 @@ test('population pharmacometrician route runs from mapping through archived gene
   await page.reload();
   await page.locator('#mode-population').click();
   await expect(page.locator('#population-progress')).toHaveText('7 / 7');
+  expect(errors).toEqual([]);
+});
+
+test('English PopPK SAEM and IIV/RUV diagnostics have translated instructions and scientifically labeled plots',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/pharmacometrie/game/?lang=en');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[0,1]'));
+  await page.reload();
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#population-title')).toContainText('SAEM');
+  await expect(page.locator('#pop-bic')).toHaveCount(0);
+  await expect(page.locator('#population-workspace')).not.toContainText('Méthode :');
+  await expect(page.locator('#population-workspace')).not.toContainText('Itérations enregistrées');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[0,1,2]'));
+  await page.reload();await page.locator('#mode-population').click();
+  await expect(page.locator('#population-workspace')).toContainText('Individual fits');
+  await expect(page.locator('#population-workspace')).toContainText('Residual unexplained variability');
+  await expect(page.locator('#population-workspace')).not.toContainText('Modèle d’erreur résiduelle');
+  await expect(page.locator('#population-workspace')).not.toContainText('Les barres vertes');
+  await expect(page.locator('#population-workspace')).not.toContainText('Le replay ajuste');
+  await expect(page.locator('#pop-iiv-density polyline')).toHaveCount(1);
+  await expect(page.locator('#pop-ruv-shape polygon')).toHaveCount(1);
+  await expect(page.locator('#pop-ruv-metrics')).toContainText('Lognormal residual CV');
   expect(errors).toEqual([]);
 });
 
