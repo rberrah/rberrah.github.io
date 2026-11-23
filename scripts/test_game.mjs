@@ -174,6 +174,7 @@ for(const expected of ['name="robots" content="index,follow"','src="./app.js"','
 assert.ok(readFileSync('portal/index.html','utf8').includes('/pharmacometrie/game/'));
 assert.ok(readFileSync('src/routes/+layout.svelte','utf8').includes("key: 'game'"));
 assert.ok(readFileSync('scripts/mount_game_route.mjs','utf8').includes("'pharmacometrie','game'"));
+assert.match(readFileSync('scripts/mount_game_route.mjs','utf8'),/await rm\(legacy/);
 const injector=readFileSync('scripts/add_portal_analytics.mjs','utf8');
 assert.match(injector,/directory === target && entry.name === 'game'/);
 console.log('PASS: PMx Game scientific engine, official canonical route and published navigation.');
