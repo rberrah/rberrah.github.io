@@ -411,9 +411,10 @@ test('both clinical-workflow teaching routes fit narrow screens without horizont
 });
 
 
-test('game is bilingual on canonical route and root legacy URL retains full content',async({page})=>{
+test('game is bilingual at canonical address and legacy address redirects',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/game/?lang=en');
+  await expect(page).toHaveURL(/\/pharmacometrie\/game\/\?lang=en/);
   await expect(page.locator('#mode-population')).toBeVisible();
   await expect(page.locator('#game-lang-en')).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('html')).toHaveAttribute('lang','en');
