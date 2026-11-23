@@ -246,17 +246,25 @@ function stage5(){
   $('mipd-copy').addEventListener('click',()=>navigator.clipboard?.writeText(report()));
 }
 function report(){
-  const best=chooseDose(P2);
-  const shift=chooseDose(P2,.6);
-  return 'PMx Game — Étude MIPD purement pédagogique\n'+
-    'Antibiotique V fictif : perfusion IV 1 h q12h, 750 mg. AUC24 cible inventée : 440–560 mg·h/L.\n'+
-    'Prior : CL médiane 4,5 L/h, V médian 32 L ; distribution lognormale et résidu hétéroscédastique.\n'+
-    'Dosages simulés : 2 h = '+fmt(OBSERVATIONS[0].value,2)+' mg/L ; 11 h = '+fmt(OBSERVATIONS[1].value,2)+' mg/L.\n'+
-    'Posterior sur grille : MAP(CL) = '+fmt(P2.mapCL,2)+' L/h, MAP(V) = '+fmt(P2.mapV,1)+' L, E[CL] = '+fmt(P2.meanCL,2)+' L/h (P5–P95 : '+fmt(P2.clCI[0],1)+'–'+fmt(P2.clCI[1],1)+').\n'+
-    'Enseignement : la grille fictive favorise '+best.dose+' mg q12h, P(cible) ≈ '+fmt(best.p*100,0)+
-    ' % ; sous l’hypothèse CL ×0,6, dose de la grille '+shift.dose+' mg q12h, P(cible) ≈ '+fmt(shift.p*100,0)+' %.\n'+
-    'Ces doses ne sont PAS des recommandations cliniques. Le modèle n’est pas validé, les cibles sont inventées, les observations sont fictives et le changement de CL n’a pas été estimé à partir de nouveaux prélèvements.\n'+
-    'Le modèle MIPD Engine clinique n’a pas été appelé.';
+  const best=gradeDoseGoal(P2,900,'auc');
+  const scenario=gradeCLChange(P2,540,450);
+  return 'PMx Game — MIPD, scénario intégralement fictif et non prescriptif\n'+
+    'Perfusion IV 1 h q12h, posologie initiale 750 mg. Modèle théorique 1C et objectifs pédagogiques inventés.\n'+
+    'Dosages du plan préexistant : 2 h = '+fmt(OBSERVATIONS[0].value,2)+' mg/L, 11 h = '+fmt(OBSERVATIONS[1].value,2)+' mg/L.\n'+
+    'Le prior populationnel n’est pas modifié ; les observations changent la likelihood et donc le posterior.\n'+
+    'MAP(CL) '+fmt(P2.mapCL,2)+' L/h, MAP(V) '+fmt(P2.mapV,1)+' L ; E[CL] '+fmt(P2.meanCL,2)+
+      ' L/h (P5–P95 : '+fmt(P2.clCI[0],1)+'–'+fmt(P2.clCI[1],1)+' L/h).\n'+
+    'Trois objectifs fictifs distincts : AUC24 '+TARGETS.aucLow+'–'+TARGETS.aucHigh+
+      ' mg·h/L ; C0 '+TARGETS.troughLow+'–'+TARGETS.troughHigh+
+      ' mg/L ; temps >2×CMI (CMI='+TARGETS.mic+' mg/L) ≥'+fmt(TARGETS.minFractionAbove2MIC*100,0)+' %.\n'+
+    'Plafond toxique de C0 inventé : '+TARGETS.toxicTrough+' mg/L.\n'+
+    'Exemple 900 mg q12h avant baisse de CL : AUC24 '+fmt(best.auc24,0)+
+     ' mg·h/L, C0 '+fmt(best.c0,1)+' mg/L, temps >2×CMI '+fmt(best.fT2MIC*100,0)+' %.\n'+
+    'Sous CL×0,6 : pour conserver l’AUC (540 mg), C0 '+fmt(scenario.preserveAuc.c0,1)+
+     ' mg/L, au-dessus du plafond ; pour revenir dans la cible C0 (450 mg), AUC24 '+fmt(scenario.preserveTrough.auc24,0)+
+     ' mg·h/L, sous la fenêtre d’AUC du jeu. Un compromis exige une réévaluation des objectifs et de l’information individuelle.\n'+
+    'La modélisation par moyennes pour C0/fT ne remplace pas des probabilités d’atteinte, et CL×0,6 n’est pas un posterior réestimé.\n'+
+    'AUC, C0 et fT issus des paramètres fictifs ; aucune cible, concentration toxique ou dose ne peut être appliquée à un patient. MIPD Engine clinique non appelé.';
 }
 function render(){
   const step=STEPS[index];
