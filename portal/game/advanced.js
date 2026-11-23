@@ -295,21 +295,36 @@ function ddiUpdate(){
   const r=ddiChallenge(ddiCl);
   $('adv-ddi-cl-label').textContent=fmt(ddiCl,1)+' L/h';
   $('adv-ddi-auc-ratio').textContent='×'+fmt(r.aucRatio,2);
+  $('adv-ddi-c0-before').textContent=fmt(r.before.cmin,2)+' mg/L';
+  $('adv-ddi-c0-after').textContent=fmt(r.after.cmin,2)+' mg/L';
+  $('adv-ddi-auc-before').textContent=fmt(r.before.auc,1)+' mg·h/L';
+  $('adv-ddi-auc-after').textContent=fmt(r.after.auc,1)+' mg·h/L';
+  $('adv-ddi-bar-auc').style.width=Math.min(100,r.aucRatio/6*100)+'%';
+  $('adv-ddi-bar-c0').style.width=Math.min(100,r.troughRatio/6*100)+'%';
   const ymax=Math.max(...r.after.points.map(p=>p.c),...r.before.points.map(p=>p.c))*1.11;
   chartBase($('adv-ddi-chart'),'Concentration à l’état stationnaire · mg/L',12,ymax,
     polyline(r.before.points,12,ymax,{color:'#92ead5'})+
     polyline(r.after.points,12,ymax,{color:'#f5bf91'}),null);
-  if(completed)$('adv-ddi-c0-ratio').textContent='×'+fmt(r.troughRatio,2);
+  $('adv-ddi-c0-ratio').textContent=completed?'×'+fmt(r.troughRatio,2):'À interpréter';
 }
 function setupDdi(){
-  $('advanced-stage').innerHTML='<p class="advanced-instruction">Dose fictive inchangée : <strong>100 mg par voie orale toutes les 12 h</strong>, F = 0,8, Ka = 1,2 h⁻¹, V = 25 L, CL initiale = 5 L/h. Modifiez CL comme après une interaction inhibitrice. Faites augmenter l’AUC d’au moins <strong>1,7 fois</strong> et estimez la <strong>variation relative de C0</strong> en réponse numérique.</p>'+
+  $('advanced-stage').innerHTML='<p class="advanced-instruction">Un médicament <strong>entièrement fictif</strong> est administré à dose constante (100 mg par voie orale toutes les 12 h). Une interaction réduit sa clairance, sans modifier F, Ka ni V. Faites augmenter son AUC d’au moins <strong>70 %</strong>, puis comparez les variations relatives de <strong>l’AUC et de C0</strong> : laquelle est la plus importante ? Aucune division de tête n’est nécessaire.</p>'+
     '<div class="advanced-control-grid"><label>CL après interaction <strong id="adv-ddi-cl-label"></strong><input id="adv-ddi-cl" type="range" min="1.5" max="5" step="0.5" value="2.5"></label>'+
-    '<label>Votre prédiction : rapport C0 après / avant <input id="adv-ddi-prediction" type="number" min="0.1" max="15" step="0.01" placeholder="Rapport à estimer" aria-label="Rapport C0 prédit"></label></div>'+
-    '<div class="advanced-metrics"><span>Rapport AUCτ<strong id="adv-ddi-auc-ratio"></strong></span>'+
-    '<span>Rapport C0<strong id="adv-ddi-c0-ratio">À estimer</strong></span></div>'+
+    '<div class="ddi-table"><strong>Vos observations · avant → après</strong>'+
+    '<div>AUCτ <span id="adv-ddi-auc-before"></span> → <b id="adv-ddi-auc-after"></b></div>'+
+    '<div>C0 <span id="adv-ddi-c0-before"></span> → <b id="adv-ddi-c0-after"></b></div></div></div>'+
+    '<div class="advanced-metrics"><span>Augmentation relative de l’AUC<strong id="adv-ddi-auc-ratio"></strong></span>'+
+    '<span>Augmentation relative de C0<strong id="adv-ddi-c0-ratio">À interpréter</strong></span></div>'+
+    '<div class="ddi-bars"><div><span>AUC</span><div class="advanced-bar-track"><div id="adv-ddi-bar-auc"></div></div></div>'+
+    '<div><span>C0</span><div class="advanced-bar-track"><div id="adv-ddi-bar-c0"></div></div></div>'+
+    '<p class="advanced-small">Longueur des barres = rapport après/avant, sur la même échelle. Les valeurs initiales sont affichées dans le tableau.</p></div>'+
+    '<fieldset class="ddi-comparison"><legend>Quel indicateur subit la plus forte augmentation <em>proportionnelle</em> ?</legend>'+
+    '<label><input type="radio" name="ddi-comparison" value="auc"> L’AUC augmente davantage</label>'+
+    '<label><input type="radio" name="ddi-comparison" value="trough"> C0 augmente davantage</label>'+
+    '<label><input type="radio" name="ddi-comparison" value="same"> Les deux augmentent pareil</label></fieldset>'+
     '<div class="advanced-legend"><span class="legend-line mint"></span> Avant <span class="legend-line peach"></span> Après baisse de CL</div>'+
-    '<svg id="adv-ddi-chart" class="advanced-chart" viewBox="0 0 705 250" role="img" aria-label="Courbes de concentration à l’état stationnaire avec et sans diminution de CL"></svg>'+
-    '<p class="advanced-small">C0 signifie ici la concentration <strong>juste avant la dose suivante</strong> à l’état stationnaire, sans lag time ni changement de F. Ce n’est pas nécessairement le cas dans une DDI réelle.</p>';
+    '<svg id="adv-ddi-chart" class="advanced-chart" viewBox="0 0 705 250" role="img" aria-label="Courbes comparées avec et sans modification de clairance"></svg>'+
+    '<p class="advanced-small">C0 est la concentration pré-dose suivante à l’état stationnaire. Dans une interaction réelle, F et Ka peuvent aussi changer ; ce cas isole uniquement CL.</p>';
   $('adv-ddi-cl').addEventListener('input',ev=>{ddiCl=Number(ev.target.value);ddiUpdate();});
   ddiUpdate();
 }
