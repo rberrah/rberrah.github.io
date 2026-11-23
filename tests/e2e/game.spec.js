@@ -277,7 +277,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-mode')).toBeVisible();
   await expect(page.locator('#academy-mode')).toBeHidden();
   await expect(page.locator('#population-progress')).toHaveText('0 / 7');
-  for(const [key,value] of Object.entries({id:'id',time:'time',dose:'dose',concentration:'dv',event:'evid'})){
+  for(const [key,value] of Object.entries({id:'id',time:'time',dose:'amt',concentration:'dv',event:'dvid'})){
     await page.locator('[data-pk-map="'+key+'"]').selectOption(value);
   }
   await page.locator('#population-validate').click();
@@ -307,6 +307,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await page.locator('#population-next').click();
 
   await expect(page.locator('#pop-vpc')).toBeVisible();
+  for(const id of ['pop-gof-pred','pop-gof-ipred','pop-resid-time','pop-resid-pred','pop-resid-hist','pop-resid-qq','pop-eta-weight','pop-eta-hist'])await expect(page.locator('#'+id)).toBeVisible();
   await page.locator('#pop-diagnostic-model').selectOption('two');
   for(const key of ['gof','vpc','stability'])await page.locator('input[name="pop-checks"][value="'+key+'"]').check();
   await page.locator('#population-validate').click();
@@ -327,7 +328,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await page.locator('#population-validate').click();
   await page.locator('#population-next').click();
 
-  await expect(page.locator('#pop-report')).toContainText('non qualifié');
+  await expect(page.locator('#pop-report')).toContainText('ATELIER DE MÉTHODE DISTINCT');
   for(const key of ['data','inference','pd'])await page.locator('input[name="pop-final"][value="'+key+'"]').check();
   await page.locator('#population-validate').click();
   await expect(page.locator('#population-progress')).toHaveText('7 / 7');
@@ -348,31 +349,35 @@ test('MIPD route demonstrates timed sampling, live Bayesian MAP, dose probabilit
   await page.locator('#mipd-validate').click();
   await page.locator('#mipd-next').click();
 
-  await page.locator('input[name="mipd-samples"][value="post-infusion"]').check();
-  await page.locator('input[name="mipd-samples"][value="trough"]').check();
+  await page.locator('input[name="mipd-sampling-verdict"][value="yes"]').check();
+  await page.locator('input[name="mipd-sampling-reason"][value="complement"]').check();
   await page.locator('#mipd-validate').click();
   await page.locator('#mipd-next').click();
 
   await expect(page.locator('#mipd-post-chart')).toBeVisible();
+  await expect(page.locator('#mipd-post-v')).toBeVisible();
   await page.locator('[data-mipd-post="1"]').click();
   await page.locator('[data-mipd-post="2"]').click();
   await expect(page.locator('#mipd-post-metrics')).toContainText('3,67');
-  await page.locator('input[name="mipd-choice"][value="bayes"]').check();
+  await page.locator('input[name="mipd-choice"][value="fixed"]').check();
   await page.locator('#mipd-validate').click();
   await expect(page.locator('#mipd-progress')).toHaveText('3 / 6');
   await page.locator('#mipd-next').click();
 
-  await expect(page.locator('#mipd-dose-rows')).toContainText('93 %');
+  await expect(page.locator('#mipd-dose-rows')).toContainText('900 mg');
+  await expect(page.locator('#mipd-dose-chart')).toBeVisible();
   await page.locator('[data-mipd-dose="600"]').click();
   await page.locator('#mipd-validate').click();
-  await expect(page.locator('#mipd-feedback')).toContainText('insuffisante');
+  await expect(page.locator('#mipd-feedback')).toContainText('ne satisfait pas');
   await page.locator('[data-mipd-dose="900"]').click();
   await page.locator('#mipd-validate').click();
   await expect(page.locator('#mipd-progress')).toHaveText('4 / 6');
   await page.locator('#mipd-next').click();
 
-  await expect(page.locator('#mipd-shift-rows')).toContainText('70 %');
-  await page.locator('[data-shift-dose="600"]').click();
+  await expect(page.locator('#mipd-shift-chart')).toBeVisible();
+  await expect(page.locator('#mipd-workspace')).toContainText('540 mg');
+  await page.locator('input[name="mipd-shift-auc"][value="0.60"]').check();
+  await page.locator('input[name="mipd-shift-safety"][value="0.50"]').check();
   await page.locator('#mipd-validate').click();
   await expect(page.locator('#mipd-progress')).toHaveText('5 / 6');
   await page.locator('#mipd-next').click();

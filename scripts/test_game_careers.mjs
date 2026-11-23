@@ -1,14 +1,29 @@
 // Runtime-free scientific regression checks for the two new educational tracks.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {STUDY_META,STUDY_SUBJECTS,STUDY_PK,STUDY_PD} from '../portal/game/warfarin-study.js';
 import {POPULATION_META,SUBJECTS,OBSERVATIONS as POP_OBS,FITS,TIMES,
   modelComparison,populationPredict,assessMapping,gradeStructureConclusion,chooseChecks}
  from '../portal/game/saem-replay.js';
 import {CASE,DOSES,OBSERVATIONS as MIPD_OBS,infusionAt,posterior,
-  doseEvaluation,candidateDoses,chooseDose,simulatorCurve,sampleTimingGrade,qualityGate}
+  doseEvaluation,candidateDoses,chooseDose,simulatorCurve,sampleTimingGrade,qualityGate,
+  evaluateEndpoints,scenarioComparison,PKPD}
  from '../portal/game/mipd-course-core.js';
 
 const near=(a,b,tol=1e-7)=>assert.ok(Math.abs(a-b)<=tol,String(a)+' differs from '+String(b));
+// The actual O'Reilly/Monolix study must not be mistaken for the synthetic SAEM pilot.
+assert.equal(STUDY_META.nSubjects,32);
+assert.equal(STUDY_META.nPK,251);
+assert.equal(STUDY_META.nPD,232);
+assert.equal(STUDY_SUBJECTS.length,32);
+assert.equal(STUDY_PK.length,251);
+assert.equal(STUDY_PD.length,232);
+assert.equal(STUDY_PK.filter(p=>p.c===0).length,4);
+assert.equal(new Set(STUDY_PK.map(p=>p.id)).size,32);
+assert.ok(STUDY_PK.every(p=>STUDY_SUBJECTS.some(s=>s.id===p.id&&s.dose===p.dose)));
+const studySource=readFileSync('static/downloads/warfarin/warfarin_data.csv','utf8');
+assert.equal(studySource.split(/\r?\n/).filter(l=>l.includes(';')).length,516);
+assert.ok(STUDY_META.sourceUrl.includes('monolixsuite'));
 assert.equal(POPULATION_META.nSubjects,28);
 assert.equal(POPULATION_META.nObservations,285);
 assert.equal(SUBJECTS.length,28);
@@ -79,6 +94,18 @@ assert.equal(sampleTimingGrade(['post-infusion','trough']),true);
 assert.equal(sampleTimingGrade(['trough','trough']),false);
 assert.equal(sampleTimingGrade(['trough','untimed']),false);
 assert.equal(qualityGate({dose:900,modelValidated:false}).canBeUsedClinically,false);
+const epi=evaluateEndpoints(p2,900);
+assert.ok(epi.meets.auc && epi.meets.trough && epi.meets.time && !epi.toxic);
+assert.ok(evaluateEndpoints(p2,1200).toxic);
+assert.equal(PKPD.mic*PKPD.micMultiple,8);
+const scenarios=scenarioComparison(p2,900,.6);
+near(scenarios.unchanged.auc,scenarios.aucMatched.auc,1e-8);
+near(scenarios.aucMatched.dose,540);
+near(scenarios.safetyReduced.dose,450);
+assert.ok(scenarios.aucMatched.toxic,'AUC-preserving adjustment must expose excessive C0');
+assert.ok(!scenarios.safetyReduced.toxic,'The more conservative dose must reduce C0');
+assert.ok(scenarios.safetyReduced.auc<PKPD.aucLow,'The trade-off must remain visible');
+assert.throws(()=>evaluateEndpoints(p2,-1),RangeError);
 
 const html=readFileSync('portal/game/index.html','utf8');
 for(const key of ['id="population-mode"','id="mipd-mode"','id="mode-population"','id="mode-mipd"',
@@ -87,4 +114,8 @@ for(const key of ['id="population-mode"','id="mipd-mode"','id="mode-population"'
 }
 assert.ok(!readFileSync('portal/sitemap.xml','utf8').includes('/game'));
 assert.ok(!readFileSync('portal/index.html','utf8').includes('href="/game"'));
-console.log('PASS: synthetic PopPK replay (28 × 285), model comparison, MAP-BE posterior, uncertainty, dosing simulations and unlisted routes.');
+const populationUi=readFileSync('portal/game/population-course.js','utf8');
+const mipdUi=readFileSync('portal/game/mipd-course.js','utf8');
+for(const fragment of ['STUDY_PK','STUDY_PD','pop-gof-ipred','pop-resid-qq','simulatedVPC','pop-eta-weight'])assert.ok(populationUi.includes(fragment));
+for(const fragment of ['mipd-sampling-verdict','mipd-post-v','mipd-criterion','mipd-shift-safety','concentrationLegend'])assert.ok(mipdUi.includes(fragment));
+console.log('PASS: real-study provenance (32/251/232), isolated synthetic SAEM pilot, diagnostic gallery, MAP-BE and CL/toxicity scenarios.');
