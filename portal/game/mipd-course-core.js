@@ -83,6 +83,40 @@ export function simulatorCurve(post,dose,clMultiplier=1){
     return {t,c:infusionAt(t,{dose,cl:post.meanCL*clMultiplier,v:post.meanV})};
   });
 }
+// Educational PK/PD endpoints; thresholds are illustrative, NOT clinical guidance.
+export const PKPD = Object.freeze({
+  mic:4, micMultiple:2, troughMinimum:8, troughToxic:12,
+  timeAboveTargetPct:90, aucLow:CASE.targetLow, aucHigh:CASE.targetHigh
+});
+export function evaluateEndpoints(post,dose,clMultiplier=1){
+  if(!post||!Number.isFinite(dose)||dose<=0||!Number.isFinite(clMultiplier)||clMultiplier<=0)
+    throw new RangeError('Invalid PK/PD teaching scenario');
+  const cl=post.meanCL*clMultiplier,v=post.meanV;
+  const curve=Array.from({length:241},(_,i)=>{
+    const t=i*CASE.tau/240;
+    return {t,c:infusionAt(t,{dose,cl,v})};
+  });
+  const c0=infusionAt(CASE.tau-1e-6,{dose,cl,v});
+  const auc=24/CASE.tau*dose/cl;
+  const fraction=curve.slice(0,-1).filter(p=>p.c>PKPD.micMultiple*PKPD.mic).length/240;
+  const timeAbovePct=100*fraction;
+  return {
+    dose,auc,c0,timeAbovePct,curve,
+    toxic:c0>=PKPD.troughToxic,
+    meets:{
+      auc:auc>=PKPD.aucLow && auc<=PKPD.aucHigh,
+      trough:c0>=PKPD.troughMinimum,
+      time:timeAbovePct>=PKPD.timeAboveTargetPct
+    }
+  };
+}
+export function scenarioComparison(post,baseDose=900,clMultiplier=.6){
+  const unchanged=evaluateEndpoints(post,baseDose,1);
+  const sameDose=evaluateEndpoints(post,baseDose,clMultiplier);
+  const aucMatched=evaluateEndpoints(post,baseDose*clMultiplier,clMultiplier);
+  const safetyReduced=evaluateEndpoints(post,baseDose*.5,clMultiplier);
+  return {unchanged,sameDose,aucMatched,safetyReduced};
+}
 export function sampleTimingGrade(answers){
   const set=new Set(answers);
   return set.size===2 && set.has('post-infusion')&&set.has('trough');
