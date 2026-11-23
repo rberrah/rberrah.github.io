@@ -79,10 +79,42 @@ La campagne initiale de neuf quêtes reste intacte, mais un troisième onglet in
 
 Références pédagogiques consultées : [SFPT/SFAR, bêta-lactamines et fT>CMI](https://pmc.ncbi.nlm.nih.gov/articles/PMC6441232/), [revue des indices PK/PD anti-infectieux](https://pmc.ncbi.nlm.nih.gov/articles/PMC5039113/), [Principles of Pharmacokinetics, NCBI](https://www.ncbi.nlm.nih.gov/books/NBK12815/).
 
+## Parcours 3 — Pharmacometricien : du fichier au rapport de PopPK
+
+Le dossier « warfarine » de ce jeu est intégralement **synthétique** : 28 individus artificiels, 285 concentrations, une dose orale unique de 1,5 mg/kg. Aucun dossier clinique réel n'a été copié. Le tutoriel Monolix de warfarine sert de **référence méthodologique**, sans reprendre ses résultats SAEM ni prétendre avoir ajusté le jeu original.
+
+1. Données : attribuer ID, TIME, AMT, DV et contrôler unités/historique d'administration.
+2. EDA : explorer les profils sujets, les échelles linéaire et semi-log, les premières données manquantes et les hypothèses initiales.
+3. Estimation : **trois modèles réellement pré-calculés**, oral 1C, oral 1C avec Tlag, oral 2C. Le bouton relit neuf instantanés de 170 itérations par modèle, et **ne lance jamais un SAEM navigateur**. CL, V, Ka, Q, Vp, Tlag (selon le candidat), variabilité interindividuelle de CL, résidu et critères sont archivés dans portal/game/saem-replay.js.
+4. Diagnostics : courbes de population et conditionnelles individuelles, et contrôle prédictif illustratif (120 simulations par temps, sans bande d'incertitude). GOF, VPC, stabilité, précision et identifiabilité sont complémentaires ; NPDE, bootstrap et validation externe **ne sont pas réalisés**.
+5. Arbitrage : BIC approximatifs : 1C sans Tlag −223,78 ; 1C + Tlag −224,01 ; 2C sans Tlag −215,27. ΔBIC de **0,23** entre 1C ± Tlag = différence non décisive malgré la vérité de simulation ; le 2C est pénalisé.
+6. PK/PD : simulation **indépendante** et illustrative d'une PCA retardée par turnover. Aucune estimation SAEM des paramètres PD n'a été faite. Un lien PK→PD doit être formulé comme hypothèse à tester.
+7. Rapport : résultat copiable avec provenance, limites et refus d'une interprétation clinique.
+
+**Calcul pré-enregistré reproductible** : scripts/build_game_warfarin_saem.py (NumPy et SciPy ; seed 20261123), petit SAEM **généralisé pédagogique**, avec Metropolis pour ηCL, approximation stochastique des moments de variance et M-step numérique conditionnelle. −2LL marginal et BIC via quadrature Gauss–Legendre 1D à 161 nœuds. La procédure est une implémentation exploratoire **non qualifiée**, distincte de Monolix/nlmixr2 ; les nombres ne sont pas des estimations de leur logiciel. Les différentes initialisations et l'identifiabilité ne sont pas validées sur ce banc.
+
+**Pour prolonger vers des données publiques réelles :** la warfarine dans nlmixr2data comprend 519 lignes, 9 colonnes et 32 sujets, avec concentrations et PCA. Ce jeu historique n'est pas embarqué ici. Sources :
+[Monolix : tutoriel PK/PD de warfarine](https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics),
+[nlmixr2data : warfarin](https://nlmixr2.github.io/nlmixr2data/reference/warfarin.html),
+[FeRx : oral warfarin SAEM/FOCEI](https://ferx-nlme.org/examples/warfarin.html).
+
+## Parcours 4 — MIPD : du dosage à une prévision Bayésienne
+
+Cas « antibiotique V » entièrement fictif, sans référence de prescription : perfusion IV de 1 h q12h, modèle 1C, dose initiale 750 mg q12h ; CL simulée 3,6 L/h et V 29 L. Prior lognormal artificiel : CL médiane 4,5 L/h (log-SD 0,28) et V médian 32 L (log-SD 0,22). Deux dosages simulés, à 2 h et 11 h, donnent 28,71 et 8,67 mg/L.
+
+1. Audit des conditions d'emploi du modèle.
+2. Choix de deux prélèvements horodatés informatifs.
+3. **Bayes/MAP réellement recalculé** dans le navigateur sur une grille CL × V de 57 × 49 points ; posterior proportionnel au prior et à la vraisemblance des 0, 1 ou 2 dosages, avec CV analytique fictif de 9 % et SD plancher 0,35 mg/L. Moyennes, intervalle P5–P95 et distribution des paramètres.
+4. Grille de cinq doses fictives q12h : 600/750/900/1050/1200 mg. Cible **inventée pour le jeu** : AUC24 de 440–560 mg·h/L, avec seuil de passage P(cible) ≥ 68 %. Intégration de la distribution postérieure, pas uniquement de CL moyenne.
+5. Scénario hypothétique CL ×0,6 : prévision conditionnelle sans nouveau dosage et **sans mise à jour du posterior**, avec exigence de recontrôle.
+6. Portes de sécurité : validation externe, indication, dose et horaire, données analytiques, nouvelle appréciation de CL et interdiction de transposer les doses simulées à des patients.
+
+Ces outils ne sont PAS MIPD Engine, n'utilisent aucune information médicale réelle et ne constituent pas un modèle de vancomycine validé. Comparaison de référence : [consensus vancomycine 2020](https://www.idsociety.org/practice-guideline/vancomycin), [recommandations d'intégration des modèles populationnels dans le MIPD](https://pmc.ncbi.nlm.nih.gov/articles/PMC11992666/). Les paramètres et la fenêtre cible de ce jeu ne sont pas repris des recommandations cliniques.
+
 ## Vérifications obligatoires
 
-- node scripts/test_game.mjs : analytique IV-1C, AUC, conservation de masse, retard oral, pente, correction des neuf quêtes, vérification du graphe et des quatre ODE, fT>CMI, AUC∞ linéaire/saturable, C0 et AUCτ après DDI, dose de charge et entretien, accumulation, fractionnement à AUC conservée, ambiguïté F/CL et absence de référencement.
-- npx playwright test --config playwright.portal.config.js : accès direct, tutoriel, échelles, mesure de pente, neuf quêtes et leurs réponses, parcours de neuf défis avancés, vérification des ODE et des cibles de jeu, versions graphique desktop/mobile, persistance locale, et absence d'entrée dans la navigation.
+- node scripts/test_game.mjs (inclut test_game_careers.mjs) : analytique IV-1C, AUC, conservation de masse, retard oral, pente, correction des neuf quêtes, vérification du graphe et des quatre ODE, fT>CMI, AUC∞ linéaire/saturable, C0 et AUCτ après DDI, dose de charge et entretien, accumulation, fractionnement à AUC conservée, ambiguïté F/CL et absence de référencement.
+- npx playwright test --config playwright.portal.config.js : accès direct, tutoriel, échelles, mesure de pente, neuf quêtes et leurs réponses, parcours de neuf défis avancés, sept missions PopPK et six missions MIPD, vérification des ODE et des cibles de jeu, versions graphique desktop/mobile, persistance locale, et absence d'entrée dans la navigation.
 - PMx CI scientific-js exécute le test numérique ; le build valide les fichiers montés, l'audit public, puis le navigateur.
 - La CI complète de PMx (5 jobs requis) demeure nécessaire à la fusion et au déploiement.
 
