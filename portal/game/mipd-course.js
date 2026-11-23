@@ -236,7 +236,7 @@ function stage3(){
   '<div class="career-bayes-layout"><div class="career-bayes-controls">'+
   '<h3>'+tr('Paramètres du modèle','Model assumptions')+'</h3>'+
   bayesSlider('mipd-iiv', 'Amplitude IIV (ωCL et ωV)', 'IIV spread (ωCL and ωV)',.5,2,.05,sensitivityIIV,' ×')+
-  bayesSlider('mipd-ruv','RUV proportionnelle','Proportional RUV',.03,.3,.01,sensitivityRUV*100,'%')+
+  bayesSlider('mipd-ruv','RUV proportionnelle','Proportional RUV',3,30,1,Math.round(sensitivityRUV*100),'%')+
   bayesSlider('mipd-prior-weight','Poids du prior (flattening)','Prior power (flattening)',.1,1,.05,priorWeight,' ×')+
   '<button type="button" class="career-action" id="mipd-bayes-reset">'+tr('Valeurs de référence','Restore baseline')+'</button>'+
   '<p class="career-note" id="mipd-bayes-reading"></p>'+
