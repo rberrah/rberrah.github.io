@@ -62,14 +62,16 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     }
     await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
     if (route === '/tools/') {
-      await expect(page.locator('#stats').getByRole('link', { name: 'Open Stats' }))
+      await expect(page.locator('#stats').getByRole('link', { name: 'Open Stat & Biologie' }))
         .toHaveAttribute('href', '/stats/');
       await expect(page.locator('#tacddi').getByRole('link', { name: 'Open TacDDI' }))
         .toHaveAttribute('href', 'https://tdmhub.shinyapps.io/TacDDI/');
       await expect(page.locator('#grad a')).toHaveCount(0);
       await expect(page.locator('#autonomous')).toContainText('under evaluation');
       const toolsGraph = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())['@graph'];
-      expect(toolsGraph.map(x => x.name)).toEqual(['Stats', 'Multiomics', 'MIPD Engine']);
+      expect(toolsGraph.map(x => x.name)).toEqual(['Multiomics', 'MIPD Engine']);
+      await expect(page.locator('#stats')).toContainText('decision tree');
+      await expect(page.locator('#stats')).toContainText('French');
       for (const app of toolsGraph) {
         expect(app.author['@id']).toBe(publicOrigin + '/#racym-berrah');
         expect(app.hasPart['@type']).toBe('SoftwareSourceCode');
