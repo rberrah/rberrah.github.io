@@ -506,7 +506,7 @@ function renderDiagnostics(){
     '<p class="career-note">Le replay ajuste <strong>log(DV) = log(IPRED) + ε</strong>, avec ε ~ N(0, σlog²). Sur l’échelle des concentrations, la médiane est IPRED et <strong>l’intervalle prédictif conditionnel P5–P95</strong> est [IPRED × exp(−1,645σlog) ; IPRED × exp(+1,645σlog)]. Cet intervalle n’inclut ni l’IIV ni l’incertitude paramétrique.</p>'+ 
     '<div id="pop-ruv-metrics" class="career-metrics"></div>'+ 
     '<svg id="pop-ruv-shape" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Quantiles P5 médiane P95 de la RUV lognormale conditionnels à IPRED"></svg>'+ 
-    '<p class="career-note career-chart-legend"><span><i style="background:#a6c0d9"></i>P5</span> <span><i style="background:#93ead1"></i>'+ (document.documentElement.lang==='en'?'Median (IPRED)':'Médiane (IPRED)')+'</span> <span><i style="background:#f2c288"></i>P95</span> <span>'+ (document.documentElement.lang==='en'?'Shaded: central 90% conditional interval. No additive or combined RUV was fitted.':'Zone ombrée : intervalle conditionnel central à 90 %. Aucune RUV additive ou combinée n’a été ajustée.')+'</span></p>'+diagnosticQuiz('ruv')+'</details>'+
+    '<p class="career-note career-chart-legend"><span><i style="background:#a6c0d9"></i>P5</span> <span><i style="background:#93ead1"></i>Médiane (IPRED)</span> <span><i style="background:#f2c288"></i>P95</span> <span>Zone ombrée : intervalle conditionnel central à 90 %. Aucune RUV additive ou combinée n’a été ajustée.</span></p>'+diagnosticQuiz('ruv')+'</details>'+
     '<details><summary><strong>5. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
     '<p class="career-note">VPC <strong>simulé de nouveau</strong> par 120 réplications déterministes sous le modèle sélectionné, aux mêmes temps/sujets que le replay. Chaque courbe = médiane des quantiles simulés ; zone transparente = intervalle empirique 5–95 % entre les réplications. Points = quantiles observés dans la cohorte artificielle. Pas de correction pcVPC, ni bootstrap de paramètres.</p>'+
     '<svg id="pop-vpc" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="VPC observé vs simulé, 5e 50e et 95e centiles avec intervalle de simulation"></svg>'+
@@ -680,7 +680,18 @@ function validate(){
   if(index===4)return gradeStructureConclusion(option)?success('Le replay pédagogique ne distingue pas Tlag ; ces résultats ne concernent pas la cohorte expérimentale.'):failure('Une petite différence de BIC ne prouve pas qu’une structure est vraie.');
   if(index===5)return option==='delay'?success('Un modèle indirect ou à compartiment d’effet devra être ajusté et diagnostiqué.'):failure('La différence entre PK et PD ne démontre pas une relation instantanée.');
 }
-window.addEventListener('pmx-game-language-change',()=>{if(index===1)renderEDA();else if(index===6)renderFinal();});
+window.addEventListener('pmx-game-language-change',()=>{
+  if(index===1)renderEDA();
+  else if(index===3){
+    const model=$('pop-diagnostic-model');
+    if(model){
+      const fit=FITS[model.value],v=variabilitySummary(model.value);
+      plotIiv($('pop-iiv-density'),fit.eta,v.omega);
+      plotResidualError($('pop-ruv-shape'),v.sigma);
+    }
+  }
+  else if(index===6)renderFinal();
+});
 $('population-validate').addEventListener('click',validate);
 $('population-hint').addEventListener('click',()=>{$('population-hint-text').hidden=false;});
 $('population-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
