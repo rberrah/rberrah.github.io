@@ -37,12 +37,18 @@ function showMode(name){
   const academy=name==='academy';
   const lab=name==='lab';
   const advanced=name==='advanced';
+  const population=name==='population';
+  const mipd=name==='mipd';
   $('academy-mode').hidden=!academy;
   $('lab-mode').hidden=!lab;
   $('advanced-mode').hidden=!advanced;
+  $('population-mode').hidden=!population;
+  $('mipd-mode').hidden=!mipd;
   $('mode-campaign').setAttribute('aria-pressed',String(academy));
   $('mode-lab').setAttribute('aria-pressed',String(lab));
   $('mode-advanced').setAttribute('aria-pressed',String(advanced));
+  $('mode-population').setAttribute('aria-pressed',String(population));
+  $('mode-mipd').setAttribute('aria-pressed',String(mipd));
   if(!academy)pause();
   else {
     const play=$('play');
@@ -208,6 +214,8 @@ function selectProbe(event){
 $('mode-campaign').addEventListener('click',()=>showMode('academy'));
 $('mode-lab').addEventListener('click',()=>showMode('lab'));
 $('mode-advanced').addEventListener('click',()=>showMode('advanced'));
+$('mode-population').addEventListener('click',()=>showMode('population'));
+$('mode-mipd').addEventListener('click',()=>showMode('mipd'));
 $('tutorial-next').addEventListener('click',nextTutorial);
 $('academy-linear').addEventListener('click',()=>{scale='linear';probes=[];drawChart();});
 $('academy-log').addEventListener('click',()=>{scale='log';probes=[];drawChart();});
