@@ -45,7 +45,13 @@ const phraseRules=[
   ['Moyenne','Mean'],['Écart-type','Standard deviation'],
   ['Sujets','Subjects'],['Volontaires','Volunteers'],['Temps depuis début','Time since start'],
   ['Observation','Observation'],['Doses','Doses'],
-  ['une valeur','a value']
+  ['une valeur','a value'],
+  ['sujets ·','subjects ·'],['observations PK','PK observations'],
+  ['mis en évidence','highlighted'],['prélèvements','samples'],
+  ['Les segments relient uniquement ses propres observations.','The segments connect that subject\'s observations only.'],
+  ['Effectif ·','Count ·'],['État sauvegardé :','Recorded state:'],
+  ['À examiner','To review'],['Rejoué','Reviewed'],['Rapport scientifique','Scientific report'],
+  ['Comparaison des courbes','Comparison of curves']
 ];
 function translate(fr){
   const trimmed=fr.trim();
