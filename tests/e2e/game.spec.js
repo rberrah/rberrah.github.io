@@ -441,6 +441,16 @@ test('game is bilingual at canonical address and legacy address redirects',async
   await page.locator('#mode-mipd').click();
   await page.locator('#mipd-steps button').nth(5).click();
   await expect(page.locator('#mipd-title')).toContainText('What if clearance changes?');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-mipd-mpa-v3','[0,1,2,3,4,5,6]'));
+  await page.reload();
+  await page.locator('#mode-mipd').click();
+  await expect(page.locator('#mipd-report')).toContainText('HEART TRANSPLANT');
+  await expect(page.locator('#mipd-report')).not.toContainText('Greffe cardiaque');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[0,1,2,3,4,5,6]'));
+  await page.reload();
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#pop-report')).toContainText('STUDY POPULATION');
+  await expect(page.locator('#pop-report')).not.toContainText('ÉTUDE EXPÉRIMENTALE');
   await page.locator('#game-lang-fr').click();
   await expect(page.locator('html')).toHaveAttribute('lang','fr');
   await expect(page.locator('.hero h1')).toContainText('Apprenez la pharmacocinétique');
