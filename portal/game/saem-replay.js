@@ -107,5 +107,5 @@ export function chooseChecks(values){
   return s.size===3 && s.has('gof')&&s.has('vpc')&&s.has('stability');
 }
 export function assessMapping(map){
-  return map.id==='id'&&map.time==='time'&&map.dose==='dose'&&map.concentration==='dv';
+  return map.id==='id'&&map.time==='time'&&map.dose==='dose'&&map.concentration==='dv'&&map.event==='evid';
 }
