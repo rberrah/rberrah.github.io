@@ -236,8 +236,8 @@ function stage3(){
   '<div class="career-bayes-layout"><div class="career-bayes-controls">'+
   '<h3>'+tr('Paramètres du modèle','Model assumptions')+'</h3>'+
   bayesSlider('mipd-iiv', 'Amplitude IIV (ωCL et ωV)', 'IIV spread (ωCL and ωV)',.5,2,.05,sensitivityIIV,' ×')+
-  bayesSlider('mipd-ruv','RUV proportionnelle','Proportional RUV',3,30,1,Math.round(sensitivityRUV*100),'%')+
-  bayesSlider('mipd-prior-weight','Poids du prior (flattening)','Prior power (flattening)',.1,1,.05,priorWeight,' ×')+
+  bayesSlider('mipd-ruv','RUV proportionnelle','Proportional RUV',1,30,1,Math.round(sensitivityRUV*100),'%')+
+  bayesSlider('mipd-prior-weight','Poids du prior (flattening)','Prior power (flattening)',.1,1,.025,priorWeight,' ×')+
   '<button type="button" class="career-action" id="mipd-bayes-reset">'+tr('Valeurs de référence','Restore baseline')+'</button>'+
   '<p class="career-note" id="mipd-bayes-reading"></p>'+
   '</div><div class="career-bayes-charts">'+
@@ -266,7 +266,7 @@ function stage3(){
   const p=currentPosterior(),ref=P3;
   $('mipd-iiv-value').textContent='×'+fmt(sensitivityIIV,2);
   $('mipd-ruv-value').textContent=fmt(100*sensitivityRUV,0)+' %';
-  $('mipd-prior-weight-value').textContent='×'+fmt(priorWeight,2);
+  $('mipd-prior-weight-value').textContent='×'+fmt(priorWeight,3);
   $('mipd-sensitivity-metrics').innerHTML=metrics([
    ['MAP CL/F',fmt(ref.mapCL,1)+' → '+fmt(p.mapCL,1)+' L/h'],
    ['P5–P95 CL/F',fmt(p.clCI[0],1)+'–'+fmt(p.clCI[1],1)],
