@@ -196,7 +196,7 @@ function stage3(){
   '<svg id="mipd-sensitive-v" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="V prior sensitivity"></svg>'+
   '<p class="career-note">'+tr('Attention : une RUV artificiellement proche de zéro peut surajuster des concentrations bruitées ; aplatir le prior n’est pas toujours meilleur. Ces manipulations ne réestiment pas le modèle populationnel. Le modèle RUV inclut aussi un plancher fixe de 0,08 mg/L.',
    'A near-zero RUV may overfit noisy concentrations; flattening the prior is not always beneficial. These controls do not refit the population model. RUV also includes a fixed 0.08 mg/L error floor.')+'</p>'+
-  '<p class="career-note"><a href="'+CASE.references.hughes+'" target="_blank" rel="noopener">'+tr('Hughes et al., prior aplati (2021)','Hughes et al., flattened priors (2021)')+'</a></p>'+
+  '<p class="career-note"><a href="'+CASE.references.berrah+'" target="_blank" rel="noopener">'+tr('Berrah et al. (2026) · influence de l’erreur résiduelle en MIPD','Berrah et al. (2026) · residual error as a lever in MIPD')+'</a> · <a href="'+CASE.references.hughes+'" target="_blank" rel="noopener">'+tr('Hughes et al. (2021) · prior aplati','Hughes et al. (2021) · flattened priors')+'</a></p>'+
   options([['balance','IIV et prior modifient la pénalisation populationnelle ; RUV modifie le poids des dosages. Une RUV trop faible risque le surajustement.',
     'IIV and prior weight control population shrinkage; RUV controls observation weight. Excessively small RUV may overfit.'],
    ['all','Baisser la RUV et aplatir le prior améliorent toujours les prédictions.',
