@@ -19,7 +19,7 @@
       statusEn: 'Conference poster · PEPR 2026',
       summaryFr: 'Intégrer des connaissances pharmacologiques publiées à une modélisation PK mécaniste et évaluer ses limites.',
       summaryEn: 'Integrate published pharmacological knowledge into mechanistic PK modelling and evaluate its limitations.',
-      source: '/communications/netpk-peprsn-2026/',
+      source: 'https://rberrah.github.io/communications/netpk-peprsn-2026/',
       sourceFr: 'Poster et provenance',
       sourceEn: 'Poster and provenance'
     },
@@ -38,7 +38,7 @@
       statusEn: 'Conference poster · PAGE 2026',
       summaryFr: 'Explorer une assistance auditable à la construction de modèles PK de population, sous supervision pharmacométrique.',
       summaryEn: 'Investigate auditable assistance for population PK model development under pharmacometric supervision.',
-      source: '/communications/autonomous-pharmacometrics-page-2026/',
+      source: 'https://rberrah.github.io/communications/autonomous-pharmacometrics-page-2026/',
       sourceFr: 'Poster et provenance',
       sourceEn: 'Poster and provenance'
     },
