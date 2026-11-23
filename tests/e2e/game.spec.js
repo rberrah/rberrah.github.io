@@ -7,14 +7,14 @@ test.beforeEach(async ({ page }) => {
     ? route.continue() : route.abort());
 });
 
-test('unlisted /game/ loads a working educational simulator with no menu link', async ({ page }) => {
+test('canonical /pharmacometrie/game/ loads full educational simulator with official links', async ({ page }) => {
   const errors=[];
   page.on('pageerror', e => errors.push(e.message));
-  const response=await page.goto(origin+'/game/');
+  const response=await page.goto(origin+'/pharmacometrie/game/');
   expect(response.status()).toBe(200);
   await expect(page.locator('#academy-mode')).toBeVisible();
   await page.getByRole('button',{name:/Atelier libre · Construire/}).click();
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','noindex,nofollow,noarchive');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/game/');
   await expect(page.locator('#diagram [data-node="central"]')).toHaveCount(1);
   await expect(page.locator('#diagram [data-node="p1"]')).toHaveCount(0);
   const before=await page.locator('#auc').textContent();
@@ -37,12 +37,16 @@ test('unlisted /game/ loads a working educational simulator with no menu link', 
   await expect(page.locator('#chart path[stroke="#e8bd83"]')).toHaveCount(1);
   expect(errors).toEqual([]);
   await page.goto(origin+'/');
-  await expect(page.locator('a[href^="/game"]')).toHaveCount(0);
+  await expect(page.locator('a[href^="/pharmacometrie/game/"]')).not.toHaveCount(0);
+  await page.goto(origin+'/pharmacometrie/');
+  await expect(page.getByTestId('game-feature-open')).toHaveAttribute('href',/\/pharmacometrie\/game\/\?lang=/);
+  await page.goto(origin+'/pharmacometrie/chapitres/');
+  await expect(page.getByTestId('game-learn-open')).toBeVisible();
 });
 
 test('diagram interaction and responsive layout work without external requests',async ({page})=>{
   await page.setViewportSize({width:360,height:760});
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   await expect(page.locator('h1')).toBeVisible();
   await page.getByRole('button',{name:/Atelier libre · Construire/}).click();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1)).toBe(true);
@@ -69,7 +73,7 @@ test('diagram interaction and responsive layout work without external requests',
 test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks nine quests',async({page})=>{
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   await expect(page.locator('#academy-mode')).toBeVisible();
   await expect(page.locator('#lab-mode')).toBeHidden();
   await expect(page.locator('#quest-count')).toHaveText('0/9');
@@ -140,7 +144,7 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
 
 test('campaign renders at narrow width without horizontal scrolling, with locally saved progress only',async({page})=>{
   await page.setViewportSize({width:360,height:740});
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   await expect(page.locator('#academy-chart')).toBeVisible();
   await expect(page.locator('#quest-list button')).toHaveCount(9);
@@ -153,7 +157,7 @@ test('campaign renders at narrow width without horizontal scrolling, with locall
 
 test('advanced curriculum requires drawing 2C, full ODE assembly and three dose optimizations', async ({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   await page.locator('#mode-advanced').click();
   await expect(page.locator('#advanced-mode')).toBeVisible();
   await expect(page.locator('#academy-mode')).toBeHidden();
@@ -259,7 +263,7 @@ test('advanced curriculum requires drawing 2C, full ODE assembly and three dose 
 
 test('advanced model editor and physiology remain readable on mobile without page overflow',async({page})=>{
   await page.setViewportSize({width:360,height:760});
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   await expect(page.locator('#body-figure')).toHaveAttribute('viewBox','0 0 430 848');
   await expect(page.locator('.body-legend span')).toHaveCount(4);
   await page.locator('#mode-advanced').click();
@@ -272,7 +276,7 @@ test('advanced model editor and physiology remain readable on mobile without pag
 
 test('population pharmacometrician route runs from mapping through archived generalized-SAEM to justified report',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   await page.locator('#mode-population').click();
   await expect(page.locator('#population-mode')).toBeVisible();
   await expect(page.locator('#academy-mode')).toBeHidden();
@@ -340,7 +344,7 @@ test('population pharmacometrician route runs from mapping through archived gene
 
 test('MIPD route demonstrates timed sampling, live Bayesian MAP, dose probability, changing CL and safety gate',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   await page.locator('#mode-mipd').click();
   await expect(page.locator('#mipd-mode')).toBeVisible();
   await expect(page.locator('#mipd-progress')).toHaveText('0 / 6');
@@ -394,7 +398,7 @@ test('MIPD route demonstrates timed sampling, live Bayesian MAP, dose probabilit
 
 test('both clinical-workflow teaching routes fit narrow screens without horizontal overflow',async({page})=>{
   await page.setViewportSize({width:360,height:760});
-  await page.goto(origin+'/game/');
+  await page.goto(origin+'/pharmacometrie/game/');
   for(const [tab,mode] of [['#mode-population','#population-mode'],['#mode-mipd','#mipd-mode']]){
     await page.locator(tab).click();
     await expect(page.locator(mode)).toBeVisible();
