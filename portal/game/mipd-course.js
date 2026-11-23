@@ -7,7 +7,8 @@ const $=id=>document.getElementById(id);
 const tr=(fr,en)=>lang()==='en'?en:fr;
 function lang(){
  const selected=new URLSearchParams(location.search).get('lang');
- return selected==='en'||!selected&&document.documentElement.lang==='en'?'en':'fr';
+ let stored='fr';try{stored=localStorage.getItem('pharmacometrie-language')||'fr';}catch{}
+ return selected==='en'||!selected&&(document.documentElement.lang==='en'||stored==='en')?'en':'fr';
 }
 const fmt=(v,n=1)=>Number(v).toLocaleString(lang()==='en'?'en-US':'fr-FR',
  {minimumFractionDigits:n,maximumFractionDigits:n});
