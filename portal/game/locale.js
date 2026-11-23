@@ -7,7 +7,9 @@ import {FR_EN_MIPD} from './locale-en-mipd.js';
 import {FR_EN_CLASSIC} from './locale-en-classic.js';
 import {FR_EN_V3} from './locale-en-v3.js';
 import {FR_EN_V4} from './locale-en-v4.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4};
+import {FR_EN_V5} from './locale-en-v5.js';
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5};
+const LONG_FRAGMENTS=Object.entries(FR_EN_V5).filter(([fr])=>fr.length>28).sort((a,b)=>b[0].length-a[0].length);
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
@@ -60,6 +62,9 @@ function translate(fr){
   const direct=DICTIONARY[trimmed];
   if(direct!==undefined)return fr.replace(trimmed,direct);
   let en=fr;
+  for(const [from,to] of LONG_FRAGMENTS){
+    if(en.includes(from))en=en.split(from).join(to);
+  }
   for(const [from,to] of phraseRules){
     if(en.includes(from))en=en.split(from).join(to);
   }
