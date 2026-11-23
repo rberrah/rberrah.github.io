@@ -79,37 +79,35 @@ La campagne initiale de neuf quêtes reste intacte, mais un troisième onglet in
 
 Références pédagogiques consultées : [SFPT/SFAR, bêta-lactamines et fT>CMI](https://pmc.ncbi.nlm.nih.gov/articles/PMC6441232/), [revue des indices PK/PD anti-infectieux](https://pmc.ncbi.nlm.nih.gov/articles/PMC5039113/), [Principles of Pharmacokinetics, NCBI](https://www.ncbi.nlm.nih.gov/books/NBK12815/).
 
-## Parcours 3 — Pharmacometricien : du fichier au rapport de PopPK
+## Parcours 3 — données historiques et diagnostics PopPK
 
-Le dossier « warfarine » de ce jeu est intégralement **synthétique** : 28 individus artificiels, 285 concentrations, une dose orale unique de 1,5 mg/kg. Aucun dossier clinique réel n'a été copié. Le tutoriel Monolix de warfarine sert de **référence méthodologique**, sans reprendre ses résultats SAEM ni prétendre avoir ajusté le jeu original.
+Le parcours utilise dorénavant les **données expérimentales historiques de la warfarine**, déjà présentes dans le site dans course_source/warfarin/warfarin_data.csv. L’archive Monolix présente 515 lignes : 32 volontaires, 32 doses orales, 251 observations PK dont quatre concentrations nulles et 232 observations de l’activité du complexe prothrombinique (PCA). Les observations répétées au même instant sont conservées. Le module portal/game/warfarin-study.js contient une transcription non simulée de ces lignes. Références : O’Reilly (1963, 1968), [documentation Monolix](https://monolixsuite.slp-software.com/monolix/2024R1/warfarin-joint-data-set), [nlmixr2data](https://nlmixr2.github.io/nlmixr2data/reference/warfarin.html).
 
-1. Données : attribuer ID, TIME, AMT, DV et EVID ; différencier les événements de dose (EVID=1, AMT>0, DV absente) et les lignes de concentration (EVID=0, AMT=0, DV présente) avant toute estimation.
-2. EDA : explorer les profils sujets, les échelles linéaire et semi-log, les premières données manquantes et les hypothèses initiales.
-3. Estimation : **trois modèles réellement pré-calculés**, oral 1C, oral 1C avec Tlag, oral 2C. Le bouton relit neuf instantanés de 170 itérations par modèle, et **ne lance jamais un SAEM navigateur**. CL, V, Ka, Q, Vp, Tlag (selon le candidat), variabilité interindividuelle de CL, résidu et critères sont archivés dans portal/game/saem-replay.js.
-4. Diagnostics : courbes de population et conditionnelles individuelles, et contrôle prédictif illustratif (120 simulations par temps, sans bande d'incertitude). GOF, VPC, stabilité, précision et identifiabilité sont complémentaires ; NPDE, bootstrap et validation externe **ne sont pas réalisés**.
-5. Arbitrage : BIC approximatifs : 1C sans Tlag −223,78 ; 1C + Tlag −224,01 ; 2C sans Tlag −215,27. ΔBIC de **0,23** entre 1C ± Tlag = différence non décisive malgré la vérité de simulation ; le 2C est pénalisé.
-6. PK/PD : simulation **indépendante** et illustrative d'une PCA retardée par turnover. Aucune estimation SAEM des paramètres PD n'a été faite. Un lien PK→PD doit être formulé comme hypothèse à tester.
-7. Rapport : résultat copiable avec provenance, limites et refus d'une interprétation clinique.
+Le véritable **notebook SAEM nlmixr2** déjà exécuté se trouve dans course_source/warfarin/warfarin_monolix_nlmixr2.ipynb. Comparaison structurale (erreur combined1) :
 
-**Calcul pré-enregistré reproductible** : scripts/build_game_warfarin_saem.py (NumPy et SciPy ; seed 20261123), petit SAEM **généralisé pédagogique**, avec Metropolis pour ηCL, approximation stochastique des moments de variance et M-step numérique conditionnelle. −2LL marginal et BIC via quadrature Gauss–Legendre 1D à 161 nœuds. La procédure est une implémentation exploratoire **non qualifiée**, distincte de Monolix/nlmixr2 ; les nombres ne sont pas des estimations de leur logiciel. Les différentes initialisations et l'identifiabilité ne sont pas validées sur ce banc.
+| Modèle | AIC du notebook | BIC du notebook |
+|---|---:|---:|
+| Oral 1C sans Tlag | 899,6142 | 927,8178 |
+| Oral 1C avec Tlag | 781,8434 | 817,0979 |
+| Oral 2C avec Tlag | 817,0512 | 859,3567 |
 
-**Pour prolonger vers des données publiques réelles :** la warfarine dans nlmixr2data comprend 519 lignes, 9 colonnes et 32 sujets, avec concentrations et PCA. Ce jeu historique n'est pas embarqué ici. Sources :
-[Monolix : tutoriel PK/PD de warfarine](https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics),
-[nlmixr2data : warfarin](https://nlmixr2.github.io/nlmixr2data/reference/warfarin.html),
-[FeRx : oral warfarin SAEM/FOCEI](https://ferx-nlme.org/examples/warfarin.html).
+La comparaison **1C ± Tlag donne ΔBIC = 110,72**, et non 0,23 : cette dernière valeur venait de l'ancien exemple synthétique qui ne devait pas être présenté comme un résultat de l'étude. Autres modèles du notebook : 1C Tlag + combined2 (BIC 795,5982) puis covariable poids sur V (BIC 779,7962). Pour ce dernier, les effets fixes archivés sont Tlag = 0,696 h ; Ka = 1,32 h⁻¹ ; CL = 0,133 L/h ; V = 8,07 L au poids de référence 71,65 kg ; exposant du poids = 0,847. Ces estimations **ne sont pas celles des autres candidats**.
 
-## Parcours 4 — MIPD : du dosage à une prévision Bayésienne
+La nouvelle galerie propose 12 vues : DV vs PRED, DV vs IPRED*, WRES* vs temps et vs PRED, histogramme IWRES*, QQ-plot IWRES*, ηCL* vs poids, ajustement individuel, PCA vs temps, PCA vs concentration, VPC illustratif et panneau d'indicateurs manquants. Les astérisques désignent des **reconstructions** à partir des données historiques et des effets fixes du modèle final avec un estimateur CL post-hoc 1D simplifié ; ce ne sont pas les vrais IPRED, IWRES, EBE ou CWRES du SAEM nlmixr2. L'illustration VPC utilise des variances supposées et n'est pas un VPC qualifié. Les CWRES, NPDE, RSE, matrice d'information, histogramme d'EBE officiel, historique d'itérations, précision et résultats PD ajustés n’ont pas été exportés : il faut récupérer les sorties du véritable objet fit nlmixr2 pour les calculer, pas les inventer.
 
-Cas « antibiotique V » entièrement fictif, sans référence de prescription : perfusion IV de 1 h q12h, modèle 1C, dose initiale 750 mg q12h ; CL simulée 3,6 L/h et V 29 L. Prior lognormal artificiel : CL médiane 4,5 L/h (log-SD 0,28) et V médian 32 L (log-SD 0,22). Deux dosages simulés, à 2 h et 11 h, donnent 28,71 et 8,67 mg/L.
+Les sept missions restent import des lignes de dose et des deux types d’observations, exploration réelle PK, comparaison des sorties SAEM, diagnostics, sélection argumentée, visualisation des PCA expérimentales et rapport sourcé. Le jeu ne produit aucune décision clinique.
 
-1. Audit des conditions d'emploi du modèle.
-2. Choix de deux prélèvements horodatés informatifs.
-3. **Bayes/MAP réellement recalculé** dans le navigateur sur une grille CL × V de 57 × 49 points ; posterior proportionnel au prior et à la vraisemblance des 0, 1 ou 2 dosages, avec CV analytique fictif de 9 % et SD plancher 0,35 mg/L. Maximum a posteriori conjoint (MAP CL/V), moyennes postérieures (distinctes du MAP), intervalle P5–P95 de CL et distribution des paramètres.
-4. Grille de cinq doses fictives q12h : 600/750/900/1050/1200 mg. Cible **inventée pour le jeu** : AUC24 de 440–560 mg·h/L, avec seuil de passage P(cible) ≥ 68 %. Intégration de la distribution postérieure, pas uniquement de CL moyenne.
-5. Scénario hypothétique CL ×0,6 : prévision conditionnelle sans nouveau dosage et **sans mise à jour du posterior**, avec exigence de recontrôle.
-6. Portes de sécurité : validation externe, indication, dose et horaire, données analytiques, nouvelle appréciation de CL et interdiction de transposer les doses simulées à des patients.
+L’ancien script synthétique scripts/build_game_warfarin_saem.py a été conçu pour un banc de démonstration distinct. Il n’est ni nécessaire au nouveau parcours ni une preuve des résultats du notebook nlmixr2.
 
-Ces outils ne sont PAS MIPD Engine, n'utilisent aucune information médicale réelle et ne constituent pas un modèle de vancomycine validé. Comparaison de référence : [consensus vancomycine 2020](https://www.idsociety.org/practice-guideline/vancomycin), [recommandations d'intégration des modèles populationnels dans le MIPD](https://pmc.ncbi.nlm.nih.gov/articles/PMC11992666/). Les paramètres et la fenêtre cible de ce jeu ne sont pas repris des recommandations cliniques.
+## Parcours 4 — MIPD, prélèvements et compromis bénéfice–risque
+
+Le cas antibiotique V reste **entièrement fictif** (modèle IV 1C, perfusion 1 h toutes les 12 h, prior CL médiane 4,5 L/h et V médian 32 L). Les deux dosages fictifs sont fixés à 2 h et 11 h du début de perfusion.
+
+1. **Audit du plan déjà fourni :** l’apprenant juge le caractère raisonnable des horaires dans ce cas IV 1C ; il ne les choisit plus lui-même. Aucun plan de prélèvement n’est universel indépendamment du modèle et des modalités de dose.
+2. **Prior vs posterior :** légende gris-bleu = prior populationnel inchangé, vert = posterior obtenu avec les observations. Le prior ne change pas : c'est la likelihood qui modifie le posterior. La marginale CL, le MAP conjoint et la moyenne postérieure restent distincts.
+3. **Cible sélectionnable :** AUC24, C0 ou temps >2×CMI à partir de courbes concentration-temps avec lignes CMI, 2×CMI et seuil C0 toxique. Exemples **inventés** : AUC24 440–560 mg·h/L, C0 8–11 mg/L, CMI 5 mg/L, fT>2×CMI ≥90 %, plafond fictif C0 ≥12 mg/L. Pour l'AUC, la probabilité est intégrée sur la grille postérieure ; pour C0 et le temps, le graphique exploite les paramètres moyens (pas une probabilité complète).
+4. **Baisse hypothétique de CL ×0,6 :** en prenant pour référence 900 mg q12h, la dose 540 mg conserve l’AUC24 mais prédit une C0 ≈13,1 mg/L, supérieure au seuil toxique fictif. La dose 450 mg ramène C0 ≈10,9 mg/L, mais AUC24 ≈409 mg·h/L sort de la fenêtre du jeu. Ce conflit enseigne qu'il n'existe pas nécessairement de dose satisfaisant simultanément toutes les cibles. Il n’y a **ni nouvelle observation ni nouveau posterior** dans ce scénario.
+5. Les données, cibles, seuils et doses de l'exercice ne sont pas des recommandations cliniques et MIPD Engine n'est pas appelé.
 
 ## Vérifications obligatoires
 
