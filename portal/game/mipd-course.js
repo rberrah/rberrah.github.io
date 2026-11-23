@@ -181,45 +181,97 @@ function stage2(){
  $('mipd-workspace').querySelectorAll('[data-mipd-post]').forEach(b=>b.addEventListener('click',()=>draw(+b.dataset.mipdPost)));
  draw(0);
 }
+function tripleBayesChart(svg,post,key){
+ const keys=[['wPrior','#89b6d7'],['wLikelihood','#f2c58e'],['w','#99eed0']];
+ const grouped=keys.map(([field,color])=>{
+  const m=new Map();
+  for(const r of post.rows)m.set(r[key],(m.get(r[key])||0)+r[field]);
+  return {color,values:[...m].sort((a,b)=>a[0]-b[0])};
+ });
+ const numbers=grouped.flatMap(g=>g.values.map(v=>v[1])),allX=grouped[0].values.map(v=>v[0]);
+ const xmin=Math.min(...allX),xmax=Math.max(...allX),top=Math.max(...numbers)*1.1;
+ const xx=v=>72+606*(v-xmin)/(xmax-xmin),yy=v=>230-177*v/top;
+ let content='<rect x="72" y="45" width="606" height="185" fill="#09252f" rx="9"/>';
+ for(let i=0;i<5;i++){
+  const x=xx(xmin+i*(xmax-xmin)/4);
+  content+='<line x1="'+x+'" x2="'+x+'" y1="45" y2="230" stroke="#38545d" stroke-dasharray="3 6"/>'+
+   '<text x="'+x+'" y="253" text-anchor="middle" font-size="12" fill="#bdd7d0">'+fmt(xmin+i*(xmax-xmin)/4,0)+'</text>';
+ }
+ grouped.forEach((g,i)=>{
+  content+='<polyline points="'+g.values.map(([x,y])=>xx(x).toFixed(1)+','+yy(y).toFixed(1)).join(' ')+
+   '" fill="none" stroke="'+g.color+'" stroke-width="'+(i===2?4:2.8)+'" stroke-linejoin="round"/>';
+ });
+ svg.innerHTML=content+
+  '<text x="72" y="25" fill="#d6eee3" font-size="14">'+(key==='cl'?'CL/F (L/h)':'V/F (L)')+'</text>'+
+  '<text x="374" y="277" fill="#b8d0c9" text-anchor="middle" font-size="11">'+tr('Masses marginales normalisées sur une grille commune','Normalized marginal masses on a common grid')+'</text>';
+}
+function bayesSlider(id,fr,en,min,max,step,value,unit){
+ return '<label class="career-bayes-slider" for="'+id+'"><span>'+tr(fr,en)+
+   '</span><output id="'+id+'-value">'+fmt(value,unit==='%'?0:2)+(unit||'')+'</output>'+
+   '<input id="'+id+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+value+'"></label>';
+}
 function stage3(){
  $('mipd-workspace').innerHTML=story(
-  'Dans MAP-BE, la <strong>variabilité interindividuelle (IIV)</strong> définit la dispersion du prior, alors que la <strong>variabilité résiduelle (RUV)</strong> intervient dans la vraisemblance. Le « flattened prior » de Hughes diminue explicitement le poids du prior. Changez ces trois composantes <em>séparément</em> et regardez CL/F, V/F et l’AUC prédite.',
-  'In MAP estimation, <strong>interindividual variability (IIV)</strong> controls prior spread, while <strong>residual unexplained variability (RUV)</strong> controls the likelihood. Hughes et al. proposed selectively <strong>flattening the prior</strong>. Change each component separately and examine CL/F, V/F and predicted AUC.',
-  'SENSIBILITÉ DU POSTERIOR','POSTERIOR SENSITIVITY')+
-  '<div class="career-field-grid">'+
-  '<label>'+tr('Amplitude de l’IIV','IIV scale')+' <select id="mipd-iiv"><option value="0.5">× 0.50</option><option value="1">× 1.00</option><option value="1.75">× 1.75</option></select></label>'+
-  '<label>'+tr('Erreur résiduelle proportionnelle','Proportional RUV')+' <select id="mipd-ruv"><option value="0.01">1 %</option><option value="0.12">12 %</option><option value="0.25">25 %</option></select></label>'+
-  '<label>'+tr('Poids du prior','Prior weight')+' <select id="mipd-prior-weight"><option value="1">MAP ×1</option><option value="0.125">Flattened ×⅛</option></select></label></div>'+
-  legend(tr('MAP de référence','Baseline MAP'),tr('Scénario modifié','Modified settings'))+
+  'Modifiez un réglage de MAP-BE et observez simultanément comment la <strong>dispersion populationnelle (IIV)</strong>, la <strong>vraisemblance (RUV)</strong> et le <strong>poids du prior</strong> influencent le posterior. Une augmentation de la RUV diminue l’information apportée par un dosage, sans changer les observations. Aucun réglage n’est systématiquement optimal.',
+  'Change a MAP-BE setting and compare <strong>population IIV</strong>, <strong>observation likelihood (RUV)</strong>, and <strong>prior weighting</strong> with the resulting posterior. Greater RUV reduces the information contributed by drug levels without changing the observations. No setting is universally optimal.',
+  'SENSIBILITÉ MAP-BE · PRIOR × LIKELIHOOD','MAP-BE SENSITIVITY · PRIOR × LIKELIHOOD')+
+  '<div class="career-bayes-layout"><div class="career-bayes-controls">'+
+  '<h3>'+tr('Paramètres du modèle','Model assumptions')+'</h3>'+
+  bayesSlider('mipd-iiv', 'Amplitude IIV (ωCL et ωV)', 'IIV spread (ωCL and ωV)',.5,2,.05,sensitivityIIV,' ×')+
+  bayesSlider('mipd-ruv','RUV proportionnelle','Proportional RUV',.03,.3,.01,sensitivityRUV*100,'%')+
+  bayesSlider('mipd-prior-weight','Poids du prior (flattening)','Prior power (flattening)',.1,1,.05,priorWeight,' ×')+
+  '<button type="button" class="career-action" id="mipd-bayes-reset">'+tr('Valeurs de référence','Restore baseline')+'</button>'+
+  '<p class="career-note" id="mipd-bayes-reading"></p>'+
+  '</div><div class="career-bayes-charts">'+
+  '<p class="career-chart-key"><span><i style="background:#89b6d7"></i>'+tr('Prior normalisé','Normalized prior')+'</span>'+
+  '<span><i style="background:#f2c58e"></i>'+tr('Likelihood normalisée','Normalized likelihood')+'</span>'+
+  '<span><i style="background:#99eed0"></i>'+tr('Posterior','Posterior')+'</span></p>'+
+  '<svg id="mipd-sensitive-cl" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="CL prior likelihood posterior overlay"></svg>'+
+  '<svg id="mipd-sensitive-v" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="V prior likelihood posterior overlay"></svg>'+
+  '</div></div>'+
   '<div id="mipd-sensitivity-metrics" class="career-metrics"></div>'+
-  '<svg id="mipd-sensitive-cl" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="CL prior sensitivity"></svg>'+
-  '<svg id="mipd-sensitive-v" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="V prior sensitivity"></svg>'+
-  '<p class="career-note">'+tr('Attention : une RUV artificiellement proche de zéro peut surajuster des concentrations bruitées ; aplatir le prior n’est pas toujours meilleur. Ces manipulations ne réestiment pas le modèle populationnel. Le modèle RUV inclut aussi un plancher fixe de 0,08 mg/L.',
-   'A near-zero RUV may overfit noisy concentrations; flattening the prior is not always beneficial. These controls do not refit the population model. RUV also includes a fixed 0.08 mg/L error floor.')+'</p>'+
-  '<p class="career-note"><a href="'+CASE.references.berrah+'" target="_blank" rel="noopener">'+tr('Berrah et al. (2026) · influence de l’erreur résiduelle en MIPD','Berrah et al. (2026) · residual error as a lever in MIPD')+'</a> · <a href="'+CASE.references.hughes+'" target="_blank" rel="noopener">'+tr('Hughes et al. (2021) · prior aplati','Hughes et al. (2021) · flattened priors')+'</a></p>'+
-  options([['balance','IIV et prior modifient la pénalisation populationnelle ; RUV modifie le poids des dosages. Une RUV trop faible risque le surajustement.',
-    'IIV and prior weight control population shrinkage; RUV controls observation weight. Excessively small RUV may overfit.'],
-   ['all','Baisser la RUV et aplatir le prior améliorent toujours les prédictions.',
-    'Reducing RUV and flattening the prior always improve predictions.']],'mipd-sensitivity-answer');
+  '<p class="career-note">'+tr('Les trois courbes représentent des masses marginales normalisées séparément sur la même grille. Le prior n’est pas mis à jour par les données ; on compare ici différentes <em>hypothèses</em> de prior, pas différentes observations. La vraisemblance est intégrée sur l’autre paramètre avec la grille utilisée. Le modèle RUV conserve un plancher additif de 0,08 mg/L.',
+   'The three curves show separately normalized marginal masses on the same grid. Observations do not alter the prior: sliders change <em>assumptions</em>, not data. Likelihood is marginalized over the other parameter using the same grid. RUV includes a 0.08 mg/L additive floor.')+'</p>'+
+  '<p class="career-note"><a href="'+CASE.references.berrah+'" target="_blank" rel="noopener">'+
+   tr('Berrah et al. : influence de la RUV en MIPD','Berrah et al.: RUV effects in MIPD')+'</a> · <a href="'+CASE.references.hughes+
+   '" target="_blank" rel="noopener">'+tr('Hughes & Keizer : aplatir le prior','Hughes & Keizer: flattened priors')+
+   '</a> · <a href="/pharmacometrie/chapitres/?lang='+lang()+'" target="_blank" rel="noopener">'+
+   tr('Revoir les cours de pharmacométrie','Review the pharmacometrics courses')+'</a></p>'+
+  options([['balance','L’IIV et le poids du prior contrôlent la dispersion et l’influence du prior ; la RUV règle le poids accordé aux concentrations mesurées.',
+    'IIV and prior power control the prior spread and influence; RUV controls how strongly observed concentrations affect the posterior.'],
+   ['all','Une diminution de RUV et du poids du prior améliore nécessairement l’estimation individuelle.',
+    'Reducing RUV and prior weight necessarily improves an individual estimate.']],'mipd-sensitivity-answer');
  function draw(){
   const p=currentPosterior(),ref=P3;
+  $('mipd-iiv-value').textContent='×'+fmt(sensitivityIIV,2);
+  $('mipd-ruv-value').textContent=fmt(100*sensitivityRUV,0)+' %';
+  $('mipd-prior-weight-value').textContent='×'+fmt(priorWeight,2);
   $('mipd-sensitivity-metrics').innerHTML=metrics([
    ['MAP CL/F',fmt(ref.mapCL,1)+' → '+fmt(p.mapCL,1)+' L/h'],
    ['P5–P95 CL/F',fmt(p.clCI[0],1)+'–'+fmt(p.clCI[1],1)],
    ['MAP V/F',fmt(ref.mapV,0)+' → '+fmt(p.mapV,0)+' L'],
    ['AUC₀–₁₂h @ 1000 mg',fmt(doseMetrics(ref,1000).auc,1)+' → '+fmt(doseMetrics(p,1000).auc,1)]]);
-  posteriorChart($('mipd-sensitive-cl'),ref,p,'cl');
-  posteriorChart($('mipd-sensitive-v'),ref,p,'v');
+  tripleBayesChart($('mipd-sensitive-cl'),p,'cl');
+  tripleBayesChart($('mipd-sensitive-v'),p,'v');
+  const direction=p.mapCL-ref.mapCL;
+  $('mipd-bayes-reading').textContent=tr('CL/F MAP : ','CL/F MAP: ')+
+   fmt(ref.mapCL,1)+' → '+fmt(p.mapCL,1)+' L/h ('+
+   (Math.abs(direction)<.1?tr('inchangée','unchanged'):direction>0?tr('en hausse','higher'):tr('en baisse','lower'))+').';
  }
- $('mipd-iiv').value=String(sensitivityIIV);
- $('mipd-ruv').value=String(sensitivityRUV);
- $('mipd-prior-weight').value=String(priorWeight);
- for(const [id,key,assign] of [
-  ['mipd-iiv','iiv',v=>sensitivityIIV=v],['mipd-ruv','ruv',v=>sensitivityRUV=v],
-  ['mipd-prior-weight','prior',v=>priorWeight=v]
+ for(const [id,key,assign,transform] of [
+   ['mipd-iiv','iiv',v=>sensitivityIIV=v,v=>v],
+   ['mipd-ruv','ruv',v=>sensitivityRUV=v,v=>v/100],
+   ['mipd-prior-weight','prior',v=>priorWeight=v,v=>v]
  ]){
-  $(id).addEventListener('change',e=>{assign(+e.target.value);sensitivityChanged.add(key);draw();});
+  $(id).addEventListener('input',e=>{assign(transform(+e.target.value));sensitivityChanged.add(key);draw();});
  }
+ $('mipd-bayes-reset').addEventListener('click',()=>{
+  sensitivityIIV=1;sensitivityRUV=.12;priorWeight=1;
+  $('mipd-iiv').value='1';$('mipd-ruv').value='12';$('mipd-prior-weight').value='1';draw();
+ });
+ $('mipd-iiv').value=String(sensitivityIIV);
+ $('mipd-ruv').value=String(Math.round(sensitivityRUV*100));
+ $('mipd-prior-weight').value=String(priorWeight);
  draw();
 }
 function doseInput(id,value,help){
