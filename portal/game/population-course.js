@@ -80,17 +80,14 @@ function navigation(){
 }
 function report(){
   const cmp=modelComparison(),winner=cmp.find(x=>x.id==='lag'),base=cmp.find(x=>x.id==='one');
-  return 'PMx Game — Rapport exploratoire PopPK (données synthétiques)\n'+
-    '28 sujets, 285 concentrations simulées après dose orale unique 1,5 mg/kg.\n'+
-    'Trois modèles PK évalués par generalized-SAEM de démonstration, ηCL lognormal, résidu lognormal ; 170 itérations enregistrées.\n'+
-    '1C sans Tlag : BIC '+fmt(base.bic)+' ; 1C avec Tlag : BIC '+fmt(winner.bic)+
-    ' ; 2C sans Tlag : BIC '+fmt(cmp.find(x=>x.id==='two').bic)+'.\n'+
-    'ΔBIC 1C avec vs sans Tlag = '+fmt(base.bic-winner.bic)+' : aucune distinction probante entre ces deux hypothèses.\n'+
-    'Une complexification vers 2C n’est pas soutenue par cet indicateur sur ce scénario synthétique.\n'+
-    'PK/PD : réponse retardée de type turnover seulement illustrée, paramètres PD NON estimés.\n'+
-    'Limites : données générées, SAEM généralisé non qualifié, BIC marginal numérique approximatif, VPC synthétique, absence de validation externe.\n'+
-    'Référence pédagogique : '+POPULATION_META.tutorialUrl+'\n'+
-    'Ce rapport n’est pas une expertise clinique ni une analyse de données de patients.';
+  return 'PMx Game — Dossier étude Warfarine et atelier distinct SAEM\n'+
+    'ÉTUDE EXPÉRIMENTALE : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures PK et '+STUDY_META.nPD+' mesures PCA après dose orale unique de 1,5 mg/kg. Source : '+STUDY_META.sourceUrl+'\n'+
+    'ATELIER DE MÉTHODE DISTINCT : replay de généralized-SAEM réalisé sur '+POPULATION_META.nSubjects+' sujets ARTIFICIELS avec '+POPULATION_META.nObservations+' concentrations générées ; aucun des BIC ci-après ne s’applique à la cohorte réelle.\n'+
+    '1C sans Tlag BIC '+fmt(base.bic)+' ; 1C avec Tlag BIC '+fmt(winner.bic)+' ; 2C BIC '+fmt(cmp.find(x=>x.id==='two').bic)+'. ΔBIC faible et non conclusif.\n'+
+    'Diagnostics illustrés sur le replay : DV/PRED, DV/IPRED, résidus conditionnels standardisés sur log(C), histogramme et QQ, ETA_CL, profils individuels et VPC avec 120 réplications. Pas de CWRES/NPDE ni d’identifiabilité numérique validée.\n'+
+    'Les mesures PCA de l’étude réelle sont affichées, sans estimation du modèle PD.\n'+
+    'À compléter : ajustement SAEM/FOCEi sur les 32 sujets réels, diagnostics et BIC recalculés, validation sur données indépendantes si applicable.\n'+
+    'Ce rapport n’est pas une expertise clinique ni une recommandation thérapeutique.';
 }
 function renderImport(){
   const subj=STUDY_SUBJECTS[0],pk=STUDY_PK.filter(x=>x.id===subj.id).slice(0,4),
@@ -144,7 +141,7 @@ function renderSAEM(){
     '<div class="career-model-buttons">'+options+'</div>'+
     '<div class="career-metrics">'+metric('Itérations enregistrées','170')+
     metric('Effets aléatoires','ηCL')+metric('Erreur','log-normale')+'</div>'+
-    '<div class="career-chart-toolbar"><label>Itération du replay <input id="pop-iteration" type="range" min="0" max="8" value="8" step="1"></label><span id="pop-iteration-label" class="career-tag"></span></div>'+
+    '<div class="career-chart-toolbar"><label>Paramètre <select id="pop-trace-param"></select></label><label>Itération du replay <input id="pop-iteration" type="range" min="0" max="8" value="8" step="1"></label><span id="pop-iteration-label" class="career-tag"></span></div>'+
     '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Trajectoire CL et points réellement enregistrés du SAEM"></svg>'+
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
@@ -154,8 +151,15 @@ function renderSAEM(){
     const keys=selectedFit==='one'?['CL','V','Ka','omegaCL','sigmaLog']:selectedFit==='lag'?['CL','V','Ka','Tlag','omegaCL','sigmaLog']:['CL','Vc','Ka','Q','Vp','omegaCL','sigmaLog'];
     const rr=fit.trace[timeIndex];
     $('pop-iteration-label').textContent='Itération '+rr[0]+' / 170';
-    const points=fit.trace.map(r=>({t:r[0],c:r[1]}));
-    graph($('pop-trace'),{series:[{values:points,color:'#95f4d6'}],points:points.map(p=>({...p,color:'#f6c28e'})),maxT:170,ymax:.32});
+    const names=keys;
+    const traceField=$('pop-trace-param');
+    if(traceField.options.length!==names.length || [...traceField.options].some((o,i)=>o.value!==names[i])){
+      traceField.innerHTML=names.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
+    }
+    const indexField=names.indexOf(traceField.value);
+    const values=fit.trace.map(r=>({t:r[0],c:r[indexField+1]}));
+    graph($('pop-trace'),{series:[{values,color:'#95f4d6'}],
+      points:values.map(p=>({...p,color:'#f6c28e'})),maxT:170,ymax:Math.max(...values.map(p=>p.c)) * 1.12});
     $('pop-fit-summary').innerHTML=metric('CL typique',fmt(fit.est.CL,4)+' L/h')+
       metric('BIC marginal',fmt(fit.bic))+
       metric('ωCL (log SD)',fmt(rr[rr.length-2],3));
@@ -175,6 +179,7 @@ function renderSAEM(){
     $('pop-iteration').value='8';redraw();
   }));
   $('pop-iteration').addEventListener('input',redraw);
+  $('pop-trace-param').addEventListener('change',redraw);
   redraw();
 }
 function renderDiagnostics(){
