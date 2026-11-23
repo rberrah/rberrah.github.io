@@ -218,11 +218,12 @@ function navigation(){
   $('population-steps').replaceChildren(frag);
 }
 function report(){
-  const cmp=modelComparison(),winner=cmp.find(x=>x.id==='lag'),base=cmp.find(x=>x.id==='one');
+  const cmp=modelComparison(),winner=cmp.find(x=>x.id==='lag'),base=cmp.find(x=>x.id==='one'),v=variabilitySummary('lag');
   return 'PMx Game — Dossier étude Warfarine et atelier distinct SAEM\n'+
     'ÉTUDE EXPÉRIMENTALE : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures PK et '+STUDY_META.nPD+' mesures PCA après dose orale unique de 1,5 mg/kg. Source : '+STUDY_META.sourceUrl+'\n'+
     'ATELIER DE MÉTHODE DISTINCT : replay de généralized-SAEM réalisé sur '+POPULATION_META.nSubjects+' sujets ARTIFICIELS avec '+POPULATION_META.nObservations+' concentrations générées ; aucun des BIC ci-après ne s’applique à la cohorte réelle.\n'+
     '1C sans Tlag BIC '+fmt(base.bic)+' ; 1C avec Tlag BIC '+fmt(winner.bic)+' ; 2C BIC '+fmt(cmp.find(x=>x.id==='two').bic)+'. ΔBIC faible et non conclusif.\n'+
+    'Exemple IIV/RUV (1C avec Tlag, modèle NON sélectionné avec certitude) : ωCL '+fmt(v.omega,3)+' (IIV CL '+fmt(v.omegaCv,1)+' %) ; σlog '+fmt(v.sigma,3)+' (CV résiduel '+fmt(v.sigmaCv,1)+' %) ; shrinkage EBE/ω descriptif '+fmt(v.shrinkage,1)+' %.\n'+
     'Diagnostics du replay : DV/PRED, DV/IPRED, profils individuels, distribution et covariables de ηCL, IIV log-normale (ωCL), erreur résiduelle log-normale (σlog), résidus log-standardisés, QQ/histogrammes, VPC 120 réplications, trajectoires SAEM. Bilan explicite des contrôles non disponibles (CWRES, NPDE, RSE, bootstrap, IOV, diagnostics externes).\n'+
     'Les mesures PCA de l’étude réelle sont affichées, sans estimation du modèle PD.\n'+
     'À compléter : ajustement SAEM/FOCEi sur les 32 sujets réels, diagnostics et BIC recalculés, validation sur données indépendantes si applicable.\n'+
