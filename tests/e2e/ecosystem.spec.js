@@ -17,8 +17,8 @@ test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async 
   const thesis = page.getByTestId('thesis-research-program');
   await expect(thesis.getByRole('heading', { level: 2 })).toContainText('From biological knowledge');
   await expect(thesis.locator('.thesis-card')).toHaveCount(6);
-  await expect(thesis.locator('[data-project="netpk"] a')).toHaveAttribute('href', '/communications/netpk-peprsn-2026/');
-  await expect(thesis.locator('[data-project="pillar-b"] a')).toHaveAttribute('href', '/communications/autonomous-pharmacometrics-page-2026/');
+  await expect(thesis.locator('[data-project="netpk"] a')).toHaveAttribute('href', 'https://rberrah.github.io/communications/netpk-peprsn-2026/');
+  await expect(thesis.locator('[data-project="pillar-b"] a')).toHaveAttribute('href', 'https://rberrah.github.io/communications/autonomous-pharmacometrics-page-2026/');
   await expect(thesis.locator('[data-project="phenopass"] a')).toHaveCount(0);
   await expect(thesis.locator('[data-project="phenopass"]')).toContainText('unpublished results');
   await expect(thesis.locator('[data-project="pillar-c"] a, [data-project="pillar-d"] a')).toHaveCount(0);
