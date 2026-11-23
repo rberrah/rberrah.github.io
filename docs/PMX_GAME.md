@@ -10,13 +10,12 @@
 - Le jeu est publiquement référencé sans aucune donnée personnelle, médicale ou saisie patient.
 - Le parcours 3 contient désormais les graphiques IIV/RUV/EBE et une carte explicite des diagnostics disponibles vs manquants. Seule ηCL est estimée ; aucun CWRES/NPDE/RSE/IOV/Ω-corrélation n'est inventé.
 
-## Distribution historique (archive — désormais remplacée)
+## Route canonique et confidentialité
 
-- Page autonome /game/ (portal/game/index.html) sur le domaine racine.
-- Aucune entrée de navigation, aucun lien depuis le portail ou PMx, aucune entrée de sitemap. Le script d'assemblage n'injecte pas GoatCounter dans ce sous-arbre. La page porte robots=noindex,nofollow,noarchive.
-- Le contenu est **public** sur GitHub Pages ; l'absence de lien n'est **pas** un contrôle d'accès. Ne jamais y traiter de données médicales ou personnelles.
-- Ne pas ajouter la route à /pharmacometrie/ ni modifier les contrats MIPD/MultiOmics.
-- Les modules ES sont servis depuis portal/game/*.js, compatibles avec le serveur de prévisualisation et son MIME text/javascript.
+- **Seule adresse publique du jeu complet :** `https://rberrah.github.io/pharmacometrie/game/`.
+- `/game/` ne contient plus les modules : un document minimal non indexé renvoie immédiatement à l’adresse canonique, pour préserver les anciens favoris.
+- Les fichiers sont statiques, sans saisie de données patients ni instrumentation de visite ; seule la progression locale (niveaux franchis) est conservée dans ce navigateur.
+- Aucun double simulateur Svelte n’est maintenu. `src/routes/game/+page.svelte` n’est qu’une page technique remplacée au montage de la version publique.
 
 ## Deux expériences complémentaires
 
