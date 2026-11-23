@@ -65,7 +65,7 @@ assert.equal(chooseChecks(['gof','vpc','bic-only']),false);
 // Clinical context is sourced (heart transplant MPA AUC), while all PK values are simulated.
 assert.equal(CASE.targetAucMinimum,36);
 assert.equal(CASE.tau,12);
-assert.equal(DOSES.length,8);
+assert.equal(DOSES.length,6);
 assert.deepEqual(MIPD_OBS.map(o=>o.t),[.5,1,2]);
 assert.ok(MIPD_OBS.every(o=>o.value>0));
 const before=mpaConcentration(0,{cl:CASE.trueCL,v:CASE.trueV});
@@ -106,7 +106,7 @@ assert.equal(sampleTimingGrade(['three','context']),true);
 assert.equal(sampleTimingGrade(['trough','untimed']),false);
 assert.equal(qualityGate({changingCL:true}).canBeUsedClinically,false);
 assert.throws(()=>doseMetrics(p3,-5),RangeError);
-assert.throws(()=>doseMetrics(p3,4000),RangeError);
+assert.throws(()=>doseMetrics(p3,1600),RangeError);
 assert.throws(()=>posterior({samples:4}),RangeError);
 assert.throws(()=>posterior({ruvCV:0}),RangeError);
 assert.match(CASE.references.guide,/\/cibles-tdm\//);
