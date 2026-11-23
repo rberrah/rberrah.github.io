@@ -253,8 +253,11 @@ function stage3(){
   '<p class="career-note"><a href="'+CASE.references.berrah+'" target="_blank" rel="noopener">'+
    tr('Berrah et al. : influence de la RUV en MIPD','Berrah et al.: RUV effects in MIPD')+'</a> · <a href="'+CASE.references.hughes+
    '" target="_blank" rel="noopener">'+tr('Hughes & Keizer : aplatir le prior','Hughes & Keizer: flattened priors')+
-   '</a> · <a href="/pharmacometrie/chapitres/?lang='+lang()+'" target="_blank" rel="noopener">'+
-   tr('Revoir les cours de pharmacométrie','Review the pharmacometrics courses')+'</a></p>'+
+   '</a></p>'+
+  '<p class="career-note">'+tr('Cours associés : ','Related lessons: ')+
+    '<a href="/pharmacometrie/chapitres/variabilite-iiv-iov/?lang='+lang()+'" target="_blank" rel="noopener">IIV/IOV</a> · '+
+    '<a href="/pharmacometrie/chapitres/erreur-residuelle/?lang='+lang()+'" target="_blank" rel="noopener">'+tr('Erreur résiduelle','Residual error')+'</a> · '+
+    '<a href="/pharmacometrie/chapitres/bayes-ebes/?lang='+lang()+'" target="_blank" rel="noopener">Bayes / EBE</a></p>'+
   options([['balance','L’IIV et le poids du prior contrôlent la dispersion et l’influence du prior ; la RUV règle le poids accordé aux concentrations mesurées.',
     'IIV and prior power control the prior spread and influence; RUV controls how strongly observed concentrations affect the posterior.'],
    ['all','Une diminution de RUV et du poids du prior améliore nécessairement l’estimation individuelle.',
