@@ -8,13 +8,13 @@ This change is intentionally limited to the public portfolio portal. It does not
 
 - The homepage connects three research directions to the original research communications and a peer-reviewed article.
 - The academic profile documents the same directions and links to reproducible technical evidence.
-- The Tools page makes software methods, limitations and source repositories more explicit. Autonomous Pharmacometrics is labelled **research under evaluation**, not a validated product.
-- Schema.org SoftwareApplication is added for the existing browser applications PMx Explain, Stats, Multiomics and MIPD Engine. The existing Person and ScholarlyArticle data are unchanged.
+- The Tools page makes software methods, limitations and source repositories more explicit, and corrects a pre-existing inaccurate description of Stat & Biologie (an interactive French-language course with a test-selection decision tree, not a dataset-analysis calculator). Autonomous Pharmacometrics is labelled **research under evaluation**, not a validated product.
+- Schema.org SoftwareApplication is added for PMx Explain, Multiomics and MIPD Engine. The standalone Stat & Biologie site already identifies itself as a Course, so the portal does not incorrectly mark it as a dataset-analysis SoftwareApplication. The existing Person and ScholarlyArticle data are unchanged.
 - No new SEO landing pages, URL changes, redirects, new claims of clinical validation, software version claims or role/mandate claims are introduced.
 
 ## Checks before merging
 
-1. Inspect the diff and confirm only `portal/index.html`, `portal/tools/index.html`, `portal/a-propos/index.html` the portal browser test and this document changed.
+1. Inspect the diff and confirm only `portal/index.html`, `portal/tools/index.html`, `portal/a-propos/index.html` the portal browser test, and this document changed.
 2. Parse every `application/ld+json` block as JSON. Confirm that each software `author.@id` references `/#racym-berrah`, and that the links to source repositories and research presentations resolve.
 3. The portal browser test was updated to scope its pre-existing project-grid assertion, and to assert attribution for the new structured data. Run existing portal/browser tests and the site deployment qualification normally used by this repository. Do not bypass checks or trigger unrelated projects intentionally.
 4. On the published deployment, confirm page titles, canonical URLs, robots/sitemap and visible rendering. The source files contain the `__SITE_ORIGIN__` placeholder until the build replaces it.
@@ -32,3 +32,7 @@ The repository has Google verification metadata and a verification file, but tha
 ## Evidence boundary
 
 Software repositories and unit tests demonstrate implementation and bounded qualification, not patient outcome efficacy. Posters demonstrate communicated research, not completed external validation. Governance/association mandates should be added only after exact titles, dates and institutional sources are verified.
+
+## Review correction (second pass)
+
+The portal previously described `/stats/` as a bilingual dataset-analysis calculator. The standalone authoritative repository `rberrah/stats` instead provides a French interactive biostatistics course with a decision tree (`src/lib/content/choixTest.js`), exercises, chapters and visualisations; its homepage emits `Course` structured data. The portal copy and associated markup have been corrected on this PR branch only. The standalone repository has not been modified.
