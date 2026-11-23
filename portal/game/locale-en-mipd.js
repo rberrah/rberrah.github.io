@@ -133,5 +133,13 @@ export const FR_EN_MIPD = {
   "Appliquez la proportionnalité dose/CL pour l’AUC, puis vérifiez la C0 et le compromis bénéfice–risque.": "Use AUC ∝ dose/CL, then check trough and benefit–risk trade-offs.",
   "Dossier fermé : aucune des doses simulées ne constitue une recommandation pour un patient.": "Case complete: none of the simulated doses is a patient recommendation.",
   "Retenez validation, vérification des entrées et surveillance ; aucune prescription réelle n’est justifiée.": "Require validation, input verification and monitoring; no real prescription is justified.",
-  "Réinitialiser les missions MIPD de ce navigateur ?": "Reset this browser's MIPD missions?"
+  "Réinitialiser les missions MIPD de ce navigateur ?": "Reset this browser's MIPD missions?",
+  "Recevoir le dossier": "Review the case",
+  "Audit du modèle": "Model audit",
+  "Vérifier le caractère fictif du modèle et ce qui manque à une décision clinique.": "Check what the fictional model lacks for clinical decision-making.",
+  "Observations simulées": "Simulated observations",
+  "Tester une posologie": "Test a dosing regimen",
+  "Revoir la clairance": "Reassess clearance",
+  "Évaluer le plan de dosage": "Assess the sampling plan",
+  "Choisissez d’abord un critère pharmacocinétique/pharmacodynamique": "First select a pharmacokinetic/pharmacodynamic criterion"
 };
