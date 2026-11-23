@@ -37,7 +37,7 @@ function read(){
  }catch{return [];}
 }
 let done=read(),index=Math.min(done.length,STEPS.length-1),selectedDose=1000,revisedDose=600;
-let sampleView=new Set(),sensitivityIIV=1,sensitivityRUV=.12,priorWeight=1;
+let sampleView=new Set(),sensitivityIIV=1,sensitivityRUV=.12,priorWeight=1,doseTouched=false;
 let sensitivityChanged=new Set(),interpretation='';
 const P0=posterior({samples:0}),P1=posterior({samples:1}),P3=posterior({samples:3});
 function currentPosterior(){
@@ -403,9 +403,9 @@ function validate(){
    failure('Modifiez les trois contrôles, puis expliquez comment ils pondèrent le posterior.','Change all three controls and explain their posterior effects.');
  if(index===4){
   const x=doseMetrics(dosePost(),selectedDose);
-  return selectedDose!==CASE.dose&&x.meets.auc&&!x.meets.aboveContext?
-   success('La dose saisie atteint le seuil inférieur d’AUC. Interprétez aussi l’incertitude et la tolérance.','Your dose meets the lower AUC reference. Also assess uncertainty and tolerability.'):
-   failure('Testez une nouvelle dose et examinez si AUC atteint 36 mg·h/L sans dépasser la zone de vigilance contextuelle.','Enter a different dose and check AUC against 36 mg·h/L and the context-dependent review zone.');
+  return doseTouched&&x.meets.auc?
+   success('La dose saisie atteint le seuil inférieur d’AUC. Interprétez aussi l’incertitude et la tolérance.','Your selected dose meets the lower AUC reference. Also assess uncertainty and tolerability.'):
+   failure('Saisissez vous-même une dose et confrontez son AUC au seuil de 36 mg·h/L. Aucune borne supérieure cardiaque n’est imposée.','Enter a dose and compare its AUC with the 36 mg·h/L reference. No validated upper heart-transplant bound is imposed.');
  }
  if(index===5){
   const cmp=scenarioComparison(dosePost(),selectedDose,.6,revisedDose);
@@ -423,7 +423,7 @@ $('mipd-hint').addEventListener('click',()=>{$('mipd-hint-text').hidden=false;})
 $('mipd-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
 $('mipd-reset').addEventListener('click',()=>{
  if(!confirm(tr('Réinitialiser ce dossier MIPD ?','Reset this MIPD case?')))return;
- done=[];selectedDose=CASE.dose;revisedDose=600;sensitivityIIV=1;sensitivityRUV=.12;priorWeight=1;
+ done=[];selectedDose=CASE.dose;revisedDose=600;sensitivityIIV=1;sensitivityRUV=.12;priorWeight=1;doseTouched=false;
  sensitivityChanged.clear();sampleView.clear();try{localStorage.setItem(KEY,'[]');}catch{}select(0);
 });
 window.addEventListener('pmx-game-language-change',()=>render());
