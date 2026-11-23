@@ -224,7 +224,7 @@ function stage3(){
 }
 function doseInput(id,value,help){
  return '<div class="career-field-grid"><label>'+tr('Nouvelle dose de MMF toutes les 12 h (mg)','New MMF dose every 12 hours (mg)')+
- '<input id="'+id+'" type="number" min="250" max="3000" step="50" value="'+value+'" inputmode="decimal"></label>'+
+ '<input id="'+id+'" type="number" min="250" max="1500" step="50" value="'+value+'" inputmode="decimal"></label>'+
  '<p class="career-note">'+help+'</p></div>';
 }
 function stage4(){
@@ -233,19 +233,19 @@ function stage4(){
   'L’AUC₀–₁₂h du MPA est l’indicateur prioritaire pour ce scénario de greffe cardiaque précoce. Vous fixez vous-même la <strong>dose de MMF</strong> ; les concentrations affichées représentent le <strong>MPA</strong>. La cible de référence est AUC &gt; 36 mg·h/L. Une AUC &gt; 60 mg·h/L appelle un examen du contexte, mais 60 n’est pas ici une limite de toxicité cardiaque validée.',
   'MPA AUC₀–₁₂h is the priority endpoint for this early heart-transplant case. Enter a new <strong>MMF dose</strong>; plotted concentrations are <strong>MPA</strong>. The reference is AUC &gt; 36 mg·h/L. AUC &gt; 60 mg·h/L merits contextual review, but 60 is not a validated heart-transplant toxicity cutoff.',
   'SIMULATIONS D’EXPOSITION','EXPOSURE PROJECTIONS')+
-  doseInput('mipd-dose-input',selectedDose,tr('Choisissez librement la dose (250 à 3000 mg dans ce simulateur). La même dose n’implique pas la même AUC chez tous les patients.',
-   'Enter any dose from 250 to 3,000 mg in this simulator. Equal doses do not guarantee equal exposure.'))+
+  doseInput('mipd-dose-input',selectedDose,tr('Choisissez une dose de 250 à 1500 mg par prise dans le cadre du cas. La même dose n’implique pas la même AUC chez tous les patients.',
+   'Enter a dose from 250 to 1,500 mg per administration for this case. Equal doses do not guarantee equal exposure.'))+
   '<div id="mipd-dose-metrics" class="career-metrics"></div><div id="mipd-dose-auc"></div>'+
   '<svg id="mipd-dose-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="MPA concentration time prediction"></svg>'+
   '<p class="career-chart-key"><span><i style="background:#9debd2"></i>'+tr('Profil MPA estimé par MAP','MAP-predicted MPA curve')+'</span></p>'+
   '<p id="mipd-dose-assessment" class="career-note"></p>'+
   '<p class="career-note">'+tr('AUC et C0 sont deux résumés différents : les courbes du MPA peuvent présenter une recirculation entérohépatique que le modèle oral 1C de cet exercice ne représente pas. La tolérance exige aussi clinique, NFS et recherche d’infections.',
    'AUC and trough are different summaries. Real MPA may show enterohepatic recirculation, which this simple oral one-compartment model omits. Safety assessment also requires symptoms, blood counts and infection review.')+'</p>'+
-  '<p><a href="'+CASE.references.guide+'&lang='+lang()+'" target="_blank" rel="noopener">'+tr('Voir la cible et ses sources dans Cibles‑TDM','View the target and sources in TDM Targets')+'</a></p>';
+  '<p><a href="'+CASE.references.guide+'&lang='+lang()+'" target="_blank" rel="noopener">'+tr('Voir la cible et ses sources dans Cibles‑TDM','View the target and sources in TDM Targets')+'</a> · <a href="'+CASE.references.label+'" target="_blank" rel="noopener">'+tr('RCP CellCept · posologie cardiaque adulte','CellCept SmPC · adult heart transplant dose')+'</a></p>';
  function draw(){
   const raw=+$('mipd-dose-input').value;
-  if(!Number.isFinite(raw)||raw<250||raw>3000){
-   $('mipd-dose-assessment').textContent=tr('Saisir une dose entre 250 et 3000 mg.','Enter a dose between 250 and 3,000 mg.');return;
+  if(!Number.isFinite(raw)||raw<250||raw>1500){
+   $('mipd-dose-assessment').textContent=tr('Saisir une dose entre 250 et 1500 mg.','Enter a dose between 250 and 1,500 mg.');return;
   }
   selectedDose=raw;
   const x=doseMetrics(post,raw);
