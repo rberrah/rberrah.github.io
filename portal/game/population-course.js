@@ -140,40 +140,91 @@ export function variabilitySummary(kind){
 function gaussianDensity(x,sd){
   return Math.exp(-x*x/(2*sd*sd))/(sd*Math.sqrt(2*Math.PI));
 }
+// A small population of EBEs must not be displayed with a highly fragmented
+// 20-bin histogram. EBE distribution is a conditional estimate, not sampled IIV.
+export function iivDensityDiagnostic(eta,omega){
+  if(!Array.isArray(eta)||eta.length<2||!eta.every(Number.isFinite)||
+     !Number.isFinite(omega)||omega<=0)throw new RangeError('Invalid EBE/IIV inputs');
+  const n=eta.length,bins=Math.max(5,Math.min(9,Math.round(Math.sqrt(n))+1));
+  const bound=Math.max(3*omega,Math.max(...eta.map(Math.abs))*1.08);
+  const lo=-bound,hi=bound,width=(hi-lo)/bins,counts=Array(bins).fill(0);
+  for(const v of eta)counts[Math.max(0,Math.min(bins-1,Math.floor((v-lo)/width)))]++;
+  const histogram=counts.map((count,i)=>({
+    x0:lo+i*width,x1:lo+(i+1)*width,density:count/(n*width),count
+  }));
+  return {lo,hi,n,bins,histogram,area:histogram.reduce((sum,x)=>sum+x.density*width,0)};
+}
 function plotIiv(el,eta,omega){
-  const lo=-1,hi=1,bins=20,width=625,scaleX=x=>68+(x-lo)/(hi-lo)*width;
-  const counts=Array(bins).fill(0);
-  for(const v of eta)if(Number.isFinite(v))counts[Math.min(bins-1,Math.max(0,Math.floor((v-lo)/(hi-lo)*bins)))]++;
-  const binWidth=(hi-lo)/bins;
-  const hist=counts.map(x=>x/(eta.length*binWidth));
-  const ymax=Math.max(...hist,gaussianDensity(0,omega))*1.15;
-  const sy=v=>240-195*v/ymax;
-  let svg='<rect x="68" y="42" width="625" height="198" rx="8" fill="#0c2530"/>'+
-    '<path d="M68 '+sy(0)+' H693" stroke="#65868e"/>';
-  for(let i=0;i<bins;i++){
-    const x=scaleX(lo+i*binWidth),w=width/bins-2;
-    svg+='<rect x="'+(x+1)+'" y="'+sy(hist[i])+'" width="'+w+
-      '" height="'+(240-sy(hist[i]))+'" fill="#9be9cf" opacity=".68"/>';
+  const d=iivDensityDiagnostic(eta,omega);
+  const px=x=>76+(x-d.lo)/(d.hi-d.lo)*595;
+  const yMax=Math.max(gaussianDensity(0,omega),...d.histogram.map(x=>x.density))*1.22;
+  const py=y=>232-y/yMax*175;
+  let svg='<rect x="76" y="54" width="595" height="178" rx="9" fill="#102d39"/>';
+  for(let k=0;k<=4;k++){
+    const val=k*yMax/4;
+    svg+='<path d="M76 '+py(val)+' H671" stroke="#3c5864" stroke-dasharray="4 6"/>'+
+      '<text x="67" y="'+(py(val)+4)+'" text-anchor="end" fill="#d5e7e1" font-size="11">'+fmt(val,1)+'</text>';
   }
-  const line=Array.from({length:141},(_,i)=>{
-    const x=lo+(hi-lo)*i/140;return scaleX(x).toFixed(1)+','+sy(gaussianDensity(x,omega)).toFixed(1);
+  svg+='<line x1="'+px(0)+'" x2="'+px(0)+'" y1="54" y2="232" stroke="#a1b6c7" stroke-dasharray="3 6" opacity=".9"/>';
+  for(const bin of d.histogram){
+    const x=px(bin.x0)+1,w=px(bin.x1)-px(bin.x0)-2;
+    svg+='<rect x="'+x+'" y="'+py(bin.density)+'" width="'+w+'" height="'+(232-py(bin.density))+
+      '" fill="#8de3ca" opacity=".68"><title>'+bin.count+' EBE</title></rect>';
+  }
+  const coords=Array.from({length:161},(_,i)=>{
+    const x=d.lo+(d.hi-d.lo)*i/160;
+    return px(x).toFixed(1)+','+py(gaussianDensity(x,omega)).toFixed(1);
+  }).join(' ');
+  svg+='<polyline fill="none" stroke="#f5bf87" stroke-width="3" points="'+coords+'"/>';
+  for(let k=0;k<=4;k++){
+    const val=d.lo+(d.hi-d.lo)*k/4;
+    svg+='<text x="'+px(val)+'" y="251" font-size="12" text-anchor="middle" fill="#d5e7e1">'+fmt(val,2)+'</text>';
+  }
+  el.innerHTML=svg+
+    '<text x="76" y="24" fill="#d9efe9" font-size="12">IIV · EBE ηCL (n='+eta.length+') / N(0, ωCL²)</text>'+
+    '<text x="76" y="43" fill="#d1e4e0" font-size="11">'+(document.documentElement.lang==='en'?'Density (not count)':'Densité (et non effectif)')+'</text>'+
+    '<text x="373" y="275" text-anchor="middle" font-size="12" fill="#d9efe9">ηCL (log CL)</text>';
+}
+// DV = IPRED * exp(epsilon), epsilon ~ N(0,sigmaLog²):
+// the conditional median is IPRED, and prediction quantiles are asymmetric
+// on the concentration scale. This is exact for the fitted lognormal RUV.
+export function lognormalRuvEnvelope(sigma,maxPred=25){
+  if(!Number.isFinite(sigma)||sigma<=0||!Number.isFinite(maxPred)||maxPred<=0)
+    throw new RangeError('Invalid lognormal RUV parameters');
+  const z=1.6448536269514722;
+  const values=Array.from({length:101},(_,i)=>{
+    const pred=maxPred*i/100;
+    return {pred,median:pred,p5:pred*Math.exp(-z*sigma),p95:pred*Math.exp(z*sigma)};
   });
-  svg+='<polyline points="'+line.join(' ')+'" fill="none" stroke="#f6c28e" stroke-width="3"/>';
-  for(let i=0;i<=4;i++){
-    svg+='<text x="'+scaleX(lo+i*(hi-lo)/4)+'" y="262" fill="#c8ddd8" font-size="12" text-anchor="middle">'+(lo+i*(hi-lo)/4).toFixed(1)+'</text>';
-  }
-  el.innerHTML=svg+'<text x="68" y="23" fill="#c8ddd8" font-size="12">Densité des EBE ηCL (vert) et N(0, ωCL²) estimée (orange)</text>';
+  return {values,p5Ratio:Math.exp(-z*sigma),p95Ratio:Math.exp(z*sigma)};
 }
 function plotResidualError(el,sigma){
-  const maxC=25,ss=180,cx=68,cy=242;
-  const x=v=>cx+625*v/maxC,y=v=>cy-190*v/(sigma*maxC*1.5);
-  let svg='<rect x="68" y="36" width="625" height="206" rx="8" fill="#0c2530"/>';
-  const line=Array.from({length:101},(_,i)=>{const c=maxC*i/100;return x(c).toFixed(1)+','+y(c*sigma).toFixed(1);});
-  const alt=Array.from({length:101},(_,i)=>{const c=maxC*i/100;return x(c).toFixed(1)+','+y(10*sigma).toFixed(1);});
-  svg+='<polyline points="'+line.join(' ')+'" fill="none" stroke="#9be9cf" stroke-width="3"/>'+
-    '<polyline points="'+alt.join(' ')+'" fill="none" stroke="#f6c28e" stroke-width="2" stroke-dasharray="6 5"/>';
-  for(let i=0;i<=5;i++)svg+='<text x="'+x(5*i)+'" y="263" text-anchor="middle" fill="#c8ddd8" font-size="11">'+5*i+'</text>';
-  el.innerHTML=svg+'<text x="68" y="23" fill="#c8ddd8" font-size="12">Écart-type sur C (mg/L) ≈ σlog × prédiction (mg/L)</text>';
+  const band=lognormalRuvEnvelope(sigma),maxPred=25;
+  const maxObserved=maxPred*band.p95Ratio*1.07;
+  const px=v=>76+595*v/maxPred,py=v=>232-175*v/maxObserved;
+  let svg='<rect x="76" y="54" width="595" height="178" rx="9" fill="#102d39"/>';
+  for(let k=0;k<=4;k++){
+    const val=maxObserved*k/4;
+    svg+='<path d="M76 '+py(val)+' H671" stroke="#3c5864" stroke-dasharray="4 6"/>'+
+      '<text x="67" y="'+(py(val)+4)+'" text-anchor="end" font-size="11" fill="#d5e7e1">'+fmt(val,1)+'</text>';
+  }
+  const up=band.values.map(p=>px(p.pred).toFixed(1)+','+py(p.p95).toFixed(1));
+  const down=[...band.values].reverse().map(p=>px(p.pred).toFixed(1)+','+py(p.p5).toFixed(1));
+  svg+='<polygon points="'+[...up,...down].join(' ')+'" fill="#78b9ac" opacity=".3"/>';
+  for(const [key,color,width] of [['p5','#a6c0d9',2.4],['median','#93ead1',3],['p95','#f2c288',2.4]]){
+    const coords=band.values.map(p=>px(p.pred).toFixed(1)+','+py(p[key]).toFixed(1)).join(' ');
+    svg+='<polyline points="'+coords+'" fill="none" stroke="'+color+'" stroke-width="'+width+'"/>';
+  }
+  for(let k=0;k<=5;k++){
+    svg+='<text x="'+px(k*5)+'" y="251" text-anchor="middle" font-size="12" fill="#d5e7e1">'+(k*5)+'</text>';
+  }
+  el.innerHTML=svg+
+    '<text x="76" y="24" fill="#d9efe9" font-size="12">'+
+    (document.documentElement.lang==='en'?'Conditional lognormal 90% prediction interval':'Intervalle prédictif lognormal conditionnel à 90 %')+'</text>'+
+    '<text x="76" y="43" fill="#d1e4e0" font-size="11">'+
+    (document.documentElement.lang==='en'?'MPA/PK concentration scale (mg/L)':'Échelle des concentrations (mg/L)')+'</text>'+
+    '<text x="373" y="275" text-anchor="middle" font-size="12" fill="#d9efe9">'+
+    (document.documentElement.lang==='en'?'Individual prediction IPRED (mg/L)':'Prédiction individuelle IPRED (mg/L)')+'</text>';
 }
 function normQuantile(p){
   // Acklam approximation; used solely for a diagnostic QQ axis, not inference.
@@ -372,18 +423,6 @@ function plotSAEMConvergence(svg,kind,param,step){
   svg.innerHTML=out+'<text x="70" y="23" fill="#c8ddd8" font-size="12">Écart relatif (%) à la dernière valeur enregistrée · estimation SAEM</text>'+
     '<text x="70" y="280" fill="#b7ccc9" font-size="11">Bande verte ±5 % = repère visuel, pas un test de convergence</text>';
 }
-function plotBicEvidence(svg){
-  const rows=modelComparison(),min=Math.min(...rows.map(r=>r.bic)),range=Math.max(2,...rows.map(r=>r.bic-min));
-  let out='<rect x="245" y="37" width="440" height="209" rx="8" fill="#0c2530"/>';
-  for(const [i,row] of rows.entries()){
-    const delta=row.bic-min,y=55+i*62,w=410*delta/range;
-    out+='<text x="12" y="'+(y+17)+'" fill="#e2eee9" font-size="12">'+escapeText(row.label)+'</text>'+
-      '<rect x="248" y="'+y+'" width="'+Math.max(2,w)+'" height="25" rx="4" fill="'+['#99dccc','#f4c08e','#c7a4f5'][i]+'"/>'+
-      '<text x="'+(255+w)+'" y="'+(y+18)+'" fill="#f4eee5" font-size="12">ΔBIC '+fmt(delta,2)+'</text>';
-  }
-  svg.innerHTML=out+'<text x="245" y="22" fill="#c8ddd8" font-size="12">Écart au BIC minimal : plus petit = meilleur, faible écart = ambigu</text>';
-}
-
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
   $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
@@ -393,7 +432,6 @@ function renderSAEM(){
     '<div class="career-chart-toolbar"><label>Paramètre <select id="pop-trace-param"></select></label><label>Itération du replay <input id="pop-iteration" type="range" min="0" max="8" value="8" step="1"></label><span id="pop-iteration-label" class="career-tag"></span></div>'+
     '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Convergence relative des paramètres SAEM"></svg>'+ 
     '<p class="career-note">Chaque ligne indique le changement relatif du paramètre par rapport à sa valeur finale. Les modèles sont comparés uniquement lorsqu’ils possèdent ce paramètre ; le plateau ne prouve pas que la solution est identifiable.</p>'+ 
-    '<svg id="pop-bic" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Comparaison des écarts de BIC entre structures"></svg>'+
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
     '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
@@ -408,7 +446,6 @@ function renderSAEM(){
       traceField.innerHTML=names.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
     }
     plotSAEMConvergence($('pop-trace'),selectedFit,traceField.value,timeIndex);
-    plotBicEvidence($('pop-bic'));
     $('pop-fit-summary').innerHTML=metric('CL typique',fmt(fit.est.CL,4)+' L/h')+
       metric('BIC marginal',fmt(fit.bic))+
       metric('ωCL (log SD)',fmt(rr[rr.length-2],3));
