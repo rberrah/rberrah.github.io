@@ -92,16 +92,21 @@ function report(){
     'Ce rapport n’est pas une expertise clinique ni une analyse de données de patients.';
 }
 function renderImport(){
-  $('population-workspace').innerHTML=story('Votre service reçoit un fichier de concentrations après une dose orale unique. Avant tout SAEM, associez les colonnes <strong>Sujet, Temps, Dose et DV</strong> aux champs d’un modèle PK. Les 28 sujets sont fictifs et les 285 lignes ne représentent pas de dossiers cliniques.','DOSSIER N° 01 · CONTRÔLE QUALITÉ')+
-    '<div class="career-metrics">'+metric('Sujets',POPULATION_META.nSubjects)+metric('Observations',POPULATION_META.nObservations)+metric('Administration','Orale · 1 prise')+'</div>'+
-    '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Colonne A</th><th>Colonne B</th><th>Colonne C</th><th>Colonne D</th></tr></thead><tbody>'+
-    OBSERVATIONS.slice(0,5).map(p=>'<tr><td>'+p.id+'</td><td>'+fmt(p.t,1)+'</td><td>'+fmt(p.dose,1)+'</td><td>'+fmt(p.c,2)+'</td></tr>').join('')+
+  // Dose events and concentration observations are distinct NONMEM-style rows.
+  const first=SUBJECTS[0];
+  const obs=OBSERVATIONS.filter(x=>x.id===first.id).slice(0,4);
+  const rows=[{id:first.id,t:0,amt:first.dose,dv:'—',evid:1},
+    ...obs.map(o=>({id:o.id,t:o.t,amt:0,dv:fmt(o.c,2),evid:0}))];
+  $('population-workspace').innerHTML=story('Votre service reçoit des concentrations après une dose orale unique. Avant tout SAEM, identifiez les champs <strong>patient, temps, administration, observation et type d’événement</strong>. Une ligne de dose n’est pas une concentration et une concentration ne doit pas déclencher une nouvelle dose.','DOSSIER N° 01 · CONTRÔLE QUALITÉ')+
+    '<div class="career-metrics">'+metric('Sujets',POPULATION_META.nSubjects)+metric('Concentrations',POPULATION_META.nObservations)+metric('Événements de dose',SUBJECTS.length)+'</div>'+
+    '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Colonne A</th><th>Colonne B</th><th>Colonne C</th><th>Colonne D</th><th>Colonne E</th></tr></thead><tbody>'+
+    rows.map(p=>'<tr><td>'+p.id+'</td><td>'+fmt(p.t,1)+'</td><td>'+fmt(p.amt,1)+'</td><td>'+p.dv+'</td><td>'+p.evid+'</td></tr>').join('')+
     '</tbody></table></div>'+
-    '<p class="career-note">Indices : la dose dépend ici du poids (1,5 mg/kg), le temps est en heures et DV représente une concentration en mg/L.</p>'+
-    '<div class="career-field-grid">'+[['id','A'],['time','B'],['dose','C'],['concentration','D']].map(([key,col])=>
+    '<p class="career-note">Ligne EVID=1 : AMT contient la dose, DV est absente. Ligne EVID=0 : AMT=0, DV contient une concentration en mg/L. La dose initiale est 1,5 mg/kg et chaque sujet n’est administré qu’une fois.</p>'+
+    '<div class="career-field-grid">'+[['id','A'],['time','B'],['dose','C'],['concentration','D'],['event','E']].map(([key,col])=>
       '<label>Colonne '+col+'<select data-pk-map="'+key+'">'+
       '<option value="">Associer un champ…</option>'+
-      [['dv','Observation (DV)'],['dose','Dose (AMT)'],['time','Temps (TIME)'],['id','Identifiant (ID)']].map(([v,label])=>
+      [['dv','Observation (DV)'],['evid','Type d’événement (EVID)'],['dose','Dose (AMT)'],['time','Temps (TIME)'],['id','Identifiant (ID)']].map(([v,label])=>
         '<option value="'+v+'">'+label+'</option>').join('')+'</select></label>'
     ).join('')+'</div>';
   $('population-workspace').querySelectorAll('[data-pk-map]').forEach(el=>el.addEventListener('change',e=>{
