@@ -22,7 +22,7 @@ const read=()=>{
 let done=read(),index=Math.min(done.length,STEPS.length-1);
 let choice='',selectedFit='one',viewed=new Set(),selectedSubject=1,scale='linear',selectedChecks=new Set();
 let map={id:'',time:'',dose:'',concentration:'',event:''}, reportChecked=new Set(),reportText='';
-const fmt=(v,n=2)=>Number(v).toLocaleString('fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
+const fmt=(v,n=2)=>Number(v).toLocaleString((new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en')?'en-US':'fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
 function store(){try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
 function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function story(text,eyebrow='ENQUÊTE SCIENTIFIQUE'){
