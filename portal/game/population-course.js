@@ -244,7 +244,7 @@ function renderImport(){
       '<label>Colonne '+col+'<select data-pk-map="'+key+'"><option value="">Associer un champ…</option>'+
       [['id','Identifiant (ID)'],['time','Temps (TIME)'],['amt','Dose (AMT)'],['dv','Observation (DV)'],['dvid','Type de réponse (DVID)']].map(([v,label])=>
       '<option value="'+v+'">'+label+'</option>').join('')+'</select></label>').join('')+'</div>'+
-    '<div class="career-file-actions"><a class="career-action" href="/downloads/warfarin/warfarin_data.csv" target="_blank" rel="noopener">Consulter les données de l’étude</a>'+
+    '<div class="career-file-actions"><a class="career-action" href="/pharmacometrie/downloads/warfarin/warfarin_data.csv" target="_blank" rel="noopener">Consulter les données de l’étude</a>'+
     '<a class="career-action" href="'+STUDY_META.sourceUrl+'" target="_blank" rel="noopener">Documentation de la source</a></div>';
   $('population-workspace').querySelectorAll('[data-pk-map]').forEach(el=>el.addEventListener('change',e=>{
     map[e.target.dataset.pkMap]=e.target.value;
