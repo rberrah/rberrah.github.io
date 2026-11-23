@@ -287,6 +287,43 @@ function renderEDA(){
   draw();
 }
 
+
+function plotSAEMConvergence(svg,kind,param,step){
+  const keys={one:['CL','V','Ka','omegaCL','sigmaLog'],lag:['CL','V','Ka','Tlag','omegaCL','sigmaLog'],two:['CL','Vc','Ka','Q','Vp','omegaCL','sigmaLog']};
+  const available=Object.entries(FITS).flatMap(([id,fit])=>{
+    const pos=keys[id].indexOf(param);if(pos<0)return [];
+    const final=fit.trace.at(-1)[pos+1];
+    return [{id,values:fit.trace.map(row=>({t:row[0],v:100*(row[pos+1]-final)/(Math.abs(final)||1)}))}];
+  });
+  const max=Math.max(10,Math.ceil(Math.min(100,Math.max(...available.flatMap(a=>a.values.map(p=>Math.abs(p.v)))))/5)*5);
+  const xx=x=>70+x/170*605, yy=y=>135-y/max*90;
+  let out='<rect x="70" y="37" width="605" height="206" rx="8" fill="#0c2530"/>'+
+    '<rect x="70" y="'+yy(5)+'" width="605" height="'+(yy(-5)-yy(5))+'" fill="#388e74" opacity=".22"/>';
+  for(const y of [-max,0,max])out+='<path d="M70 '+yy(y)+' H675" stroke="#527179" stroke-dasharray="4 5"/>'+
+    '<text x="62" y="'+(yy(y)+4)+'" fill="#d1e4df" text-anchor="end" font-size="12">'+fmt(y,0)+' %</text>';
+  available.forEach((a,i)=>{
+    const color={one:'#8cbdba',lag:'#f4c08e',two:'#c7a4f5'}[a.id];
+    out+='<polyline points="'+a.values.map(p=>xx(p.t).toFixed(1)+','+yy(p.v).toFixed(1)).join(' ')+
+      '" fill="none" stroke="'+color+'" opacity="'+(a.id===kind?1:.36)+'" stroke-width="'+(a.id===kind?3.5:1.7)+'"/>';
+  });
+  const iter=FITS[kind].trace[step][0];
+  out+='<path d="M'+xx(iter)+' 37 V243" stroke="#fff" stroke-dasharray="5 5"/>';
+  for(const t of [0,40,80,120,170])out+='<text x="'+xx(t)+'" y="261" text-anchor="middle" font-size="12" fill="#c8ddd8">'+t+'</text>';
+  svg.innerHTML=out+'<text x="70" y="23" fill="#c8ddd8" font-size="12">Écart relatif (%) à la dernière valeur enregistrée · estimation SAEM</text>'+
+    '<text x="70" y="280" fill="#b7ccc9" font-size="11">Bande verte ±5 % = repère visuel, pas un test de convergence</text>';
+}
+function plotBicEvidence(svg){
+  const rows=modelComparison(),min=Math.min(...rows.map(r=>r.bic)),range=Math.max(2,...rows.map(r=>r.bic-min));
+  let out='<rect x="245" y="37" width="440" height="209" rx="8" fill="#0c2530"/>';
+  for(const [i,row] of rows.entries()){
+    const delta=row.bic-min,y=55+i*62,w=410*delta/range;
+    out+='<text x="12" y="'+(y+17)+'" fill="#e2eee9" font-size="12">'+escapeText(row.label)+'</text>'+
+      '<rect x="248" y="'+y+'" width="'+Math.max(2,w)+'" height="25" rx="4" fill="'+['#99dccc','#f4c08e','#c7a4f5'][i]+'"/>'+
+      '<text x="'+(255+w)+'" y="'+(y+18)+'" fill="#f4eee5" font-size="12">ΔBIC '+fmt(delta,2)+'</text>';
+  }
+  svg.innerHTML=out+'<text x="245" y="22" fill="#c8ddd8" font-size="12">Écart au BIC minimal : plus petit = meilleur, faible écart = ambigu</text>';
+}
+
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
   $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
@@ -294,7 +331,9 @@ function renderSAEM(){
     '<div class="career-metrics">'+metric('Itérations enregistrées','170')+
     metric('Effets aléatoires','ηCL')+metric('Erreur','log-normale')+'</div>'+
     '<div class="career-chart-toolbar"><label>Paramètre <select id="pop-trace-param"></select></label><label>Itération du replay <input id="pop-iteration" type="range" min="0" max="8" value="8" step="1"></label><span id="pop-iteration-label" class="career-tag"></span></div>'+
-    '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Trajectoire CL et points réellement enregistrés du SAEM"></svg>'+
+    '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Convergence relative des paramètres SAEM"></svg>'+ 
+    '<p class="career-note">Chaque ligne indique le changement relatif du paramètre par rapport à sa valeur finale. Les modèles sont comparés uniquement lorsqu’ils possèdent ce paramètre ; le plateau ne prouve pas que la solution est identifiable.</p>'+ 
+    '<svg id="pop-bic" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Comparaison des écarts de BIC entre structures"></svg>'+
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
     '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
@@ -308,10 +347,8 @@ function renderSAEM(){
     if(traceField.options.length!==names.length || [...traceField.options].some((o,i)=>o.value!==names[i])){
       traceField.innerHTML=names.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
     }
-    const indexField=names.indexOf(traceField.value);
-    const values=fit.trace.map(r=>({t:r[0],c:r[indexField+1]}));
-    graph($('pop-trace'),{series:[{values,color:'#95f4d6'}],
-      points:values.map(p=>({...p,color:'#f6c28e'})),maxT:170,ymax:Math.max(...values.map(p=>p.c)) * 1.12});
+    plotSAEMConvergence($('pop-trace'),selectedFit,traceField.value,timeIndex);
+    plotBicEvidence($('pop-bic'));
     $('pop-fit-summary').innerHTML=metric('CL typique',fmt(fit.est.CL,4)+' L/h')+
       metric('BIC marginal',fmt(fit.bic))+
       metric('ωCL (log SD)',fmt(rr[rr.length-2],3));
