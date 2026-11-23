@@ -44,11 +44,17 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
       await expect(page.locator('.pathways').getByText(/In PD\/infectiology, explore exposure, MIC/))
         .toBeVisible();
-      await expect(page.locator('.project-grid h3')).toHaveText(['MIPD Engine', 'Multiomics', 'TacDDI', 'MissedDose']);
+      await expect(page.locator('section[aria-labelledby="projects-title"] .project-grid h3')).toHaveText(['MIPD Engine', 'Multiomics', 'TacDDI', 'MissedDose']);
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open MIPD Engine' }))
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open Multiomics' }))
         .toHaveAttribute('href', '/multiomics/tool/');
+      await expect(page.getByRole('heading', { name: 'Research directions' })).toBeVisible();
+      const homeSchemas = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(JSON.parse);
+      const pmxApplication = homeSchemas.find(schema => schema['@type'] === 'SoftwareApplication');
+      expect(pmxApplication?.name).toBe('PMx Explain');
+      expect(pmxApplication?.author?.['@id']).toBe(publicOrigin + '/#racym-berrah');
+      expect(pmxApplication?.hasPart?.['@type']).toBe('SoftwareSourceCode');
       await expect(page.getByRole('heading', { name: 'Recent communication' })).toBeVisible();
       await expect(page.locator('.communication-highlight').getByRole('link', { name: /NetPK: fusing published/ }))
         .toHaveAttribute('href', '/communications/netpk-peprsn-2026/');
@@ -56,11 +62,20 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     }
     await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
     if (route === '/tools/') {
-      await expect(page.locator('#stats').getByRole('link', { name: 'Open Stats' }))
+      await expect(page.locator('#stats').getByRole('link', { name: 'Open Stat & Biologie' }))
         .toHaveAttribute('href', '/stats/');
       await expect(page.locator('#tacddi').getByRole('link', { name: 'Open TacDDI' }))
         .toHaveAttribute('href', 'https://tdmhub.shinyapps.io/TacDDI/');
       await expect(page.locator('#grad a')).toHaveCount(0);
+      await expect(page.locator('#autonomous')).toContainText('under evaluation');
+      const toolsGraph = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())['@graph'];
+      expect(toolsGraph.map(x => x.name)).toEqual(['Multiomics', 'MIPD Engine']);
+      await expect(page.locator('#stats')).toContainText('decision tree');
+      await expect(page.locator('#stats')).toContainText('French');
+      for (const app of toolsGraph) {
+        expect(app.author['@id']).toBe(publicOrigin + '/#racym-berrah');
+        expect(app.hasPart['@type']).toBe('SoftwareSourceCode');
+      }
     }
     if (route === '/other-projects/') {
       await expect(page.getByRole('link', { name: 'Open Internat Pharma' })).toHaveAttribute('href', '/internat/');
