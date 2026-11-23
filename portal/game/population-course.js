@@ -1,5 +1,6 @@
-// PMx Game track 3: complete synthetic PopPK workflow.
+// PMx Game track 3: authentic published warfarin data; synthetic SAEM sandbox isolated.
 // SAEM traces are real archived exploratory calculations (not runtime computation).
+import {STUDY_META,STUDY_SUBJECTS,STUDY_PK,STUDY_PD} from './warfarin-study.js';
 import {POPULATION_META,TIMES,SUBJECTS,OBSERVATIONS,FITS,VPC_OBSERVED,
   modelComparison,populationPredict,gradeStructureConclusion,assessMapping,chooseChecks} from './saem-replay.js';
 const $=id=>document.getElementById(id);
@@ -20,7 +21,7 @@ const read=()=>{
 };
 let done=read(),index=Math.min(done.length,STEPS.length-1);
 let choice='',selectedFit='one',viewed=new Set(),selectedSubject=1,scale='linear',selectedChecks=new Set();
-let map={id:'',time:'',dose:'',concentration:''}, reportChecked=new Set(),reportText='';
+let map={id:'',time:'',dose:'',concentration:'',event:''}, reportChecked=new Set(),reportText='';
 const fmt=(v,n=2)=>Number(v).toLocaleString('fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
 function store(){try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
 function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -92,52 +93,54 @@ function report(){
     'Ce rapport n’est pas une expertise clinique ni une analyse de données de patients.';
 }
 function renderImport(){
-  // Dose events and concentration observations are distinct NONMEM-style rows.
-  const first=SUBJECTS[0];
-  const obs=OBSERVATIONS.filter(x=>x.id===first.id).slice(0,4);
-  const rows=[{id:first.id,t:0,amt:first.dose,dv:'—',evid:1},
-    ...obs.map(o=>({id:o.id,t:o.t,amt:0,dv:fmt(o.c,2),evid:0}))];
-  $('population-workspace').innerHTML=story('Votre service reçoit des concentrations après une dose orale unique. Avant tout SAEM, identifiez les champs <strong>patient, temps, administration, observation et type d’événement</strong>. Une ligne de dose n’est pas une concentration et une concentration ne doit pas déclencher une nouvelle dose.','DOSSIER N° 01 · CONTRÔLE QUALITÉ')+
-    '<div class="career-metrics">'+metric('Sujets',POPULATION_META.nSubjects)+metric('Concentrations',POPULATION_META.nObservations)+metric('Événements de dose',SUBJECTS.length)+'</div>'+
+  const subj=STUDY_SUBJECTS[0],pk=STUDY_PK.filter(x=>x.id===subj.id).slice(0,4),
+    pd=STUDY_PD.find(x=>x.id===subj.id);
+  const rows=[{id:subj.id,t:0,amt:subj.dose,dv:'—',dvid:1},
+    ...pk.map(o=>({id:o.id,t:o.t,amt:'—',dv:fmt(o.c,2),dvid:1}))];
+  if(pd)rows.push({id:pd.id,t:pd.t,amt:'—',dv:fmt(pd.c,1),dvid:2});
+  $('population-workspace').innerHTML=story('Vous recevez un <strong>jeu de mesures expérimentales de warfarine</strong>, issu de l’étude historique distribuée dans le tutoriel MonolixSuite. Vérifiez les colonnes, la dose et le type de réponse avant de préparer un ajustement. <strong>DVID=1 correspond à la concentration PK ; DVID=2 à la PCA.</strong> Le fichier source ne comporte pas de colonne EVID : une administration est identifiable par AMT renseignée.','DOSSIER ORIGINAL · ÉTUDE WARFARINE')+
+    '<div class="career-metrics">'+metric('Volontaires',STUDY_META.nSubjects)+metric('Mesures PK',STUDY_META.nPK)+metric('Mesures PCA',STUDY_META.nPD)+'</div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Colonne A</th><th>Colonne B</th><th>Colonne C</th><th>Colonne D</th><th>Colonne E</th></tr></thead><tbody>'+
-    rows.map(p=>'<tr><td>'+p.id+'</td><td>'+fmt(p.t,1)+'</td><td>'+fmt(p.amt,1)+'</td><td>'+p.dv+'</td><td>'+p.evid+'</td></tr>').join('')+
+    rows.map(p=>'<tr><td>'+p.id+'</td><td>'+fmt(p.t,1)+'</td><td>'+p.amt+'</td><td>'+p.dv+'</td><td>'+p.dvid+'</td></tr>').join('')+
     '</tbody></table></div>'+
-    '<p class="career-note">Ligne EVID=1 : AMT contient la dose, DV est absente. Ligne EVID=0 : AMT=0, DV contient une concentration en mg/L. La dose initiale est 1,5 mg/kg et chaque sujet n’est administré qu’une fois.</p>'+
+    '<p class="career-note">Source : O’Reilly et al. (1968), jeu Warfarin du tutoriel MonolixSuite. Le fichier du dépôt comporte 32 sujets, 251 enregistrements PK (dont 4 valeurs nulles) et 232 mesures PD. Leurs estimations ne doivent pas être confondues avec celles du replay artificiel de l’étape 3.</p>'+
     '<div class="career-field-grid">'+[['id','A'],['time','B'],['dose','C'],['concentration','D'],['event','E']].map(([key,col])=>
-      '<label>Colonne '+col+'<select data-pk-map="'+key+'">'+
-      '<option value="">Associer un champ…</option>'+
-      [['dv','Observation (DV)'],['evid','Type d’événement (EVID)'],['dose','Dose (AMT)'],['time','Temps (TIME)'],['id','Identifiant (ID)']].map(([v,label])=>
-        '<option value="'+v+'">'+label+'</option>').join('')+'</select></label>'
-    ).join('')+'</div>';
+      '<label>Colonne '+col+'<select data-pk-map="'+key+'"><option value="">Associer un champ…</option>'+
+      [['id','Identifiant (ID)'],['time','Temps (TIME)'],['amt','Dose (AMT)'],['dv','Observation (DV)'],['dvid','Type de réponse (DVID)']].map(([v,label])=>
+      '<option value="'+v+'">'+label+'</option>').join('')+'</select></label>').join('')+'</div>'+
+    '<div class="career-file-actions"><a class="career-action" href="/downloads/warfarin/warfarin_data.csv" target="_blank" rel="noopener">Consulter les données de l’étude</a>'+
+    '<a class="career-action" href="'+STUDY_META.sourceUrl+'" target="_blank" rel="noopener">Documentation de la source</a></div>';
   $('population-workspace').querySelectorAll('[data-pk-map]').forEach(el=>el.addEventListener('change',e=>{
     map[e.target.dataset.pkMap]=e.target.value;
   }));
 }
+
 function renderEDA(){
-  $('population-workspace').innerHTML=story('Les mêmes données apparaissent très différentes selon l’échelle et les temps de prélèvement. Explorez plusieurs sujets, puis proposez une <strong>hypothèse structurale de départ</strong> sans prétendre l’avoir identifiée.','ENQUÊTE N° 02 · DESSIN DES COURBES')+
-    '<div class="career-chart-toolbar"><button id="pop-linear" aria-pressed="true">Linéaire</button><button id="pop-log" aria-pressed="false">Semi-log</button><label>Sujet <select id="pop-subject">'+SUBJECTS.slice(0,7).map(s=>'<option value="'+s.id+'">S'+s.id+' · '+fmt(s.wt,1)+' kg</option>').join('')+'</select></label></div>'+
-    '<svg id="pop-eda-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations individuelles sur échelle linéaire ou semi-logarithmique"></svg>'+
-    '<p class="career-note">Points = données observées (fictives). Courbe claire = profil de population de référence non ajusté au patient. Les données précoces sont volontairement inégales selon les sujets.</p>'+
-    radio([['simple','Un modèle oral 1C linéaire est un candidat de départ ; il faudra le comparer à d’autres.'],
-      ['three','La pente terminale suffit à démontrer exactement trois compartiments.'],
-      ['fixed','Le même profil suffit à déterminer tous les effets individuels sans estimation.']]);
+  $('population-workspace').innerHTML=story('Explorez les <strong>mesures expérimentales</strong> de warfarine de l’étude : les sujets n’ont pas tous le même nombre d’échantillons ni les mêmes horaires. Une courbe descriptive ne suffit pas à identifier formellement une structure.','ÉTUDE RÉELLE · EXPLORATION GRAPHIQUE')+
+    '<div class="career-chart-toolbar"><button id="pop-linear" aria-pressed="true">Linéaire</button><button id="pop-log" aria-pressed="false">Semi-log</button><label>Sujet <select id="pop-subject">'+STUDY_SUBJECTS.map(p=>'<option value="'+p.id+'">S'+p.id+' · '+fmt(p.wt,1)+' kg</option>').join('')+'</select></label></div>'+
+    '<svg id="pop-eda-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations expérimentales de warfarine, source Monolix"></svg>'+
+    '<p class="career-note">Points = observations originales DVID=1, y compris les valeurs nulles à l’échelle linéaire. Les zéros sont exclus uniquement de l’axe logarithmique. Aucune courbe de modèle simulé n’est superposée aux observations réelles.</p>'+
+    radio([['simple','Un modèle oral 1C est un candidat à ajuster et comparer : les observations seules ne prouvent pas sa structure.'],
+      ['three','La pente terminale démontre exactement trois compartiments.'],
+      ['fixed','La dispersion entre sujets prouve que tous les paramètres sont parfaitement identifiables.']]);
   function draw(){
     $('pop-linear').setAttribute('aria-pressed',String(scale==='linear'));
     $('pop-log').setAttribute('aria-pressed',String(scale==='log'));
-    const s=SUBJECTS[selectedSubject-1],obs=OBSERVATIONS.filter(o=>o.id===selectedSubject);
-    graph($('pop-eda-chart'),{series:[{values:Array.from({length:105},(_,i)=>{
-      const t=i*168/104;return {t,c:populationPredict('one',t,s.dose)};
-    }),opacity:.75}],points:obs,log:scale==='log',ymax:Math.max(18,...obs.map(o=>o.c))*1.17});
+    const obs=STUDY_PK.filter(o=>o.id===selectedSubject);
+    graph($('pop-eda-chart'),{points:obs,log:scale==='log',maxT:120,
+      ymax:Math.max(18,...obs.map(o=>o.c))*1.17});
   }
   $('pop-linear').addEventListener('click',()=>{scale='linear';draw();});
   $('pop-log').addEventListener('click',()=>{scale='log';draw();});
+  if(!STUDY_SUBJECTS.some(x=>x.id===selectedSubject))selectedSubject=STUDY_SUBJECTS[0].id;
   $('pop-subject').value=String(selectedSubject);
   $('pop-subject').addEventListener('change',e=>{selectedSubject=+e.target.value;draw();});
   draw();
 }
+
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
-  $('population-workspace').innerHTML=story('Trois structures sont candidates. Les valeurs ci-dessous proviennent de <strong>170 itérations de calcul scientifique enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
+  $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
     '<div class="career-model-buttons">'+options+'</div>'+
     '<div class="career-metrics">'+metric('Itérations enregistrées','170')+
     metric('Effets aléatoires','ηCL')+metric('Erreur','log-normale')+'</div>'+
@@ -145,7 +148,7 @@ function renderSAEM(){
     '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Trajectoire CL et points réellement enregistrés du SAEM"></svg>'+
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
-    '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique.</p>';
+    '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
   function redraw(){
     const fit=FITS[selectedFit],timeIndex=+$('pop-iteration').value;
     const keys=selectedFit==='one'?['CL','V','Ka','omegaCL','sigmaLog']:selectedFit==='lag'?['CL','V','Ka','Tlag','omegaCL','sigmaLog']:['CL','Vc','Ka','Q','Vp','omegaCL','sigmaLog'];
@@ -215,33 +218,30 @@ function renderDecision(){
       ['equivocal','1C ± Tlag restent presque équivalents ; le modèle 2C est moins soutenu. Il faut confirmer par stabilité et diagnostics.'],
       ['two-certain','Le 2C doit être retenu car il possède le plus grand nombre de paramètres.']]);
 }
-function simulatedPca(){
-  // Toy indirect response; NOT fit to the recorded SAEM PK, not patient PCA.
-  const dose=110,kout=.035,ec50=6,emax=.65,step=.15;
-  let pca=100;const points=[];
-  for(let n=0;n<=Math.round(192/step);n++){
-    const t=n*step;
-    if(n%10===0)points.push({t,c:pca});
-    const c=populationPredict('lag',t,dose);
-    const target=100*(1-emax*c/(ec50+c));
-    pca+=step*kout*(target-pca);
-  }
-  return points;
-}
 function renderPD(){
-  $('population-workspace').innerHTML=story('La warfarine illustre la nécessité de distinguer exposition plasmatique et réponse anticoagulante. Dans ce <strong>exemple PD entièrement fictif</strong>, la réponse est retardée : la concentration peut déjà diminuer tandis que l’activité du complexe prothrombinique (PCA) continue de changer. Aucun SAEM PD n’a été réalisé pour cette étape.','ENQUÊTE N° 06 · MÉCANISME PK/PD')+
-    '<div class="career-metrics">'+metric('Données PK','Ajustées')+metric('PCA simulée','Illustrative')+metric('PD estimée','Non')+'</div>'+
-    '<svg id="pop-pd-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Réponse PCA synthétique retardée après concentration plasmatique"></svg>'+
-    '<p class="career-note">PCA (%) illustrée ci-dessus selon une équation de turnover hypothétique. Le véritable exercice Monolix compare notamment modèles à compartiment d’effet et modèles de turnover ; notre graphique n’est pas une reconstruction de ses estimations.</p>'+
-    radio([['instant','Une relation concentration→effet instantanée suffit nécessairement à reproduire ce délai.'],
-      ['delay','Une dynamique indirecte (turnover) ou un compartiment d’effet doit être envisagé et ajusté aux données PD.'],
-      ['proved','La courbe illustre et prouve le mécanisme biologique réel chez l’humain.']]);
-  graph($('pop-pd-chart'),{series:[{values:simulatedPca(),color:'#9bedd6'}],maxT:192,ymax:110});
+  $('population-workspace').innerHTML=story('Le même fichier d’étude contient <strong>des valeurs expérimentales de PCA (DVID=2)</strong>, et pas seulement des concentrations PK. Comparez les séries mesurées d’un volontaire : un décalage PK–PD peut motiver un compartiment d’effet ou un modèle indirect, mais aucune des deux structures PD n’est ajustée dans ce jeu.','ÉTUDE RÉELLE · PK ET PCA')+
+    '<div class="career-chart-toolbar"><label>Sujet <select id="pop-pd-subject">'+STUDY_SUBJECTS.filter(x=>STUDY_PD.some(p=>p.id===x.id)).map(x=>'<option value="'+x.id+'">S'+x.id+'</option>').join('')+'</select></label></div>'+
+    '<div class="career-metrics">'+metric('Concentrations PK',STUDY_META.nPK)+metric('PCA mesurées',STUDY_META.nPD)+metric('Modèle PD ajusté','Aucun')+'</div>'+
+    '<p class="career-note"><strong>Concentrations de warfarine (mg/L)</strong></p><svg id="pop-pd-pk" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations PK réelles du sujet"></svg>'+
+    '<p class="career-note"><strong>Activité du complexe prothrombinique, PCA (%)</strong></p><svg id="pop-pd-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="PCA expérimentale issue de la même étude"></svg>'+
+    '<p class="career-note">Les points sont mesurés, et non générés par une équation de turnover. La compatibilité avec une structure à délai doit être démontrée par estimation et diagnostics sur ces données.</p>'+
+    radio([['instant','L’évolution observée démontre nécessairement une relation concentration–effet instantanée.'],
+      ['delay','Un modèle de turnover ou un compartiment d’effet peut être comparé par ajustement aux observations PD.'],
+      ['proved','La figure seule prouve le mécanisme physiologique sous-jacent.']]);
+  function draw(){
+    const id=+$('pop-pd-subject').value;
+    const pk=STUDY_PK.filter(x=>x.id===id),pd=STUDY_PD.filter(x=>x.id===id);
+    graph($('pop-pd-pk'),{points:pk,maxT:144,ymax:Math.max(18,...pk.map(x=>x.c))*1.1});
+    graph($('pop-pd-chart'),{points:pd,maxT:144,ymax:110});
+  }
+  $('pop-pd-subject').addEventListener('change',draw);
+  draw();
 }
+
 function renderFinal(){
   $('population-workspace').innerHTML=story('Rédigez un résultat qui distingue les données, le modèle candidat, les diagnostics et ce qui reste non démontré. Votre dossier peut être copié comme exercice de synthèse.','ENQUÊTE N° 07 · RAPPORT FINAL')+
     '<p class="career-note">Cochez les informations que le rapport de pharmacométrie doit conserver.</p>'+
-    checkboxes([['data','Préciser que toutes les observations du jeu sont synthétiques.'],
+    checkboxes([['data','Citer les observations expérimentales 32 sujets (PK/PCA) et distinguer l’atelier SAEM artificiel.'],
       ['inference','Signaler les limites du SAEM éducatif, du BIC et de l’identifiabilité.'],
       ['pd','Préciser que le lien PK/PD retardé n’a pas été ajusté sur ce jeu de données.'],
       ['clinical','Présenter les estimations comme utilisables pour prescrire de la warfarine.']],'pop-final')+
@@ -270,13 +270,13 @@ function render(){
     'Le rapport doit mentionner ce que le travail ne démontre pas.'
   ][index];
   $('population-hint-text').textContent=[
-    'La colonne A se répète pour un même sujet ; les doses correspondent à 1,5 mg/kg.',
+    'Le fichier source a DVID=1 pour PK, DVID=2 pour PCA et AMT pour la dose ; il ne possède pas EVID.',
     'L’échelle semi-log met souvent en évidence les phases terminales.',
     'Les tableaux ne révèlent les BIC qu’après examen de la structure correspondante.',
     'GOF + VPC + robustesse/identifiabilité sont complémentaires.',
     'ΔBIC inférieur à 2 n’apporte pas ici d’argument discriminant solide.',
     'Le retard peut provenir d’une dynamique d’effet ou de turnover ; la courbe seule ne prouve rien.',
-    'Le jeu ne possède ni observations patients, ni validation clinique.'
+    'Les observations viennent de l’étude O’Reilly, mais les estimations archivées sont issues d’une simulation distincte.'
   ][index];
   [
     renderImport,renderEDA,renderSAEM,renderDiagnostics,renderDecision,renderPD,renderFinal
@@ -304,7 +304,7 @@ function validate(){
   const w=$('population-workspace');
   if(index===0){
     const values=Object.fromEntries([...w.querySelectorAll('[data-pk-map]')].map(x=>[x.dataset.pkMap,x.value]));
-    return assessMapping(values)?success('La structure des colonnes est correcte. Vous pouvez passer à l’exploration.'):failure('Revenez aux définitions de sujet, temps, dose et concentration.');
+    return values.id==='id'&&values.time==='time'&&values.dose==='amt'&&values.concentration==='dv'&&values.event==='dvid'?success('Correspondance correcte des colonnes du fichier expérimental.'):failure('Vérifiez AMT, DV et DVID ; le CSV source ne contient pas EVID.');
   }
   if(index===2){
     return viewed.size===3?success('Trois calculs archivés ont été comparés. Les paramètres et BIC ne suffisent pas encore à valider le modèle.'):
@@ -314,12 +314,12 @@ function validate(){
     const inputs=[...w.querySelectorAll('input[type=checkbox]:checked')].map(el=>el.value);
     if(index===3)return chooseChecks(inputs)?success('GOF, VPC et stabilité restent complémentaires.'):failure('Sélectionnez les contrôles utiles, sans retenir « BIC seul ».');
     return inputs.length===3&&['data','inference','pd'].every(x=>inputs.includes(x))?
-      success('Le rapport décrit la source, les résultats exploratoires et leurs limites.'):failure('Le rapport doit rappeler la provenance synthétique, l’incertitude et la PD non estimée.');
+      success('Le rapport décrit la source, les résultats exploratoires et leurs limites.'):failure('Distinguez mesures expérimentales, replay SAEM sur cohorte artificielle, limites du modèle et PD non estimée.');
   }
   const option=w.querySelector('input[name="pop-choice"]:checked')?.value;
   if(!option)return failure('Choisissez une conclusion avant de valider.');
   if(index===1)return option==='simple'?success('Un modèle de départ plausible n’est pas un modèle démontré.'):failure('Évitez de déduire une structure certaine d’une seule courbe.');
-  if(index===4)return gradeStructureConclusion(option)?success('Les données ne distinguent pas clairement Tlag ; le 2C est pénalisé.'):failure('Une petite différence de BIC ne prouve pas qu’une structure est vraie.');
+  if(index===4)return gradeStructureConclusion(option)?success('Le replay pédagogique ne distingue pas Tlag ; ces résultats ne concernent pas la cohorte expérimentale.'):failure('Une petite différence de BIC ne prouve pas qu’une structure est vraie.');
   if(index===5)return option==='delay'?success('Un modèle indirect ou à compartiment d’effet devra être ajusté et diagnostiqué.'):failure('La différence entre PK et PD ne démontre pas une relation instantanée.');
 }
 $('population-validate').addEventListener('click',validate);
