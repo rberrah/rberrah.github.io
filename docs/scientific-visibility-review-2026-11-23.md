@@ -14,9 +14,9 @@ This change is intentionally limited to the public portfolio portal. It does not
 
 ## Checks before merging
 
-1. Inspect the diff and confirm only `portal/index.html`, `portal/tools/index.html`, `portal/a-propos/index.html` and this document changed.
+1. Inspect the diff and confirm only `portal/index.html`, `portal/tools/index.html`, `portal/a-propos/index.html` the portal browser test and this document changed.
 2. Parse every `application/ld+json` block as JSON. Confirm that each software `author.@id` references `/#racym-berrah`, and that the links to source repositories and research presentations resolve.
-3. Run existing portal/browser tests and the site deployment qualification normally used by this repository. Do not bypass checks or trigger unrelated projects intentionally.
+3. The portal browser test was updated to scope its pre-existing project-grid assertion, and to assert attribution for the new structured data. Run existing portal/browser tests and the site deployment qualification normally used by this repository. Do not bypass checks or trigger unrelated projects intentionally.
 4. On the published deployment, confirm page titles, canonical URLs, robots/sitemap and visible rendering. The source files contain the `__SITE_ORIGIN__` placeholder until the build replaces it.
 
 ## External Google Search Console / Bing Webmaster verification (manual)
