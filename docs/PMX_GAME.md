@@ -83,7 +83,7 @@ Références pédagogiques consultées : [SFPT/SFAR, bêta-lactamines et fT>CMI]
 
 Le dossier « warfarine » de ce jeu est intégralement **synthétique** : 28 individus artificiels, 285 concentrations, une dose orale unique de 1,5 mg/kg. Aucun dossier clinique réel n'a été copié. Le tutoriel Monolix de warfarine sert de **référence méthodologique**, sans reprendre ses résultats SAEM ni prétendre avoir ajusté le jeu original.
 
-1. Données : attribuer ID, TIME, AMT, DV et contrôler unités/historique d'administration.
+1. Données : attribuer ID, TIME, AMT, DV et EVID ; différencier les événements de dose (EVID=1, AMT>0, DV absente) et les lignes de concentration (EVID=0, AMT=0, DV présente) avant toute estimation.
 2. EDA : explorer les profils sujets, les échelles linéaire et semi-log, les premières données manquantes et les hypothèses initiales.
 3. Estimation : **trois modèles réellement pré-calculés**, oral 1C, oral 1C avec Tlag, oral 2C. Le bouton relit neuf instantanés de 170 itérations par modèle, et **ne lance jamais un SAEM navigateur**. CL, V, Ka, Q, Vp, Tlag (selon le candidat), variabilité interindividuelle de CL, résidu et critères sont archivés dans portal/game/saem-replay.js.
 4. Diagnostics : courbes de population et conditionnelles individuelles, et contrôle prédictif illustratif (120 simulations par temps, sans bande d'incertitude). GOF, VPC, stabilité, précision et identifiabilité sont complémentaires ; NPDE, bootstrap et validation externe **ne sont pas réalisés**.
