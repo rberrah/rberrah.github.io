@@ -272,32 +272,67 @@ function renderSAEM(){
   redraw();
 }
 function renderDiagnostics(){
-  $('population-workspace').innerHTML=story('Avant d’accepter un modèle, confrontez prédictions et observations. La trajectoire SAEM ne remplace pas les diagnostics. Voici une simulation pédagogique de quantiles (120 réplications, sans bande de confiance bootstrap) et un exemple d’ajustement individuel.','ENQUÊTE N° 04 · GOF ET VPC')+
+  $('population-workspace').innerHTML=story('Cette galerie de diagnostics porte <strong>uniquement sur le replay SAEM artificiel</strong> (28 sujets). Le dataset expérimental Warfarine présenté précédemment ne possède pas encore de résultats SAEM associés. Lisez GOF, résidus, EBE, simulation prédictive et convergence, puis jugez quelles preuves manquent.','ATELIER SAEM · DIAGNOSTICS DISPONIBLES')+
     '<div class="career-chart-toolbar"><label>Modèle <select id="pop-diagnostic-model">'+Object.entries(FITS).map(([k,v])=>'<option value="'+k+'">'+v.label+'</option>').join('')+'</select></label>'+
-    '<label>Sujet <select id="pop-diagnostic-subject">'+SUBJECTS.slice(0,12).map(s=>'<option value="'+s.id+'">S'+s.id+'</option>').join('')+'</select></label></div>'+
-    '<p class="career-note"><strong>Profil individuel :</strong> points mesurés, courbe population et courbe conditionnelle d’après l’effet aléatoire CL estimé (EBE).</p>'+
-    '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observations versus prédictions population et individuelles"></svg>'+
-    '<p class="career-note"><strong>Contrôle prédictif :</strong> médiane observée (points oranges) et médiane simulée (courbe verte), regroupées par temps de prélèvement. Les quantiles externes et leurs incertitudes ne sont pas des garanties d’identifiabilité.</p>'+
-    '<svg id="pop-vpc" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="VPC pédagogique, médianes empiriques observées et simulées"></svg>'+
-    '<p class="career-note">Cochez les vérifications indispensables au rapport, sans vous limiter à une métrique unique.</p>'+
-    checkboxes([['gof','Examiner PRED/IPRED vs concentrations observées et les résidus.'],
-      ['vpc','Examiner un contrôle prédictif sur la fenêtre de prélèvement.'],
-      ['stability','Évaluer stabilité numérique, départs multiples, précision et identifiabilité.'],
-      ['bic-only','S’arrêter au seul BIC sans examen graphique.']]);
-  const draw=()=>{
-    const kind=$('pop-diagnostic-model').value,id=+$('pop-diagnostic-subject').value;
-    const subj=SUBJECTS[id-1],fit=FITS[kind];
-    const curves=Array.from({length:105},(_,i)=>{
-      const t=i*168/104;return {t,c:populationPredict(kind,t,subj.dose)};
+    '<label>Sujet <select id="pop-diagnostic-subject">'+SUBJECTS.map(s=>'<option value="'+s.id+'">S'+s.id+'</option>').join('')+'</select></label></div>'+
+    '<details open><summary><strong>1. Ajustements individuels et GOF</strong></summary>'+
+    '<p class="career-note">Points DV ; courbe bleu pâle PRED (population) ; courbe verte IPRED (EBE CL). Les deux GOF ci-dessous confrontent les valeurs observées aux prédictions ; ligne pointillée = identité.</p>'+
+    '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Fit individuel DV, PRED et IPRED"></svg>'+
+    '<p class="career-note">DV versus PRED (population)</p><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus population predictions"></svg>'+
+    '<p class="career-note">DV versus IPRED (individuel)</p><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg></details>'+
+    '<details open><summary><strong>2. Résidus et leur distribution</strong></summary>'+
+    '<p class="career-note">Résidus conditionnels <em>approximatifs</em> : [log(DV) − log(IPRED)] / σlog. Ce ne sont <strong>ni des CWRES, ni des NPDE</strong> : les calculs correspondants ne sont pas disponibles.</p>'+
+    '<p class="career-note">Résidus versus temps</p><svg id="pop-resid-time" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus temps"></svg>'+
+    '<p class="career-note">Résidus versus IPRED</p><svg id="pop-resid-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus prédiction individuelle"></svg>'+
+    '<p class="career-note">Histogramme des résidus</p><svg id="pop-resid-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme des résidus log-standardisés"></svg>'+
+    '<p class="career-note">QQ-plot normal théorique</p><svg id="pop-resid-qq" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="QQ-plot des résidus"></svg></details>'+
+    '<details open><summary><strong>3. Effets aléatoires CL (EBE)</strong></summary>'+
+    '<p class="career-note">ETA_CL versus poids (sans conclure à une covariable à partir du seul graphe)</p><svg id="pop-eta-weight" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="ETA CL versus poids"></svg>'+
+    '<p class="career-note">Distribution des ETA_CL</p><svg id="pop-eta-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme ETA CL"></svg></details>'+
+    '<details open><summary><strong>4. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
+    '<p class="career-note">VPC <strong>simulé de nouveau</strong> par 120 réplications déterministes sous le modèle sélectionné, aux mêmes temps/sujets que le replay. Chaque courbe = médiane des quantiles simulés ; zone transparente = intervalle empirique 5–95 % entre les réplications. Points = quantiles observés dans la cohorte artificielle. Pas de correction pcVPC, ni bootstrap de paramètres.</p>'+
+    '<svg id="pop-vpc" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="VPC observé vs simulé, 5e 50e et 95e centiles avec intervalle de simulation"></svg>'+
+    '<p class="career-note"><span style="color:#f6c28e">●</span> P5 observé ; <span style="color:#9be9cf">●</span> P50 observé ; <span style="color:#c8a6f5">●</span> P95 observé. Bandes de la même couleur = distribution simulée de ce quantile.</p></details>'+
+    '<div class="career-alert"><strong>Diagnostics non produits :</strong> CWRES, NPDE, matrice de covariance / RSE, tests de départs multiples, shrinkage robuste et validation externe. Ils doivent être calculés après une véritable estimation populationnelle de l’étude réelle, sans inventer de valeurs.</div>'+
+    '<p class="career-note">Quels contrôles conserver pour qualifier un modèle ?</p>'+
+    checkboxes([['gof','Examiner DV/PRED, DV/IPRED et résidus.'],
+      ['vpc','Examiner P5/P50/P95 et leurs distributions simulées.'],
+      ['stability','Vérifier stabilité numérique, précision, identifiabilité et validation externe si pertinente.'],
+      ['bic-only','Conclure uniquement à partir du BIC.']]);
+  function draw(){
+    const kind=$('pop-diagnostic-model').value,id=+$('pop-diagnostic-subject').value,
+      subj=SUBJECTS.find(s=>s.id===id),fit=FITS[kind];
+    const obs=OBSERVATIONS.filter(x=>x.id===id);
+    const curves=Array.from({length:125},(_,i)=>{
+      const t=i*168/124;return {t,c:populationPredict(kind,t,subj.dose)};
     });
     const ipred=curves.map(p=>({t:p.t,c:populationPredict(kind,p.t,subj.dose,fit.eta[id-1])}));
-    const obs=OBSERVATIONS.filter(x=>x.id===id);
-    graph($('pop-diagnostic-chart'),{series:[{values:curves,color:'#6dbcb8',width:2},{values:ipred,color:'#a9e8bc',width:3.5}],
-      points:obs,log:false,ymax:Math.max(19,...obs.map(x=>x.c))*1.12});
-    const sim=TIMES.map((t,i)=>({t,c:fit.simMedian[i]}));
-    const med=TIMES.map((t,i)=>({t,c:VPC_OBSERVED[i][2],color:'#f3c089'}));
-    graph($('pop-vpc'),{series:[{values:sim,color:'#9be9cf'}],points:med,log:false,ymax:18});
-  };
+    graph($('pop-diagnostic-chart'),{series:[{values:curves,color:'#6dbcb8',width:2},{values:ipred,color:'#a9e8bc',width:3}],
+      points:obs,log:false,ymax:Math.max(19,...obs.map(x=>x.c),...ipred.map(x=>x.c))*1.1});
+    const vals=OBSERVATIONS.map(o=>{
+      const pop=populationPredict(kind,o.t,o.dose);
+      const individual=populationPredict(kind,o.t,o.dose,fit.eta[o.id-1]);
+      return {t:o.t,dv:o.c,pop,individual,z:Math.log(o.c/Math.max(.001,individual))/fit.est.sigmaLog};
+    }).filter(o=>Number.isFinite(o.z));
+    const maxConc=Math.max(20,...vals.flatMap(o=>[o.dv,o.pop,o.individual]))*1.07;
+    scatter($('pop-gof-pred'),vals.map(o=>({x:o.pop,y:o.dv})),{xLabel:'PRED (mg/L)',yLabel:'DV (mg/L)',xMin:0,yMin:0,xMax:maxConc,yMax:maxConc,identity:true});
+    scatter($('pop-gof-ipred'),vals.map(o=>({x:o.individual,y:o.dv})),{xLabel:'IPRED (mg/L)',yLabel:'DV (mg/L)',xMin:0,yMin:0,xMax:maxConc,yMax:maxConc,identity:true});
+    const rr=vals.map(o=>o.z),resHigh=Math.max(3.5,...rr.map(Math.abs))*1.08;
+    scatter($('pop-resid-time'),vals.map(o=>({x:o.t,y:o.z})),{xLabel:'Temps (h)',yLabel:'Résidu log-standardisé',xMin:0,xMax:168,yMin:-resHigh,yMax:resHigh,zero:true});
+    scatter($('pop-resid-pred'),vals.map(o=>({x:o.individual,y:o.z})),{xLabel:'IPRED (mg/L)',yLabel:'Résidu log-standardisé',xMin:0,yMin:-resHigh,yMax:resHigh,zero:true});
+    histogram($('pop-resid-hist'),rr,{label:'Résidu conditionnel standardisé',lo:-4,hi:4});
+    const sorted=[...rr].sort((a,b)=>a-b);
+    const qq=sorted.map((v,i)=>({x:normQuantile((i+.5)/sorted.length),y:v}));
+    scatter($('pop-resid-qq'),qq,{xLabel:'Quantile normal théorique',yLabel:'Quantile résiduel',identity:true});
+    scatter($('pop-eta-weight'),SUBJECTS.map((p,i)=>({x:p.wt,y:fit.eta[i]})),{xLabel:'Poids (kg)',yLabel:'ETA CL',zero:true});
+    histogram($('pop-eta-hist'),fit.eta,{label:'ETA CL (log)',lo:-1,hi:1});
+    const sim=simulatedVPC(kind),colors=['#f6c28e','#9be9cf','#c8a6f5'];
+    const lines=sim.map((x,i)=>({values:x.median,color:colors[i],width:i===1?3:2}));
+    const bands=sim.map((x,i)=>({lower:x.lower,upper:x.upper,color:colors[i]}));
+    const points=TIMES.flatMap((t,i)=>[1,2,3].map((k,j)=>({t,c:VPC_OBSERVED[i][k],color:colors[j]})));
+    const ymax=Math.max(18,...sim[2].upper.map(p=>p.c),...points.map(p=>p.c))*1.12;
+    graph($('pop-vpc'),{series:lines,bands,points,maxT:168,ymax});
+  }
   $('pop-diagnostic-model').value='lag';
   $('pop-diagnostic-model').addEventListener('change',draw);
   $('pop-diagnostic-subject').addEventListener('change',draw);
