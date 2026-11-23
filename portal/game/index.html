@@ -161,7 +161,7 @@
   <aside class="panel career-sidebar">
     <div class="career-kicker">PARCOURS 3 · ANALYSE POPPK</div>
     <h2>De données au modèle final</h2>
-    <p>Une étude de warfarine <strong>synthétique</strong>, inspirée du cas pédagogique Monolix. Ajustements déjà calculés : aucun SAEM n'est lancé dans le navigateur.</p>
+    <p>Le véritable jeu de warfarine de l'étude historique (32 sujets, PK et PCA), avec résultats SAEM <strong>nlmixr2</strong> archivés dans le notebook. Aucun SAEM n'est relancé dans le navigateur.</p>
     <div class="career-progress"><strong id="population-progress">0 / 7</strong><span>missions terminées</span></div>
     <div id="population-steps" class="career-step-list"></div>
     <button id="population-reset" class="reset-journey">Réinitialiser ce parcours</button>
@@ -184,14 +184,14 @@
       </div>
       <p id="population-hint-text" class="tutorial-notice" hidden></p>
     </section>
-    <p class="quest-caveat">Cohorte totalement artificielle, inspirée des méthodes de pharmacométrie. Le SAEM pré-enregistré est un pilote pédagogique non validé, distinct de Monolix et nlmixr2. Aucun résultat ne doit guider une décision clinique.</p>
+    <p class="quest-caveat">Données d'étude historiques issues des publications O’Reilly (1963/1968), déjà distribuées dans le dépôt. Résultats SAEM du notebook nlmixr2 ; diagnostics individuels reconstruits/illustratifs lorsque les sorties originales manquent. Pas de prescription clinique.</p>
   </div>
 </section>
 <section id="mipd-mode" class="career-layout" hidden aria-label="Parcours MIPD et individualisation posologique pédagogique">
   <aside class="panel career-sidebar">
     <div class="career-kicker">PARCOURS 4 · MIPD</div>
     <h2>Du patient fictif à la dose</h2>
-    <p>Observations simulées, estimation Bayésienne MAP, évaluation d'une grille de doses et décisions face à une clairance changeante.</p>
+    <p>Observations simulées, critique des horaires de prélèvement, estimation Bayésienne MAP et choix d'une cible AUC/C0/temps >2×CMI avec plafond de toxicité fictif.</p>
     <div class="career-progress"><strong id="mipd-progress">0 / 6</strong><span>missions terminées</span></div>
     <div id="mipd-steps" class="career-step-list"></div>
     <button id="mipd-reset" class="reset-journey">Réinitialiser ce parcours</button>
@@ -214,7 +214,7 @@
       </div>
       <p id="mipd-hint-text" class="tutorial-notice" hidden></p>
     </section>
-    <p class="quest-caveat">Modèle fictif simplifié à un compartiment et perfusion IV ; cibles AUC inventées pour l'exercice. Calcul MAP réel par intégration sur grille bornée, mais sans validation externe, ni recommandations thérapeutiques. Ne pas utiliser pour un patient.</p>
+    <p class="quest-caveat">Modèle fictif simplifié à un compartiment et perfusion IV ; cibles AUC, C0, fT>2×CMI et toxicité inventées pour l'exercice. Calcul MAP réel par intégration sur grille bornée, mais sans validation externe, ni recommandations thérapeutiques. Ne pas utiliser pour un patient.</p>
   </div>
 </section>
 
