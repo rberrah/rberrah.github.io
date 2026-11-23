@@ -281,6 +281,7 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-mode')).toBeVisible();
   await expect(page.locator('#academy-mode')).toBeHidden();
   await expect(page.locator('#population-progress')).toHaveText('0 / 7');
+  await expect(page.locator('a[href="/pharmacometrie/downloads/warfarin/warfarin_data.csv"]')).toHaveCount(1);
   for(const [key,value] of Object.entries({id:'id',time:'time',dose:'amt',concentration:'dv',event:'dvid'})){
     await page.locator('[data-pk-map="'+key+'"]').selectOption(value);
   }
