@@ -49,8 +49,9 @@ export function posterior({samples=0,clMultiplier=1}={}){
   // Here cl refers to the Bayesian-estimated baseline CL; adjust only for prospective scenario.
   const meanCL=logrows.reduce((s,r)=>s+r.cl*r.w,0);
   const meanV=logrows.reduce((s,r)=>s+r.v*r.w,0);
+  const mapRow=logrows.reduce((best,row)=>row.w>best.w?row:best,logrows[0]);
   const clCI=[weightedQuantile(logrows,'cl',.05),weightedQuantile(logrows,'cl',.95)];
-  return {samples,meanCL,meanV,clCI,rows:logrows,clMultiplier};
+  return {samples,meanCL,meanV,mapCL:mapRow.cl,mapV:mapRow.v,clCI,rows:logrows,clMultiplier};
 }
 export function doseEvaluation(post,dose,{clMultiplier=post.clMultiplier??1}={}){
   if(!DOSES.includes(dose)||!Number.isFinite(clMultiplier)||clMultiplier<.45||clMultiplier>1.05)
