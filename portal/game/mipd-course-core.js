@@ -16,6 +16,7 @@ export const CASE=Object.freeze({
   consensus:'https://doi.org/10.1097/FTD.0000000000000871',
   heartGuideline:'https://www.ishlt.org/docs/default-source/standards-guidelines/2022_guideline_ishlt_careofhtxrecipients.pdf',
   lss:'https://pubmed.ncbi.nlm.nih.gov/18641552/',
+  berrah:'https://doi.org/10.1097/FTD.0000000000001413',
   hughes:'https://doi.org/10.1002/psp4.12684'
  }
 });
