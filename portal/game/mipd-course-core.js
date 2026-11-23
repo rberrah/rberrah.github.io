@@ -54,18 +54,23 @@ export function posterior({samples=3,omegaFactor=1,ruvCV=CASE.ruvCV,priorWeight=
  const omegaCL=CASE.omegaCL*omegaFactor,omegaV=CASE.omegaV*omegaFactor;
  const unnormalised=[];
  for(const cl of CL_GRID)for(const v of V_GRID){
-  let l=priorWeight*(logPrior(cl,CASE.priorCL,omegaCL)+logPrior(v,CASE.priorV,omegaV));
+  const lp=priorWeight*(logPrior(cl,CASE.priorCL,omegaCL)+logPrior(v,CASE.priorV,omegaV));
+  let ll=0;
   for(let i=0;i<samples;i++){
    const {t,value}=OBSERVATIONS[i],pred=mpaConcentration(t,{cl,v});
    const sd=Math.hypot(ruvCV*pred,CASE.ruvFloor);
-   l+=-.5*((value-pred)/sd)**2-Math.log(sd);
+   ll+=-.5*((value-pred)/sd)**2-Math.log(sd);
   }
-  unnormalised.push({cl,v,l});
+  unnormalised.push({cl,v,lp,ll,l:lp+ll});
  }
- const peak=Math.max(...unnormalised.map(r=>r.l));
- let total=0;
- for(const r of unnormalised){r.w=Math.exp(r.l-peak);total+=r.w;}
- for(const r of unnormalised)r.w/=total;
+ // Normalize prior, likelihood and posterior separately on the identical grid
+ // for informative marginal overlays; these are not interchangeable probabilities.
+ for(const [logKey,weightKey] of [['lp','wPrior'],['ll','wLikelihood'],['l','w']]){
+  const peak=Math.max(...unnormalised.map(r=>r[logKey]));
+  let total=0;
+  for(const r of unnormalised){r[weightKey]=Math.exp(r[logKey]-peak);total+=r[weightKey];}
+  for(const r of unnormalised)r[weightKey]/=total;
+ }
  const map=unnormalised.reduce((a,b)=>b.w>a.w?b:a);
  return {
   samples,omegaFactor,ruvCV,priorWeight,

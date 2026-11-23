@@ -39,7 +39,7 @@ function checkboxes(options,name='pop-checks'){
     '<label><input type="checkbox" name="'+name+'" value="'+o[0]+'"><span>'+o[1]+'</span></label>'
   ).join('')+'</div>';
 }
-function graph(el,{series=[],points=[],bands=[],maxT=168,ymax=20,log=false,target=null}={}){
+function graph(el,{series=[],points=[],bands=[],summaries=[],maxT=168,ymax=20,log=false,target=null}={}){
   const w=730,h=285,x0=66,y0=22,cw=635,ch=226;
   const hi=log?Math.ceil(Math.log10(ymax)):ymax;
   const low=log?-2:0;
@@ -66,9 +66,18 @@ function graph(el,{series=[],points=[],bands=[],maxT=168,ymax=20,log=false,targe
     if(coords.length>1)s+='<polyline points="'+coords.join(' ')+'" fill="none" stroke="'+(line.color||'#8de2ce')+
       '" stroke-width="'+(line.width||3)+'" stroke-linejoin="round" opacity="'+(line.opacity??1)+'"/>';
   }
+  for(const entry of summaries){
+    if(log && entry.q25<=0)continue;
+    const x=xx(entry.t).toFixed(1),top=yy(entry.q75).toFixed(1),bottom=yy(entry.q25).toFixed(1),center=yy(entry.q50).toFixed(1);
+    s+='<line x1="'+x+'" x2="'+x+'" y1="'+top+'" y2="'+bottom+'" stroke="#ccb6ee" stroke-width="3.1" opacity=".95"/>'+
+      '<line x1="'+(xx(entry.t)-6).toFixed(1)+'" x2="'+(xx(entry.t)+6).toFixed(1)+'" y1="'+top+'" y2="'+top+'" stroke="#ccb6ee" stroke-width="1.7"/>'+
+      '<line x1="'+(xx(entry.t)-6).toFixed(1)+'" x2="'+(xx(entry.t)+6).toFixed(1)+'" y1="'+bottom+'" y2="'+bottom+'" stroke="#ccb6ee" stroke-width="1.7"/>'+
+      '<circle cx="'+x+'" cy="'+center+'" r="4.6" fill="#d2b8f7" stroke="#17343b" stroke-width=".7"/>';
+  }
   for(const dot of points){
     if(log&&dot.c<=0)continue;
-    s+='<circle cx="'+xx(dot.t).toFixed(1)+'" cy="'+yy(dot.c).toFixed(1)+'" r="3.5" fill="'+(dot.color||'#f6cc93')+'" stroke="#17343b" stroke-width=".8"/>';
+    s+='<circle cx="'+xx(dot.t).toFixed(1)+'" cy="'+yy(dot.c).toFixed(1)+'" r="'+(dot.r||3.5)+
+      '" opacity="'+(dot.opacity??1)+'" fill="'+(dot.color||'#f6cc93')+'" stroke="'+(dot.stroke||'#17343b')+'" stroke-width=".8"/>';
   }
   el.innerHTML=s;
 }
@@ -235,7 +244,8 @@ function report(){
     '4. MODEL DIAGNOSTICS\n'+
     'Benchmark checks: DV/PRED, DV/IPRED, individual fits, log-standardized residuals vs time and IPRED, QQ plot, EBE vs weight, IIV/RUV and VPC P5/P50/P95 from 120 replicates. Not available: exact CWRES, NPDE, covariance matrix, RSE, bootstrap, IOV, pcVPC or external validation.\n'+
     '5. PK/PD AND CONCLUSION\n'+
-    'The experimental PCA response time course differs from the PK concentration course, motivating evaluation of effect-compartment or turnover models. No joint PK/PD model was fitted. In the independent simulated benchmark, 1C vs 1C + Tlag cannot be differentiated by BIC alone; diagnostic precision and identifiability remain unresolved. These simulated parameter estimates cannot be transferred to the 32 experimental participants. Next: fit and qualify a model directly on the experimental cohort with uncertainty and predictive checks.\n';
+    'According to the official Monolix tutorial using the original study, the one-compartment model with first-order absorption and Tlag is preferred: Tlag improves early and peak fits, while the two-compartment model has unstable, imprecise peripheral parameter estimates. Following parsimony, retain 1C + Tlag as the structural base. The tutorial subsequently selects a combined2 residual-error model and assesses weight and age covariates; these tutorial fits were not recomputed here. The distinct simulated benchmark (ΔBIC 0.23) cannot establish or refute Tlag in the real study. PCA supports a delayed effect, addressed in the Monolix PK/PD workflow; no PK/PD model was refitted in this game.\n'+
+    'Monolix reference: https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
   return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
     '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
     'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
@@ -247,7 +257,8 @@ function report(){
     '4. MODEL DIAGNOSTICS / CONTRÔLES\n'+
     'Examinés sur le benchmark : DV/PRED, DV/IPRED, profils individuels, résidus log-standardisés versus temps/IPRED et QQ-plot, EBE-versus-poids, IIV/RUV et VPC P5/P50/P95 à 120 réplications. Ne sont pas estimés : CWRES exacts, NPDE, matrice de covariance, RSE, bootstrap, IOV, pcVPC et validation externe.\n'+
     '5. PK/PD AND CONCLUSION\n'+
-    'La série PCA expérimentale présente une cinétique distincte des concentrations PK, ce qui motive de comparer un modèle d’effet retardé/turnover. Aucune relation PK/PD n’a été estimée ici. Sur le benchmark simulé, les structures 1C et 1C + Tlag ne sont pas départagées avec un ΔBIC inférieur à 2 ; une sélection mécanistique nécessite des diagnostics supplémentaires. Les résultats du benchmark ne sont pas transférables tels quels aux 32 volontaires expérimentaux. Étape suivante : estimation conjointe ou séquentielle sur l’étude d’origine, puis qualification des paramètres, du modèle résiduel et de la prédiction.\n';
+    'Le tutoriel officiel Monolix retient sur les observations originales le modèle 1C avec absorption d’ordre 1 et Tlag : les ajustements précoces et des pics sont améliorés, tandis que le 2C ajoute des paramètres périphériques peu précis et moins stables. Le principe de parcimonie conduit à privilégier 1C + Tlag ; le tutoriel poursuit avec une RUV combinée 2 et l’évaluation d’effets du poids et de l’âge. Ces ajustements Monolix n’ont pas été recalculés dans ce jeu. Le ΔBIC = 0,23 du benchmark simulé ne permet ni de prouver ni de réfuter Tlag dans les données réelles. Le décalage PCA–PK motive une relation indirecte/turnover ; aucune analyse PK/PD nouvelle n’a été refaite ici.\n'+
+    'Référence Monolix : https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
 }
 function renderImport(){
   const subj=STUDY_SUBJECTS[0],pk=STUDY_PK.filter(x=>x.id===subj.id).slice(0,4),
@@ -272,27 +283,56 @@ function renderImport(){
   }));
 }
 
+// Data are measured and sampling is irregular: do not join sparse profiles
+// across subjects. Descriptive bin summaries are unweighted (one subject per bin).
+export function warfarinOverview(rows,subjectId){
+  const bins=[0,6,12,24,48,72,96,120.001],valid=rows.filter(p=>Number.isFinite(p.t)&&Number.isFinite(p.c)&&p.t>=0&&p.t<=120);
+  const others=valid.filter(p=>p.id!==subjectId),chosen=valid.filter(p=>p.id===subjectId).sort((a,b)=>a.t-b.t);
+  const summaries=[];
+  for(let i=0;i<bins.length-1;i++){
+    const perSubject=new Map();
+    for(const p of valid){
+      if(p.t<bins[i]||p.t>=bins[i+1])continue;
+      if(!perSubject.has(p.id))perSubject.set(p.id,[]);
+      perSubject.get(p.id).push(p.c);
+    }
+    const values=[...perSubject.values()].map(v=>quantile(v,.5)).sort((a,b)=>a-b);
+    if(values.length<4)continue;
+    summaries.push({t:(bins[i]+Math.min(bins[i+1],120))/2,n:values.length,
+      q25:quantile(values,.25),q50:quantile(values,.5),q75:quantile(values,.75)});
+  }
+  const selectedSegments=[];let segment=[];
+  for(const p of chosen){
+    if(segment.length && p.t-segment.at(-1).t>24){if(segment.length>1)selectedSegments.push(segment);segment=[];}
+    segment.push(p);
+  }
+  if(segment.length>1)selectedSegments.push(segment);
+  return {others,chosen,summaries,selectedSegments};
+}
 function renderEDA(){
   $('population-workspace').innerHTML=story('Explorez les <strong>mesures expérimentales</strong> de warfarine de l’étude : les sujets n’ont pas tous le même nombre d’échantillons ni les mêmes horaires. Une courbe descriptive ne suffit pas à identifier formellement une structure.','ÉTUDE RÉELLE · EXPLORATION GRAPHIQUE')+
-    '<p class="career-note"><strong>Vue populationnelle :</strong> profils des 32 volontaires, le sujet choisi est mis en évidence en orange. Changer de sujet ou d’échelle modifie simultanément les deux graphiques.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg><p id="pop-overview-legend" class="career-note"></p>'+ 
+    '<p class="career-note"><strong>Vue populationnelle :</strong> nuage d’observations des 32 volontaires, sujet sélectionné en orange et médianes/IQR de fenêtres temporelles en violet. Les données irrégulières ne sont plus reliées artificiellement entre sujets ou sur des périodes non échantillonnées.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg><p id="pop-overview-legend" class="career-note"></p>'+ 
     '<div class="career-chart-toolbar"><button id="pop-linear" aria-pressed="true">Linéaire</button><button id="pop-log" aria-pressed="false">Semi-log</button><label>Sujet <select id="pop-subject">'+STUDY_SUBJECTS.map(p=>'<option value="'+p.id+'">S'+p.id+' · '+fmt(p.wt,1)+' kg</option>').join('')+'</select></label></div>'+
     '<svg id="pop-eda-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations expérimentales de warfarine, source Monolix"></svg>'+
-    '<p class="career-note">Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les segments de la vue d’ensemble sont descriptifs et ne sont pas des prédictions d’un modèle. Les prélèvements ne sont pas synchrones entre volontaires.</p>'+
+    '<p class="career-note">Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les lignes orange ne relient que les observations proches du même sujet. Les médianes et IQR par fenêtres représentent des données observées, pas une prédiction populationnelle. Les prélèvements sont irréguliers.</p>'+
     radio([['simple','Un modèle oral 1C est un candidat à ajuster et comparer : les observations seules ne prouvent pas sa structure.'],
       ['three','La pente terminale démontre exactement trois compartiments.'],
       ['fixed','La dispersion entre sujets prouve que tous les paramètres sont parfaitement identifiables.']]);
   function draw(){
-    const all=STUDY_SUBJECTS.map(subject=>({id:subject.id,values:STUDY_PK.filter(p=>
-      p.id===subject.id&&Number.isFinite(p.t)&&Number.isFinite(p.c)).sort((a,b)=>a.t-b.t)}));
-    const chosen=all.find(a=>a.id===selectedSubject),rest=all.filter(a=>a.id!==selectedSubject);
+    const view=warfarinOverview(STUDY_PK,selectedSubject);
     graph($('pop-spaghetti'),{
-      series:[...rest.map((a,i)=>({values:a.values,color:i%2?'#94afca':'#85c1ad',opacity:.38,width:1.4})),
-        ...(chosen?[{values:chosen.values,color:'#ffca86',opacity:1,width:3.5}]:[])],
-      points:chosen?chosen.values.map(p=>({...p,color:'#ffca86'})):[],
+      series:view.selectedSegments.map(values=>({values,color:'#ffca86',opacity:.92,width:2.4})),
+      points:[...view.others.map(p=>({...p,color:'#7dbcb4',opacity:.37,r:2.6,stroke:'#20414a'})),
+        ...view.chosen.map(p=>({...p,color:'#ffca86',opacity:1,r:4.5}))],
+      summaries:view.summaries,
       maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.09,log:scale==='log'
     });
-    $('pop-overview-legend').textContent='32 sujets · '+STUDY_PK.length+' observations PK · sujet S'+selectedSubject+
-      ' mis en évidence ('+(chosen?.values.length||0)+' prélèvements). Les segments relient uniquement ses propres observations.';
+    const english=new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en';
+    $('pop-overview-legend').textContent=english?
+      '32 subjects · '+STUDY_PK.length+' PK observations · S'+selectedSubject+
+      ' ('+view.chosen.length+' samples). Teal = measured values; orange = selected subject; purple = median and IQR by time window (at least 4 subjects), without interpolation.':
+      '32 sujets · '+STUDY_PK.length+' observations PK · S'+selectedSubject+
+      ' ('+view.chosen.length+' prélèvements). Turquoise = données mesurées ; orange = sujet sélectionné ; violet = médiane et IQR par fenêtre (au moins 4 sujets), sans interpolation.';
     $('pop-linear').setAttribute('aria-pressed',String(scale==='linear'));
     $('pop-log').setAttribute('aria-pressed',String(scale==='log'));
     const obs=STUDY_PK.filter(o=>o.id===selectedSubject);
@@ -392,12 +432,30 @@ function renderSAEM(){
   redraw();
 }
 const DIAG_QUESTIONS=Object.freeze([
-  {key:'gof',correct:'trends',ask:'Que contrôler dans DV/PRED, DV/IPRED et les profils individuels ?',options:[['trends','Biais, écart à l’identité, structure des résidus et profils atypiques'],['r2','Uniquement la corrélation globale des prédictions']]},
-  {key:'residual',correct:'patterns',ask:'Que recherchent résidus versus temps/IPRED et QQ-plot ?',options:[['patterns','Tendance, hétéroscédasticité, asymétrie et queues incohérentes avec le modèle'],['ignore','Une tendance ascendante est toujours rassurante']]},
-  {key:'iiv',correct:'careful',ask:'Que signifient ηCL versus poids, IIV et shrinkage ?',options:[['careful','Explorer covariables, distribution des EBE et shrinkage, sans inférer un effet causal du nuage'],['causal','Une pente des EBE prouve une covariable mécanistique']]},
-  {key:'ruv',correct:'form',ask:'Quelle question poser sur le modèle d’erreur ?',options:[['form','La dispersion dépend-elle de la concentration, et la forme choisie est-elle plausible ?'],['zero','Il faut toujours fixer l’erreur résiduelle à zéro']]},
-  {key:'vpc',correct:'bands',ask:'Que vérifier sur P5/P50/P95 du VPC ?',options:[['bands','Position des quantiles observés par rapport aux simulations, y compris les extrêmes et le temps'],['median','Seule la médiane est informative']]},
-  {key:'stability',correct:'uncertainty',ask:'Quels diagnostics supplémentaires réclamer avant la qualification ?',options:[['uncertainty','Précision RSE/IC, stabilité, identifiabilité et validation externe ou simulation-estimation'],['bic','Aucun, le BIC minimal suffit']]}
+  {key:'gof',correct:'trends',ask:'DV/PRED s’écarte de l’identité aux faibles concentrations, mais DV/IPRED se rapproche de la diagonale. Quelle interprétation faut-il examiner ?',options:[
+    ['trends','Les effets individuels expliquent une partie de la dispersion ; il faut rechercher un biais systématique restant, notamment selon le temps.'],
+    ['r2','Le meilleur DV/IPRED démontre que le modèle structural et les covariables sont corrects.'],
+    ['overfit','Il faut ajouter un compartiment dès qu’un sujet possède un écart important.']]},
+  {key:'residual',correct:'patterns',ask:'L’histogramme résiduel est centré, mais les résidus varient avec IPRED et le QQ-plot s’écarte dans les queues. Quelle suite est justifiée ?',options:[
+    ['patterns','Tester les formes de RUV et vérifier les tendances selon temps et prédiction : une moyenne proche de zéro ne suffit pas.'],
+    ['ignore','Accepter le modèle, car la moyenne des résidus est proche de zéro.'],
+    ['exclude','Supprimer systématiquement les valeurs extrêmes pour forcer la normalité.']]},
+  {key:'iiv',correct:'careful',ask:'ηCL semble associé au poids, tandis que la distribution des EBE paraît plus resserrée que Ω. Quelle est la bonne démarche ?',options:[
+    ['careful','Quantifier le shrinkage, tester un effet du poids, réestimer Ω et vérifier si la relation et les diagnostics s’améliorent.'],
+    ['causal','Inclure automatiquement le poids sur CL : l’association visuelle démontre la causalité.'],
+    ['ignore','Ignorer les covariables puisque les EBE peuvent être shrinkés.']]},
+  {key:'ruv',correct:'form',ask:'La dispersion absolue augmente lorsque les concentrations prédites sont élevées. Quelle comparaison est informative ?',options:[
+    ['form','Comparer des erreurs additives, proportionnelles et combinées par ajustement et diagnostics résiduels, en gardant la précision analytique en tête.'],
+    ['zero','Réduire uniquement σ à zéro pour améliorer la vraisemblance.'],
+    ['cl','Modifier CL plutôt que la structure de RUV, sans analyser les résidus.']]},
+  {key:'vpc',correct:'bands',ask:'La médiane observée suit la bande du VPC mais P5 et P95 s’en écartent. Que conclure ?',options:[
+    ['bands','La tendance centrale peut être correcte alors que la variabilité et les extrêmes sont mal reproduits ; revoir Ω, RUV et les temps.'],
+    ['median','Le VPC est validé dès que P50 est bien reproduit.'],
+    ['replicates','Augmenter uniquement le nombre de réplications suffit à corriger les quantiles.']]},
+  {key:'stability',correct:'uncertainty',ask:'Un modèle 2C améliore légèrement −2LL mais Q/Vp sont imprécis et les départs multiples divergent. Quelle décision privilégier ?',options:[
+    ['uncertainty','Comparer le critère pénalisé, l’identifiabilité, la stabilité et la prédiction ; retenir le modèle plus simple si son ajustement suffit.'],
+    ['bic','Choisir automatiquement le modèle avec la plus faible −2LL, quel que soit le nombre de paramètres.'],
+    ['fix','Fixer les paramètres mal identifiés arbitrairement sans nouvelle vérification.']]}
 ]);
 export function gradeDiagnosticQuestions(answers){return DIAG_QUESTIONS.every(q=>answers[q.key]===q.correct);}
 function diagnosticQuiz(key){
@@ -489,6 +547,7 @@ function renderDecision(){
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Modèle</th><th>BIC approximatif</th><th>ΔBIC</th><th>Paramètres libres</th></tr></thead><tbody>'+
     modelComparison().map(x=>'<tr><td>'+x.label+'</td><td>'+fmt(x.bic)+'</td><td>'+fmt(x.deltaBic)+'</td><td>'+x.parameters+'</td></tr>').join('')+
     '</tbody></table></div>'+
+    '<p class="career-note"><strong>Interprétation :</strong> le replay ne permet pas d’arbitrer Tlag. Sur les observations originales, la formation Monolix obtient au contraire un meilleur ajustement avec Tlag et préfère 1C+Tlag au modèle 2C moins robuste (rasoir d’Occam). Ne pas mélanger les deux analyses.</p>'+ 
     radio([['lag-proved','Le 1C avec Tlag est démontré meilleur : ΔBIC = 0,23 suffit pour conclure.'],
       ['equivocal','1C ± Tlag restent presque équivalents ; le modèle 2C est moins soutenu. Il faut confirmer par stabilité et diagnostics.'],
       ['two-certain','Le 2C doit être retenu car il possède le plus grand nombre de paramètres.']]);
@@ -515,10 +574,12 @@ function renderPD(){
 
 function renderFinal(){
   $('population-workspace').innerHTML=story('Concluez comme dans un rapport de pharmacométrie : séparez données, modèles candidats, précision, diagnostics et résultat PK/PD. Une conclusion ne peut s’appliquer qu’au jeu de données effectivement estimé.','SYNTHÈSE SCIENTIFIQUE')+
-    '<div class="career-alert"><strong>Résultat principal :</strong> les 32 volontaires Warfarine ont été explorés graphiquement. Les BIC et variabilités affichés concernent un benchmark distinct de 28 sujets simulés : 1C et 1C avec Tlag ont des BIC presque identiques ; aucune preuve indépendante n’a sélectionné la structure pour les vrais sujets.</div>'+
-    '<p class="career-note">Quelle conclusion résume correctement les résultats ?</p>'+
-    radio([['conditional','Le Tlag reste indécidable sur le benchmark ; la cohorte expérimentale nécessite son propre ajustement PK/PD et ses diagnostics.'],
-      ['certain','Le Tlag est confirmé dans les 32 volontaires et le modèle est validé.']],'pop-conclusion')+
+    '<div class="career-alert"><strong>Conclusion — principe de parcimonie :</strong> dans le tutoriel officiel Monolix, le 1C sans délai surestime les premières observations et sous-estime certains pics ; l’ajout de Tlag améliore les diagnostics. Un 2C avec Tlag est essayé mais présente une estimation des paramètres périphériques moins précise et moins stable. Le <strong>1C avec Tlag</strong> est donc retenu comme base structurale ; le développement se poursuit avec une RUV combinée et des covariables. Les BIC du replay simulé ne sont pas ceux de Monolix.</div>'+
+    '<p class="career-note"><a href="https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics" target="_blank" rel="noopener noreferrer">Voir les ajustements et la comparaison de convergence de la formation Monolix</a></p>'+
+    '<p class="career-note">Quelle interprétation concilie les diagnostics de l’étude réelle et les résultats du benchmark distinct ?</p>'+
+    radio([['conditional','Sur les données réelles, Monolix retient le 1C + Tlag pour l’amélioration du fit et la robustesse face au 2C ; le petit ΔBIC simulé ne permet pas de généraliser les paramètres du replay.'],
+      ['certain','Le seul ΔBIC = 0,23 du replay prouve que Tlag est supérieur sur l’étude originale.'],
+      ['always-simple','Le rasoir d’Occam impose le 1C sans Tlag même si ses diagnostics sont moins bons.']],'pop-conclusion')+
     '<pre id="pop-report" class="career-code">'+escapeText(report())+'</pre>'+
     '<div class="career-file-actions"><button type="button" class="career-action" id="pop-copy-report">Copier le rapport scientifique</button>'+
     '<a href="'+POPULATION_META.tutorialUrl+'" target="_blank" rel="noopener noreferrer" class="career-action">Source de l’étude</a></div>';
@@ -602,6 +663,7 @@ function validate(){
   if(index===4)return gradeStructureConclusion(option)?success('Le replay pédagogique ne distingue pas Tlag ; ces résultats ne concernent pas la cohorte expérimentale.'):failure('Une petite différence de BIC ne prouve pas qu’une structure est vraie.');
   if(index===5)return option==='delay'?success('Un modèle indirect ou à compartiment d’effet devra être ajusté et diagnostiqué.'):failure('La différence entre PK et PD ne démontre pas une relation instantanée.');
 }
+window.addEventListener('pmx-game-language-change',()=>{if(index===1)renderEDA();else if(index===6)renderFinal();});
 $('population-validate').addEventListener('click',validate);
 $('population-hint').addEventListener('click',()=>{$('population-hint-text').hidden=false;});
 $('population-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
