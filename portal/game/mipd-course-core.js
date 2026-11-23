@@ -95,3 +95,63 @@ export function qualityGate({dose,modelValidated=false,changingCL=false,missingT
   if(!DOSES.includes(dose)) reasons.push('La dose est hors de la grille pédagogique.');
   return {canBeUsedClinically:false,reasons};
 }
+
+
+// Additional *fictional* PK/PD targets for the user's benefit/risk exercise.
+// Do not identify these as clinical vancomycin or beta-lactam recommendations.
+export const TARGETS=Object.freeze({
+ mic:5,twiceMIC:10,minFractionAbove2MIC:.90,
+ troughLow:8,troughHigh:11,toxicTrough:12,
+ aucLow:CASE.targetLow,aucHigh:CASE.targetHigh,
+ changedClMultiplier:.6,
+ baselineDose:900,
+ saferDoses:Object.freeze([450,480,500,540,600])
+});
+export function fractionAboveThreshold({dose,cl,v,tau=CASE.tau,duration=CASE.duration,threshold=TARGETS.twiceMIC}={}){
+ if(![dose,cl,v,tau,duration,threshold].every(Number.isFinite)||Math.min(dose,cl,v,tau,duration,threshold)<=0||duration>=tau)
+ throw new RangeError('Invalid fraction threshold scenario');
+ const k=cl/v,r=dose/duration,steady=r/cl;
+ const trough=infusionAt(0,{dose,cl,v,tau,duration});
+ const peak=infusionAt(duration,{dose,cl,v,tau,duration});
+ if(trough>=threshold)return 1;
+ if(peak<=threshold)return 0;
+ const ratio=(threshold-steady)/(trough-steady);
+ const start=Math.max(0,Math.min(duration,-Math.log(Math.max(1e-12,ratio))/k));
+ const finish=Math.max(duration,Math.min(tau,duration+Math.log(peak/threshold)/k));
+ return Math.max(0,Math.min(1,(finish-start)/tau));
+}
+export function exposureAtSS(post,dose,scale=1){
+ if(!Number.isFinite(dose)||dose<=0||!Number.isFinite(scale)||scale<=0||scale>1.1)throw new RangeError('Invalid evaluation');
+ const cl=post.meanCL*scale,v=post.meanV,tau=CASE.tau,duration=CASE.duration;
+ const c0=infusionAt(0,{dose,cl,v,tau,duration});
+ const cmax=infusionAt(duration,{dose,cl,v,tau,duration});
+ const fT2MIC=fractionAboveThreshold({dose,cl,v,tau,duration});
+ const auc24=24/tau*dose/cl;
+ const aucProb=DOSES.includes(dose)?doseEvaluation(post,dose,{clMultiplier:scale}).p:null;
+ return {dose,cl,v,c0,cmax,auc24,aucProb,fT2MIC,
+  toxic:c0>=TARGETS.toxicTrough,
+  aucAccept:auc24>=TARGETS.aucLow&&auc24<=TARGETS.aucHigh,
+  c0Accept:c0>=TARGETS.troughLow&&c0<=TARGETS.troughHigh,
+  timeAccept:fT2MIC>=TARGETS.minFractionAbove2MIC};
+}
+export function gradeDoseGoal(post,dose,goal='auc'){
+ if(!['auc','c0','ft'].includes(goal))throw new RangeError('Invalid fictional target');
+ const e=exposureAtSS(post,dose);
+ const ok=!e.toxic &&(goal==='auc'?e.aucProb>=.68:goal==='c0'?e.c0Accept:e.timeAccept);
+ return {...e,goal,ok};
+}
+export function gradeCLChange(post,aucDose,c0Dose){
+ if(![aucDose,c0Dose].every(Number.isFinite))throw new RangeError('Missing dose');
+ const baseline=exposureAtSS(post,TARGETS.baselineDose);
+ const preserveAuc=exposureAtSS(post,aucDose,TARGETS.changedClMultiplier);
+ const preserveTrough=exposureAtSS(post,c0Dose,TARGETS.changedClMultiplier);
+ return {baseline,preserveAuc,preserveTrough,
+  aucOk:Math.abs(preserveAuc.auc24/baseline.auc24-1)<=.045,
+  c0Ok:preserveTrough.c0Accept&&!preserveTrough.toxic,
+  conflict:preserveAuc.toxic && !preserveTrough.aucAccept,
+  ok:Math.abs(preserveAuc.auc24/baseline.auc24-1)<=.045 &&
+    preserveTrough.c0Accept&&!preserveTrough.toxic&&preserveAuc.toxic};
+}
+export function assessGivenSamplePlan(reason){
+ return reason==='conditional';
+}
