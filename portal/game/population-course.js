@@ -327,8 +327,12 @@ function renderEDA(){
       summaries:view.summaries,
       maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.09,log:scale==='log'
     });
-    $('pop-overview-legend').textContent='32 sujets · '+STUDY_PK.length+' observations PK · S'+selectedSubject+
-      ' ('+view.chosen.length+' prélèvements). Points turquoise : observations mesurées ; orange : sujet sélectionné ; violet : médiane et IQR de chaque fenêtre temporelle (au moins 4 sujets), sans interpolation.';
+    const english=new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en';
+    $('pop-overview-legend').textContent=english?
+      '32 subjects · '+STUDY_PK.length+' PK observations · S'+selectedSubject+
+      ' ('+view.chosen.length+' samples). Teal = measured values; orange = selected subject; purple = median and IQR by time window (at least 4 subjects), without interpolation.':
+      '32 sujets · '+STUDY_PK.length+' observations PK · S'+selectedSubject+
+      ' ('+view.chosen.length+' prélèvements). Turquoise = données mesurées ; orange = sujet sélectionné ; violet = médiane et IQR par fenêtre (au moins 4 sujets), sans interpolation.';
     $('pop-linear').setAttribute('aria-pressed',String(scale==='linear'));
     $('pop-log').setAttribute('aria-pressed',String(scale==='log'));
     const obs=STUDY_PK.filter(o=>o.id===selectedSubject);
@@ -659,6 +663,7 @@ function validate(){
   if(index===4)return gradeStructureConclusion(option)?success('Le replay pédagogique ne distingue pas Tlag ; ces résultats ne concernent pas la cohorte expérimentale.'):failure('Une petite différence de BIC ne prouve pas qu’une structure est vraie.');
   if(index===5)return option==='delay'?success('Un modèle indirect ou à compartiment d’effet devra être ajusté et diagnostiqué.'):failure('La différence entre PK et PD ne démontre pas une relation instantanée.');
 }
+window.addEventListener('pmx-game-language-change',()=>{if(index===1)renderEDA();else if(index===6)renderFinal();});
 $('population-validate').addEventListener('click',validate);
 $('population-hint').addEventListener('click',()=>{$('population-hint-text').hidden=false;});
 $('population-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
