@@ -33,6 +33,7 @@
   let links = $derived([
     { href: '/', key: 'home', label: copy.nav.home },
     { href: '/chapitres', key: 'course', label: copy.nav.course },
+    { href: '/game', key: 'game', label: 'PMx Game' }
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
@@ -57,7 +58,7 @@
     { href: `${SITE_ORIGIN}/`, key: 'main-site', label: 'Racym Berrah ↗', external: true }
   ]);
   let groups = $derived([
-    { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
+    { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['game', 'course', 'example', 'exercises'] },
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'tdm-targets', 'ml', 'other-tools'] },
