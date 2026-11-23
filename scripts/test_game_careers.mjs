@@ -75,6 +75,14 @@ assert.throws(()=>mpaConcentration(2,{cl:0}),RangeError);
 const p0=posterior({samples:0}),p1=posterior({samples:1}),p3=posterior({samples:3});
 for(const p of [p0,p1,p3]){
   near(p.rows.reduce((x,r)=>x+r.w,0),1,1e-9);
+  near(p.rows.reduce((x,r)=>x+r.wPrior,0),1,1e-9);
+  near(p.rows.reduce((x,r)=>x+r.wLikelihood,0),1,1e-9);
+  assert.ok(p.rows.every(x=>Number.isFinite(x.wPrior)&&Number.isFinite(x.wLikelihood)));
+  // Posterior must equal pointwise prior × likelihood up to a normalization constant.
+  const ratios=p.rows.filter(r=>r.wPrior>1e-9&&r.wLikelihood>1e-9&&r.w>1e-9);
+  const pivot=ratios[Math.floor(ratios.length/2)];
+  const zRef=pivot.w/(pivot.wPrior*pivot.wLikelihood);
+  for(const r of ratios.slice(0,50)) near(r.w/(r.wPrior*r.wLikelihood)/zRef,1,1e-6);
   assert.equal(p.rows.length,65*61);
   assert.ok(p.rows.every(x=>Number.isFinite(x.w)&&x.w>=0));
 }
@@ -130,5 +138,8 @@ for(const path of ['locale-en.js','locale-en-lessons.js','locale-en-mipd.js']){
 const variabilitySource=readFileSync('portal/game/population-course.js','utf8');
 assert.match(variabilitySource,/shrinkage:100\*\(1-etaSD\/omega\)/);
 assert.ok(populationUi.includes('gradeDiagnosticQuestions')&&populationUi.includes('plotSAEMConvergence'));
+assert.ok(populationUi.includes('warfarinOverview')&&populationUi.includes('principe de parcimonie'));
+assert.ok(mipdUi.includes('tripleBayesChart')&&mipdUi.includes('career-auc-figure'));
+assert.ok(!mipdUi.includes("['iiv','ruv','prior'].every"));
 assert.ok(!mipdUi.includes('toxic trough')&&!mipdUi.includes('dose-rows'));
 console.log('PASS: real warfarin EDA, SAEM/BIC diagnostics, MPA heart transplantation targets, adjustable MAP IIV/RUV/prior and free-dose AUC/CL scenarios.');
