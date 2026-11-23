@@ -123,8 +123,9 @@ function stage2(){
     const post=[P0,P1,P2][n];
     $('mipd-post-metrics').innerHTML=[
       ['E[CL]',fmt(post.meanCL,2)+' L/h'],
+      ['MAP(CL)',fmt(post.mapCL,2)+' L/h'],
       ['CL P5–P95',fmt(post.clCI[0],1)+'–'+fmt(post.clCI[1],1)+' L/h'],
-      ['E[V]',fmt(post.meanV,1)+' L']
+      ['MAP(V)',fmt(post.mapV,1)+' L']
     ].map(([name,value])=>'<div><span>'+name+'</span><strong>'+value+'</strong></div>').join('');
     distribution($('mipd-post-chart'),P0,post);
     $('mipd-workspace').querySelectorAll('[data-mipd-post]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.mipdPost===n)));
@@ -196,7 +197,7 @@ function report(){
     'Antibiotique V fictif : perfusion IV 1 h q12h, 750 mg. AUC24 cible inventée : 440–560 mg·h/L.\n'+
     'Prior : CL médiane 4,5 L/h, V médian 32 L ; distribution lognormale et résidu hétéroscédastique.\n'+
     'Dosages simulés : 2 h = '+fmt(OBSERVATIONS[0].value,2)+' mg/L ; 11 h = '+fmt(OBSERVATIONS[1].value,2)+' mg/L.\n'+
-    'MAP sur grille intégrée : E[CL] = '+fmt(P2.meanCL,2)+' L/h (P5–P95 : '+fmt(P2.clCI[0],1)+'–'+fmt(P2.clCI[1],1)+').\n'+
+    'Posterior sur grille : MAP(CL) = '+fmt(P2.mapCL,2)+' L/h, MAP(V) = '+fmt(P2.mapV,1)+' L, E[CL] = '+fmt(P2.meanCL,2)+' L/h (P5–P95 : '+fmt(P2.clCI[0],1)+'–'+fmt(P2.clCI[1],1)+').\n'+
     'Enseignement : la grille fictive favorise '+best.dose+' mg q12h, P(cible) ≈ '+fmt(best.p*100,0)+
     ' % ; sous l’hypothèse CL ×0,6, dose de la grille '+shift.dose+' mg q12h, P(cible) ≈ '+fmt(shift.p*100,0)+' %.\n'+
     'Ces doses ne sont PAS des recommandations cliniques. Le modèle n’est pas validé, les cibles sont inventées, les observations sont fictives et le changement de CL n’a pas été estimé à partir de nouveaux prélèvements.\n'+
