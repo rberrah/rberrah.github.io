@@ -4,7 +4,8 @@
 import {FR_EN} from './locale-en.js';
 import {FR_EN_LESSONS} from './locale-en-lessons.js';
 import {FR_EN_MIPD} from './locale-en-mipd.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD};
+import {FR_EN_CLASSIC} from './locale-en-classic.js';
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
@@ -96,6 +97,7 @@ function refresh(){
   document.getElementById('game-lang-fr')?.setAttribute('aria-pressed',String(current==='fr'));
   document.getElementById('game-lang-en')?.setAttribute('aria-pressed',String(current==='en'));
   updateNode(document.body);
+  document.title=current==='en'?'PMx Game · Interactive pharmacokinetics':'PMx Game · Laboratoire de pharmacocinétique';
 }
 function setLanguage(lang){
   if(!supported.has(lang))return;
