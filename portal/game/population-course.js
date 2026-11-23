@@ -39,7 +39,7 @@ function checkboxes(options,name='pop-checks'){
     '<label><input type="checkbox" name="'+name+'" value="'+o[0]+'"><span>'+o[1]+'</span></label>'
   ).join('')+'</div>';
 }
-function graph(el,{series=[],points=[],maxT=168,ymax=20,log=false,target=null}={}){
+function graph(el,{series=[],points=[],bands=[],maxT=168,ymax=20,log=false,target=null}={}){
   const w=730,h=285,x0=66,y0=22,cw=635,ch=226;
   const hi=log?Math.ceil(Math.log10(ymax)):ymax;
   const low=log?-2:0;
@@ -54,6 +54,13 @@ function graph(el,{series=[],points=[],maxT=168,ymax=20,log=false,target=null}={
       '<text x="'+x+'" y="269" text-anchor="middle" fill="#a7cbc4" font-size="12">'+fmt(maxT*i/4,0)+' h</text>';
   }
   if(target!==null){const y=yy(target);s+='<line x1="'+x0+'" x2="'+(x0+cw)+'" y1="'+y+'" y2="'+y+'" stroke="#f2c18e" stroke-dasharray="6 4"/>';}
+  for(const band of bands){
+    const upper=band.upper.filter(p=>p.c>0||!log);
+    const lower=band.lower.filter(p=>p.c>0||!log);
+    if(upper.length<2||lower.length<2)continue;
+    const coords=[...upper,...lower.slice().reverse()].map(p=>xx(p.t).toFixed(1)+','+yy(p.c).toFixed(1)).join(' ');
+    s+='<polygon points="'+coords+'" fill="'+(band.color||'#9be9cf')+'" opacity=".13"/>';
+  }
   for(const line of series){
     const coords=line.values.filter(p=>!log||p.c>0).map(p=>xx(p.t).toFixed(1)+','+yy(p.c).toFixed(1));
     if(coords.length>1)s+='<polyline points="'+coords.join(' ')+'" fill="none" stroke="'+(line.color||'#8de2ce')+
@@ -64,6 +71,88 @@ function graph(el,{series=[],points=[],maxT=168,ymax=20,log=false,target=null}={
     s+='<circle cx="'+xx(dot.t).toFixed(1)+'" cy="'+yy(dot.c).toFixed(1)+'" r="3.5" fill="'+(dot.color||'#f6cc93')+'" stroke="#17343b" stroke-width=".8"/>';
   }
   el.innerHTML=s;
+}
+function scatter(el,values,{xLabel='x',yLabel='y',xMin=null,xMax=null,yMin=null,yMax=null,identity=false,zero=false}={}){
+  const finite=values.filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
+  if(!finite.length){el.textContent='Données insuffisantes';return;}
+  let minX=xMin??Math.min(0,...finite.map(p=>p.x)),maxX=xMax??Math.max(...finite.map(p=>p.x));
+  let minY=yMin??Math.min(0,...finite.map(p=>p.y)),maxY=yMax??Math.max(...finite.map(p=>p.y));
+  if(maxX-minX<.01){minX-=1;maxX+=1;}if(maxY-minY<.01){minY-=1;maxY+=1;}
+  const xx=v=>68+625*(v-minX)/(maxX-minX),yy=v=>242-205*(v-minY)/(maxY-minY);
+  let svg='<rect x="68" y="37" width="625" height="205" rx="8" fill="#0c2530"/>';
+  for(let i=0;i<=4;i++){
+    const t=i/4,x=68+625*t,y=242-205*t;
+    svg+='<path d="M'+x+' 37 V242 M68 '+y+' H693" stroke="#35535c" stroke-dasharray="2 6"/>'+
+      '<text x="'+x+'" y="258" text-anchor="middle" fill="#a7cbc4" font-size="11">'+fmt(minX+(maxX-minX)*t,1)+'</text>'+
+      '<text x="60" y="'+(y+4)+'" text-anchor="end" fill="#a7cbc4" font-size="11">'+fmt(minY+(maxY-minY)*t,1)+'</text>';
+  }
+  if(identity){
+    const low=Math.max(minX,minY),hi=Math.min(maxX,maxY);
+    if(low<hi)svg+='<path d="M'+xx(low)+' '+yy(low)+' L'+xx(hi)+' '+yy(hi)+'" stroke="#f6c28e" stroke-width="2" stroke-dasharray="6 4"/>';
+  }
+  if(zero&&minY<=0&&maxY>=0)svg+='<path d="M68 '+yy(0)+' H693" stroke="#f6c28e" stroke-width="1.7" stroke-dasharray="6 4"/>';
+  for(const p of finite)svg+='<circle cx="'+xx(p.x).toFixed(1)+'" cy="'+yy(p.y).toFixed(1)+'" r="3" fill="#9be9cf" opacity=".7"/>';
+  svg+='<text x="380" y="281" text-anchor="middle" fill="#c8ddd8" font-size="12">'+escapeText(xLabel)+'</text>'+
+    '<text x="68" y="20" fill="#c8ddd8" font-size="12">'+escapeText(yLabel)+'</text>';
+  el.innerHTML=svg;
+}
+function histogram(el,values,{label='Résidu',lo=-4,hi=4,bins=16}={}){
+  const counts=Array.from({length:bins},()=>0);
+  for(const v of values)if(Number.isFinite(v)){
+    counts[Math.max(0,Math.min(bins-1,Math.floor((v-lo)/(hi-lo)*bins)))]++;
+  }
+  const m=Math.max(1,...counts),base=242;
+  let svg='<rect x="68" y="32" width="625" height="210" rx="8" fill="#0c2530"/>';
+  for(let i=0;i<bins;i++){
+    const h=190*counts[i]/m;
+    svg+='<rect x="'+(72+i*38)+'" y="'+(base-h).toFixed(1)+'" width="31" height="'+h.toFixed(1)+'" fill="#9be9cf"/>';
+  }
+  for(let i=0;i<=4;i++)svg+='<text x="'+(72+i*152)+'" y="264" fill="#c8ddd8" font-size="12">'+fmt(lo+(hi-lo)*i/4,1)+'</text>';
+  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">Effectif · '+escapeText(label)+'</text>';
+}
+function quantile(values,p){
+  const a=[...values].filter(Number.isFinite).sort((x,y)=>x-y);
+  if(!a.length)return NaN;
+  const at=(a.length-1)*p,i=Math.floor(at);
+  return a[i]+(a[Math.min(i+1,a.length-1)]-a[i])*(at-i);
+}
+function normQuantile(p){
+  // Acklam approximation; used solely for a diagnostic QQ axis, not inference.
+  const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239];
+  const b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];
+  const c=[-.007784894002430293,-.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+  const d=[.007784695709041462,.3224671290700398,2.445134137142996,3.754408661907416];
+  if(p<.02425||p>1-.02425){
+    const q=Math.sqrt(-2*Math.log(p<.5?p:1-p));
+    const n=(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]);
+    const den=((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+    return (p<.5?1:-1)*n/den;
+  }
+  const q=p-.5,r=q*q;
+  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/
+    (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+const vpcCache=new Map();
+function simulatedVPC(kind){
+  if(vpcCache.has(kind))return vpcCache.get(kind);
+  const fit=FITS[kind],group=TIMES.map(t=>OBSERVATIONS.filter(o=>o.t===t));
+  let seed=20261123+({one:1,lag:2,two:3}[kind])*457;
+  const uniform=()=>{seed=(1664525*seed+1013904223)>>>0;return Math.max(1e-10,seed/4294967296);};
+  const gaussian=()=>Math.sqrt(-2*Math.log(uniform()))*Math.cos(2*Math.PI*uniform());
+  const all=TIMES.map(()=>[[],[],[]]);
+  for(let rep=0;rep<120;rep++){
+    const etas=new Map(SUBJECTS.map(sub=>[sub.id,fit.est.omegaCL*gaussian()]));
+    for(let i=0;i<TIMES.length;i++){
+      const vals=group[i].map(o=>populationPredict(kind,o.t,o.dose,etas.get(o.id))*Math.exp(fit.est.sigmaLog*gaussian()));
+      [.05,.5,.95].forEach((p,k)=>all[i][k].push(quantile(vals,p)));
+    }
+  }
+  const p=[.05,.5,.95].map((_,k)=>({
+    median:TIMES.map((t,i)=>({t,c:quantile(all[i][k],.5)})),
+    lower:TIMES.map((t,i)=>({t,c:quantile(all[i][k],.05)})),
+    upper:TIMES.map((t,i)=>({t,c:quantile(all[i][k],.95)}))
+  }));
+  vpcCache.set(kind,p);return p;
 }
 function navigation(){
   $('population-progress').textContent=done.length+' / '+STEPS.length;
