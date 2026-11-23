@@ -77,3 +77,6 @@
 .career-danger{color:#ffb3ac;font-size:.79rem}
 #pop-diagnostic-gallery .career-diag-button:focus-visible,.career-action:focus-visible{outline:3px solid #9cf1d9;outline-offset:2px}
 @media(max-width:650px){.career-diagnostic-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.career-legend{gap:9px;font-size:.76rem}}
+
+.career-chart[hidden]{display:none!important}
+#pop-native-chart{object-fit:contain;background:#f5f7f5;max-width:100%;max-height:550px}
