@@ -86,3 +86,25 @@
 .career-auc-point{position:absolute;top:-4px;height:33px;width:5px;background:#f8c48f;border-radius:4px;z-index:5}
 .career-workspace input[type=number]{min-height:43px;max-width:100%;width:100%;border:1px solid #55777a;border-radius:8px;background:#102a35;color:#f2f6f4;padding:8px 11px;font-size:1rem}
 .career-workspace select{max-width:100%}
+
+/* MAP-BE sensitivities: sliders and all three distributions stay visible together. */
+.career-bayes-layout{display:grid;grid-template-columns:minmax(200px,235px) minmax(0,1fr);align-items:start;gap:18px;margin:15px 0}
+.career-bayes-controls{position:sticky;top:16px;display:grid;gap:15px;border:1px solid #47746c;background:#12353a;border-radius:14px;padding:16px}
+.career-bayes-controls h3{font-size:1rem;color:#d3f2e5;margin:0}
+.career-bayes-slider{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 8px;font-size:.79rem;font-weight:650;color:#c4e7d9}
+.career-bayes-slider output{font-size:.86rem;color:#95f4d6;font-weight:850;font-variant-numeric:tabular-nums}
+.career-bayes-slider input[type=range]{grid-column:1/-1;display:block;width:100%;margin:7px 0;accent-color:#91ecca;cursor:pointer}
+.career-bayes-slider input:focus-visible{outline:2px solid #cde7ff;outline-offset:4px}
+.career-bayes-charts{min-width:0;display:grid;gap:11px}
+.career-bayes-charts .career-chart{min-height:120px}
+.career-bayes-charts .career-chart-key{display:flex;gap:10px;font-size:.74rem}
+.career-auc-figure{margin:16px 0 23px;min-width:0}
+.career-auc-figure svg{min-height:0}
+.career-auc-caption{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:8px;font-size:.81rem;color:#d4e7df;line-height:1.5}
+.career-auc-caption span{display:inline-flex;align-items:center;gap:6px}
+.career-auc-caption i{display:inline-block;flex:0 0 auto}
+.career-auc-caption .auc-dot{width:11px;height:11px;border-radius:100%;background:#8de8cb}
+.career-auc-caption .auc-ci{width:19px;height:7px;border-radius:4px;background:#a8a3ee}
+.career-auc-caption .auc-threshold{width:4px;height:15px;background:#f4cc91}
+@media(max-width:1150px){.career-bayes-layout{grid-template-columns:1fr}.career-bayes-controls{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.career-bayes-controls h3,.career-bayes-controls .career-note{grid-column:1/-1}}
+@media(max-width:560px){.career-bayes-controls{grid-template-columns:1fr}.career-bayes-charts .career-chart-key{font-size:.7rem}}
