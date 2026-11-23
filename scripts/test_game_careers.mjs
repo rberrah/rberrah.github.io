@@ -5,6 +5,7 @@ import {STUDY_META,STUDY_SUBJECTS,STUDY_PK,STUDY_PD} from '../portal/game/warfar
 import {POPULATION_META,SUBJECTS,OBSERVATIONS as POP_OBS,FITS,TIMES,
   modelComparison,populationPredict,assessMapping,gradeStructureConclusion,chooseChecks}
  from '../portal/game/saem-replay.js';
+import {iivDensityDiagnostic,lognormalRuvEnvelope} from '../portal/game/population-diagnostics-core.js';
 import {CASE,DOSES,OBSERVATIONS as MIPD_OBS,infusionAt,posterior,mpaConcentration,doseMetrics,
   doseEvaluation,candidateDoses,chooseDose,simulatorCurve,sampleTimingGrade,qualityGate,
   evaluateEndpoints,scenarioComparison,PKPD}
@@ -43,6 +44,26 @@ for(const fit of Object.values(FITS)){
   assert.ok(fit.trace.every(r=>r.every(Number.isFinite)));
   assert.ok(fit.bic<0&&fit.neg2ll<0);
 }
+// Verify plot statistics, not only that their SVG elements exist.
+for(const [kind,fit] of Object.entries(FITS)){
+  const h=iivDensityDiagnostic(fit.eta,fit.est.omegaCL);
+  assert.equal(h.n,28);
+  assert.ok(h.bins>=5&&h.bins<=9,'avoid 20 sparse bins for 28 EBEs');
+  assert.equal(h.histogram.reduce((sum,bar)=>sum+bar.count,0),28);
+  near(h.area,1,1e-12);
+  assert.ok(h.histogram.every(bar=>bar.density>=0&&bar.x1>bar.x0));
+  assert.ok(h.lo<Math.min(...fit.eta)&&h.hi>Math.max(...fit.eta));
+  const r=lognormalRuvEnvelope(fit.est.sigmaLog);
+  assert.equal(r.values.length,101);
+  assert.ok(r.p5Ratio<1&&r.p95Ratio>1);
+  near(r.p5Ratio*r.p95Ratio,1,1e-12);
+  for(const point of r.values){
+    assert.ok(point.p5<=point.median&&point.median<=point.p95);
+    near(point.p5*point.p95,point.median**2,1e-9);
+  }
+}
+assert.throws(()=>iivDensityDiagnostic([1],.2),RangeError);
+assert.throws(()=>lognormalRuvEnvelope(0),RangeError);
 const comparison=modelComparison();
 const lag=comparison.find(x=>x.id==='lag'),one=comparison.find(x=>x.id==='one'),two=comparison.find(x=>x.id==='two');
 near(lag.bic,-224.01);near(one.bic,-223.78);near(two.bic,-215.27);
@@ -139,7 +160,10 @@ const variabilitySource=readFileSync('portal/game/population-course.js','utf8');
 assert.match(variabilitySource,/shrinkage:100\*\(1-etaSD\/omega\)/);
 assert.ok(populationUi.includes('gradeDiagnosticQuestions')&&populationUi.includes('plotSAEMConvergence'));
 assert.ok(populationUi.includes('warfarinOverview')&&populationUi.includes('principe de parcimonie'));
+assert.ok(!populationUi.includes('pop-bic')&&!populationUi.includes('plotBicEvidence'));
+assert.ok(populationUi.includes('lognormalRuvEnvelope')&&populationUi.includes('iivDensityDiagnostic'));
+assert.ok(readFileSync('portal/game/locale-en-v5.js','utf8').includes('Conditional residuals'));
 assert.ok(mipdUi.includes('tripleBayesChart')&&mipdUi.includes('career-auc-figure'));
 assert.ok(!mipdUi.includes("['iiv','ruv','prior'].every"));
 assert.ok(!mipdUi.includes('toxic trough')&&!mipdUi.includes('dose-rows'));
-console.log('PASS: real warfarin EDA, SAEM/BIC diagnostics, MPA heart transplantation targets, adjustable MAP IIV/RUV/prior and free-dose AUC/CL scenarios.');
+console.log('PASS: real warfarin EDA, SAEM diagnostics with tested IIV and RUV quantiles, MPA heart transplantation targets, adjustable MAP IIV/RUV/prior and free-dose AUC/CL scenarios.');
