@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { getSiteOrigin, SITE_ORIGIN_TOKEN } from '../site.config.js';
 
 const port = Number(process.argv[2] || 4181);
@@ -22,8 +23,9 @@ createServer(async (request, response) => {
   }
   const prefixedApp = pathname === '/pharmacometrie' || pathname.startsWith('/pharmacometrie/');
   const app = appOnly || prefixedApp;
-  const root = path.resolve(app ? 'build' : 'portal');
-  const relative = prefixedApp
+  const assembled = !appOnly && existsSync('dist/pharmacometrie/game/index.html');
+  const root = path.resolve(assembled ? 'dist' : app ? 'build' : 'portal');
+  const relative = assembled ? pathname : prefixedApp
     ? pathname.slice('/pharmacometrie'.length)
     : pathname;
   let file = path.resolve(root, '.' + relative);

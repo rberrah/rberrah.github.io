@@ -28,7 +28,8 @@ test.beforeAll(async ({}, workerInfo) => {
     'multiomics/disciplines',
     'multiomics/resources',
     'multiomics/glossary',
-    'multiomics/references'
+    'multiomics/references',
+    'pharmacometrie/game'
   ]) {
     const target = path.join(portalRoot, route);
     await mkdir(target, { recursive: true });

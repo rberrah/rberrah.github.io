@@ -81,6 +81,8 @@ jobs:
           cp -r portal/. dist/
           mkdir -p dist/pharmacometrie
           cp -r build/. dist/pharmacometrie/
+      - name: Publish full PMx Game at canonical pharmacometrics route
+        run: node scripts/mount_game_route.mjs dist
       - name: Mount verified standalone MultiOmics at canonical root route
         run: node scripts/apply_multiomics_root_overlay.mjs "$MULTIOMICS_DIR/short-url-overlay" dist
       - name: Replace historical PMx MultiOmics copy with compatibility aliases
@@ -91,6 +93,8 @@ jobs:
           for file in \
             dist/index.html \
             dist/game/index.html \
+            dist/pharmacometrie/game/index.html \
+            dist/pharmacometrie/game/population-course.js \
             dist/game/engine.js \
             dist/game/app.js \
             dist/assets/site.css \
@@ -104,8 +108,8 @@ jobs:
           node scripts/configure_site_origin.mjs
           node scripts/add_portal_analytics.mjs
           npm run audit:public-artifact
-          if grep -q 'data-portal-analytics' dist/game/index.html; then
-            echo "::error::Hidden game must remain telemetry-free"
+          if grep -q 'data-portal-analytics' dist/pharmacometrie/game/index.html; then
+            echo "::error::Educational game must remain telemetry-free"
             exit 1
           fi
       - name: Verify canonical MultiOmics mount and legacy aliases (desktop/mobile)

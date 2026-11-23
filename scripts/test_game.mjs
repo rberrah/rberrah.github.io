@@ -169,12 +169,11 @@ assert.ok(QUESTS.find(q=>q.id==='flip').question.toLowerCase().includes('clairan
 assert.ok(QUESTS.find(q=>q.id==='flip').options[QUESTS.find(q=>q.id==='flip').answer].includes('pente orale'));
 
 const page=readFileSync('portal/game/index.html','utf8');
-for(const expected of ['name="robots" content="noindex,nofollow,noarchive"','src="./app.js"','src="./academy.js"','src="./advanced.js"','href="./academy.css"','id="academy-mode"' ,'id="advanced-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
+for(const expected of ['name="robots" content="index,follow"','src="./app.js"','src="./academy.js"','src="./advanced.js"','href="./academy.css"','id="academy-mode"' ,'id="advanced-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
   assert.ok(page.includes(expected), expected + ' missing');
-for(const path of ['portal/index.html','portal/tools/index.html','portal/sitemap.xml']) {
-  const text=readFileSync(path,'utf8');
-  assert.ok(!text.includes('/game'), path + ' must not advertise the hidden route');
-}
+assert.ok(readFileSync('portal/index.html','utf8').includes('/pharmacometrie/game/'));
+assert.ok(readFileSync('src/routes/+layout.svelte','utf8').includes("key: 'game'"));
+assert.ok(readFileSync('scripts/mount_game_route.mjs','utf8').includes("'pharmacometrie','game'"));
 const injector=readFileSync('scripts/add_portal_analytics.mjs','utf8');
 assert.match(injector,/directory === target && entry.name === 'game'/);
-console.log('PASS: PMx Game analytic IV profile, AUC, mass conservation (6 structures/routes), linearity, bounds and unlisted URL.');
+console.log('PASS: PMx Game scientific engine, official canonical route and published navigation.');

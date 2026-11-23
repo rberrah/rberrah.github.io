@@ -112,10 +112,16 @@ for(const key of ['id="population-mode"','id="mipd-mode"','id="mode-population"'
   'src="./population-course.js"','src="./mipd-course.js"','href="./courses.css"']){
   assert.ok(html.includes(key),key+' missing in game page');
 }
-assert.ok(!readFileSync('portal/sitemap.xml','utf8').includes('/game'));
+assert.ok(readFileSync('portal/index.html','utf8').includes('/pharmacometrie/game/'));
 assert.ok(!readFileSync('portal/index.html','utf8').includes('href="/game"'));
 const populationUi=readFileSync('portal/game/population-course.js','utf8');
 const mipdUi=readFileSync('portal/game/mipd-course.js','utf8');
-for(const fragment of ['STUDY_PK','STUDY_PD','pop-gof-ipred','pop-resid-qq','simulatedVPC','pop-eta-weight'])assert.ok(populationUi.includes(fragment));
+for(const fragment of ['STUDY_PK','STUDY_PD','pop-spaghetti','pop-gof-ipred','pop-resid-qq','simulatedVPC','pop-eta-weight','pop-variability-metrics','pop-iiv-density','pop-ruv-shape','variabilitySummary'])assert.ok(populationUi.includes(fragment));
 for(const fragment of ['mipd-sampling-verdict','mipd-post-v','mipd-criterion','mipd-shift-safety','concentrationLegend'])assert.ok(mipdUi.includes(fragment));
-console.log('PASS: real-study provenance (32/251/232), isolated synthetic SAEM pilot, diagnostic gallery, MAP-BE and CL/toxicity scenarios.');
+assert.ok(html.includes('id="game-lang-en"') && html.includes('src="./locale.js"'));
+for(const path of ['locale-en.js','locale-en-lessons.js','locale-en-mipd.js']){
+  assert.ok(readFileSync('portal/game/'+path,'utf8').length>1000,'English catalog must be substantial');
+}
+const variabilitySource=readFileSync('portal/game/population-course.js','utf8');
+assert.match(variabilitySource,/shrinkage:100\*\(1-etaSD\/omega\)/);
+console.log('PASS: real warfarin study, scientific SAEM replay, IIV/RUV/GOF/VPC, bilingual interface, MAP-BE/dose scenarios.');

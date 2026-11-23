@@ -8,7 +8,7 @@ import { configureSiteOrigin } from './configure_site_origin.mjs';
 
 async function materializeExternallyMountedRoutes(directory) {
   for (const route of ['multiomics', 'multiomics/tool', 'multiomics/learn', 'multiomics/ecosystem', 'multiomics/disciplines', 'multiomics/resources',
-    'multiomics/glossary', 'multiomics/references']) {
+    'multiomics/glossary', 'multiomics/references', 'pharmacometrie/game']) {
     const target = path.join(directory, route);
     await mkdir(target, { recursive: true });
     await writeFile(path.join(target, 'index.html'), '<!doctype html><title>external mount fixture</title>');
@@ -72,7 +72,7 @@ test('a stale application build or a missing sitemap destination blocks assembly
   await materializeExternallyMountedRoutes(directory);
   const origin = 'https://pharmacology.example';
   const app = path.join(directory, 'pharmacometrie');
-  await mkdir(app);
+  await mkdir(app, { recursive: true });
   await writeFile(path.join(app, 'sitemap.xml'), '<urlset><url><loc>https://old.example/pharmacometrie/</loc></url></urlset>');
   await assert.rejects(configureSiteOrigin(directory, origin), /Origin mismatch/);
   await writeFile(path.join(app, 'sitemap.xml'), `<urlset><url><loc>${origin}/pharmacometrie/missing/</loc></url></urlset>`);

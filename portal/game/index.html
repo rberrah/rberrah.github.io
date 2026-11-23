@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://rberrah.github.io/pharmacometrie/game/">
   <meta name="referrer" content="no-referrer">
   <title>PMx Game · Laboratoire de pharmacocinétique</title>
   <meta name="description" content="Laboratoire pédagogique interactif de pharmacocinétique compartimentale.">
@@ -13,6 +14,7 @@
     button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f6c375;outline-offset:3px}
     .wrap{max-width:1490px;margin:auto;padding:24px clamp(14px,3vw,44px) 58px}
     header{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap}
+    #game-lang-fr[aria-pressed="true"],#game-lang-en[aria-pressed="true"]{background:#79ead0;color:#072019;border-color:#79ead0}
     .brand{display:flex;align-items:center;gap:12px}.emblem{width:42px;height:42px;border:1px solid #3e8381;border-radius:12px;display:grid;place-items:center;color:#78f0d1;font-weight:800;letter-spacing:-2px;background:#153039}.brand strong{font-size:1.04rem;letter-spacing:.04em}.brand small{display:block;font-size:.75rem;color:#91b0b1}.pill{font-size:.77rem;color:#a8dace;padding:7px 12px;background:#123333;border:1px solid #245d58;border-radius:999px}
     .hero{margin-bottom:24px}.eyebrow{text-transform:uppercase;font-size:.74rem;letter-spacing:.18em;font-weight:750;color:#6cd5c1}.hero h1{font-size:clamp(1.8rem,3.2vw,3rem);letter-spacing:-.04em;line-height:1.12;margin:8px 0 10px;max-width:820px}.hero p{color:#a9c0bf;line-height:1.55;max-width:830px;margin:0}
     main{display:grid;grid-template-columns:minmax(270px,330px) minmax(0,1fr);align-items:start;gap:18px}.panel{background:#0f242b;border:1px solid #24444a;border-radius:18px;box-shadow:0 15px 40px #0002;min-width:0}.settings{padding:21px;position:sticky;top:12px}
@@ -38,7 +40,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><span class="pill">Prototype pédagogique · sans données patients</span></header>
+  <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><div class="button-row" role="group" aria-label="Language / Langue"><button id="game-lang-fr" type="button" aria-pressed="true" lang="fr">FR</button><button id="game-lang-en" type="button" aria-pressed="false" lang="en">EN</button></div><span class="pill">Jeu pédagogique · sans données patients</span></header>
   <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Quatre parcours pour découvrir la PK : comprendre les courbes, construire des modèles, mener une étude de pharmacométrie de population et individualiser une dose sur un cas entièrement fictif. Un atelier libre complète les missions.</p></section>
   <nav class="game-mode" aria-label="Choisir un mode">
     <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
@@ -160,8 +162,8 @@
   <section id="population-mode" class="career-layout" hidden aria-label="Parcours pharmacométricien de population">
   <aside class="panel career-sidebar">
     <div class="career-kicker">PARCOURS 3 · ANALYSE POPPK</div>
-    <h2>De données au modèle final</h2>
-    <p>Une étude de warfarine <strong>synthétique</strong>, inspirée du cas pédagogique Monolix. Ajustements déjà calculés : aucun SAEM n'est lancé dans le navigateur.</p>
+    <h2>Des données au modèle final</h2>
+    <p>Une étude expérimentale de warfarine pour l'import et l'exploration ; un replay SAEM distinct sur cohorte artificielle pour apprendre l'estimation et les diagnostics.</p>
     <div class="career-progress"><strong id="population-progress">0 / 7</strong><span>missions terminées</span></div>
     <div id="population-steps" class="career-step-list"></div>
     <button id="population-reset" class="reset-journey">Réinitialiser ce parcours</button>
@@ -184,7 +186,7 @@
       </div>
       <p id="population-hint-text" class="tutorial-notice" hidden></p>
     </section>
-    <p class="quest-caveat">Cohorte totalement artificielle, inspirée des méthodes de pharmacométrie. Le SAEM pré-enregistré est un pilote pédagogique non validé, distinct de Monolix et nlmixr2. Aucun résultat ne doit guider une décision clinique.</p>
+    <p class="quest-caveat">Données expérimentales de warfarine aux étapes 1, 2 et 6 ; replay SAEM sur 28 sujets artificiels aux étapes d'estimation et de diagnostics. Aucun modèle issu de l'étude réelle n'est ajusté ici. Les résultats ne servent pas à prescrire.</p>
   </div>
 </section>
 <section id="mipd-mode" class="career-layout" hidden aria-label="Parcours MIPD et individualisation posologique pédagogique">
@@ -266,11 +268,12 @@
       </section>
     </div>
   </main>
-  <div class="footer"><strong>PMx Explain · Prototype expérimental.</strong> Le calcul reproduit uniquement un modèle linéaire compartimental pédagogique (absorption d'ordre 1 ou bolus IV, élimination linéaire). Aucun modèle PBPK ni aucune adaptation posologique clinique. Pas d'enregistrement ni de transmission de données. Un lien non publié n'est pas un contrôle d'accès : cette page reste publiquement accessible à toute personne connaissant son adresse.</div>
+  <div class="footer"><strong>PMx Explain · Jeu pédagogique.</strong> Le calcul reproduit uniquement un modèle linéaire compartimental pédagogique (absorption d'ordre 1 ou bolus IV, élimination linéaire). Aucun modèle PBPK ni aucune adaptation posologique clinique. Pas d'enregistrement ni de transmission de données. Cette expérience est librement accessible et ne remplace pas un conseil clinique.</div>
 </div>
 <script type="module" src="./app.js"></script>
 <script type="module" src="./academy.js"></script>
 <script type="module" src="./advanced.js"></script>
 <script type="module" src="./population-course.js"></script>
 <script type="module" src="./mipd-course.js"></script>
+<script type="module" src="./locale.js"></script>
 </body></html>

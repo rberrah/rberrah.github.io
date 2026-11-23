@@ -15,6 +15,7 @@ const communicationPages = [
   '/communications/fr/missed-dose-iatdmct-sfpt-2026/',
   '/communications/fr/autonomous-pharmacometrics-page-2026/'
 ];
+const gamePages = ['/pharmacometrie/game/'];
 const multiomicsPages = ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/ecosystem/', '/multiomics/disciplines/', '/multiomics/resources/', '/multiomics/glossary/', '/multiomics/references/'];
 const publicOrigin = getSiteOrigin();
 
@@ -158,7 +159,7 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   await expect(page.locator('h1')).toHaveText('Page not found');
   const xml = await (await request.get(origin + '/sitemap.xml')).text();
   const urls = await page.evaluate(xml => [...new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('loc')].map(n => n.textContent), xml);
-  expect(urls.sort()).toEqual([...pages, ...communicationPages, ...multiomicsPages].map(p => publicOrigin + p).sort());
+  expect(urls.sort()).toEqual([...pages, ...communicationPages, ...gamePages, ...multiomicsPages].map(p => publicOrigin + p).sort());
   for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/'])
     expect((await request.get(origin + route)).status()).toBe(200);
   const response = await request.get(origin + '/internat/', { maxRedirects: 0 });

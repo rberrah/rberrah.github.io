@@ -1,8 +1,16 @@
-# PMx Game — expérimentation pédagogique isolée
+# PMx Game — parcours pédagogiques officiels de PMx Explain
 
 **Propriété :** PMx Explain (rberrah/rberrah.github.io), et non MIPD-Engine.
 
-## Distribution discrète
+## Publication officielle (23 novembre 2026)
+
+- Source unique : `portal/game/*`, montée par `scripts/mount_game_route.mjs` dans `dist/pharmacometrie/game/*` après la construction SvelteKit. Le contenu complet est identique sur les deux routes à l'assemblage, mais **/pharmacometrie/game/** est la route canonique et celle utilisée depuis Learn et l'accueil.
+- L'ancienne page Svelte `src/routes/game/+page.svelte` est retirée pour supprimer le doublon fonctionnel.
+- La route historique `/game/` demeure une entrée de compatibilité (même source).
+- Le jeu est publiquement référencé sans aucune donnée personnelle, médicale ou saisie patient.
+- Le parcours 3 contient désormais les graphiques IIV/RUV/EBE et une carte explicite des diagnostics disponibles vs manquants. Seule ηCL est estimée ; aucun CWRES/NPDE/RSE/IOV/Ω-corrélation n'est inventé.
+
+## Distribution historique (archive — désormais remplacée)
 
 - Page autonome /game/ (portal/game/index.html) sur le domaine racine.
 - Aucune entrée de navigation, aucun lien depuis le portail ou PMx, aucune entrée de sitemap. Le script d'assemblage n'injecte pas GoatCounter dans ce sous-arbre. La page porte robots=noindex,nofollow,noarchive.
@@ -13,7 +21,7 @@
 ## Deux expériences complémentaires
 
 - **Campagne (écran initial)** : neuf missions progressives, tutoriel en trois étapes, indice, correction explicative après validation, XP et badge final. La carte déverrouille les quêtes dans l’ordre et permet de rejouer les niveaux terminés. La progression (IDs des quêtes uniquement) est conservée en localStorage, sans identifiant personnel, sans API ni télémétrie. Elle peut être remise à zéro.
-- **Atelier libre** : éditeur de modèles historiques 1C–3C, animation des flux, courbe masquée, paramètres et dose. Le bouton du parcours permet de basculer dans l’atelier sans rendre publique la route via les menus du site.
+- **Atelier libre** : éditeur de modèles historiques 1C–3C, animation des flux, courbe masquée, paramètres et dose. Le bouton du parcours permet de basculer dans l’atelier ; le jeu complet est également accessible depuis la navigation Learn.
 - **Représentation physiologique** : silhouette stylisée avec circulation, tractus digestif, tissus et organes d’élimination. Les points lumineux reflètent les masses *mathématiques* au temps choisi ; **ils ne représentent pas des trajectoires anatomiques, ni l’attribution quantitative au foie/rein**.
 - **Instrument de mesure** : chaque courbe se visualise sur une échelle normale ou semi-logarithmique. Deux clics dans le graphique estiment la pente log locale et une demi-vie apparente lorsque cette pente est négative ; une concentration nulle ne peut pas être portée en semi-log.
 

@@ -56,12 +56,30 @@
   <h1>{copy.home.titlePrefix} <span class="hl">{copy.home.titleHighlight}</span> {copy.home.titleSuffix}</h1>
   <p class="lede">{copy.home.lede}</p>
   <div class="cta">
-    <a class="btn btn-primary" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="cta-start">{$language === 'en' ? 'I am starting: guided path' : 'Je débute : parcours guidé'}</a>
+    <a class="btn btn-primary" href={`${base}/game/?lang=${$language}`} data-testid="cta-game">{$language === 'en' ? 'Play PMx Game · interactive PK' : 'Jouer à PMx Game · la PK interactive'}</a>
+    <a class="btn btn-outline" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="cta-start">{$language === 'en' ? 'Guided beginner track' : 'Parcours débutant guidé'}</a>
     <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
   </div>
   <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>
 </section>
 
+<!-- Primary interactive-learning entry; older guided chapter track remains available. -->
+<section class="beginner-feature" data-testid="pmx-game-feature" aria-labelledby="game-feature-title">
+  <div class="beginner-feature-body">
+    <p class="eyebrow">PMx GAME · {$language === 'en' ? 'LEARN BY DOING' : 'APPRENDRE EN JOUANT'}</p>
+    <h2 id="game-feature-title">{$language === 'en' ? 'Four interactive pharmacometrics journeys' : 'Quatre parcours de pharmacométrie interactifs'}</h2>
+    <p class="beginner-feature-description">{$language === 'en' ? 'From concentration-time curves and compartment models to population pharmacokinetics, diagnostic plots, variability, residual error and Bayesian dose individualization. Educational examples, not clinical advice.' : 'Des courbes et modèles compartimentaux à la pharmacométrie de population, ses diagnostics, l’IIV, l’erreur résiduelle et l’individualisation bayésienne. Exemples pédagogiques, sans valeur de prescription.'}</p>
+    <div class="beginner-feature-details">
+      <span><GraduationCap size={17} aria-hidden="true" /> {$language === 'en' ? 'Four progressive tracks' : 'Quatre parcours progressifs'}</span>
+      <span><FlaskConical size={17} aria-hidden="true" /> {$language === 'en' ? 'Simulations and decisions' : 'Simulations et décisions'}</span>
+      <span><BookOpen size={17} aria-hidden="true" /> {$language === 'en' ? 'Population PK and MIPD' : 'PopPK et MIPD'}</span>
+    </div>
+  </div>
+  <a class="btn btn-primary beginner-feature-link" href={`${base}/game/?lang=${$language}`} data-testid="game-feature-open">
+    {$language === 'en' ? 'Open PMx Game' : 'Ouvrir PMx Game'}
+    <ArrowRight size={18} aria-hidden="true" />
+  </a>
+</section>
 <!-- A dedicated entry point for first-time learners, separate from the advanced track catalog. -->
 <section class="beginner-feature" data-testid="beginner-track-feature" aria-labelledby="beginner-track-title">
   <div class="beginner-feature-body">
