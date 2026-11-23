@@ -39,7 +39,7 @@ function checkboxes(options,name='pop-checks'){
     '<label><input type="checkbox" name="'+name+'" value="'+o[0]+'"><span>'+o[1]+'</span></label>'
   ).join('')+'</div>';
 }
-function graph(el,{series=[],points=[],bands=[],maxT=168,ymax=20,log=false,target=null}={}){
+function graph(el,{series=[],points=[],bands=[],summaries=[],maxT=168,ymax=20,log=false,target=null}={}){
   const w=730,h=285,x0=66,y0=22,cw=635,ch=226;
   const hi=log?Math.ceil(Math.log10(ymax)):ymax;
   const low=log?-2:0;
@@ -66,9 +66,18 @@ function graph(el,{series=[],points=[],bands=[],maxT=168,ymax=20,log=false,targe
     if(coords.length>1)s+='<polyline points="'+coords.join(' ')+'" fill="none" stroke="'+(line.color||'#8de2ce')+
       '" stroke-width="'+(line.width||3)+'" stroke-linejoin="round" opacity="'+(line.opacity??1)+'"/>';
   }
+  for(const entry of summaries){
+    if(log && entry.q25<=0)continue;
+    const x=xx(entry.t).toFixed(1),top=yy(entry.q75).toFixed(1),bottom=yy(entry.q25).toFixed(1),center=yy(entry.q50).toFixed(1);
+    s+='<line x1="'+x+'" x2="'+x+'" y1="'+top+'" y2="'+bottom+'" stroke="#ccb6ee" stroke-width="3.1" opacity=".95"/>'+
+      '<line x1="'+(xx(entry.t)-6).toFixed(1)+'" x2="'+(xx(entry.t)+6).toFixed(1)+'" y1="'+top+'" y2="'+top+'" stroke="#ccb6ee" stroke-width="1.7"/>'+
+      '<line x1="'+(xx(entry.t)-6).toFixed(1)+'" x2="'+(xx(entry.t)+6).toFixed(1)+'" y1="'+bottom+'" y2="'+bottom+'" stroke="#ccb6ee" stroke-width="1.7"/>'+
+      '<circle cx="'+x+'" cy="'+center+'" r="4.6" fill="#d2b8f7" stroke="#17343b" stroke-width=".7"/>';
+  }
   for(const dot of points){
     if(log&&dot.c<=0)continue;
-    s+='<circle cx="'+xx(dot.t).toFixed(1)+'" cy="'+yy(dot.c).toFixed(1)+'" r="3.5" fill="'+(dot.color||'#f6cc93')+'" stroke="#17343b" stroke-width=".8"/>';
+    s+='<circle cx="'+xx(dot.t).toFixed(1)+'" cy="'+yy(dot.c).toFixed(1)+'" r="'+(dot.r||3.5)+
+      '" opacity="'+(dot.opacity??1)+'" fill="'+(dot.color||'#f6cc93')+'" stroke="'+(dot.stroke||'#17343b')+'" stroke-width=".8"/>';
   }
   el.innerHTML=s;
 }
@@ -272,27 +281,52 @@ function renderImport(){
   }));
 }
 
+// Data are measured and sampling is irregular: do not join sparse profiles
+// across subjects. Descriptive bin summaries are unweighted (one subject per bin).
+export function warfarinOverview(rows,subjectId){
+  const bins=[0,6,12,24,48,72,96,120.001],valid=rows.filter(p=>Number.isFinite(p.t)&&Number.isFinite(p.c)&&p.t>=0&&p.t<=120);
+  const others=valid.filter(p=>p.id!==subjectId),chosen=valid.filter(p=>p.id===subjectId).sort((a,b)=>a.t-b.t);
+  const summaries=[];
+  for(let i=0;i<bins.length-1;i++){
+    const perSubject=new Map();
+    for(const p of valid){
+      if(p.t<bins[i]||p.t>=bins[i+1])continue;
+      if(!perSubject.has(p.id))perSubject.set(p.id,[]);
+      perSubject.get(p.id).push(p.c);
+    }
+    const values=[...perSubject.values()].map(v=>quantile(v,.5)).sort((a,b)=>a-b);
+    if(values.length<4)continue;
+    summaries.push({t:(bins[i]+Math.min(bins[i+1],120))/2,n:values.length,
+      q25:quantile(values,.25),q50:quantile(values,.5),q75:quantile(values,.75)});
+  }
+  const selectedSegments=[];let segment=[];
+  for(const p of chosen){
+    if(segment.length && p.t-segment.at(-1).t>24){if(segment.length>1)selectedSegments.push(segment);segment=[];}
+    segment.push(p);
+  }
+  if(segment.length>1)selectedSegments.push(segment);
+  return {others,chosen,summaries,selectedSegments};
+}
 function renderEDA(){
   $('population-workspace').innerHTML=story('Explorez les <strong>mesures expérimentales</strong> de warfarine de l’étude : les sujets n’ont pas tous le même nombre d’échantillons ni les mêmes horaires. Une courbe descriptive ne suffit pas à identifier formellement une structure.','ÉTUDE RÉELLE · EXPLORATION GRAPHIQUE')+
-    '<p class="career-note"><strong>Vue populationnelle :</strong> profils des 32 volontaires, le sujet choisi est mis en évidence en orange. Changer de sujet ou d’échelle modifie simultanément les deux graphiques.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg><p id="pop-overview-legend" class="career-note"></p>'+ 
+    '<p class="career-note"><strong>Vue populationnelle :</strong> nuage d’observations des 32 volontaires, sujet sélectionné en orange et médianes/IQR de fenêtres temporelles en violet. Les données irrégulières ne sont plus reliées artificiellement entre sujets ou sur des périodes non échantillonnées.</p><svg id="pop-spaghetti" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Profils individuels des 32 volontaires, données réelles"></svg><p id="pop-overview-legend" class="career-note"></p>'+ 
     '<div class="career-chart-toolbar"><button id="pop-linear" aria-pressed="true">Linéaire</button><button id="pop-log" aria-pressed="false">Semi-log</button><label>Sujet <select id="pop-subject">'+STUDY_SUBJECTS.map(p=>'<option value="'+p.id+'">S'+p.id+' · '+fmt(p.wt,1)+' kg</option>').join('')+'</select></label></div>'+
     '<svg id="pop-eda-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Concentrations expérimentales de warfarine, source Monolix"></svg>'+
-    '<p class="career-note">Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les segments de la vue d’ensemble sont descriptifs et ne sont pas des prédictions d’un modèle. Les prélèvements ne sont pas synchrones entre volontaires.</p>'+
+    '<p class="career-note">Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les lignes orange ne relient que les observations proches du même sujet. Les médianes et IQR par fenêtres représentent des données observées, pas une prédiction populationnelle. Les prélèvements sont irréguliers.</p>'+
     radio([['simple','Un modèle oral 1C est un candidat à ajuster et comparer : les observations seules ne prouvent pas sa structure.'],
       ['three','La pente terminale démontre exactement trois compartiments.'],
       ['fixed','La dispersion entre sujets prouve que tous les paramètres sont parfaitement identifiables.']]);
   function draw(){
-    const all=STUDY_SUBJECTS.map(subject=>({id:subject.id,values:STUDY_PK.filter(p=>
-      p.id===subject.id&&Number.isFinite(p.t)&&Number.isFinite(p.c)).sort((a,b)=>a.t-b.t)}));
-    const chosen=all.find(a=>a.id===selectedSubject),rest=all.filter(a=>a.id!==selectedSubject);
+    const view=warfarinOverview(STUDY_PK,selectedSubject);
     graph($('pop-spaghetti'),{
-      series:[...rest.map((a,i)=>({values:a.values,color:i%2?'#94afca':'#85c1ad',opacity:.38,width:1.4})),
-        ...(chosen?[{values:chosen.values,color:'#ffca86',opacity:1,width:3.5}]:[])],
-      points:chosen?chosen.values.map(p=>({...p,color:'#ffca86'})):[],
+      series:view.selectedSegments.map(values=>({values,color:'#ffca86',opacity:.92,width:2.4})),
+      points:[...view.others.map(p=>({...p,color:'#7dbcb4',opacity:.37,r:2.6,stroke:'#20414a'})),
+        ...view.chosen.map(p=>({...p,color:'#ffca86',opacity:1,r:4.5}))],
+      summaries:view.summaries,
       maxT:120,ymax:Math.max(18,...STUDY_PK.map(p=>p.c))*1.09,log:scale==='log'
     });
-    $('pop-overview-legend').textContent='32 sujets · '+STUDY_PK.length+' observations PK · sujet S'+selectedSubject+
-      ' mis en évidence ('+(chosen?.values.length||0)+' prélèvements). Les segments relient uniquement ses propres observations.';
+    $('pop-overview-legend').textContent='32 sujets · '+STUDY_PK.length+' observations PK · S'+selectedSubject+
+      ' ('+view.chosen.length+' prélèvements). Points turquoise : observations mesurées ; orange : sujet sélectionné ; violet : médiane et IQR de chaque fenêtre temporelle (au moins 4 sujets), sans interpolation.';
     $('pop-linear').setAttribute('aria-pressed',String(scale==='linear'));
     $('pop-log').setAttribute('aria-pressed',String(scale==='log'));
     const obs=STUDY_PK.filter(o=>o.id===selectedSubject);
