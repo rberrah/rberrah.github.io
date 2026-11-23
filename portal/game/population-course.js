@@ -220,6 +220,22 @@ function navigation(){
 function report(){
   const comparisons=modelComparison(),ref=comparisons.find(m=>m.id==='one'),lag=comparisons.find(m=>m.id==='lag');
   const v=variabilitySummary('lag');
+  const english=new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en';
+  if(english)return 'WARFARIN — POPULATION PHARMACOMETRIC ANALYSIS REPORT\n'+
+    '1. STUDY POPULATION\n'+STUDY_META.nSubjects+' volunteers; '+STUDY_META.nPK+' measured PK concentrations and '+
+     STUDY_META.nPD+' measured prothrombin complex activity values following single oral warfarin 1.5 mg/kg. Source: '+STUDY_META.sourceUrl+'\n'+
+    '2. STRUCTURAL MODEL\n'+
+    'Exploration of the experimental cohort supports assessing oral absorption and disposition phases. No population NLME model has been fitted to these 32 participants within this analysis.\n'+
+    'Separate simulation benchmark: '+POPULATION_META.nSubjects+' simulated subjects, '+POPULATION_META.nObservations+' simulated concentrations. Archived SAEM fits: one-compartment BIC '+fmt(ref.bic)+
+    '; one-compartment with Tlag '+fmt(lag.bic)+'; two-compartment '+fmt(comparisons.find(m=>m.id==='two').bic)+
+    '. One-compartment vs Tlag ΔBIC '+fmt(Math.abs(ref.bic-lag.bic))+' is not discriminative.\n'+
+    '3. INTERINDIVIDUAL AND RESIDUAL VARIABILITY\n'+
+    'Benchmark 1C + Tlag: ωCL '+fmt(v.omega,3)+' (lognormal CL IIV CV '+fmt(v.omegaCv,1)+'%); σlog '+fmt(v.sigma,3)+
+    ' (lognormal RUV CV '+fmt(v.sigmaCv,1)+'%); descriptive CL EBE shrinkage '+fmt(v.shrinkage,1)+'%. No fitted IIV for V, Ka or Tlag.\n'+
+    '4. MODEL DIAGNOSTICS\n'+
+    'Benchmark checks: DV/PRED, DV/IPRED, individual fits, log-standardized residuals vs time and IPRED, QQ plot, EBE vs weight, IIV/RUV and VPC P5/P50/P95 from 120 replicates. Not available: exact CWRES, NPDE, covariance matrix, RSE, bootstrap, IOV, pcVPC or external validation.\n'+
+    '5. PK/PD AND CONCLUSION\n'+
+    'The experimental PCA response time course differs from the PK concentration course, motivating evaluation of effect-compartment or turnover models. No joint PK/PD model was fitted. In the independent simulated benchmark, 1C vs 1C + Tlag cannot be differentiated by BIC alone; diagnostic precision and identifiability remain unresolved. These simulated parameter estimates cannot be transferred to the 32 experimental participants. Next: fit and qualify a model directly on the experimental cohort with uncertainty and predictive checks.\n';
   return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
     '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
     'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
