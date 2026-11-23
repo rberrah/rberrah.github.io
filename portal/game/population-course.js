@@ -114,7 +114,8 @@ function histogram(el,values,{label='Résidu',lo=-4,hi=4,bins=16}={}){
   let svg='<rect x="68" y="32" width="625" height="210" rx="8" fill="#0c2530"/>';
   for(let i=0;i<bins;i++){
     const h=190*counts[i]/m;
-    svg+='<rect x="'+(72+i*38)+'" y="'+(base-h).toFixed(1)+'" width="31" height="'+h.toFixed(1)+'" fill="#9be9cf"/>';
+    const w=625/bins;
+    svg+='<rect x="'+(69+i*w)+'" y="'+(base-h).toFixed(1)+'" width="'+(w-2)+'" height="'+h.toFixed(1)+'" fill="#9be9cf"/>';
   }
   for(let i=0;i<=4;i++)svg+='<text x="'+(72+i*152)+'" y="264" fill="#c8ddd8" font-size="12">'+fmt(lo+(hi-lo)*i/4,1)+'</text>';
   el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">Effectif · '+escapeText(label)+'</text>';
@@ -222,7 +223,7 @@ function plotResidualError(el,sigma){
     '<text x="76" y="24" fill="#d9efe9" font-size="12">'+
     (document.documentElement.lang==='en'?'Conditional lognormal 90% prediction interval':'Intervalle prédictif lognormal conditionnel à 90 %')+'</text>'+
     '<text x="76" y="43" fill="#d1e4e0" font-size="11">'+
-    (document.documentElement.lang==='en'?'MPA/PK concentration scale (mg/L)':'Échelle des concentrations (mg/L)')+'</text>'+
+    (document.documentElement.lang==='en'?'Observed concentration (mg/L)':'Échelle des concentrations (mg/L)')+'</text>'+
     '<text x="373" y="275" text-anchor="middle" font-size="12" fill="#d9efe9">'+
     (document.documentElement.lang==='en'?'Individual prediction IPRED (mg/L)':'Prédiction individuelle IPRED (mg/L)')+'</text>';
 }
@@ -561,7 +562,7 @@ function renderDiagnostics(){
     const qq=sorted.map((v,i)=>({x:normQuantile((i+.5)/sorted.length),y:v}));
     scatter($('pop-resid-qq'),qq,{xLabel:'Quantile normal théorique',yLabel:'Quantile résiduel',identity:true});
     scatter($('pop-eta-weight'),SUBJECTS.map((p,i)=>({x:p.wt,y:fit.eta[i]})),{xLabel:'Poids (kg)',yLabel:'ETA CL',zero:true});
-    histogram($('pop-eta-hist'),fit.eta,{label:'ETA CL (log)',lo:-1,hi:1});
+    histogram($('pop-eta-hist'),fit.eta,{label:'ETA CL (log)',lo:-1,hi:1,bins:7});
     const v=variabilitySummary(kind);
     $('pop-variability-metrics').innerHTML=metric('ωCL (SD sur log CL)',fmt(v.omega,3))+metric('IIV CL (CV lognormale)',fmt(v.omegaCv,1)+' %')+metric('SD des EBE CL',fmt(v.etaSD,3))+metric('Shrinkage descriptif',fmt(v.shrinkage,1)+' %');
     $('pop-ruv-metrics').innerHTML=metric('σlog',fmt(v.sigma,3))+metric('CV résiduel lognormal',fmt(v.sigmaCv,1)+' %')+metric('RUV retenue','Log-normale')+metric('P5 / IPRED',fmt(Math.exp(-1.6448536269514722*v.sigma),3))+metric('P95 / IPRED',fmt(Math.exp(1.6448536269514722*v.sigma),3));
