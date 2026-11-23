@@ -2,7 +2,15 @@
 
 **Propriété :** PMx Explain (rberrah/rberrah.github.io), et non MIPD-Engine.
 
-## Distribution discrète
+## Publication officielle (23 novembre 2026)
+
+- Source unique : `portal/game/*`, montée par `scripts/mount_game_route.mjs` dans `dist/pharmacometrie/game/*` après la construction SvelteKit. Le contenu complet est identique sur les deux routes à l'assemblage, mais **/pharmacometrie/game/** est la route canonique et celle utilisée depuis Learn et l'accueil.
+- L'ancienne page Svelte `src/routes/game/+page.svelte` est retirée pour supprimer le doublon fonctionnel.
+- La route historique `/game/` demeure une entrée de compatibilité (même source).
+- Le jeu est publiquement référencé sans aucune donnée personnelle, médicale ou saisie patient.
+- Le parcours 3 contient désormais les graphiques IIV/RUV/EBE et une carte explicite des diagnostics disponibles vs manquants. Seule ηCL est estimée ; aucun CWRES/NPDE/RSE/IOV/Ω-corrélation n'est inventé.
+
+## Distribution historique (archive — désormais remplacée)
 
 - Page autonome /game/ (portal/game/index.html) sur le domaine racine.
 - Aucune entrée de navigation, aucun lien depuis le portail ou PMx, aucune entrée de sitemap. Le script d'assemblage n'injecte pas GoatCounter dans ce sous-arbre. La page porte robots=noindex,nofollow,noarchive.
