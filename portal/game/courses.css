@@ -63,3 +63,17 @@
 .career-footer{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:12px;color:#a7c6bf;font-size:.81rem}
 @media(max-width:970px){.career-layout{grid-template-columns:1fr}.career-sidebar{position:static}.career-step-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.career-step-list{grid-template-columns:repeat(2,minmax(0,1fr))}.career-sidebar,.career-workspace{padding:14px}.career-story{padding:13px}.career-metrics{grid-template-columns:1fr 1fr}.career-field-grid{grid-template-columns:1fr}.career-flow{grid-template-columns:1fr}.career-choices label{font-size:.84rem}.career-table{font-size:.76rem}.career-table td,.career-table th{padding:8px}.career-main .quest-heading{display:block}.career-main .quest-heading h2{margin-top:8px}}
+
+/* PopPK diagnostic gallery and mechanistic PKPD targets. */
+.career-diagnostic-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:8px;margin:15px 0}
+.career-diag-button{border:1px solid #40645f;background:#1b3b41;color:#d8f2e7;padding:11px 9px;border-radius:10px;min-height:42px;font-size:.82rem;cursor:pointer;text-align:center}
+.career-diag-button[aria-pressed=true]{background:#86e8cc;color:#0c302a;font-weight:800;border-color:#aff5dc}
+.career-legend{display:flex;flex-wrap:wrap;gap:12px 18px;background:#143038;border:1px solid #3c5f60;border-radius:10px;padding:13px;margin:12px 0;color:#c7e3d8;font-size:.82rem;line-height:1.5}
+.career-legend span{display:inline-flex;align-items:center;gap:7px}
+.career-legend i{width:15px;height:15px;flex:none;border-radius:3px;display:inline-block;border:1px solid #ffffff3b}
+.career-goal-choice{border:1px solid #3e6360;border-radius:12px;padding:14px;margin:14px 0}
+.career-goal-choice legend{color:#c7f0de;font-size:.96rem;font-weight:800;padding:0 8px}
+.career-goal-choice .career-choices{margin:6px 0}
+.career-danger{color:#ffb3ac;font-size:.79rem}
+#pop-diagnostic-gallery .career-diag-button:focus-visible,.career-action:focus-visible{outline:3px solid #9cf1d9;outline-offset:2px}
+@media(max-width:650px){.career-diagnostic-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.career-legend{gap:9px;font-size:.76rem}}
