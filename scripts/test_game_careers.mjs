@@ -5,7 +5,7 @@ import {STUDY_META,STUDY_SUBJECTS,STUDY_PK,STUDY_PD} from '../portal/game/warfar
 import {POPULATION_META,SUBJECTS,OBSERVATIONS as POP_OBS,FITS,TIMES,
   modelComparison,populationPredict,assessMapping,gradeStructureConclusion,chooseChecks}
  from '../portal/game/saem-replay.js';
-import {CASE,DOSES,OBSERVATIONS as MIPD_OBS,infusionAt,posterior,
+import {CASE,DOSES,OBSERVATIONS as MIPD_OBS,infusionAt,posterior,mpaConcentration,doseMetrics,
   doseEvaluation,candidateDoses,chooseDose,simulatorCurve,sampleTimingGrade,qualityGate,
   evaluateEndpoints,scenarioComparison,PKPD}
  from '../portal/game/mipd-course-core.js';
@@ -62,50 +62,55 @@ assert.equal(gradeStructureConclusion('lag-proved'),false);
 assert.equal(chooseChecks(['gof','vpc','stability']),true);
 assert.equal(chooseChecks(['gof','vpc','bic-only']),false);
 
-assert.equal(DOSES.length,5);
-assert.deepEqual(MIPD_OBS.map(o=>o.t),[2,11]);
+// Clinical context is sourced (heart transplant MPA AUC), while all PK values are simulated.
+assert.equal(CASE.targetAucMinimum,36);
+assert.equal(CASE.tau,12);
+assert.equal(DOSES.length,8);
+assert.deepEqual(MIPD_OBS.map(o=>o.t),[.5,1,2]);
 assert.ok(MIPD_OBS.every(o=>o.value>0));
-const pre=infusionAt(0,{cl:CASE.trueCL,v:CASE.trueV});
-near(pre,infusionAt(CASE.tau,{cl:CASE.trueCL,v:CASE.trueV}),1e-12);
-assert.ok(infusionAt(2,{cl:CASE.trueCL,v:CASE.trueV})>infusionAt(11,{cl:CASE.trueCL,v:CASE.trueV}));
-assert.throws(()=>infusionAt(2,{cl:0}),RangeError);
-const p0=posterior({samples:0}),p1=posterior({samples:1}),p2=posterior({samples:2});
-for(const p of [p0,p1,p2]){
-  near(p.rows.reduce((x,r)=>x+r.w,0),1,1e-10);
-  assert.equal(p.rows.length,57*49);
-  assert.ok(p.rows.every(x=>x.w>=0));
+const before=mpaConcentration(0,{cl:CASE.trueCL,v:CASE.trueV});
+near(before,mpaConcentration(CASE.tau,{cl:CASE.trueCL,v:CASE.trueV}),1e-10);
+assert.ok(mpaConcentration(2,{cl:CASE.trueCL,v:CASE.trueV})>mpaConcentration(.5,{cl:CASE.trueCL,v:CASE.trueV}));
+assert.throws(()=>mpaConcentration(2,{cl:0}),RangeError);
+const p0=posterior({samples:0}),p1=posterior({samples:1}),p3=posterior({samples:3});
+for(const p of [p0,p1,p3]){
+  near(p.rows.reduce((x,r)=>x+r.w,0),1,1e-9);
+  assert.equal(p.rows.length,65*61);
+  assert.ok(p.rows.every(x=>Number.isFinite(x.w)&&x.w>=0));
 }
-assert.ok(p2.clCI[1]-p2.clCI[0] < p0.clCI[1]-p0.clCI[0]);
-assert.ok(Math.abs(p2.meanCL-CASE.trueCL)<.3);
-assert.ok(Math.abs(p2.mapCL-CASE.trueCL)<.4);
-assert.ok(Math.abs(p2.mapV-CASE.trueV)<4);
-assert.ok(Math.abs(p2.meanV-CASE.trueV)<3);
-assert.ok(chooseDose(p2).dose===900);
-assert.ok(doseEvaluation(p2,900).within);
-assert.ok(doseEvaluation(p2,900).p>.85);
-assert.ok(!doseEvaluation(p2,600).within);
-assert.ok(!candidateDoses(p0).some(x=>x.within));
-assert.ok(doseEvaluation(p2,600,{clMultiplier:.6}).within);
-assert.equal(chooseDose(p2,.6).dose,600);
-assert.throws(()=>doseEvaluation(p2,2000),RangeError);
-assert.throws(()=>posterior({samples:3}),RangeError);
-assert.ok(simulatorCurve(p2,900).length>60);
-assert.equal(sampleTimingGrade(['post-infusion','trough']),true);
-assert.equal(sampleTimingGrade(['trough','trough']),false);
+assert.ok(p3.clCI[1]-p3.clCI[0] < p0.clCI[1]-p0.clCI[0]);
+assert.ok(Math.abs(p3.mapCL-CASE.trueCL)<4);
+assert.ok(Math.abs(p3.mapV-CASE.trueV)<15);
+const lowRuv=posterior({samples:3,ruvCV:.01});
+const highRuv=posterior({samples:3,ruvCV:.25});
+const broadIiv=posterior({samples:3,omegaFactor:1.75});
+const narrowIiv=posterior({samples:3,omegaFactor:.5});
+const flatPrior=posterior({samples:3,priorWeight:.125});
+for(const p of [lowRuv,highRuv,broadIiv,narrowIiv,flatPrior])
+  near(p.rows.reduce((a,r)=>a+r.w,0),1,1e-9);
+assert.ok(lowRuv.clCI[1]-lowRuv.clCI[0] < highRuv.clCI[1]-highRuv.clCI[0]);
+assert.notEqual(broadIiv.mapCL,narrowIiv.mapCL);
+assert.notEqual(flatPrior.mapV,p3.mapV);
+const m1000=doseMetrics(p3,1000),m1250=doseMetrics(p3,1250);
+assert.ok(m1000.auc>0 && m1250.auc>m1000.auc);
+assert.ok(m1250.meets.auc&&!m1250.meets.aboveContext);
+near(m1250.auc,1250/p3.mapCL,1e-10);
+assert.ok(m1250.aucCI[0]<m1250.auc && m1250.aucCI[1]>m1250.auc);
+const scenarios=scenarioComparison(p3,1250,.6,750);
+near(scenarios.baseline.auc,scenarios.revised.auc);
+assert.notEqual(scenarios.baseline.c0,scenarios.revised.c0);
+assert.ok(scenarios.unchanged.auc>scenarios.baseline.auc);
+near(scenarios.preservationDose,750);
+assert.ok(simulatorCurve(p3,1250).length>=100);
+assert.equal(sampleTimingGrade(['three','context']),true);
 assert.equal(sampleTimingGrade(['trough','untimed']),false);
-assert.equal(qualityGate({dose:900,modelValidated:false}).canBeUsedClinically,false);
-const epi=evaluateEndpoints(p2,900);
-assert.ok(epi.meets.auc && epi.meets.trough && epi.meets.time && !epi.toxic);
-assert.ok(evaluateEndpoints(p2,1200).toxic);
-assert.equal(PKPD.mic*PKPD.micMultiple,8);
-const scenarios=scenarioComparison(p2,900,.6);
-near(scenarios.unchanged.auc,scenarios.aucMatched.auc,1e-8);
-near(scenarios.aucMatched.dose,540);
-near(scenarios.safetyReduced.dose,450);
-assert.ok(scenarios.aucMatched.toxic,'AUC-preserving adjustment must expose excessive C0');
-assert.ok(!scenarios.safetyReduced.toxic,'The more conservative dose must reduce C0');
-assert.ok(scenarios.safetyReduced.auc<PKPD.aucLow,'The trade-off must remain visible');
-assert.throws(()=>evaluateEndpoints(p2,-1),RangeError);
+assert.equal(qualityGate({changingCL:true}).canBeUsedClinically,false);
+assert.throws(()=>doseMetrics(p3,-5),RangeError);
+assert.throws(()=>doseMetrics(p3,4000),RangeError);
+assert.throws(()=>posterior({samples:4}),RangeError);
+assert.throws(()=>posterior({ruvCV:0}),RangeError);
+assert.match(CASE.references.guide,/\/cibles-tdm\//);
+assert.ok(readFileSync('src/lib/content/tdmTargets.js','utf8').includes("id: 'mpa-heart-auc'"));
 
 const html=readFileSync('portal/game/index.html','utf8');
 for(const key of ['id="population-mode"','id="mipd-mode"','id="mode-population"','id="mode-mipd"',
@@ -117,11 +122,13 @@ assert.ok(!readFileSync('portal/index.html','utf8').includes('href="/game"'));
 const populationUi=readFileSync('portal/game/population-course.js','utf8');
 const mipdUi=readFileSync('portal/game/mipd-course.js','utf8');
 for(const fragment of ['STUDY_PK','STUDY_PD','pop-spaghetti','pop-gof-ipred','pop-resid-qq','simulatedVPC','pop-eta-weight','pop-variability-metrics','pop-iiv-density','pop-ruv-shape','variabilitySummary'])assert.ok(populationUi.includes(fragment));
-for(const fragment of ['mipd-sampling-verdict','mipd-post-v','mipd-criterion','mipd-shift-safety','concentrationLegend'])assert.ok(mipdUi.includes(fragment));
+for(const fragment of ['mipd-sampling','mipd-post-v','mipd-iiv','mipd-ruv','mipd-prior-weight','mipd-dose-input','mipd-shift-dose-input','caseReport'])assert.ok(mipdUi.includes(fragment));
 assert.ok(html.includes('id="game-lang-en"') && html.includes('src="./locale.js"'));
 for(const path of ['locale-en.js','locale-en-lessons.js','locale-en-mipd.js']){
   assert.ok(readFileSync('portal/game/'+path,'utf8').length>1000,'English catalog must be substantial');
 }
 const variabilitySource=readFileSync('portal/game/population-course.js','utf8');
 assert.match(variabilitySource,/shrinkage:100\*\(1-etaSD\/omega\)/);
-console.log('PASS: real warfarin study, scientific SAEM replay, IIV/RUV/GOF/VPC, bilingual interface, MAP-BE/dose scenarios.');
+assert.ok(populationUi.includes('gradeDiagnosticQuestions')&&populationUi.includes('plotSAEMConvergence'));
+assert.ok(!mipdUi.includes('toxic trough')&&!mipdUi.includes('dose-rows'));
+console.log('PASS: real warfarin EDA, SAEM/BIC diagnostics, MPA heart transplantation targets, adjustable MAP IIV/RUV/prior and free-dose AUC/CL scenarios.');
