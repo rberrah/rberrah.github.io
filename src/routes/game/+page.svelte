@@ -9,5 +9,5 @@
   <h1>PMx Game</h1>
   <p>Cette page est remplacée lors de la publication par le jeu pédagogique complet.</p>
   <p>This page is replaced by the complete educational game during publication.</p>
-  <a href="/game/">Ouvrir le jeu complet / Open the full game</a>
+  <p>Le jeu officiel est publié à cette même adresse après assemblage.</p>
 </main>
