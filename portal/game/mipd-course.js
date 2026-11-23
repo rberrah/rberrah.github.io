@@ -11,7 +11,7 @@ const STEPS=[
   {title:'Et si CL change ?',chapter:'Projection dynamique',desc:'Raisonner sur AUC ∝ dose/CL, puis vérifier le creux toxique.'},
   {title:'Décision responsable',chapter:'Sécurité et rapport',desc:'Identifier les étapes nécessaires avant toute véritable utilisation clinique.'}
 ];
-const KEY='pmx-game-mipd-v1';
+const KEY='pmx-game-mipd-v2';
 const read=()=>{try{
   const x=JSON.parse(localStorage.getItem(KEY)||'null');
   if(Array.isArray(x)){const r=[];for(let i=0;i<STEPS.length;i++){if(x.includes(i))r.push(i);else break;}return r;}
