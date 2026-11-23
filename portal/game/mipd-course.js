@@ -210,6 +210,11 @@ function tripleBayesChart(svg,post,key){
  const xmin=Math.min(...allX),xmax=Math.max(...allX),top=Math.max(...numbers)*1.1;
  const xx=v=>72+606*(v-xmin)/(xmax-xmin),yy=v=>230-177*v/top;
  let content='<rect x="72" y="45" width="606" height="185" fill="#09252f" rx="9"/>';
+ for(let k=0;k<=4;k++){
+  const value=top*k/4,y=yy(value);
+  content+='<path d="M72 '+y+' H678" stroke="#38545d" stroke-dasharray="3 6"/>'+
+   '<text x="64" y="'+(y+4)+'" fill="#bcd8d0" text-anchor="end" font-size="11">'+fmt(value,3)+'</text>';
+ }
  for(let i=0;i<5;i++){
   const x=xx(xmin+i*(xmax-xmin)/4);
   content+='<line x1="'+x+'" x2="'+x+'" y1="45" y2="230" stroke="#38545d" stroke-dasharray="3 6"/>'+
@@ -248,8 +253,8 @@ function stage3(){
   '<svg id="mipd-sensitive-v" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="V prior likelihood posterior overlay"></svg>'+
   '</div></div>'+
   '<div id="mipd-sensitivity-metrics" class="career-metrics"></div>'+
-  '<p class="career-note">'+tr('Les trois courbes représentent des masses marginales normalisées séparément sur la même grille. Le prior n’est pas mis à jour par les données ; on compare ici différentes <em>hypothèses</em> de prior, pas différentes observations. La vraisemblance est intégrée sur l’autre paramètre avec la grille utilisée. Le modèle RUV conserve un plancher additif de 0,08 mg/L.',
-   'The three curves show separately normalized marginal masses on the same grid. Observations do not alter the prior: sliders change <em>assumptions</em>, not data. Likelihood is marginalized over the other parameter using the same grid. RUV includes a 0.08 mg/L additive floor.')+'</p>'+
+  '<p class="career-note">'+tr('Les courbes sont des masses marginales normalisées séparément sur la même grille : la courbe de vraisemblance n’est <strong>pas une probabilité clinique</strong>. Augmenter l’IIV élargit le prior lognormal en conservant sa <strong>médiane</strong>, mais son mode peut se décaler. Augmenter la RUV élargit généralement la vraisemblance et réduit le poids des dosages. Le prior n’est pas modifié par les observations. La RUV conserve un plancher additif de 0,08 mg/L.',
+   'The curves are separately normalized marginal masses on the same grid: the likelihood curve is <strong>not a clinical probability</strong>. Increasing IIV widens the lognormal prior while keeping its <strong>median</strong> fixed, although its mode can shift. Increasing RUV generally broadens the likelihood, reducing the influence of drug levels. Observations do not alter the prior. RUV retains a 0.08 mg/L additive floor.')+'</p>'+
   '<p class="career-note"><a href="'+CASE.references.berrah+'" target="_blank" rel="noopener">'+
    tr('Berrah et al. : influence de la RUV en MIPD','Berrah et al.: RUV effects in MIPD')+'</a> · <a href="'+CASE.references.hughes+
    '" target="_blank" rel="noopener">'+tr('Hughes & Keizer : aplatir le prior','Hughes & Keizer: flattened priors')+
