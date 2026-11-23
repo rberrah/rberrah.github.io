@@ -289,7 +289,11 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-progress')).toHaveText('1 / 7');
   await page.locator('#population-next').click();
 
-  await expect(page.locator('#pop-spaghetti polyline')).toHaveCount(32);
+  // Irregular measured sampling is plotted as discrete observations, not 32 misleading polylines.
+  expect(await page.locator('#pop-spaghetti circle').count()).toBeGreaterThan(250);
+  expect(await page.locator('#pop-spaghetti polyline').count()).toBeLessThanOrEqual(2);
+  await expect(page.locator('#pop-overview-legend')).toContainText('IQR');
+
   await page.locator('#pop-log').click();
   await expect(page.locator('#pop-log')).toHaveAttribute('aria-pressed','true');
   await page.locator('#pop-subject').selectOption('3');
@@ -375,9 +379,13 @@ test('MPA heart-transplant path evaluates AUC, Bayesian sensitivity, free dose a
   await expect(page.locator('#mipd-progress')).toHaveText('3 / 7');
   await page.locator('#mipd-next').click();
 
-  await page.locator('#mipd-iiv').selectOption('1.75');
-  await page.locator('#mipd-ruv').selectOption('0.01');
-  await page.locator('#mipd-prior-weight').selectOption('0.125');
+  await expect(page.locator('#mipd-sensitive-cl polyline')).toHaveCount(3);
+  await expect(page.locator('#mipd-sensitive-v polyline')).toHaveCount(3);
+  for(const [id,value] of [['mipd-iiv','1.75'],['mipd-ruv','25'],['mipd-prior-weight','0.2']]){
+    await page.locator('#'+id).evaluate((el,v)=>{el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));},value);
+  }
+  await expect(page.locator('#mipd-ruv-value')).toHaveText('25 %');
+  await expect(page.locator('#mipd-sensitive-cl polyline')).toHaveCount(3);
   await expect(page.locator('#mipd-sensitivity-metrics')).toContainText('MAP CL/F');
   await page.locator('input[name="mipd-sensitivity-answer"][value="balance"]').check();
   await page.locator('#mipd-validate').click();
@@ -389,6 +397,8 @@ test('MPA heart-transplant path evaluates AUC, Bayesian sensitivity, free dose a
   await expect(page.locator('#mipd-workspace')).not.toContainText('toxic trough');
   await page.locator('#mipd-dose-input').fill('1250');
   await expect(page.locator('#mipd-dose-metrics')).toContainText('AUC');
+  await expect(page.locator('#mipd-dose-auc svg')).toBeVisible();
+  await expect(page.locator('.career-auc-caption')).toContainText('P5–P95');
   await page.locator('#mipd-validate').click();
   await expect(page.locator('#mipd-progress')).toHaveText('5 / 7');
   await page.locator('#mipd-next').click();
@@ -409,6 +419,26 @@ test('MPA heart-transplant path evaluates AUC, Bayesian sensitivity, free dose a
   await page.locator('#mode-mipd').click();
   await expect(page.locator('#mipd-progress')).toHaveText('7 / 7');
   expect(errors).toEqual([]);
+});
+
+test('valid MAP reasoning does not depend on clicking every optional view or slider',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/game/');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-mipd-mpa-v3','[0,1]'));
+  await page.reload();await page.locator('#mode-mipd').click();
+  await expect(page.locator('#mipd-post-chart')).toBeVisible();
+  await page.locator('input[name="mipd-choice"][value="likelihood"]').check();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('3 / 7');
+  await page.locator('#mipd-next').click();
+  await expect(page.locator('#mipd-sensitive-cl polyline')).toHaveCount(3);
+  await page.locator('input[name="mipd-sensitivity-answer"][value="balance"]').check();
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('4 / 7');
+  await page.locator('#mipd-next').click();
+  await expect(page.locator('#mipd-dose-auc svg')).toBeVisible();
+  // The default dose already meets the sourced lower AUC reference: don't mark a correct answer false.
+  await page.locator('#mipd-validate').click();
+  await expect(page.locator('#mipd-progress')).toHaveText('5 / 7');
 });
 
 test('both clinical-workflow teaching routes fit narrow screens without horizontal overflow',async({page})=>{
