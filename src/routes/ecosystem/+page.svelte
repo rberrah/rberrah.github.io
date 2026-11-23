@@ -8,6 +8,65 @@
 
   const multiomics = 'https://rberrah.github.io/multiomics/';
   const omics2pk = 'https://rberrah.github.io/Omics2PK/';
+
+  // Public-site editorial registry. Only public presentations link to results.
+  // Research-in-progress entries contain no unpublished metrics or private repository URLs.
+  const thesisProjects = [
+    {
+      id: 'netpk',
+      name: 'NetPK',
+      statusFr: 'Poster présenté · PEPR 2026',
+      statusEn: 'Conference poster · PEPR 2026',
+      summaryFr: 'Intégrer des connaissances pharmacologiques publiées à une modélisation PK mécaniste et évaluer ses limites.',
+      summaryEn: 'Integrate published pharmacological knowledge into mechanistic PK modelling and evaluate its limitations.',
+      source: '/communications/netpk-peprsn-2026/',
+      sourceFr: 'Poster et provenance',
+      sourceEn: 'Poster and provenance'
+    },
+    {
+      id: 'pillar-a',
+      name: 'Pilier A / Pillar A',
+      statusFr: 'Programme de recherche · sans publication liée',
+      statusEn: 'Research programme · no linked publication',
+      summaryFr: 'Organiser les connaissances biologiques et leurs sources afin de formuler des hypothèses mécanistes vérifiables.',
+      summaryEn: 'Organise biological knowledge and its sources to formulate testable mechanistic hypotheses.'
+    },
+    {
+      id: 'pillar-b',
+      name: 'Pilier B / Pillar B',
+      statusFr: 'Poster présenté · PAGE 2026',
+      statusEn: 'Conference poster · PAGE 2026',
+      summaryFr: 'Explorer une assistance auditable à la construction de modèles PK de population, sous supervision pharmacométrique.',
+      summaryEn: 'Investigate auditable assistance for population PK model development under pharmacometric supervision.',
+      source: '/communications/autonomous-pharmacometrics-page-2026/',
+      sourceFr: 'Poster et provenance',
+      sourceEn: 'Poster and provenance'
+    },
+    {
+      id: 'pillar-c',
+      name: 'Pilier C / Pillar C',
+      statusFr: 'Programme de recherche · sans publication liée',
+      statusEn: 'Research programme · no linked publication',
+      summaryFr: 'Étudier l’arbitrage entre explications mécanistes et modèles prédictifs, avec des critères explicites.',
+      summaryEn: 'Study the arbitration between mechanistic explanations and predictive models using explicit criteria.'
+    },
+    {
+      id: 'pillar-d',
+      name: 'Pilier D / Pillar D',
+      statusFr: 'Programme de recherche · sans publication liée',
+      statusEn: 'Research programme · no linked publication',
+      summaryFr: 'Explorer l’évaluation causale des décisions thérapeutiques dans des cadres de jumeaux pharmacologiques.',
+      summaryEn: 'Explore causal evaluation of treatment decisions within pharmacological twin frameworks.'
+    },
+    {
+      id: 'phenopass',
+      name: 'PhenoPass',
+      statusFr: 'Recherche en cours · résultats non publiés',
+      statusEn: 'Research in progress · unpublished results',
+      summaryFr: 'Travail sur la caractérisation phénotypique dynamique en pharmacocinétique. Aucune validation externe revendiquée ici.',
+      summaryEn: 'Research on dynamic phenotypic characterisation in pharmacokinetics. No external validation is claimed here.'
+    }
+  ];
 </script>
 
 <svelte:head>
@@ -96,6 +155,34 @@
     </div>
   </section>
 
+
+  <section class="thesis-program" aria-labelledby="thesis-title" data-testid="thesis-research-program">
+    <header class="thesis-intro">
+      <p class="eyebrow">{t('PROGRAMME DE THÈSE','THESIS RESEARCH PROGRAMME')}</p>
+      <h2 id="thesis-title">{t('De la connaissance aux jumeaux pharmacologiques','From biological knowledge to pharmacological twins')}</h2>
+      <p>{t(
+        'Ce programme complète les outils pédagogiques présentés ci-dessus. Les statuts distinguent les communications déjà publiques des travaux en cours. Les résultats de recherche seront ajoutés au fur et à mesure des publications vérifiables.',
+        'This programme complements the educational tools above. Status labels distinguish existing public communications from ongoing work. Research findings will be added only as verifiable outputs become public.'
+      )}</p>
+    </header>
+    <div class="thesis-grid">
+      {#each thesisProjects as project (project.id)}
+        <article class="thesis-card" data-project={project.id}>
+          <h3>{project.name}</h3>
+          <p class="thesis-status">{t(project.statusFr, project.statusEn)}</p>
+          <p>{t(project.summaryFr, project.summaryEn)}</p>
+          {#if project.source}
+            <a href={project.source}>{t(project.sourceFr, project.sourceEn)} →</a>
+          {/if}
+        </article>
+      {/each}
+    </div>
+    <p class="thesis-boundary" role="note">{t(
+      'Une communication de congrès n’est pas un article évalué par les pairs ; un projet sans publication liée ne constitue pas un résultat validé. Aucune donnée ni conclusion non publiée n’est présentée ici.',
+      'A conference presentation is not a peer-reviewed article, and a project without a linked publication is not a validated result. No unpublished data or conclusions are presented here.'
+    )}</p>
+  </section>
+
   <p class="boundary" role="note">{t(
     'Écosystème de recherche : aucune brique ne certifie automatiquement causalité biologique, validité clinique, PK-readiness ou recommandation de dose.',
     'Research ecosystem: no component automatically certifies biological causality, clinical validity, PK readiness or a dosing recommendation.'
@@ -123,6 +210,16 @@
   .flow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.55rem}
   .flow span{padding:.7rem .9rem;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg-secondary);font-weight:700}
   .flow b{color:var(--accent-pk)}
+  .thesis-program{margin-top:3rem;border-top:1px solid var(--border-strong);padding-top:2rem}
+  .thesis-intro{max-width:850px;margin-bottom:1.5rem}
+  .thesis-intro>p:not(.eyebrow){line-height:1.65;color:var(--text-secondary)}
+  .thesis-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+  .thesis-card{border:1px solid var(--border-strong);border-radius:12px;padding:1.2rem;background:var(--bg-secondary);display:flex;flex-direction:column;align-items:flex-start}
+  .thesis-card h3{font-size:1.2rem;margin:0 0 .4rem}
+  .thesis-card p{color:var(--text-secondary);line-height:1.6}
+  .thesis-card .thesis-status{font-size:.8rem;font-weight:700;color:var(--accent-pk)}
+  .thesis-card a{font-weight:700;margin-top:auto}
+  .thesis-boundary{font-size:.9rem;line-height:1.55;color:var(--text-secondary);margin-top:1.5rem}
   .boundary{margin-top:1.5rem;padding:1rem 1.2rem;border-left:3px solid var(--accent-pk);background:var(--bg-secondary);color:var(--text-secondary)}
-  @media(max-width:800px){.roles,.handoff{grid-template-columns:1fr}.ecosystem{padding-inline:.2rem}}
+  @media(max-width:800px){.roles,.handoff,.thesis-grid{grid-template-columns:1fr}.ecosystem{padding-inline:.2rem}}
 </style>
