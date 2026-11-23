@@ -103,13 +103,31 @@ function legend(a,b){
    '</span><span><i style="background:#f3bb80"></i>'+b+'</span></p>';
 }
 function aucBar(x){
- const lo=0,hi=Math.max(90,x.auc*1.4),px=v=>Math.min(100,Math.max(0,v/hi*100));
- return '<div class="career-auc-scale" role="img" aria-label="AUC interval and evidence threshold">'+
-  '<div class="career-auc-track"><div class="career-auc-reference" style="left:'+px(CASE.targetAucMinimum)+'%"></div>'+
-  '<div class="career-auc-band" style="left:'+px(x.aucCI[0])+'%;width:'+Math.max(0,px(x.aucCI[1])-px(x.aucCI[0]))+'%"></div>'+
-  '<div class="career-auc-point" style="left:'+px(x.auc)+'%"></div></div>'+
-  '<p class="career-note">'+tr('Trait = AUC du MAP ; bande = intervalle descriptif P5–P95 propagé depuis CL/F ; seuil vertical = 36 mg·h/L.',
-   'Marker = MAP AUC; band = descriptive P5–P95 interval propagated from CL/F; vertical threshold = 36 mg·h/L.')+'</p></div>';
+ const hi=Math.ceil(Math.max(80,x.aucCI[1]*1.15,x.auc*1.15)/20)*20;
+ const px=v=>72+Math.max(0,Math.min(hi,v))/hi*608;
+ const target=CASE.targetAucMinimum;
+ const tick=[0,hi*.25,hi*.5,hi*.75,hi];
+ let svg='<rect x="72" y="43" width="608" height="100" rx="10" fill="#0b2934"/>';
+ for(const n of tick){
+  const at=px(n);
+  svg+='<line x1="'+at+'" x2="'+at+'" y1="43" y2="143" stroke="#41646c" stroke-dasharray="3 6"/>'+
+   '<text x="'+at+'" y="169" fill="#c8e3da" font-size="13" text-anchor="middle">'+fmt(n,0)+'</text>';
+ }
+ const thresholdX=px(target),lowX=px(x.aucCI[0]),highX=px(x.aucCI[1]),midX=px(x.auc);
+ svg+='<rect x="'+thresholdX+'" y="45" width="'+(680-thresholdX)+'" height="97" fill="#235547" opacity=".25"/>'+
+  '<line x1="'+thresholdX+'" x2="'+thresholdX+'" y1="32" y2="148" stroke="#f4cc91" stroke-width="2.4" stroke-dasharray="5 4"/>'+
+  '<text x="'+(thresholdX+7)+'" y="25" fill="#f4cc91" font-size="12">'+tr('Cible >36','Target >36')+'</text>'+
+  '<line x1="'+lowX+'" y1="91" x2="'+highX+'" y2="91" stroke="#a8a3ee" stroke-width="12" stroke-linecap="round"/>'+
+  '<line x1="'+lowX+'" y1="79" x2="'+lowX+'" y2="103" stroke="#d6c5ff" stroke-width="3"/>'+
+  '<line x1="'+highX+'" y1="79" x2="'+highX+'" y2="103" stroke="#d6c5ff" stroke-width="3"/>'+
+  '<circle cx="'+midX+'" cy="91" r="10" fill="#8de8cb" stroke="#092e33" stroke-width="3"/>'+
+  '<text x="75" y="28" fill="#d0e6dd" font-size="13">'+tr('AUC₀–₁₂h (mg·h/L)','AUC₀–₁₂h (mg·h/L)')+'</text>';
+ return '<figure class="career-auc-figure"><svg class="career-chart" viewBox="0 0 730 185" role="img" aria-label="'+
+  tr('AUC avec intervalle P5–P95 et seuil de référence clinique','AUC with P5–P95 interval and clinical reference threshold')+'">'+svg+'</svg>'+
+  '<figcaption class="career-auc-caption"><span><i class="auc-dot"></i>'+
+   tr('AUC MAP : ','MAP AUC: ')+fmt(x.auc,1)+'</span><span><i class="auc-ci"></i>'+
+   tr('Intervalle P5–P95 : ','P5–P95 interval: ')+fmt(x.aucCI[0],1)+'–'+fmt(x.aucCI[1],1)+'</span><span><i class="auc-threshold"></i>'+
+   tr('Référence : AUC >36, sans borne supérieure consensuelle','Reference: AUC >36, no consensus upper bound')+'</span></figcaption></figure>';
 }
 function nav(){
  $('mipd-progress').textContent=done.length+' / '+STEPS.length;
@@ -447,17 +465,17 @@ function validate(){
  if(index===1)return chosen('mipd-sampling')==='three'?
    success('Le protocole doit rester lié au modèle et à la formulation.','The sampling schedule must match model and formulation.'):
    failure('Les prélèvements ne sont pas universels.','Sampling times are not universal.');
- if(index===2)return [0,1,3].every(x=>sampleView.has(x))&&chosen('mipd-choice')==='likelihood'?
+ if(index===2)return chosen('mipd-choice')==='likelihood'?
    success('Le prior reste fixe, et le posterior évolue avec la vraisemblance.','The prior stays fixed while likelihood updates the posterior.'):
-   failure('Explorez les trois distributions et distinguez prior et posterior.','Explore all three distributions and distinguish prior from posterior.');
- if(index===3)return ['iiv','ruv','prior'].every(k=>sensitivityChanged.has(k))&&chosen('mipd-sensitivity-answer')==='balance'?
-   success('IIV, RUV et pondération du prior ont été comparées séparément.','IIV, RUV and prior weighting were varied separately.'):
-   failure('Modifiez les trois contrôles, puis expliquez comment ils pondèrent le posterior.','Change all three controls and explain their posterior effects.');
+   failure('Le prior reste fixé : seule la vraisemblance évolue avec les dosages. Les onglets sont facultatifs.','The prior is fixed while observed samples update the likelihood. Switching views is optional.');
+ if(index===3)return chosen('mipd-sensitivity-answer')==='balance'?
+   success('L’IIV et le poids du prior agissent sur la distribution a priori ; la RUV agit sur la vraisemblance.','IIV and prior weighting affect the prior; RUV affects the likelihood.'):
+   failure('Interprétez comment le prior et la vraisemblance contribuent au posterior ; les curseurs restent facultatifs.','Explain how prior and likelihood shape the posterior; moving sliders is optional.');
  if(index===4){
   const x=doseMetrics(dosePost(),selectedDose);
-  return doseTouched&&x.meets.auc?
+  return x.meets.auc?
    success('La dose saisie atteint le seuil inférieur d’AUC. Interprétez aussi l’incertitude et la tolérance.','Your selected dose meets the lower AUC reference. Also assess uncertainty and tolerability.'):
-   failure('Saisissez vous-même une dose et confrontez son AUC au seuil de 36 mg·h/L. Aucune borne supérieure cardiaque n’est imposée.','Enter a dose and compare its AUC with the 36 mg·h/L reference. No validated upper heart-transplant bound is imposed.');
+   failure('L’AUC de cette dose est inférieure à 36 mg·h/L. Essayez une autre dose ou réexaminez les hypothèses du modèle.','This dose gives AUC below 36 mg·h/L. Consider another dose or review the model assumptions.');
  }
  if(index===5){
   const cmp=scenarioComparison(dosePost(),selectedDose,.6,revisedDose);
