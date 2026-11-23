@@ -117,5 +117,7 @@ export const FR_EN_V5 = {
   "CL typique": "Typical CL",
   "Résumé des modèles": "Model summary",
   "État sauvegardé :": "Recorded state:",
+  "Interprétation :": "Interpretation:",
+  "PCA mesurées": "Measured PCA values",
   "Source : O’Reilly et al. (1968), jeu Warfarin du tutoriel MonolixSuite. Le fichier du dépôt comporte 32 sujets, 251 enregistrements PK (dont 4 valeurs nulles) et 232 mesures PD. Leurs estimations ne doivent pas être confondues avec celles du replay artificiel de l’étape 3.": "Source: O’Reilly et al. (1968), MonolixSuite Warfarin tutorial data. The repository dataset contains 32 participants, 251 PK measurements (including four zeros) and 232 PD measurements. These observations must not be conflated with the separate simulated replay in step 3."
 };
