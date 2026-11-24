@@ -108,3 +108,20 @@
 .career-auc-caption .auc-threshold{width:4px;height:15px;background:#f4cc91}
 @media(max-width:1150px){.career-bayes-layout{grid-template-columns:1fr}.career-bayes-controls{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.career-bayes-controls h3,.career-bayes-controls .career-note{grid-column:1/-1}}
 @media(max-width:560px){.career-bayes-controls{grid-template-columns:1fr}.career-bayes-charts .career-chart-key{font-size:.7rem}}
+
+/* 2026-11: organized diagnostic workspace. Figures stay legible on large and small screens. */
+.career-workspace details{border:1px solid #385f60;border-radius:13px;padding:12px 15px;margin:16px 0;background:#102f38}
+.career-workspace details>summary{cursor:pointer;color:#dbf4e9;font-size:.97rem;padding:6px 2px;line-height:1.55}
+.career-workspace details[open]>summary{border-bottom:1px solid #35585a;padding-bottom:13px;margin-bottom:14px}
+.career-plot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:16px 0 20px}
+.career-plot-grid figure{min-width:0;margin:0;background:#0d2933;border:1px solid #355b62;border-radius:12px;padding:8px}
+.career-plot-grid figcaption{padding:3px 6px 9px;color:#cce9dc;font-size:.83rem;font-weight:650}
+.career-plot-grid .career-chart{min-height:0}
+.career-density-legend{margin:15px 0 8px}
+.career-workspace .career-chart-key{margin:14px 0 10px}
+.career-workspace .career-chart-key i{height:5px;width:24px}
+.career-workspace details .career-diagnostic-question{margin-top:23px}
+.career-workspace details .career-diagnostic-question legend{padding:0 8px;line-height:1.6}
+.career-workspace details .career-diagnostic-question label{border-radius:7px;padding:8px}
+.career-workspace details .career-diagnostic-question label:has(input:checked){background:#205047}
+@media(max-width:900px){.career-plot-grid{grid-template-columns:1fr}.career-workspace details{padding:9px}}
