@@ -1,3 +1,4 @@
+import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
 // PMx Game track 3: authentic published warfarin data; synthetic SAEM sandbox isolated.
 // SAEM traces are real archived exploratory calculations (not runtime computation).
 import {STUDY_META,STUDY_SUBJECTS,STUDY_PK,STUDY_PD} from './warfarin-study.js';
@@ -16,10 +17,10 @@ const STEPS=[
 const KEY='pmx-game-population-v4';
 const read=()=>{
   try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x)){
-    const done=[];for(let i=0;i<STEPS.length;i++){if(x.includes(i))done.push(i);else break;}return done;
+    return normalizeCompleted(x,STEPS.length);
   }}catch{}return [];
 };
-let done=read(),index=Math.min(done.length,STEPS.length-1);
+let done=read(),index=firstIncomplete(done,STEPS.length);
 let choice='',selectedFit='one',viewed=new Set(),selectedSubject=1,scale='linear',selectedChecks=new Set();
 let map={id:'',time:'',dose:'',concentration:'',event:''}, reportChecked=new Set(),reportText='';
 const fmt=(v,n=2)=>Number(v).toLocaleString((new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en')?'en-US':'fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
@@ -261,7 +262,7 @@ function navigation(){
   $('population-progress').textContent=done.length+' / '+STEPS.length;
   const frag=document.createDocumentFragment();
   STEPS.forEach((step,i)=>{
-    const b=document.createElement('button');b.type='button';b.disabled=i>done.length;
+    const b=document.createElement('button');b.type='button';b.disabled=!canVisit(i,done,STEPS.length,isFree());
     if(i===index)b.setAttribute('aria-current','step');
     const n=document.createElement('span');n.className='career-step-num';n.textContent=done.includes(i)?'✓':String(i+1);
     const title=document.createElement('span');title.textContent=step.title;
@@ -624,7 +625,7 @@ function render(){
   $('population-title').textContent=step.title;
   $('population-description').textContent=step.desc;
   $('population-feedback').hidden=true;
-  $('population-next').hidden=!done.includes(index)||index===STEPS.length-1;
+  $('population-next').hidden=(!done.includes(index)&&!isFree())||index===STEPS.length-1;
   $('population-validate').disabled=done.includes(index);
   $('population-hint-text').hidden=true;
   $('population-help').textContent=[
@@ -651,11 +652,11 @@ function render(){
   navigation();
 }
 function select(i){
-  if(i>done.length||i<0||i>=STEPS.length)return;
+  if(!canVisit(i,done,STEPS.length,isFree()))return;
   index=i;viewed=new Set();selectedFit='one';selectedChecks.clear();choice='';scale='linear';selectedSubject=1;render();
 }
 function success(message){
-  if(!done.includes(index)&&index===done.length){done.push(index);store();}
+  if(!done.includes(index)){done=normalizeCompleted([...done,index],STEPS.length);store();}
   const el=$('population-feedback');el.hidden=false;el.classList.remove('error');
   el.innerHTML='<strong>Étape qualifiée</strong><p>'+escapeText(message)+'</p>';
   $('population-validate').disabled=true;
@@ -698,9 +699,13 @@ function validate(){
 window.addEventListener('pmx-game-language-change',()=>{if(index===1)renderEDA();else if(index===6)renderFinal();});
 $('population-validate').addEventListener('click',validate);
 $('population-hint').addEventListener('click',()=>{$('population-hint-text').hidden=false;});
-$('population-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
+$('population-next').addEventListener('click',()=>select(isFree()?Math.min(STEPS.length-1,index+1):firstIncomplete(done,STEPS.length)));
 $('population-reset').addEventListener('click',()=>{
   if(!confirm(document.documentElement.lang==='en'?'Reset the population PK steps in this browser?':'Réinitialiser les étapes pharmacométriques de ce navigateur ?'))return;
   done=[];store();select(0);
+});
+window.addEventListener('pmx-game-learning-mode',()=>{
+  if(!canVisit(index,done,STEPS.length,isFree()))select(firstIncomplete(done,STEPS.length));
+  else {navigation();$('population-next').hidden=index===STEPS.length-1||(!done.includes(index)&&!isFree());}
 });
 select(index);

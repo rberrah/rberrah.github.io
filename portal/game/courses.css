@@ -125,3 +125,8 @@
 .career-workspace details .career-diagnostic-question label{border-radius:7px;padding:8px}
 .career-workspace details .career-diagnostic-question label:has(input:checked){background:#205047}
 @media(max-width:900px){.career-plot-grid{grid-template-columns:1fr}.career-workspace details{padding:9px}}
+
+/* Optional free navigation, separate from the graded progression. */
+.learning-mode-controls{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;padding:10px 14px;margin:0 0 18px;border:1px solid #315557;border-radius:10px;background:#10282e;color:#c5dcd7;font-size:.86rem}
+.learning-mode-controls label{display:flex;gap:9px;align-items:center;font-weight:700;color:#e9f3f0;cursor:pointer;white-space:nowrap}
+.learning-mode-controls input{accent-color:#79ead0;width:18px;height:18px}

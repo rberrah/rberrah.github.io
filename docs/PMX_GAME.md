@@ -150,3 +150,8 @@ Prochaines étapes éventuelles (hors MVP) : import/export JSON borné d'un grap
 
 - [A unified pharmacokinetic approach to individualized drug dosing](https://bpspubs.onlinelibrary.wiley.com/doi/10.1111/j.1365-2125.2011.04089.x) : distinctions V/CL/dose de charge, entretien et demi-vie.
 - [Steady State Concentration — NCBI Bookshelf](https://www.ncbi.nlm.nih.gov/books/NBK553132/) : accumulation et logique de concentrations à l’état stationnaire.
+
+
+## Navigation libre et progression (novembre 2026)
+
+Les quatre parcours proposent une exploration libre facultative, activée par une case distincte. Elle permet de visiter une étape sans validation ni XP. Seule une réponse correcte marque l'étape comme terminée. Les validations hors ordre restent enregistrées ; le mode guidé reprend à la première étape non validée. Aucune médaille finale n'est attribuée pour la seule visite ou validation de la dernière quête.

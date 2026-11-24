@@ -16,6 +16,7 @@ const forced=params.get('lang');
 let current=supported.has(forced)?forced:(()=>{try{return localStorage.getItem('pharmacometrie-language')||'fr';}catch{return 'fr';}})();
 if(!supported.has(current))current='fr';
 
+const longKeys=Object.keys(DICTIONARY).filter(k=>k.length>=35).sort((a,b)=>b.length-a.length);
 const states=new WeakMap();
 const attrStates=new WeakMap();
 const phraseRules=[
@@ -71,7 +72,7 @@ function translate(fr){
   const direct=DICTIONARY[trimmed];
   if(direct!==undefined)return fr.replace(trimmed,direct);
   // Full explanatory sentences can be followed by computed results, and map labels combine translated fragments.
-  const prefix=Object.keys(DICTIONARY).filter(k=>k.length>=35&&trimmed.startsWith(k+' ')).sort((a,b)=>b.length-a.length)[0];
+  const prefix=longKeys.find(k=>trimmed.startsWith(k+' '));
   if(prefix)return fr.replace(trimmed,DICTIONARY[prefix]+translate(trimmed.slice(prefix.length)));
   if(trimmed.includes(' · ')){
     const composite=trimmed.split(' · ').map(translate).join(' · ');

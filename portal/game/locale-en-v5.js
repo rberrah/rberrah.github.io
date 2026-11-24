@@ -1,4 +1,7 @@
 export const FR_EN_V5 = {
+  "Mode de progression": "Learning mode",
+  "Exploration libre": "Free exploration",
+  "Accédez aux étapes sans les valider. Seules les réponses correctes comptent dans la progression.": "Visit any step without completing it. Only correct answers count toward progress.",
   "Ce n’est pas encore ça.": "Not quite yet.",
   "Réessayez après avoir changé d’échelle ou mesuré deux points. Demandez un indice si nécessaire.": "Try again after changing the scale or measuring two points. Ask for a hint if needed.",
   "Axe Y linéaire · mg/L": "Linear Y axis · mg/L",

@@ -543,3 +543,38 @@ test('game is bilingual at canonical address and legacy address redirects',async
   await expect(page.locator('.hero h1')).toContainText('Apprenez la pharmacocinétique');
   expect(errors).toEqual([]);
 });
+
+
+test('free exploration preserves honest progress across all four tracks',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/game/?lang=en');
+  await expect(page.locator('#game-free-mode')).not.toBeChecked();
+  await expect(page.locator('#quest-list button').last()).toBeDisabled();
+  await page.locator('#game-free-mode').check();
+  await expect(page.locator('.learning-mode-controls')).toContainText('Free exploration');
+  await page.locator('#quest-list button').last().click();
+  await expect(page.locator('#quest-count')).toHaveText('0/9');
+  await expect(page.locator('#quest-xp')).toHaveText('0 XP');
+  await page.locator('#mode-advanced').click();
+  await page.locator('#advanced-list button').last().click();
+  await expect(page.locator('#advanced-count')).toHaveText('0/9');
+  await page.locator('#mode-population').click();
+  await page.locator('#population-steps button').last().click();
+  await expect(page.locator('#population-progress')).toHaveText('0 / 7');
+  await page.locator('#mode-mipd').click();
+  await page.locator('#mipd-steps button').last().click();
+  await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
+  await page.locator('#game-free-mode').uncheck();
+  await expect(page.locator('#mipd-steps button').last()).toBeDisabled();
+  await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
+});
+
+test('out-of-order completed steps persist without falsely marking earlier steps',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/game/?lang=en');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[6]'));
+  await page.reload();
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#population-progress')).toHaveText('1 / 7');
+  await expect(page.locator('#population-steps button').first()).toHaveAttribute('aria-current','step');
+  await expect(page.locator('#population-steps button').nth(1)).toBeDisabled();
+  await expect(page.locator('#population-steps button').last()).toBeEnabled();
+});
