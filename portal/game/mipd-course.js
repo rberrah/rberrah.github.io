@@ -4,6 +4,8 @@ import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learnin
 // deliberately simulated, and not an externally validated MPA PopPK model.
 import {CASE,OBSERVATIONS,SAMPLING_TIMES,posterior,doseMetrics,scenarioComparison,
   mpaConcentration,qualityGate} from './mipd-course-core.js';
+import {doubleGammaConcentration,doubleGammaAuc} from './double-gamma.js';
+import {WOILLARD_MPA} from './woillard-mpa-source.js';
 const $=id=>document.getElementById(id);
 const tr=(fr,en)=>lang()==='en'?en:fr;
 function lang(){
@@ -174,8 +176,28 @@ function stage1(){
   '<section class="career-archive" id="mipd-sampling-evidence"><h3>'+tr('Comparer les stratégies publiées','Compare published sampling strategies')+'</h3>'+
   '<p>'+tr('Kaczmarek et al. (2008) : 0,5 / 1 / 2 h, régression linéaire chez des greffés cardiaques sous MMF et tacrolimus. Ce résultat ne valide pas le MAP-BE fictif du jeu.','Kaczmarek et al. (2008): 0.5 / 1 / 2 h, linear regression in heart transplant recipients on MMF and tacrolimus. This result does not validate the game’s fictional MAP-BE.')+'</p>'+
   '<p>'+tr('Woillard et al. : modèles bayésiens avec absorption à deux fonctions gamma ; stratégie étudiée à 20 min, 1 h, 3 h et 6 h.','Woillard et al.: Bayesian models with two gamma absorption functions; sampling at 20 min, 1 h, 3 h and 6 h was studied.')+' <a href="https://doi.org/10.1016/j.healun.2013.01.230" target="_blank" rel="noopener">2013</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/26192348/" target="_blank" rel="noopener">2015</a></p>'+
-  '<p>'+tr('Wang et al. (2021) : modèle 2C avec Tlag et covariables ; MAP-BE évalué à C0, 1 h et 4 h. La formulation et la méthode analytique doivent être compatibles.','Wang et al. (2021): 2C model with Tlag and covariates; MAP-BE evaluated at pre-dose, 1 h and 4 h. Formulation and assay must be compatible.')+' <a href="https://doi.org/10.3389/fphar.2021.748609" target="_blank" rel="noopener">2021</a></p>'+
-  '<p class="career-note">'+tr('Ces modèles publiés ne sont pas encore implémentés dans le simulateur : les paramètres et concentrations de la démonstration restent fictifs.','These published models are not yet implemented in the simulator: the demonstration parameters and concentrations remain fictional.')+'</p></section>';
+  '<p>'+tr('Wang et al. (2021) : modèle 2C avec Tlag et covariables. Les horaires, la formulation et la méthode analytique doivent être compatibles.','Wang et al. (2021): 2C model with Tlag and covariates. Sampling times, formulation and assay must be compatible.')+' <a href="https://doi.org/10.3389/fphar.2021.748609" target="_blank" rel="noopener">2021</a></p>'+
+  '<p class="career-note">'+tr('Ces modèles publiés ne sont pas encore implémentés dans le simulateur : les paramètres et concentrations de la démonstration restent fictifs.','These published models are not yet implemented in the simulator: the demonstration parameters and concentrations remain fictional.')+'</p></section>'+
+  '<section class="career-archive" id="mipd-woillard-structure"><h3>'+tr('Woillard 2015 : comprendre la double gamma','Woillard 2015: understand double-gamma absorption')+'</h3>'+
+  '<p>'+tr('Le modèle publié utilise un compartiment, deux entrées gamma parallèles et une élimination linéaire. Le plan optimal étudié comporte quatre prélèvements : 20 min, 1 h, 3 h et 6 h.','The published model uses one compartment, two parallel gamma inputs and linear elimination. The optimized schedule comprises four samples: 20 min, 1 h, 3 h and 6 h.')+'</p>'+
+  metrics([[tr('Profils de développement','Development profiles'),WOILLARD_MPA.designProfiles],[tr('Profils de validation','Validation profiles'),WOILLARD_MPA.validationProfiles],[tr('RMSE relative ITS','ITS relative RMSE'),fmt(WOILLARD_MPA.validationRelativeRmsePct.ITS,2)+' %'],[tr('RMSE relative Pmetrics','Pmetrics relative RMSE'),fmt(WOILLARD_MPA.validationRelativeRmsePct.Pmetrics,2)+' %']])+
+  '<p class="career-alert">'+tr('Illustration structurelle uniquement : paramètres fictifs, non issus de la table supplémentaire de Woillard. L’estimation MAP-BE du parcours reste le modèle simple séparé.','Structural illustration only: fictional parameters, not from Woillard’s supplementary table. The pathway MAP-BE remains the separate simple model.')+'</p>'+
+  '<label class="career-note" for="mipd-gamma-fraction">'+tr('Fraction de la première absorption','Fraction of first absorption')+' <output id="mipd-gamma-fraction-value"></output></label>'+
+  '<input id="mipd-gamma-fraction" type="range" min="0" max="1" step="0.05" value="0.65" aria-label="'+tr('Fraction de la première absorption','Fraction of first absorption')+'">'+
+  '<svg id="mipd-gamma-curve" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="'+tr('Concentrations simulées avec une absorption double gamma','Simulated concentrations with double-gamma absorption')+'"></svg>'+
+  '<p class="career-chart-key"><span><i style="background:#87dfc3"></i>'+tr('Profil fictif','Fictional profile')+'</span><span><i style="background:#f8c48f"></i>'+tr('Horaires de Woillard (pas des observations)','Woillard sampling times (not observations)')+'</span></p>'+
+  '<p class="career-note" id="mipd-gamma-auc"></p><a href="https://doi.org/'+WOILLARD_MPA.doi+'" target="_blank" rel="noopener">'+tr('Article original (2015)','Original paper (2015)')+'</a></section>';
+ function drawGamma(){
+  const fraction=Number($('mipd-gamma-fraction').value);
+  const p={dose:1000,cl:25,v:80,tau:12,a1:2.5,b1:4,a2:5.2,b2:.8,f:fraction};
+  const values=Array.from({length:121},(_,i)=>({t:i/10,c:doubleGammaConcentration(i/10,p)}));
+  const dots=WOILLARD_MPA.samplingHours.map(t=>({t,c:doubleGammaConcentration(t,p)}));
+  chart($('mipd-gamma-curve'),[{values,color:'#87dfc3'}],{high:15,dots});
+  $('mipd-gamma-fraction-value').textContent=fmt(fraction*100,0)+' %';
+  $('mipd-gamma-auc').textContent=tr('AUC à l’équilibre : ','Steady-state AUC: ')+fmt(doubleGammaAuc(p),1)+' mg·h/L. '+tr('La forme change, pas l’AUC, à dose et clairance constantes.','The profile shape changes, but AUC does not at constant dose and clearance.');
+ }
+ $('mipd-gamma-fraction').addEventListener('input',drawGamma);
+ drawGamma();
 }
 function stage2(){
  $('mipd-workspace').innerHTML=story(

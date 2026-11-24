@@ -601,3 +601,21 @@ test('archived warfarin evidence remains separate from simulated diagnostics and
   await expect(page.locator('#mipd-sampling-evidence')).toContainText('linear regression');
   await expect(page.locator('#mipd-sampling-evidence')).toContainText('not yet implemented');
 });
+
+test('Woillard double gamma illustration is bilingual and not presented as a calibrated model',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=en');
+ await page.locator('#game-free-mode').check();
+ await page.locator('#mode-mipd').click();
+ await page.locator('#mipd-steps button').nth(1).click();
+ const panel=page.locator('#mipd-woillard-structure');
+ await expect(panel).toContainText('Structural illustration only');
+ await expect(panel).toContainText('20 min, 1 h, 3 h and 6 h');
+ await expect(panel.locator('#mipd-gamma-curve circle')).toHaveCount(4);
+ const old=await panel.locator('#mipd-gamma-curve polyline').getAttribute('points');
+ await page.locator('#mipd-gamma-fraction').fill('0.2');
+ await expect(page.locator('#mipd-gamma-fraction-value')).toHaveText('20 %');
+ await expect(panel.locator('#mipd-gamma-curve polyline')).not.toHaveAttribute('points',old);
+ await expect(panel.locator('#mipd-gamma-auc')).toContainText('40.0 mg·h/L');
+ await page.locator('#game-lang-fr').click();
+ await expect(panel).toContainText('Illustration structurelle uniquement');
+});

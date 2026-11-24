@@ -205,3 +205,32 @@ for(const g of ARCHIVE_GOF){
   const expected=Buffer.from(Array.isArray(data)?data.join(''):data,'base64');
   assert.ok(readFileSync('portal/game/warfarin-archive/'+g.id+'.png').equals(expected));
 }
+
+import {doubleGammaConcentration as gammaC,doubleGammaAuc as gammaAuc} from '../portal/game/double-gamma.js';
+import {WOILLARD_MPA} from '../portal/game/woillard-mpa-source.js';
+const gammaFixtures=JSON.parse(readFileSync('portal/game/double-gamma-fixtures.json','utf8')).fixtures;
+for(const f of gammaFixtures){
+ const p=f.parameters;
+ f.times.forEach((t,i)=>assert.ok(Math.abs(gammaC(t,p)-f.concentrations[i])<1e-7));
+ assert.ok(Math.abs(gammaC(0,p)-gammaC(p.tau,p))<1e-10);
+ assert.ok(Math.abs(gammaC(1,{...p,dose:p.dose*2})-2*gammaC(1,p))<1e-9);
+ assert.equal(gammaAuc(p),f.auc);
+ const n=480;
+ let area=0;
+ for(let i=0;i<=n;i++)area+=(i===0||i===n?.5:1)*gammaC(i*p.tau/n,p)*p.tau/n;
+ assert.ok(Math.abs(area/f.auc-1)<.001);
+ const swapped={...p,a1:p.a2,b1:p.b2,a2:p.a1,b2:p.b1,f:1-p.f};
+ assert.ok(Math.abs(gammaC(3,p)-gammaC(3,swapped))<1e-9);
+}
+const q=gammaFixtures[2].parameters;
+for(const t of gammaFixtures[2].times){
+ const k=q.cl/q.v,ka=q.b1,phase=t%q.tau;
+ const fo=q.dose*ka/(q.v*(ka-k))*(Math.exp(-k*phase)/(-Math.expm1(-k*q.tau))-Math.exp(-ka*phase)/(-Math.expm1(-ka*q.tau)));
+ assert.ok(Math.abs(gammaC(t,q)-fo)<1e-8);
+}
+assert.throws(()=>gammaC(1,{...q,a1:0}),RangeError);
+assert.throws(()=>gammaC(1,{...q,f:1.1}),RangeError);
+assert.equal(WOILLARD_MPA.enabled,false);
+assert.equal(WOILLARD_MPA.populationParameters,null);
+assert.deepEqual(WOILLARD_MPA.samplingHours,[1/3,1,3,6]);
+console.log('PASS: independent double-gamma fixture comparisons, periodicity, AUC and source lock.');
