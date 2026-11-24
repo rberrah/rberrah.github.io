@@ -184,7 +184,8 @@
                 <a
                   class:active={isActive(link.href)}
                   aria-current={isActive(link.href) ? 'page' : undefined}
-                  href={link.external ? link.href : `${base}${link.href}`}
+                  href={link.external ? link.href : link.key === 'game' ? `${base}/game/?lang=${$language}` : `${base}${link.href}`}
+                  data-sveltekit-reload={link.key === 'game' ? '' : undefined}
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}
                   onclick={closeNavigation}
