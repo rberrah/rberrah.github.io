@@ -578,3 +578,26 @@ test('out-of-order completed steps persist without falsely marking earlier steps
   await expect(page.locator('#population-steps button').nth(1)).toBeDisabled();
   await expect(page.locator('#population-steps button').last()).toBeEnabled();
 });
+
+
+test('archived warfarin evidence remains separate from simulated diagnostics and links to executed notebook',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/game/?lang=en');
+  await page.locator('#game-free-mode').check();
+  await page.locator('#mode-population').click();
+  await page.locator('#population-steps button').nth(3).click();
+  await expect(page.locator('#pop-real-diagnostics')).toContainText('Archived diagnostics on real observations');
+  await page.locator('#pop-real-diagnostics summary').click();
+  await expect(page.locator('#pop-real-diagnostics img')).toHaveCount(3);
+  for(const img of await page.locator('#pop-real-diagnostics img').all()){
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(()=>img.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);
+  }
+  await page.locator('#population-steps button').nth(4).click();
+  await expect(page.locator('#pop-real-comparison')).toContainText('783.80');
+  await expect(page.locator('#pop-real-comparison')).toContainText('817.10');
+  await expect(page.locator('#pop-real-comparison a')).toHaveAttribute('href','/pharmacometrie/downloads/warfarin/warfarin_pkpd_nlmixr2_EN.ipynb');
+  await page.locator('#mode-mipd').click();
+  await page.locator('#mipd-steps button').nth(1).click();
+  await expect(page.locator('#mipd-sampling-evidence')).toContainText('linear regression');
+  await expect(page.locator('#mipd-sampling-evidence')).toContainText('not yet implemented');
+});

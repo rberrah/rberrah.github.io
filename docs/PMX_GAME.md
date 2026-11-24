@@ -155,3 +155,14 @@ Prochaines étapes éventuelles (hors MVP) : import/export JSON borné d'un grap
 ## Navigation libre et progression (novembre 2026)
 
 Les quatre parcours proposent une exploration libre facultative, activée par une case distincte. Elle permet de visiter une étape sans validation ni XP. Seule une réponse correcte marque l'étape comme terminée. Les validations hors ordre restent enregistrées ; le mode guidé reprend à la première étape non validée. Aucune médaille finale n'est attribuée pour la seule visite ou validation de la dernière quête.
+
+
+## Qualification des sources scientifiques (lot suivant)
+
+### Warfarine — résultats archivés et travail à poursuivre
+
+Le notebook anglais déjà exécuté `course_source/warfarin/warfarin_pkpd_nlmixr2_EN.ipynb` est utilisé sans le présenter comme une nouvelle estimation : cellules 10, 12 et 14 (index zéro) pour les comparaisons structure/RUV/covariable, cellule 16 pour trois graphiques GOF/CWRES. Les tests vérifient les chiffres et les PNG contre les sorties du notebook. Les résultats archivés sont distincts de Monolix et du replay sur 28 sujets simulés. La partie expérimentale devra ensuite exporter les tables PRED/IPRED/CWRES/NPDE par observation, EBEs, omega/sigma, RSE, covariance, historique SAEM et VPC, avec versions de nlmixr2/R, seed, convention de BIC, concordance du CSV et diagnostics de stabilité. Ne pas appeler « multi-start » des changements de seed à initialisation identique. Les sorties PK/PD de la version FR ne sont pas qualifiées (AIC Inf) ; la version EN contient des résultats archivés mais nécessite ré-exécution indépendante avant intégration des paramètres PD. Ne pas simuler une trajectoire de convergence à partir des seules estimations finales.
+
+### MPA — sélection d'une source compatible
+
+MIPD Engine main ne contient pas de modèle MPA/MMF dans son catalogue au moment de l'audit. Pour le cas cardiaque oral, prioriser Woillard et al. 2015 (PMID 26192348), modèle à double gamma et estimateurs bayésiens, sous réserve de disposer de tous les paramètres, distributions, erreurs et unités. Une autre source est Wang et al. 2021 (DOI 10.3389/fphar.2021.748609), modèle 2C + Tlag, formulation dispersible et EMIT, avec covariables PPI, eGFR et albumine. Ne pas transférer ses paramètres au cas MMF immédiat de 1000 mg sans vérifier formulation, unités molaires MMF/MPA, paramétrisation F et domaine de doses. LSS Kaczmarek 2008 (PMID 18641552) 0,5/1/2 h est une régression, non une qualification du MAP-BE simulé. La migration devra inclure une comparaison indépendante des prédictions, de l'AUC, des paramètres individuels, de la fonction objectif MAP et de la couverture d'incertitude sur des cas de référence. Tant que ces critères ne sont pas satisfaits, le modèle du jeu reste explicitement fictif.

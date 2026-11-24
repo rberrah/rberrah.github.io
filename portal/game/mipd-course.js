@@ -170,7 +170,12 @@ function stage1(){
    'Sampling times are proposed: verify supporting evidence and compatibility with the selected model.')+'</p>'+
   options([['three','Ce plan est documenté dans cette situation, mais sa précision dépend du modèle, de la formulation et du contexte.','This plan has supporting evidence in this setting, but accuracy depends on model, formulation and context.'],
    ['universal','Ces horaires sont universels et identifient toute recirculation entérohépatique.','These times universally identify enterohepatic recirculation.']],'mipd-sampling')+
-  '<p class="career-note"><a href="'+CASE.references.lss+'" target="_blank" rel="noopener">'+tr('Étude des stratégies de prélèvement limité','Limited sampling strategy study')+'</a></p>';
+  '<p class="career-note"><a href="'+CASE.references.lss+'" target="_blank" rel="noopener">'+tr('Étude des stratégies de prélèvement limité','Limited sampling strategy study')+'</a></p>'+
+  '<section class="career-archive" id="mipd-sampling-evidence"><h3>'+tr('Comparer les stratégies publiées','Compare published sampling strategies')+'</h3>'+
+  '<p>'+tr('Kaczmarek et al. (2008) : 0,5 / 1 / 2 h, régression linéaire chez des greffés cardiaques sous MMF et tacrolimus. Ce résultat ne valide pas le MAP-BE fictif du jeu.','Kaczmarek et al. (2008): 0.5 / 1 / 2 h, linear regression in heart transplant recipients on MMF and tacrolimus. This result does not validate the game’s fictional MAP-BE.')+'</p>'+
+  '<p>'+tr('Woillard et al. : modèles bayésiens avec absorption à deux fonctions gamma ; stratégie étudiée à 20 min, 1 h, 3 h et 6 h.','Woillard et al.: Bayesian models with two gamma absorption functions; sampling at 20 min, 1 h, 3 h and 6 h was studied.')+' <a href="https://doi.org/10.1016/j.healun.2013.01.230" target="_blank" rel="noopener">2013</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/26192348/" target="_blank" rel="noopener">2015</a></p>'+
+  '<p>'+tr('Wang et al. (2021) : modèle 2C avec Tlag et covariables ; MAP-BE évalué à C0, 1 h et 4 h. La formulation et la méthode analytique doivent être compatibles.','Wang et al. (2021): 2C model with Tlag and covariates; MAP-BE evaluated at pre-dose, 1 h and 4 h. Formulation and assay must be compatible.')+' <a href="https://doi.org/10.3389/fphar.2021.748609" target="_blank" rel="noopener">2021</a></p>'+
+  '<p class="career-note">'+tr('Ces modèles publiés ne sont pas encore implémentés dans le simulateur : les paramètres et concentrations de la démonstration restent fictifs.','These published models are not yet implemented in the simulator: the demonstration parameters and concentrations remain fictional.')+'</p></section>';
 }
 function stage2(){
  $('mipd-workspace').innerHTML=story(

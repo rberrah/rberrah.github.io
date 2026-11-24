@@ -1,4 +1,11 @@
 export const FR_EN_V5 = {
+  "Résultats archivés sur les données expérimentales · nlmixr2": "Archived results on experimental data · nlmixr2",
+  "Ces résultats proviennent du notebook exécuté sur les données de warfarine. Ils ne sont ni les valeurs du tutoriel Monolix ni les estimations du replay simulé. Les comparaisons s’interprètent à l’intérieur de chaque étape, avec les diagnostics et la précision.": "These results come from the executed warfarin notebook. They are neither Monolix tutorial results nor simulated replay estimates. Interpret comparisons within each stage, alongside diagnostics and precision.",
+  "Le développement archivé privilégie 1C + Tlag, puis combined2 et un effet du poids sur V. Un BIC inférieur ne dispense pas des contrôles de stabilité et de qualification.": "The archived analysis favors 1C + Tlag, then combined2 and a weight effect on V. A lower BIC does not remove the need for stability and qualification checks.",
+  "Notebook source exécuté": "Executed source notebook",
+  "Diagnostics archivés sur les observations réelles · nlmixr2": "Archived diagnostics on real observations · nlmixr2",
+  "Trois graphiques du notebook exécuté : DV/PRED, DV/IPRED et CWRES en fonction du temps. Les figures originales sont en anglais. Elles décrivent le modèle PK final archivé, distinct des diagnostics simulés ci-dessus. Les zéros sont exclus du graphique logarithmique.": "Three plots from the executed notebook: DV/PRED, DV/IPRED and CWRES versus time. The original figures are in English. They describe the archived final PK model, distinct from the simulated diagnostics above. Zero values are excluded from the log-scale plot.",
+  "Les valeurs individuelles, NPDE, RSE, matrices de covariance et VPC PK doivent encore être exportés et vérifiés avant de remplacer les graphiques interactifs du replay.": "Individual-level values, NPDE, RSE, covariance matrices and PK VPC still need to be exported and verified before replacing the interactive replay plots.",
   "Mode de progression": "Learning mode",
   "Exploration libre": "Free exploration",
   "Accédez aux étapes sans les valider. Seules les réponses correctes comptent dans la progression.": "Visit any step without completing it. Only correct answers count toward progress.",

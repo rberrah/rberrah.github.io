@@ -4,6 +4,7 @@ import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learnin
 import {STUDY_META,STUDY_SUBJECTS,STUDY_PK,STUDY_PD} from './warfarin-study.js';
 import {POPULATION_META,TIMES,SUBJECTS,OBSERVATIONS,FITS,VPC_OBSERVED,
   modelComparison,populationPredict,gradeStructureConclusion,assessMapping,chooseChecks} from './saem-replay.js';
+import {ARCHIVE_NOTEBOOK,ARCHIVE_COMPARISONS,ARCHIVE_GOF} from './warfarin-evidence.js';
 const $=id=>document.getElementById(id);
 const STEPS=[
   {title:'Données et colonnes',chapter:'Dossier source',desc:'Reconnaître les champs du jeu de données et vérifier doses, sujets et unités.'},
@@ -530,7 +531,7 @@ function renderDiagnostics(){
     '<details><summary><strong>6. Stabilité, précision, identifiabilité et validation</strong></summary>'+ 
     '<p class="career-note">Séquence du pharmacométricien : contrôle des données et BLQ → modèle structural → choix des effets aléatoires (IIV/IOV, corrélations Ω) et du modèle résiduel (additif/proportionnel/combiné) → choix des covariables → estimation / convergence → GOF et diagnostics individuels → VPC/pcVPC/NPDE → précision (RSE/IC, bootstrap), shrinkage, sensibilité et validation externe → décision documentée.</p>'+ 
     '<div class="career-alert"><strong>Non disponibles pour ce replay :</strong> CWRES exacts, NPDE, pcVPC, RSE et matrice de covariance, corrélations entre effets aléatoires (une seule η), IOV, bootstrap, simulation-estimation, analyse de sensibilité, départs multiples, prédictions externes. Ne pas tracer de valeurs fictives à la place de diagnostics statistiques non calculés. Le shrinkage descriptif EBE/ω est visible mais ne remplace pas les évaluations de précision.</div>'+diagnosticQuiz('stability')+'</details>'+
-    '<p class="career-note">La validation exige une réponse à chacune des six questions associées aux graphiques ci-dessus.</p>';
+    '<p class="career-note">La validation exige une réponse à chacune des six questions associées aux graphiques ci-dessus.</p>'+archivedDiagnostics();
   function draw(){
     const kind=$('pop-diagnostic-model').value,id=+$('pop-diagnostic-subject').value,
       subj=SUBJECTS.find(s=>s.id===id),fit=FITS[kind];
@@ -575,6 +576,21 @@ function renderDiagnostics(){
   $('pop-diagnostic-subject').addEventListener('change',draw);
   draw();
 }
+function archivedModelComparison(){
+  return '<section class="career-archive" id="pop-real-comparison"><h3>Résultats archivés sur les données expérimentales · nlmixr2</h3>'+
+    '<p class="career-note">Ces résultats proviennent du notebook exécuté sur les données de warfarine. Ils ne sont ni les valeurs du tutoriel Monolix ni les estimations du replay simulé. Les comparaisons s’interprètent à l’intérieur de chaque étape, avec les diagnostics et la précision.</p>'+
+    ARCHIVE_COMPARISONS.map(stage=>'<h4>'+stage.stage+'</h4><div class="career-table-wrap"><table class="career-table"><thead><tr><th>Modèle</th><th>AIC</th><th>BIC</th><th>logLik</th></tr></thead><tbody>'+
+      stage.models.map(([name,aic,bic,ll])=>'<tr><td>'+escapeText(name)+'</td><td>'+fmt(aic,2)+'</td><td>'+fmt(bic,2)+'</td><td>'+fmt(ll,2)+'</td></tr>').join('')+'</tbody></table></div>').join('')+
+    '<p class="career-note">Le développement archivé privilégie 1C + Tlag, puis combined2 et un effet du poids sur V. Un BIC inférieur ne dispense pas des contrôles de stabilité et de qualification.</p>'+
+    '<a class="career-action" href="'+ARCHIVE_NOTEBOOK+'" target="_blank" rel="noopener">Notebook source exécuté</a></section>';
+}
+function archivedDiagnostics(){
+  return '<details class="career-archive" id="pop-real-diagnostics"><summary><strong>Diagnostics archivés sur les observations réelles · nlmixr2</strong></summary>'+
+    '<p class="career-note">Trois graphiques du notebook exécuté : DV/PRED, DV/IPRED et CWRES en fonction du temps. Les figures originales sont en anglais. Elles décrivent le modèle PK final archivé, distinct des diagnostics simulés ci-dessus. Les zéros sont exclus du graphique logarithmique.</p>'+
+    '<div class="archive-gof-grid">'+ARCHIVE_GOF.map(g=>'<figure><img loading="lazy" src="./warfarin-archive/'+g.id+'.png" alt="'+g.title+'"><figcaption>'+g.title+'</figcaption></figure>').join('')+'</div>'+
+    '<p class="career-note">Les valeurs individuelles, NPDE, RSE, matrices de covariance et VPC PK doivent encore être exportés et vérifiés avant de remplacer les graphiques interactifs du replay.</p>'+
+    '<a href="'+ARCHIVE_NOTEBOOK+'" target="_blank" rel="noopener">Notebook source exécuté</a></details>';
+}
 function renderDecision(){
   $('population-workspace').innerHTML=story('Vous disposez des BIC de l’atelier SAEM sur cohorte artificielle, indépendamment des 32 volontaires de l’étude expérimentale. Ce replay ne qualifie pas le modèle pour les données réelles. Formulez une conclusion défendable pour une étude exploratoire.','ENQUÊTE N° 05 · DÉCISION ARGUMENTÉE')+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Modèle</th><th>BIC approximatif</th><th>ΔBIC</th><th>Paramètres libres</th></tr></thead><tbody>'+
@@ -583,7 +599,7 @@ function renderDecision(){
     '<p class="career-note"><strong>Interprétation :</strong> le replay ne permet pas d’arbitrer Tlag. Sur les observations originales, la formation Monolix obtient au contraire un meilleur ajustement avec Tlag et préfère 1C+Tlag au modèle 2C moins robuste (rasoir d’Occam). Ne pas mélanger les deux analyses.</p>'+ 
     radio([['lag-proved','Le 1C avec Tlag est démontré meilleur : ΔBIC = 0,23 suffit pour conclure.'],
       ['equivocal','1C ± Tlag restent presque équivalents ; le modèle 2C est moins soutenu. Il faut confirmer par stabilité et diagnostics.'],
-      ['two-certain','Le 2C doit être retenu car il possède le plus grand nombre de paramètres.']]);
+      ['two-certain','Le 2C doit être retenu car il possède le plus grand nombre de paramètres.']])+archivedModelComparison();
 }
 function renderPD(){
   $('population-workspace').innerHTML=story('Le même fichier d’étude contient <strong>des valeurs expérimentales de PCA (DVID=2)</strong>, et pas seulement des concentrations PK. Comparez les séries mesurées d’un volontaire : un décalage PK–PD peut motiver un compartiment d’effet ou un modèle indirect, mais aucune des deux structures PD n’est ajustée dans ce jeu.','ÉTUDE RÉELLE · PK ET PCA')+
