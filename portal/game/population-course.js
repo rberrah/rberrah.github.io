@@ -132,8 +132,8 @@ function sampleSD(values){
 export function variabilitySummary(kind){
   const fit=FITS[kind];if(!fit)throw new RangeError('Unknown fit');
   const omega=fit.est.omegaCL,sigma=fit.est.sigmaLog;
-  const etaSD=sampleSD(fit.eta);
-  return {omega,omegaCv:Math.sqrt(Math.expm1(omega*omega))*100,
+  const etaSD=sampleSD(fit.eta),etaMean=fit.eta.reduce((a,v)=>a+v,0)/fit.eta.length;
+  return {omega,omegaCv:Math.sqrt(Math.expm1(omega*omega))*100,etaMean,
     sigma,sigmaCv:Math.sqrt(Math.expm1(sigma*sigma))*100,
     etaSD,shrinkage:100*(1-etaSD/omega)};
 }
