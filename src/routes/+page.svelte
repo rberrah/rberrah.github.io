@@ -56,7 +56,7 @@
   <h1>{copy.home.titlePrefix} <span class="hl">{copy.home.titleHighlight}</span> {copy.home.titleSuffix}</h1>
   <p class="lede">{copy.home.lede}</p>
   <div class="cta">
-    <a class="btn btn-primary" href={`${base}/game/?lang=${$language}`} data-testid="cta-game">{$language === 'en' ? 'Play PMx Game · interactive PK' : 'Jouer à PMx Game · la PK interactive'}</a>
+    <a class="btn btn-primary" href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="cta-game">{$language === 'en' ? 'Play PMx Game · interactive PK' : 'Jouer à PMx Game · la PK interactive'}</a>
     <a class="btn btn-outline" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="cta-start">{$language === 'en' ? 'Guided beginner track' : 'Parcours débutant guidé'}</a>
     <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
   </div>
@@ -75,7 +75,7 @@
       <span><BookOpen size={17} aria-hidden="true" /> {$language === 'en' ? 'Population PK and MIPD' : 'PopPK et MIPD'}</span>
     </div>
   </div>
-  <a class="btn btn-primary beginner-feature-link" href={`${base}/game/?lang=${$language}`} data-testid="game-feature-open">
+  <a class="btn btn-primary beginner-feature-link" href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="game-feature-open">
     {$language === 'en' ? 'Open PMx Game' : 'Ouvrir PMx Game'}
     <ArrowRight size={18} aria-hidden="true" />
   </a>
