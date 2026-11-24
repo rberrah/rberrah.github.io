@@ -302,7 +302,8 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#population-progress')).toHaveText('2 / 7');
   await page.locator('#population-next').click();
 
-  await expect(page.locator('#pop-bic')).toBeVisible();
+  await expect(page.locator('#pop-bic')).toHaveCount(0);
+  await expect(page.locator('#pop-trace')).toBeVisible();
   await expect(page.locator('#pop-fit-rows')).toContainText('À examiner');
   for(const kind of ['one','lag','two']){
     await page.locator('[data-pop-model="'+kind+'"]').click();
@@ -321,6 +322,25 @@ test('population pharmacometrician route runs from mapping through archived gene
   await expect(page.locator('#pop-vpc')).toBeVisible();
   await expect(page.locator('#pop-variability-metrics')).toContainText('IIV CL');
   await expect(page.locator('#pop-ruv-metrics')).toContainText('σlog');
+  await expect(page.locator('#pop-iiv-density polyline')).toHaveCount(2);
+  await expect(page.locator('#pop-ruv-shape polygon')).toHaveCount(1);
+  await expect(page.locator('#pop-ruv-shape polyline')).toHaveCount(3);
+  await expect(page.locator('.career-plot-grid')).toHaveCount(3);
+  const scientificPlots=await page.evaluate(async()=>{
+    const lib=await import('/pharmacometrie/game/population-course.js');
+    const i=lib.iivPlotData([-.4,-.15,-.1,.04,.08,.19,.23],.3);
+    const ru=lib.ruvPlotData(.1221);
+    return {n:i.n,monotonic:ru.every((v,j)=>j===0||v.pred>=ru[j-1].pred),
+      atTen:ru.find(p=>Math.abs(p.pred-10)<1e-8),
+      gaussianIntegral:i.values.slice(1).reduce((a,p,j)=>a+
+        (p.population+i.values[j].population)/2*(p.x-i.values[j].x),0)};
+  });
+  expect(scientificPlots.n).toBe(7);
+  expect(scientificPlots.monotonic).toBe(true);
+  expect(scientificPlots.atTen.lo).toBeCloseTo(10*Math.exp(-1.6448536269514722*.1221),7);
+  expect(scientificPlots.atTen.hi).toBeCloseTo(10*Math.exp(1.6448536269514722*.1221),7);
+  expect(scientificPlots.gaussianIntegral).toBeGreaterThan(.98);
+
   for(const id of ['pop-gof-pred','pop-gof-ipred','pop-resid-time','pop-resid-pred','pop-resid-hist','pop-resid-qq','pop-eta-weight','pop-eta-hist','pop-iiv-density','pop-ruv-shape'])await expect(page.locator('#'+id)).toBeVisible();
   await page.locator('#pop-diagnostic-model').selectOption('two');
   for(const [k,value] of Object.entries({gof:'trends',residual:'patterns',iiv:'careful',ruv:'form',vpc:'bands',stability:'uncertainty'}))
@@ -452,6 +472,21 @@ test('both clinical-workflow teaching routes fit narrow screens without horizont
 });
 
 
+test('IIV and RUV diagnoses are translated to English and show physically coherent plots',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/game/?lang=en');
+  await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[0,1,2]'));
+  await page.reload();await page.locator('#mode-population').click();
+  await page.locator('#population-steps button').nth(3).click();
+  await page.locator('#population-workspace details').evaluateAll(nodes=>nodes.forEach(n=>n.open=true));
+  await expect(page.locator('#pop-ruv-shape polygon')).toHaveCount(1);
+  await expect(page.locator('#pop-iiv-density polyline')).toHaveCount(2);
+  await expect(page.locator('.career-density-legend')).toContainText('Smoothed EBE density');
+  await expect(page.locator('#population-workspace')).toContainText('No additive or combined error model was fitted.');
+  await expect(page.locator('#population-workspace')).toContainText('Normalized densities');
+  await expect(page.locator('#pop-ruv-shape')).toContainText('Predicted observation');
+  await expect(page.locator('#population-workspace')).not.toContainText('Médiane prédite');
+  await expect(page.locator('#population-workspace')).not.toContainText('Comparaison de la distribution');
+});
 test('game is bilingual at canonical address and legacy address redirects',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(origin+'/game/?lang=en');
