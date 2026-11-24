@@ -482,7 +482,7 @@ test('IIV and RUV diagnoses are translated to English and show physically cohere
   await expect(page.locator('#pop-iiv-density polyline')).toHaveCount(2);
   await expect(page.locator('.career-density-legend')).toContainText('Smoothed EBE density');
   await expect(page.locator('#population-workspace')).toContainText('No additive or combined error model was fitted.');
-  await expect(page.locator('#population-workspace')).toContainText('Normalized densities');
+  await expect(page.locator('#population-workspace')).toContainText('normalized densities');
   await expect(page.locator('#pop-ruv-shape')).toContainText('Predicted observation');
   await expect(page.locator('#population-workspace')).not.toContainText('Médiane prédite');
   await expect(page.locator('#population-workspace')).not.toContainText('Comparaison de la distribution');
