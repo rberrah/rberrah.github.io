@@ -106,5 +106,8 @@ export const FR_EN_V5 = {
   "IIV CL (CV lognormale)": "CL IIV (lognormal CV)",
   "RUV retenue": "Fitted RUV",
   "Autres RUV ajustées": "Other fitted error structures",
-  "Aucune": "None"
+  "Aucune": "None",
+  ", issu de l’étude historique distribuée dans le tutoriel MonolixSuite. Vérifiez les colonnes, la dose et le type de réponse avant de préparer un ajustement.": ", from the historical study included in the MonolixSuite tutorial. Check the subject, dose, timing and response fields before fitting a model.",
+  "Les points sont les observations expérimentales DVID=1 ; les zéros ne sont tracés qu’en linéaire. Les lignes orange ne relient que les observations proches du même sujet. Les médianes et IQR par fenêtres représentent des données observées, pas une prédiction populationnelle. Les prélèvements sont irréguliers.": "The points are experimental DVID=1 measurements; zeros are plotted only on linear axes. Orange lines connect nearby observations from the same subject. Windowed medians and IQR are descriptive measurements, not population predictions. Sampling is irregular.",
+  "Source de l’étude": "Study source"
 };
