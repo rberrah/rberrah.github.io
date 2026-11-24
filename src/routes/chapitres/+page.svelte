@@ -52,7 +52,7 @@
       <h2>{$language === 'en' ? 'Learn pharmacometrics by playing' : 'Apprendre la pharmacométrie en jouant'}</h2>
       <p>{$language === 'en' ? 'Four journeys: PK curves, advanced models, population PK with diagnostics, and Bayesian individualized dosing.' : 'Quatre parcours : courbes PK, modèles avancés, PopPK et diagnostics, puis individualisation bayésienne.'}</p>
     </div>
-    <a href={`${base}/game/?lang=${$language}`} data-testid="game-learn-open">{$language === 'en' ? 'Start PMx Game' : 'Lancer PMx Game'}</a>
+    <a href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="game-learn-open">{$language === 'en' ? 'Start PMx Game' : 'Lancer PMx Game'}</a>
   </section>
   {@const beginner = localizeTrack(beginnerTrack, $language)}
   <section class="starter" style={`--track:${beginnerTrack.accent}`} data-testid="starter-track">

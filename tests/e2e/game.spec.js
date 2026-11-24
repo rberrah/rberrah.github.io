@@ -44,6 +44,28 @@ test('canonical /pharmacometrie/game/ loads full educational simulator with offi
   await expect(page.getByTestId('game-learn-open')).toBeVisible();
 });
 
+test('PMx navigation loads the assembled full game, preserving FR/EN instead of SvelteKit placeholder', async ({page})=>{
+  for(const lang of ['fr','en']){
+    await page.goto(origin+'/pharmacometrie/?lang='+lang);
+    await page.getByTestId('cta-game').click();
+    await expect(page).toHaveURL(new RegExp('/pharmacometrie/game/\\?lang='+lang+'$'));
+    await expect(page.locator('#academy-mode')).toBeVisible();
+    await expect(page.locator('#game-lang-'+lang)).toHaveAttribute('aria-pressed','true');
+    await expect(page.locator('html')).toHaveAttribute('lang',lang);
+    await expect(page.locator('main')).not.toContainText('Cette page est remplacée lors de la publication');
+  }
+  await page.goto(origin+'/pharmacometrie/?lang=en');
+  await page.getByTestId('goal-learn').locator('summary').click();
+  await page.getByTestId('nav-game').click();
+  await expect(page).toHaveURL(/\/pharmacometrie\/game\/\?lang=en$/);
+  await expect(page.locator('#academy-mode')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+  await page.goto(origin+'/pharmacometrie/chapitres/?lang=en');
+  await page.getByTestId('game-learn-open').click();
+  await expect(page.locator('#academy-mode')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang','en');
+});
+
 test('diagram interaction and responsive layout work without external requests',async ({page})=>{
   await page.setViewportSize({width:360,height:760});
   await page.goto(origin+'/pharmacometrie/game/');
