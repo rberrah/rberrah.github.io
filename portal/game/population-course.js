@@ -558,7 +558,7 @@ function renderDiagnostics(){
     scatter($('pop-eta-weight'),SUBJECTS.map((p,i)=>({x:p.wt,y:fit.eta[i]})),{xLabel:'Poids (kg)',yLabel:'ETA CL',zero:true});
     histogram($('pop-eta-hist'),fit.eta,{label:'ETA CL (log)',lo:-1,hi:1});
     const v=variabilitySummary(kind);
-    $('pop-variability-metrics').innerHTML=metric('ωCL (SD sur log CL)',fmt(v.omega,3))+metric('IIV CL (CV lognormale)',fmt(v.omegaCv,1)+' %')+metric('SD des EBE CL',fmt(v.etaSD,3))+metric('Shrinkage descriptif',fmt(v.shrinkage,1)+' %');
+    $('pop-variability-metrics').innerHTML=metric('ωCL (SD sur log CL)',fmt(v.omega,3))+metric('IIV CL (CV lognormale)',fmt(v.omegaCv,1)+' %')+metric('Moyenne EBE ηCL',fmt(v.etaMean,3))+metric('SD des EBE CL',fmt(v.etaSD,3))+metric('Shrinkage descriptif',fmt(v.shrinkage,1)+' %');
     $('pop-ruv-metrics').innerHTML=metric('σlog',fmt(v.sigma,3))+metric('CV résiduel lognormal',fmt(v.sigmaCv,1)+' %')+metric('RUV retenue','Log-normale')+metric('Autres RUV ajustées','Aucune');
     plotIiv($('pop-iiv-density'),fit.eta,v.omega);
     plotResidualError($('pop-ruv-shape'),v.sigma);
