@@ -140,40 +140,84 @@ export function variabilitySummary(kind){
 function gaussianDensity(x,sd){
   return Math.exp(-x*x/(2*sd*sd))/(sd*Math.sqrt(2*Math.PI));
 }
-function plotIiv(el,eta,omega){
-  const lo=-1,hi=1,bins=20,width=625,scaleX=x=>68+(x-lo)/(hi-lo)*width;
-  const counts=Array(bins).fill(0);
-  for(const v of eta)if(Number.isFinite(v))counts[Math.min(bins-1,Math.max(0,Math.floor((v-lo)/(hi-lo)*bins)))]++;
-  const binWidth=(hi-lo)/bins;
-  const hist=counts.map(x=>x/(eta.length*binWidth));
-  const ymax=Math.max(...hist,gaussianDensity(0,omega))*1.15;
-  const sy=v=>240-195*v/ymax;
-  let svg='<rect x="68" y="42" width="625" height="198" rx="8" fill="#0c2530"/>'+
-    '<path d="M68 '+sy(0)+' H693" stroke="#65868e"/>';
-  for(let i=0;i<bins;i++){
-    const x=scaleX(lo+i*binWidth),w=width/bins-2;
-    svg+='<rect x="'+(x+1)+'" y="'+sy(hist[i])+'" width="'+w+
-      '" height="'+(240-sy(hist[i]))+'" fill="#9be9cf" opacity=".68"/>';
-  }
-  const line=Array.from({length:141},(_,i)=>{
-    const x=lo+(hi-lo)*i/140;return scaleX(x).toFixed(1)+','+sy(gaussianDensity(x,omega)).toFixed(1);
+// Kernel-smoothed EBE density is descriptive; Ω defines the population
+// distribution. Both densities have units of 1/(log CL) and integrate to one.
+export function iivPlotData(eta,omega){
+  const finite=eta.filter(Number.isFinite),n=finite.length;
+  if(n<4||!Number.isFinite(omega)||omega<=0)throw new RangeError('Invalid IIV series');
+  const avg=finite.reduce((a,b)=>a+b,0)/n,sd=sampleSD(finite);
+  const h=Math.max(.06,1.06*sd*Math.pow(n,-.2));
+  const span=Math.max(1,Math.abs(Math.min(...finite))+.16,Math.max(...finite)+.16,3.25*omega);
+  const lo=-span,hi=span;
+  const pdf=x=>finite.reduce((sum,v)=>sum+gaussianDensity(x-v,h),0)/n;
+  const values=Array.from({length:181},(_,i)=>{
+    const x=lo+(hi-lo)*i/180;
+    return {x,ebe:pdf(x),population:gaussianDensity(x,omega)};
   });
-  svg+='<polyline points="'+line.join(' ')+'" fill="none" stroke="#f6c28e" stroke-width="3"/>';
-  for(let i=0;i<=4;i++){
-    svg+='<text x="'+scaleX(lo+i*(hi-lo)/4)+'" y="262" fill="#c8ddd8" font-size="12" text-anchor="middle">'+(lo+i*(hi-lo)/4).toFixed(1)+'</text>';
-  }
-  el.innerHTML=svg+'<text x="68" y="23" fill="#c8ddd8" font-size="12">Densité des EBE ηCL (vert) et N(0, ωCL²) estimée (orange)</text>';
+  return {values,mean:avg,sd,bandwidth:h,lo,hi,n};
 }
+function plotIiv(el,eta,omega){
+  const g=iivPlotData(eta,omega),width=625,xx=x=>68+(x-g.lo)/(g.hi-g.lo)*width;
+  const ymax=Math.max(...g.values.flatMap(p=>[p.ebe,p.population]))*1.15;
+  const yy=v=>239-186*v/ymax;
+  let svg='<rect x="68" y="40" width="625" height="199" rx="8" fill="#0c2530"/>';
+  for(let i=0;i<=4;i++){
+    const v=ymax*i/4;
+    svg+='<line x1="68" x2="693" y1="'+yy(v)+'" y2="'+yy(v)+'" stroke="#45636d" stroke-dasharray="4 6"/>'+
+      '<text x="61" y="'+(yy(v)+4)+'" text-anchor="end" font-size="11" fill="#c8ddd8">'+fmt(v,2)+'</text>';
+  }
+  const atZero=xx(0);
+  svg+='<path d="M'+atZero+' 40 V239" stroke="#92a8af" stroke-dasharray="4 5"/>';
+  for(const [key,color] of [['population','#f6c28e'],['ebe','#9be9cf']]){
+    svg+='<polyline fill="none" stroke="'+color+'" stroke-width="3.1" stroke-linejoin="round" points="'+
+      g.values.map(p=>xx(p.x).toFixed(1)+','+yy(p[key]).toFixed(1)).join(' ')+'"/>';
+  }
+  for(let i=0;i<=4;i++){
+    const at=g.lo+(g.hi-g.lo)*i/4;
+    svg+='<text x="'+xx(at)+'" y="259" text-anchor="middle" fill="#c8ddd8" font-size="11">'+fmt(at,2)+'</text>';
+  }
+  const en=document.documentElement.lang==='en';
+  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">'+
+    (en?'Density (per log CL unit) — ηCL':'Densité (par unité log CL) — ηCL')+'</text>'+
+    '<text x="380" y="279" text-anchor="middle" fill="#c8ddd8" font-size="12">ηCL (log CL)</text>';
+}
+export function ruvPlotData(sigma,{maxPrediction=25}={}){
+  if(!Number.isFinite(sigma)||sigma<=0||!Number.isFinite(maxPrediction)||maxPrediction<=0)
+    throw new RangeError('Invalid residual error parameters');
+  const z=1.6448536269514722;
+  return Array.from({length:121},(_,i)=>{
+    const pred=maxPrediction*i/120;
+    return {pred,lo:pred*Math.exp(-z*sigma),median:pred,hi:pred*Math.exp(z*sigma)};
+  });
+}
+// The model is log(DV)=log(IPRED)+ε; 90% quantiles are IPRED·exp(±1.645σlog).
+// An additive model was never estimated and is deliberately not plotted.
 function plotResidualError(el,sigma){
-  const maxC=25,ss=180,cx=68,cy=242;
-  const x=v=>cx+625*v/maxC,y=v=>cy-190*v/(sigma*maxC*1.5);
-  let svg='<rect x="68" y="36" width="625" height="206" rx="8" fill="#0c2530"/>';
-  const line=Array.from({length:101},(_,i)=>{const c=maxC*i/100;return x(c).toFixed(1)+','+y(c*sigma).toFixed(1);});
-  const alt=Array.from({length:101},(_,i)=>{const c=maxC*i/100;return x(c).toFixed(1)+','+y(10*sigma).toFixed(1);});
-  svg+='<polyline points="'+line.join(' ')+'" fill="none" stroke="#9be9cf" stroke-width="3"/>'+
-    '<polyline points="'+alt.join(' ')+'" fill="none" stroke="#f6c28e" stroke-width="2" stroke-dasharray="6 5"/>';
-  for(let i=0;i<=5;i++)svg+='<text x="'+x(5*i)+'" y="263" text-anchor="middle" fill="#c8ddd8" font-size="11">'+5*i+'</text>';
-  el.innerHTML=svg+'<text x="68" y="23" fill="#c8ddd8" font-size="12">Écart-type sur C (mg/L) ≈ σlog × prédiction (mg/L)</text>';
+  const data=ruvPlotData(sigma),x=v=>68+625*v/25;
+  const maxY=26*Math.exp(1.6448536269514722*sigma),y=v=>240-182*v/maxY;
+  let svg='<rect x="68" y="40" width="625" height="200" rx="8" fill="#0c2530"/>';
+  for(let i=0;i<=5;i++){
+    const xv=5*i,at=x(xv);
+    svg+='<line x1="'+at+'" x2="'+at+'" y1="40" y2="240" stroke="#3b5961" stroke-dasharray="3 6"/>'+
+      '<text x="'+at+'" y="260" text-anchor="middle" fill="#c8ddd8" font-size="11">'+xv+'</text>';
+  }
+  for(let i=0;i<=4;i++){
+    const v=maxY*i/4;
+    svg+='<line x1="68" x2="693" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#3b5961" stroke-dasharray="3 6"/>'+
+      '<text x="61" y="'+(y(v)+4)+'" text-anchor="end" fill="#c8ddd8" font-size="11">'+fmt(v,1)+'</text>';
+  }
+  const polygon=[...data.map(p=>[x(p.pred),y(p.hi)]),...data.slice().reverse().map(p=>[x(p.pred),y(p.lo)])];
+  svg+='<polygon points="'+polygon.map(p=>p.map(v=>v.toFixed(2)).join(',')).join(' ')+
+    '" fill="#9be9cf" fill-opacity=".21"/>';
+  for(const [field,color,dash] of [['median','#9be9cf',''],['lo','#b9a0e7','stroke-dasharray="5 5"'],['hi','#b9a0e7','stroke-dasharray="5 5"']]){
+    svg+='<polyline points="'+data.map(p=>x(p.pred).toFixed(2)+','+y(p[field]).toFixed(2)).join(' ')+
+      '" fill="none" stroke="'+color+'" stroke-width="'+(field==='median'?3:1.6)+'" '+dash+'/>';
+  }
+  const en=document.documentElement.lang==='en';
+  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">'+
+    (en?'Predicted observation (mg/L)':'Observation prédite (mg/L)')+'</text>'+
+    '<text x="377" y="281" text-anchor="middle" fill="#c8ddd8" font-size="12">'+
+    (en?'Individual prediction IPRED (mg/L)':'Prédiction individuelle IPRED (mg/L)')+'</text>';
 }
 function normQuantile(p){
   // Acklam approximation; used solely for a diagnostic QQ axis, not inference.
@@ -372,18 +416,6 @@ function plotSAEMConvergence(svg,kind,param,step){
   svg.innerHTML=out+'<text x="70" y="23" fill="#c8ddd8" font-size="12">Écart relatif (%) à la dernière valeur enregistrée · estimation SAEM</text>'+
     '<text x="70" y="280" fill="#b7ccc9" font-size="11">Bande verte ±5 % = repère visuel, pas un test de convergence</text>';
 }
-function plotBicEvidence(svg){
-  const rows=modelComparison(),min=Math.min(...rows.map(r=>r.bic)),range=Math.max(2,...rows.map(r=>r.bic-min));
-  let out='<rect x="245" y="37" width="440" height="209" rx="8" fill="#0c2530"/>';
-  for(const [i,row] of rows.entries()){
-    const delta=row.bic-min,y=55+i*62,w=410*delta/range;
-    out+='<text x="12" y="'+(y+17)+'" fill="#e2eee9" font-size="12">'+escapeText(row.label)+'</text>'+
-      '<rect x="248" y="'+y+'" width="'+Math.max(2,w)+'" height="25" rx="4" fill="'+['#99dccc','#f4c08e','#c7a4f5'][i]+'"/>'+
-      '<text x="'+(255+w)+'" y="'+(y+18)+'" fill="#f4eee5" font-size="12">ΔBIC '+fmt(delta,2)+'</text>';
-  }
-  svg.innerHTML=out+'<text x="245" y="22" fill="#c8ddd8" font-size="12">Écart au BIC minimal : plus petit = meilleur, faible écart = ambigu</text>';
-}
-
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
   $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
@@ -393,7 +425,6 @@ function renderSAEM(){
     '<div class="career-chart-toolbar"><label>Paramètre <select id="pop-trace-param"></select></label><label>Itération du replay <input id="pop-iteration" type="range" min="0" max="8" value="8" step="1"></label><span id="pop-iteration-label" class="career-tag"></span></div>'+
     '<svg id="pop-trace" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Convergence relative des paramètres SAEM"></svg>'+ 
     '<p class="career-note">Chaque ligne indique le changement relatif du paramètre par rapport à sa valeur finale. Les modèles sont comparés uniquement lorsqu’ils possèdent ce paramètre ; le plateau ne prouve pas que la solution est identifiable.</p>'+ 
-    '<svg id="pop-bic" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Comparaison des écarts de BIC entre structures"></svg>'+
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
     '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
@@ -408,7 +439,6 @@ function renderSAEM(){
       traceField.innerHTML=names.map(x=>'<option value="'+x+'">'+x+'</option>').join('');
     }
     plotSAEMConvergence($('pop-trace'),selectedFit,traceField.value,timeIndex);
-    plotBicEvidence($('pop-bic'));
     $('pop-fit-summary').innerHTML=metric('CL typique',fmt(fit.est.CL,4)+' L/h')+
       metric('BIC marginal',fmt(fit.bic))+
       metric('ωCL (log SD)',fmt(rr[rr.length-2],3));
@@ -482,14 +512,14 @@ function renderDiagnostics(){
     '<p class="career-note">ETA_CL versus poids (sans conclure à une covariable à partir du seul graphe)</p><svg id="pop-eta-weight" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="ETA CL versus poids"></svg>'+
     '<p class="career-note">Distribution des ETA_CL</p><svg id="pop-eta-hist" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Histogramme ETA CL"></svg>'+ 
     '<div id="pop-variability-metrics" class="career-metrics"></div>'+ 
-    '<p class="career-note">Comparaison de la distribution des EBE de CL et de la loi N(0,ωCL²) retenue pour la population. Le shrinkage descriptif = 1 − SD(EBE)/ωCL ; il ne valide ni l’IIV ni le mécanisme. Seule CL porte un effet aléatoire dans cet atelier ; V, Ka, Q, Vp et Tlag n’ont pas d’IIV estimée.</p>'+ 
+    '<p class="career-note">Les deux courbes sont des densités normalisées sur la même échelle : <strong>vert = distribution empirique lissée des 28 EBE ηCL</strong>, <strong>orange = distribution théorique N(0,ωCL²)</strong>. Une différence de centre ou de dispersion ne démontre pas un mauvais modèle : les EBE sont shrinkés et leurs nombres sont limités. Le shrinkage descriptif vaut 1 − SD(EBE)/ωCL. Seule CL possède un effet aléatoire estimé dans ce replay.</p>'+ 
     '<svg id="pop-iiv-density" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Densité des effets individuels et distribution normale populationnelle"></svg>'+ 
     '<p class="career-note">Recherche exploratoire de covariables : ETA_CL en fonction du poids, montré ci-dessus. Attention : le poids détermine également la dose dans cette simulation ; association visuelle ≠ sélection statistique ou causalité. Pour une véritable analyse : graphique ETA/covariable, sélection prudente, réestimation du modèle complet, IC, pertinence clinique et vérification hors échantillon.</p>'+diagnosticQuiz('iiv')+'</details>'+ 
     '<details><summary><strong>4. Modèle d’erreur résiduelle (RUV)</strong></summary>'+ 
-    '<p class="career-note">Le replay est ajusté avec log(DV) = log(IPRED) + ε, ε ~ N(0,σlog²). Le modèle implique une erreur approximativement proportionnelle sur l’échelle de concentration. Aucun modèle additif ou combiné n’a été estimé ; la ligne pointillée est une erreur additive théorique normalisée à 10 mg/L uniquement pour illustrer la différence de forme.</p>'+ 
+    '<p class="career-note">Modèle retenu pour le replay : <strong>log(DV) = log(IPRED) + ε</strong>, avec ε ~ N(0, σlog²). La ligne verte représente la médiane IPRED, la bande verte l’intervalle prédictif central à 90 %, délimité par les courbes violettes IPRED × exp(±1,645 σlog). Ce n’est pas un intervalle d’incertitude sur les paramètres. Aucun modèle d’erreur additif ou combiné n’a été ajusté.</p>'+ 
     '<div id="pop-ruv-metrics" class="career-metrics"></div>'+ 
     '<svg id="pop-ruv-shape" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Erreur résiduelle lognormale versus concentration, comparateur additif pédagogique"></svg>'+ 
-    '<p class="career-note"><span style="color:#9be9cf">━</span> Approximation σlog × IPRED du modèle de démonstration ; <span style="color:#f6c28e">┄</span> forme additive théorique, non ajustée. La comparaison formelle de RUV additif, proportionnel, combiné, et la dépendance des résidus à l’heure/dose restent nécessaires dans un vrai projet.</p>'+diagnosticQuiz('ruv')+'</details>'+
+    '<p class="career-note"><span style="color:#9be9cf">━</span> Médiane conditionnelle ; <span style="color:#b9a0e7">┄</span> quantiles 5 % et 95 %. La largeur de la bande augmente avec IPRED selon l’erreur log-normale. Un diagnostic RUV complet doit aussi confronter les résidus aux observations et comparer des structures alternatives ajustées.</p>'+diagnosticQuiz('ruv')+'</details>'+
     '<details><summary><strong>5. VPC : P5 / P50 / P95 et incertitude</strong></summary>'+
     '<p class="career-note">VPC <strong>simulé de nouveau</strong> par 120 réplications déterministes sous le modèle sélectionné, aux mêmes temps/sujets que le replay. Chaque courbe = médiane des quantiles simulés ; zone transparente = intervalle empirique 5–95 % entre les réplications. Points = quantiles observés dans la cohorte artificielle. Pas de correction pcVPC, ni bootstrap de paramètres.</p>'+
     '<svg id="pop-vpc" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="VPC observé vs simulé, 5e 50e et 95e centiles avec intervalle de simulation"></svg>'+
