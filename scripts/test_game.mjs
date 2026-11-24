@@ -172,7 +172,14 @@ const page=readFileSync('portal/game/index.html','utf8');
 for(const expected of ['name="robots" content="index,follow"','src="./app.js"','src="./academy.js"','src="./advanced.js"','href="./academy.css"','id="academy-mode"' ,'id="advanced-mode"','id="quest-list"','id="academy-chart"','id="diagram"','id="chart"','id="challenge"'])
   assert.ok(page.includes(expected), expected + ' missing');
 assert.ok(readFileSync('portal/index.html','utf8').includes('/pharmacometrie/game/'));
-assert.ok(readFileSync('src/routes/+layout.svelte','utf8').includes("key: 'game'"));
+const layoutSource=readFileSync('src/routes/+layout.svelte','utf8');
+assert.ok(layoutSource.includes("key: 'game'"));
+assert.match(layoutSource,/data-sveltekit-reload=\{link\.key === 'game'/);
+assert.match(layoutSource,/game\/\?lang=\$\{\$language\}/);
+for(const route of ['src/routes/+page.svelte','src/routes/chapitres/+page.svelte']){
+  const source=readFileSync(route,'utf8');
+  assert.match(source,/game\/\?lang=\$\{\$language\}\`\} data-sveltekit-reload/);
+}
 assert.ok(readFileSync('scripts/mount_game_route.mjs','utf8').includes("'pharmacometrie','game'"));
 assert.match(readFileSync('scripts/mount_game_route.mjs','utf8'),/await rm\(legacy/);
 const injector=readFileSync('scripts/add_portal_analytics.mjs','utf8');
