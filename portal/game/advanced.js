@@ -386,7 +386,7 @@ $('advanced-check').addEventListener('click',check);
 $('advanced-hint').addEventListener('click',()=>{$('advanced-hint-text').hidden=false;});
 $('advanced-next').addEventListener('click',()=>select(Math.min(ADVANCED_MISSIONS.length-1,current+1)));
 $('advanced-reset').addEventListener('click',()=>{
-  if(!confirm('Réinitialiser les cinq défis avancés sur ce navigateur ?'))return;
+  if(!confirm(document.documentElement.lang==='en'?'Reset the nine advanced challenges in this browser?':'Réinitialiser les neuf défis avancés sur ce navigateur ?'))return;
   progress={completed:[]};save();select(0);
 });
 select(current);

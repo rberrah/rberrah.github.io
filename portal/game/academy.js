@@ -231,7 +231,7 @@ $('academy-explore').addEventListener('click',()=>{
   $('lab-mode').scrollIntoView({behavior:'auto',block:'start'});
 });
 $('quest-reset').addEventListener('click',()=>{
-  if(!confirm('Recommencer les neuf quêtes sur ce navigateur ?'))return;
+  if(!confirm(document.documentElement.lang==='en'?'Restart the nine quests in this browser?':'Recommencer les neuf quêtes sur ce navigateur ?'))return;
   pause();progress={completed:[],xp:0};save();selectQuest(0);
 });
 window.addEventListener('resize',()=>{if(!$('academy-mode').hidden)drawTime();});

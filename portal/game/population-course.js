@@ -700,7 +700,7 @@ $('population-validate').addEventListener('click',validate);
 $('population-hint').addEventListener('click',()=>{$('population-hint-text').hidden=false;});
 $('population-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
 $('population-reset').addEventListener('click',()=>{
-  if(!confirm('Réinitialiser les étapes pharmacométriques de ce navigateur ?'))return;
+  if(!confirm(document.documentElement.lang==='en'?'Reset the population PK steps in this browser?':'Réinitialiser les étapes pharmacométriques de ce navigateur ?'))return;
   done=[];store();select(0);
 });
 select(index);
