@@ -1,3 +1,4 @@
+import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
 // PMx Game path 4 — MPA after heart transplantation (fictional patient).
 // The numeric target is documented; the structural model and observations are
 // deliberately simulated, and not an externally validated MPA PopPK model.
@@ -33,10 +34,10 @@ const KEY='pmx-game-mipd-mpa-v3';
 function read(){
  try{
   const raw=JSON.parse(localStorage.getItem(KEY)||'null');if(!Array.isArray(raw))return [];
-  let done=[];for(let i=0;i<STEPS.length;i++){if(raw.includes(i))done.push(i);else break;}return done;
+  return normalizeCompleted(raw,STEPS.length);
  }catch{return [];}
 }
-let done=read(),index=Math.min(done.length,STEPS.length-1),selectedDose=1000,revisedDose=600;
+let done=read(),index=firstIncomplete(done,STEPS.length),selectedDose=1000,revisedDose=600;
 let sampleView=new Set(),sensitivityIIV=1,sensitivityRUV=.12,priorWeight=1,doseTouched=false;
 let sensitivityChanged=new Set(),interpretation='';
 const P0=posterior({samples:0}),P1=posterior({samples:1}),P3=posterior({samples:3});
@@ -133,7 +134,7 @@ function nav(){
  $('mipd-progress').textContent=done.length+' / '+STEPS.length;
  const fragment=document.createDocumentFragment();
  STEPS.forEach((step,i)=>{
-  const b=document.createElement('button');b.type='button';b.disabled=i>done.length;
+  const b=document.createElement('button');b.type='button';b.disabled=!canVisit(i,done,STEPS.length,isFree());
   if(i===index)b.setAttribute('aria-current','step');
   const num=document.createElement('span');num.className='career-step-num';num.textContent=done.includes(i)?'✓':String(i+1);
   const title=document.createElement('span');title.textContent=tr(step.title[0],step.title[1]);
@@ -169,7 +170,12 @@ function stage1(){
    'Sampling times are proposed: verify supporting evidence and compatibility with the selected model.')+'</p>'+
   options([['three','Ce plan est documenté dans cette situation, mais sa précision dépend du modèle, de la formulation et du contexte.','This plan has supporting evidence in this setting, but accuracy depends on model, formulation and context.'],
    ['universal','Ces horaires sont universels et identifient toute recirculation entérohépatique.','These times universally identify enterohepatic recirculation.']],'mipd-sampling')+
-  '<p class="career-note"><a href="'+CASE.references.lss+'" target="_blank" rel="noopener">'+tr('Étude des stratégies de prélèvement limité','Limited sampling strategy study')+'</a></p>';
+  '<p class="career-note"><a href="'+CASE.references.lss+'" target="_blank" rel="noopener">'+tr('Étude des stratégies de prélèvement limité','Limited sampling strategy study')+'</a></p>'+
+  '<section class="career-archive" id="mipd-sampling-evidence"><h3>'+tr('Comparer les stratégies publiées','Compare published sampling strategies')+'</h3>'+
+  '<p>'+tr('Kaczmarek et al. (2008) : 0,5 / 1 / 2 h, régression linéaire chez des greffés cardiaques sous MMF et tacrolimus. Ce résultat ne valide pas le MAP-BE fictif du jeu.','Kaczmarek et al. (2008): 0.5 / 1 / 2 h, linear regression in heart transplant recipients on MMF and tacrolimus. This result does not validate the game’s fictional MAP-BE.')+'</p>'+
+  '<p>'+tr('Woillard et al. : modèles bayésiens avec absorption à deux fonctions gamma ; stratégie étudiée à 20 min, 1 h, 3 h et 6 h.','Woillard et al.: Bayesian models with two gamma absorption functions; sampling at 20 min, 1 h, 3 h and 6 h was studied.')+' <a href="https://doi.org/10.1016/j.healun.2013.01.230" target="_blank" rel="noopener">2013</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/26192348/" target="_blank" rel="noopener">2015</a></p>'+
+  '<p>'+tr('Wang et al. (2021) : modèle 2C avec Tlag et covariables ; MAP-BE évalué à C0, 1 h et 4 h. La formulation et la méthode analytique doivent être compatibles.','Wang et al. (2021): 2C model with Tlag and covariates; MAP-BE evaluated at pre-dose, 1 h and 4 h. Formulation and assay must be compatible.')+' <a href="https://doi.org/10.3389/fphar.2021.748609" target="_blank" rel="noopener">2021</a></p>'+
+  '<p class="career-note">'+tr('Ces modèles publiés ne sont pas encore implémentés dans le simulateur : les paramètres et concentrations de la démonstration restent fictifs.','These published models are not yet implemented in the simulator: the demonstration parameters and concentrations remain fictional.')+'</p></section>';
 }
 function stage2(){
  $('mipd-workspace').innerHTML=story(
@@ -432,7 +438,7 @@ function render(){
  $('mipd-description').textContent=tr(st.desc[0],st.desc[1]);
  $('mipd-feedback').hidden=true;
  $('mipd-validate').disabled=done.includes(index);
- $('mipd-next').hidden=!done.includes(index)||index===STEPS.length-1;
+ $('mipd-next').hidden=(!done.includes(index)&&!isFree())||index===STEPS.length-1;
  $('mipd-hint-text').hidden=true;
  const hints=[
   ['Choisissez l’indicateur le plus lié à l’exposition, plutôt que le seul creux.','Choose a measure of total exposure rather than trough alone.'],
@@ -447,9 +453,9 @@ function render(){
  $('mipd-hint-text').textContent=tr(hints[index][0],hints[index][1]);
  SCREENS[index]();nav();
 }
-function select(i){if(i<0||i>=STEPS.length||i>done.length)return;index=i;render();}
+function select(i){if(!canVisit(i,done,STEPS.length,isFree()))return;index=i;render();}
 function success(fr,en){
- if(index===done.length){done.push(index);try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
+ if(!done.includes(index)){done=normalizeCompleted([...done,index],STEPS.length);try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}}
  $('mipd-feedback').hidden=false;$('mipd-feedback').classList.remove('error');
  $('mipd-feedback').innerHTML='<strong>'+tr('Étape validée','Step complete')+'</strong><p>'+safe(tr(fr,en))+'</p>';
  $('mipd-validate').disabled=true;
@@ -493,11 +499,15 @@ function validate(){
 }
 $('mipd-validate').addEventListener('click',validate);
 $('mipd-hint').addEventListener('click',()=>{$('mipd-hint-text').hidden=false;});
-$('mipd-next').addEventListener('click',()=>select(Math.min(STEPS.length-1,index+1)));
+$('mipd-next').addEventListener('click',()=>select(isFree()?Math.min(STEPS.length-1,index+1):firstIncomplete(done,STEPS.length)));
 $('mipd-reset').addEventListener('click',()=>{
  if(!confirm(tr('Réinitialiser ce dossier MIPD ?','Reset this MIPD case?')))return;
  done=[];selectedDose=CASE.dose;revisedDose=600;sensitivityIIV=1;sensitivityRUV=.12;priorWeight=1;doseTouched=false;
  sensitivityChanged.clear();sampleView.clear();try{localStorage.setItem(KEY,'[]');}catch{}select(0);
 });
 window.addEventListener('pmx-game-language-change',()=>render());
+window.addEventListener('pmx-game-learning-mode',()=>{
+ if(!canVisit(index,done,STEPS.length,isFree()))select(firstIncomplete(done,STEPS.length));
+ else {nav();$('mipd-next').hidden=index===STEPS.length-1||(!done.includes(index)&&!isFree());}
+});
 select(index);

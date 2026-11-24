@@ -185,3 +185,23 @@ assert.match(readFileSync('scripts/mount_game_route.mjs','utf8'),/await rm\(lega
 const injector=readFileSync('scripts/add_portal_analytics.mjs','utf8');
 assert.match(injector,/directory === target && entry.name === 'game'/);
 console.log('PASS: PMx Game scientific engine, official canonical route and published navigation.');
+
+
+// Optional navigation and source provenance regressions.
+const {normalizeCompleted,firstIncomplete,canVisit}=await import('../portal/game/learning-mode.js');
+assert.deepEqual(normalizeCompleted([6,6,0,-1,7,'2'],7),[0,6]);
+assert.equal(firstIncomplete([0,6],7),1);
+assert.equal(canVisit(5,[0,6],7,false),false);
+assert.equal(canVisit(6,[0,6],7,false),true);
+assert.equal(canVisit(5,[0,6],7,true),true);
+const {ARCHIVE_COMPARISONS,ARCHIVE_GOF}=await import('../portal/game/warfarin-evidence.js');
+const notebook=JSON.parse(readFileSync('course_source/warfarin/warfarin_pkpd_nlmixr2_EN.ipynb','utf8'));
+for(const stage of ARCHIVE_COMPARISONS){
+  const output=notebook.cells[stage.cell].outputs.map(o=>o.data?.['text/plain']?.join('')||'').join('\n');
+  for(const [,aic,bic,ll] of stage.models) for(const x of [aic,bic,ll]) assert.ok(output.includes(x.toFixed(4)));
+}
+for(const g of ARCHIVE_GOF){
+  const data=notebook.cells[g.cell].outputs[g.output].data['image/png'];
+  const expected=Buffer.from(Array.isArray(data)?data.join(''):data,'base64');
+  assert.ok(readFileSync('portal/game/warfarin-archive/'+g.id+'.png').equals(expected));
+}

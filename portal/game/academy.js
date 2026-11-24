@@ -1,3 +1,4 @@
+import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
 import { QUESTS, profileFor, grade, validateProgress, unlockedIndex } from './academy-core.js';
 import { fmt, renderCurve, renderPhysiology, probeTime, probeSummary } from './academy-visual.js';
 
@@ -66,7 +67,7 @@ function updateMap(){
   QUESTS.forEach((q,i)=>{
     const done=progress.completed.includes(q.id);
     const button=document.createElement('button');
-    button.type='button';button.disabled=i>furthest&&!done;
+    button.type='button';button.disabled=!isFree()&&i>furthest&&!done;
     button.classList.toggle('completed',done);
     if(i===index)button.setAttribute('aria-current','step');
     const num=document.createElement('span');num.className='quest-index';num.textContent=done?'✓':String(i+1);
@@ -127,12 +128,12 @@ function disableAnswers(disabled){
 function success(reward=true){
   solved=true;disableAnswers(true);
   const output=$('academy-feedback');output.hidden=false;output.classList.remove('error');output.replaceChildren();
-  const head=document.createElement('strong');head.textContent=index===QUESTS.length-1?'Campagne terminée':'Mission accomplie · '+quest.tag;
+  const head=document.createElement('strong');head.textContent=progress.completed.length===QUESTS.length?'Campagne terminée':'Mission accomplie · '+quest.tag;
   const explanation=document.createElement('p');explanation.textContent=quest.explanation;
   const rewardEl=document.createElement('div');rewardEl.className='reward';
-  rewardEl.textContent=reward?'+'+quest.xp+' XP · Nouvelle mission débloquée':'Mission déjà accomplie · '+quest.xp+' XP';
+  rewardEl.textContent=reward?'+'+quest.xp+' XP':'Mission déjà accomplie · '+quest.xp+' XP';
   output.append(head,explanation,rewardEl);
-  if(index===QUESTS.length-1){
+  if(progress.completed.length===QUESTS.length){
     const badge=document.createElement('div');badge.className='quest-award';
     badge.textContent='Badge « Détective PK » · Vous avez terminé les neuf enquêtes. Relevez maintenant le défi de reconstruction d’une courbe mystère dans l’atelier.';
     output.append(badge);
@@ -141,7 +142,8 @@ function success(reward=true){
   $('academy-explore').hidden=index!==QUESTS.length-1;
 }
 function selectQuest(i){
-  if(i>unlockedIndex(progress.completed) && !progress.completed.includes(QUESTS[i].id))return;
+  if(!Number.isInteger(i)||i<0||i>=QUESTS.length)return;
+  if(!isFree()&&i>unlockedIndex(progress.completed)&&!progress.completed.includes(QUESTS[i].id))return;
   pause();index=i;quest=QUESTS[i];result=profileFor(quest);
   scale=quest.scale;t=0;probes=[];solved=progress.completed.includes(quest.id);
   tutorialStep=i===0&&!solved?0:2;
@@ -157,7 +159,7 @@ function selectQuest(i){
   $('academy-feedback').replaceChildren();$('academy-feedback').hidden=true;
   $('academy-question').hidden=tutorialStep<2;
   $('tutorial-panel').hidden=tutorialStep>=2;
-  $('academy-next').hidden=true;$('academy-explore').hidden=true;
+  $('academy-next').hidden=!isFree()||i===QUESTS.length-1;$('academy-explore').hidden=true;
   $('academy-time').max=String(result.config.horizon);
   createAnswers();
   disableAnswers(solved);
@@ -224,16 +226,20 @@ $('academy-time').addEventListener('input',()=>{pause();t=Number($('academy-time
 $('academy-play').addEventListener('click',togglePlay);
 $('academy-form').addEventListener('submit',answer);
 $('academy-hint').addEventListener('click',()=>{$('academy-hint-text').hidden=false;});
-$('academy-next').addEventListener('click',()=>selectQuest(Math.min(QUESTS.length-1,index+1)));
+$('academy-next').addEventListener('click',()=>selectQuest(isFree()?Math.min(QUESTS.length-1,index+1):unlockedIndex(progress.completed)));
 $('academy-explore').addEventListener('click',()=>{
   showMode('lab');
   if($('challenge').getAttribute('aria-pressed')!=='true')$('challenge').click();
   $('lab-mode').scrollIntoView({behavior:'auto',block:'start'});
 });
 $('quest-reset').addEventListener('click',()=>{
-  if(!confirm('Recommencer les neuf quêtes sur ce navigateur ?'))return;
+  if(!confirm(document.documentElement.lang==='en'?'Restart the nine quests in this browser?':'Recommencer les neuf quêtes sur ce navigateur ?'))return;
   pause();progress={completed:[],xp:0};save();selectQuest(0);
 });
 window.addEventListener('resize',()=>{if(!$('academy-mode').hidden)drawTime();});
+window.addEventListener('pmx-game-learning-mode',()=>{
+  if(!isFree()&&index>unlockedIndex(progress.completed)&&!progress.completed.includes(quest.id))selectQuest(unlockedIndex(progress.completed));
+  else {updateMap();$('academy-next').hidden=index===QUESTS.length-1||(!solved&&!isFree());}
+});
 selectQuest(index);
 showMode('academy');

@@ -16,6 +16,7 @@ const forced=params.get('lang');
 let current=supported.has(forced)?forced:(()=>{try{return localStorage.getItem('pharmacometrie-language')||'fr';}catch{return 'fr';}})();
 if(!supported.has(current))current='fr';
 
+const longKeys=Object.keys(DICTIONARY).filter(k=>k.length>=35).sort((a,b)=>b.length-a.length);
 const states=new WeakMap();
 const attrStates=new WeakMap();
 const phraseRules=[
@@ -53,13 +54,30 @@ const phraseRules=[
   ['Les segments relient uniquement ses propres observations.','The segments connect that subject\'s observations only.'],
   ['Effectif ·','Count ·'],['État sauvegardé :','Recorded state:'],
   ['À examiner','To review'],['Rejoué','Reviewed'],['Rapport scientifique','Scientific report'],
-  ['Comparaison des courbes','Comparison of curves']
+  ['Comparaison des courbes','Comparison of curves'],
+  ['Tutoriel · Étape ','Tutorial · Step '],['Défi ','Challenge '],
+  ['Nouvelle mission débloquée','New mission unlocked'],['Mission déjà accomplie','Mission already completed'],
+  ['Mission accomplie','Mission complete'],['défis avancés','advanced challenges'],
+  ['Départ sélectionné :','Origin selected:'],['. Cliquez sur le nœud d’arrivée.','. Click the destination node.'],
+  ['bloc(s) placés','block(s) placed'],['transfert(s). Cliquez sur un départ puis sur une arrivée.','transfer(s). Click an origin then a destination.'],
+  ['Certaines équations ne sont pas encore cohérentes :','Some equations are not yet consistent:'],['dérivée(s) à revoir. Vérifiez le sens et le signe des flux.','derivative(s) to review. Check flow directions and signs.'],
+  ['Vos résultats : AUC linéaire =','Your results: linear AUC ='],['et AUC saturable =','and saturable AUC ='],
+  ['Votre simulation :','Your simulation:'],[' et AUC24 =',' and AUC24 ='],
+  ['mg/L. Sélectionnez un second point.','mg/L. Select a second point.'],
+  ['prélèvements). Turquoise = données mesurées ; orange = sujet sélectionné ; violet = médiane et IQR par fenêtre (au moins 4 sujets), sans interpolation.','samples). Turquoise = observed data; orange = selected subject; purple = windowed median and IQR (at least 4 subjects), without interpolation.']
 ];
 function translate(fr){
   const trimmed=fr.trim();
   if(!trimmed)return fr;
   const direct=DICTIONARY[trimmed];
   if(direct!==undefined)return fr.replace(trimmed,direct);
+  // Full explanatory sentences can be followed by computed results, and map labels combine translated fragments.
+  const prefix=longKeys.find(k=>trimmed.startsWith(k+' '));
+  if(prefix)return fr.replace(trimmed,DICTIONARY[prefix]+translate(trimmed.slice(prefix.length)));
+  if(trimmed.includes(' · ')){
+    const composite=trimmed.split(' · ').map(translate).join(' · ');
+    if(composite!==trimmed)return fr.replace(trimmed,composite);
+  }
   let en=fr;
   for(const [from,to] of phraseRules){
     if(en.includes(from))en=en.split(from).join(to);

@@ -1,3 +1,4 @@
+import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
 import {
   ADVANCED_MISSIONS,GRAPH_NODES,GRAPH_OPTIONS,GRAPH_EDGES,ODE_TERMS,ODE_STATES,
   validateGraph,validateOdes,gradeMic,nonlinearChallenge,oneDoseProfile,
@@ -56,7 +57,7 @@ function nav(){
   const fragment=document.createDocumentFragment();
   ADVANCED_MISSIONS.forEach((m,i)=>{
     const done=progress.completed.includes(m.id);
-    const b=document.createElement('button');b.type='button';b.disabled=i>maxOpen()&&!done;
+    const b=document.createElement('button');b.type='button';b.disabled=!isFree()&&i>maxOpen()&&!done;
     b.classList.toggle('completed',done);
     if(i===current)b.setAttribute('aria-current','step');
     const n=document.createElement('span');n.className='quest-index';n.textContent=done?'✓':String(i+1);
@@ -88,7 +89,8 @@ function complete(extra=''){
   nav();
 }
 function select(i){
-  if(i>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[i].id))return;
+  if(!Number.isInteger(i)||i<0||i>=ADVANCED_MISSIONS.length)return;
+  if(!isFree()&&i>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[i].id))return;
   current=i;const m=ADVANCED_MISSIONS[i];
   completed=progress.completed.includes(m.id);
   graphNodes=[];graphEdges=[];graphStart=null;extended=null;
@@ -101,7 +103,7 @@ function select(i){
   $('advanced-hint-text').textContent=hints[m.id];
   $('advanced-hint-text').hidden=true;
   $('advanced-feedback').hidden=true;
-  $('advanced-next').hidden=true;
+  $('advanced-next').hidden=!isFree()||i===ADVANCED_MISSIONS.length-1;
   $('advanced-check').disabled=completed;
   $('advanced-teacher').textContent={
     graph:'Déduisez une structure compatible avec les indices. Cliquez sur les blocs que vous retenez, puis dessinez les transferts : un départ et une arrivée par flèche. Des blocs proposés sont inutiles.',
@@ -384,9 +386,13 @@ function check(){
 }
 $('advanced-check').addEventListener('click',check);
 $('advanced-hint').addEventListener('click',()=>{$('advanced-hint-text').hidden=false;});
-$('advanced-next').addEventListener('click',()=>select(Math.min(ADVANCED_MISSIONS.length-1,current+1)));
+$('advanced-next').addEventListener('click',()=>select(isFree()?Math.min(ADVANCED_MISSIONS.length-1,current+1):maxOpen()));
 $('advanced-reset').addEventListener('click',()=>{
-  if(!confirm('Réinitialiser les cinq défis avancés sur ce navigateur ?'))return;
+  if(!confirm(document.documentElement.lang==='en'?'Reset the nine advanced challenges in this browser?':'Réinitialiser les neuf défis avancés sur ce navigateur ?'))return;
   progress={completed:[]};save();select(0);
+});
+window.addEventListener('pmx-game-learning-mode',()=>{
+  if(!isFree()&&current>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[current].id))select(maxOpen());
+  else {nav();$('advanced-next').hidden=current===ADVANCED_MISSIONS.length-1||(!completed&&!isFree());}
 });
 select(current);
