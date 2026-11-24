@@ -7,7 +7,8 @@ import {FR_EN_MIPD} from './locale-en-mipd.js';
 import {FR_EN_CLASSIC} from './locale-en-classic.js';
 import {FR_EN_V3} from './locale-en-v3.js';
 import {FR_EN_V4} from './locale-en-v4.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4};
+import {FR_EN_V5} from './locale-en-v5.js';
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
