@@ -101,5 +101,10 @@ export const FR_EN_V5 = {
   "Le replay pédagogique ne distingue pas Tlag ; ces résultats ne concernent pas la cohorte expérimentale.": "The simulated replay cannot distinguish Tlag; the estimates do not apply to the experimental cohort.",
   "La différence entre PK et PD ne démontre pas une relation instantanée.": "The PK–PD difference does not demonstrate an instantaneous relationship.",
   ". Une différence de centre ou de dispersion ne démontre pas un mauvais modèle : les EBE sont shrinkés et leurs nombres sont limités. Le shrinkage descriptif vaut 1 − SD(EBE)/ωCL. Seule CL possède un effet aléatoire estimé dans ce replay.": ". Different centers or spreads do not automatically indicate model misspecification: EBEs may be shrunken and the sample is small. Descriptive shrinkage = 1 − SD(EBE)/ωCL. Only CL has fitted IIV in this replay.",
-  ", avec ε ~ N(0, σlog²). La ligne verte représente la médiane IPRED, la bande verte l’intervalle prédictif central à 90 %, délimité par les courbes violettes IPRED × exp(±1,645 σlog). Ce n’est pas un intervalle d’incertitude sur les paramètres. Aucun modèle d’erreur additif ou combiné n’a été ajusté.": ", with ε ~ N(0, σlog²). The green line is the IPRED median, and the shaded band is the central 90% predictive interval bounded by IPRED × exp(±1.645 σlog). This is not a parameter-uncertainty interval. No additive or combined error model was fitted."
+  ", avec ε ~ N(0, σlog²). La ligne verte représente la médiane IPRED, la bande verte l’intervalle prédictif central à 90 %, délimité par les courbes violettes IPRED × exp(±1,645 σlog). Ce n’est pas un intervalle d’incertitude sur les paramètres. Aucun modèle d’erreur additif ou combiné n’a été ajusté.": ", with ε ~ N(0, σlog²). The green line is the IPRED median, and the shaded band is the central 90% predictive interval bounded by IPRED × exp(±1.645 σlog). This is not a parameter-uncertainty interval. No additive or combined error model was fitted.",
+  "Moyenne EBE ηCL": "Mean ηCL EBE",
+  "IIV CL (CV lognormale)": "CL IIV (lognormal CV)",
+  "RUV retenue": "Fitted RUV",
+  "Autres RUV ajustées": "Other fitted error structures",
+  "Aucune": "None"
 };
