@@ -420,7 +420,7 @@ function plotSAEMConvergence(svg,kind,param,step){
 }
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
-  $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
+  $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez un modèle pour examiner sa trajectoire. Le tableau contient dès le départ les résultats des trois modèles.','ENQUÊTE N° 03 · REPLAY SAEM')+
     '<div class="career-model-buttons">'+options+'</div>'+
     '<div class="career-metrics">'+metric('Itérations enregistrées','170')+
     metric('Effets aléatoires','ηCL')+metric('Erreur','log-normale')+'</div>'+
@@ -429,7 +429,8 @@ function renderSAEM(){
     '<p class="career-note">Chaque ligne indique le changement relatif du paramètre par rapport à sa valeur finale. Les modèles sont comparés uniquement lorsqu’ils possèdent ce paramètre ; le plateau ne prouve pas que la solution est identifiable.</p>'+ 
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
-    '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
+    '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>'+
+    '<h3>Interpréter une trajectoire d’estimation</h3>'+radio([['plateau','Le plateau suggère une stabilisation numérique ; il faut encore examiner les diagnostics, la précision et la stabilité entre initialisations.'],['proof','Un plateau démontre que tous les paramètres sont identifiables et le modèle prédictif.'],['iterations','170 itérations garantissent la convergence de tout modèle.']],'pop-saem-interpretation');
   function redraw(){
     const fit=FITS[selectedFit],timeIndex=+$('pop-iteration').value;
     const keys=selectedFit==='one'?['CL','V','Ka','omegaCL','sigmaLog']:selectedFit==='lag'?['CL','V','Ka','Tlag','omegaCL','sigmaLog']:['CL','Vc','Ka','Q','Vp','omegaCL','sigmaLog'];
@@ -451,8 +452,8 @@ function renderSAEM(){
     more.classList.add('career-param-line');
     $('pop-fit-summary').after(more);
     $('pop-fit-rows').innerHTML=modelComparison().map(m=>'<tr data-selected="'+(selectedFit===m.id)+'"><td>'+m.label+'</td><td>'+
-      (viewed.has(m.id)?fmt(m.neg2ll):'—')+'</td><td>'+(viewed.has(m.id)?fmt(m.bic):'—')+'</td><td>'+
-      (viewed.has(m.id)?fmt(m.deltaBic):'—')+'</td><td>'+(viewed.has(m.id)?'Rejoué':'À examiner')+'</td></tr>').join('');
+      fmt(m.neg2ll)+'</td><td>'+fmt(m.bic)+'</td><td>'+
+      fmt(m.deltaBic)+'</td><td>'+(viewed.has(m.id)?'Trajectoire consultée':'Disponible')+'</td></tr>').join('');
   }
   $('population-workspace').querySelectorAll('[data-pop-model]').forEach(b=>b.addEventListener('click',()=>{
     selectedFit=b.dataset.popModel;viewed.add(selectedFit);
@@ -647,7 +648,7 @@ function render(){
   $('population-help').textContent=[
     'Associez chaque colonne au bon rôle avant d’autoriser les estimations.',
     'Utilisez l’échelle et les observations, pas le seul nombre de paramètres.',
-    'Cliquez sur chacune des trois structures et inspectez la trajectoire sauvegardée avant d’arbitrer.',
+    'Comparez les résultats des trois structures et interprétez les limites du plateau d’estimation. Les boutons de modèle sont facultatifs.',
     'Une bonne qualification associe plusieurs contrôles ; aucun score ne suffit isolément.',
     'Lisez la différence de BIC et la parcimonie sans présenter une petite différence comme décisive.',
     'Un effet retardé exige une hypothèse dynamique à estimer et à confronter aux données.',
@@ -656,7 +657,7 @@ function render(){
   $('population-hint-text').textContent=[
     'Le fichier source a DVID=1 pour PK, DVID=2 pour PCA et AMT pour la dose ; il ne possède pas EVID.',
     'L’échelle semi-log met souvent en évidence les phases terminales.',
-    'Les tableaux ne révèlent les BIC qu’après examen de la structure correspondante.',
+    'Un plateau de la trajectoire n’est pas une preuve de stabilité entre initialisations, ni d’identifiabilité.',
     'Contrôlez GOF, IIV, modèle résiduel, EBE, covariables, VPC et robustesse/identifiabilité.',
     'ΔBIC inférieur à 2 n’apporte pas ici d’argument discriminant solide.',
     'Le retard peut provenir d’une dynamique d’effet ou de turnover ; la courbe seule ne prouve rien.',
@@ -691,14 +692,22 @@ function validate(){
     return values.id==='id'&&values.time==='time'&&values.dose==='amt'&&values.concentration==='dv'&&values.event==='dvid'?success('Correspondance correcte des colonnes du fichier expérimental.'):failure('Vérifiez AMT, DV et DVID ; le CSV source ne contient pas EVID.');
   }
   if(index===2){
-    return viewed.size===3?success('Trois calculs archivés ont été comparés. Les paramètres et BIC ne suffisent pas encore à valider le modèle.'):
-      failure('Examinez les trois structures, pas seulement la première sélectionnée.');
+    return w.querySelector('input[name="pop-saem-interpretation"]:checked')?.value==='plateau'?success('Une trajectoire stabilisée est encourageante, mais les diagnostics, la précision et des départs multiples sont nécessaires.'):
+      failure('Un plateau seul ne démontre ni l’identifiabilité ni la qualité prédictive du modèle.');
   }
   if(index===3){
     const answers=Object.fromEntries(DIAG_QUESTIONS.map(q=>[q.key,w.querySelector('input[name="pop-diagnostic-'+q.key+'"]:checked')?.value]));
-    return gradeDiagnosticQuestions(answers)?
-      success('Six domaines examinés : GOF, résidus, IIV/covariables, RUV, VPC, stabilité et précision.'):
-      failure('Répondez à chaque question, puis analysez les divergences entre graphiques et modèle.');
+    const pending=DIAG_QUESTIONS.filter(q=>answers[q.key]!==q.correct);
+    for(const q of DIAG_QUESTIONS){
+      const field=w.querySelector('[data-diagnostic-question="'+q.key+'"]');
+      field?.classList.toggle('diagnostic-needs-review',pending.includes(q));
+      field?.classList.toggle('diagnostic-correct',!pending.includes(q));
+    }
+    if(!pending.length)return success('Six domaines examinés : GOF, résidus, IIV/covariables, RUV, VPC, stabilité et précision.');
+    const first=w.querySelector('[data-diagnostic-question="'+pending[0].key+'"]');
+    if(first?.closest('details'))first.closest('details').open=true;
+    first?.scrollIntoView({block:'center',behavior:'auto'});
+    return failure('Les questions correctes sont conservées. Revoyez uniquement les questions signalées.');
   }
   if(index===6){
     const answer=w.querySelector('input[name="pop-conclusion"]:checked')?.value;

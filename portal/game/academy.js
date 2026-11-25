@@ -142,7 +142,7 @@ function success(reward=true){
     output.append(badge);
   }
   $('academy-next').hidden=index===QUESTS.length-1;
-  $('academy-explore').hidden=index!==QUESTS.length-1;
+  $('academy-explore').hidden=progress.completed.length!==QUESTS.length;
 }
 function selectQuest(i){
   if(!Number.isInteger(i)||i<0||i>=QUESTS.length)return;
@@ -190,7 +190,7 @@ function answer(event){
   }else{
     const panel=$('academy-feedback');panel.hidden=false;panel.classList.add('error');panel.replaceChildren();
     const head=document.createElement('strong');head.textContent='Ce n’est pas encore ça.';
-    const text=document.createElement('p');text.textContent='Réessayez après avoir changé d’échelle ou mesuré deux points. Demandez un indice si nécessaire.';
+    const text=document.createElement('p');text.textContent=quest.hint;
     panel.append(head,text);
   }
 }

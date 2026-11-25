@@ -326,7 +326,8 @@ test('population pharmacometrician route runs from mapping through archived gene
 
   await expect(page.locator('#pop-bic')).toHaveCount(0);
   await expect(page.locator('#pop-trace')).toBeVisible();
-  await expect(page.locator('#pop-fit-rows')).toContainText('À examiner');
+  await expect(page.locator('#pop-fit-rows')).toContainText('Disponible');
+  await expect(page.locator('#pop-fit-rows')).toContainText('-224,01');
   for(const kind of ['one','lag','two']){
     await page.locator('[data-pop-model="'+kind+'"]').click();
     await expect(page.locator('#pop-iteration-label')).toContainText('170');
@@ -336,6 +337,7 @@ test('population pharmacometrician route runs from mapping through archived gene
     el.value='3';el.dispatchEvent(new Event('input',{bubbles:true}));
   });
   await expect(page.locator('#pop-iteration-label')).toContainText('40');
+  await page.locator('input[name="pop-saem-interpretation"][value="plateau"]').check();
   await page.locator('#population-validate').click();
   await expect(page.locator('#population-progress')).toHaveText('3 / 7');
   await page.locator('#population-next').click();
@@ -545,7 +547,7 @@ test('game is bilingual at canonical address and legacy address redirects',async
 });
 
 
-test('free exploration preserves honest progress across all four tracks',async({page})=>{
+test('free exploration preserves honest progress across all five tracks',async({page})=>{
   await page.goto(origin+'/pharmacometrie/game/?lang=en');
   await expect(page.locator('#game-free-mode')).not.toBeChecked();
   await expect(page.locator('#quest-list button').last()).toBeDisabled();
@@ -560,6 +562,9 @@ test('free exploration preserves honest progress across all four tracks',async({
   await page.locator('#mode-population').click();
   await page.locator('#population-steps button').last().click();
   await expect(page.locator('#population-progress')).toHaveText('0 / 7');
+  await page.locator('#mode-pmetrics').click();
+  await page.locator('#pmetrics-steps button').last().click();
+  await expect(page.locator('#pmetrics-progress')).toHaveText('0 / 5');
   await page.locator('#mode-mipd').click();
   await page.locator('#mipd-steps button').last().click();
   await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
@@ -675,4 +680,81 @@ test('chapter Pmetrics game link bypasses the placeholder route',async({page})=>
  await gameLink.click();
  await expect(page.locator('#pmetrics-mode')).toBeVisible();
  await expect(page.locator('#pmetrics-title')).toHaveText('Understand double-gamma absorption');
+});
+
+for(const lang of ['fr','en']){
+ test('Student: complete all five Pmetrics missions with specific feedback ('+lang+')',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(origin+'/pharmacometrie/game/?lang='+lang+'&path=pmetrics');
+  await expect(page.locator('#pmetrics-progress')).toHaveText('0 / 5');
+  await expect(page.locator('#pmetrics-steps button').last()).toBeDisabled();
+  for(const [i,answer] of [1,0,1,1,1].entries()){
+   await expect(page.locator('#pmetrics-level')).toContainText((i+1)+' / 5');
+   await page.locator('input[name="np-answer"][value="'+((answer+1)%3)+'"]').check();
+   await page.locator('#pmetrics-validate').click();
+   await expect(page.locator('#pmetrics-feedback')).toHaveClass(/error/);
+   await expect(page.locator('#pmetrics-progress')).toHaveText(i+' / 5');
+   await page.locator('input[name="np-answer"][value="'+answer+'"]').check();
+   await page.locator('#pmetrics-validate').click();
+   await expect(page.locator('#pmetrics-feedback')).not.toHaveClass(/error/);
+   await expect(page.locator('#pmetrics-progress')).toHaveText((i+1)+' / 5');
+   if(i<4)await page.locator('#pmetrics-next').click();
+  }
+  await page.reload();
+  await expect(page.locator('#pmetrics-progress')).toHaveText('5 / 5');
+  expect(errors).toEqual([]);
+ });
+ test('Teacher: free review of all five pathways on a narrow screen ('+lang+')',async({page})=>{
+  test.setTimeout(90000);
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(origin+'/pharmacometrie/game/?lang='+lang);
+  await page.locator('#game-free-mode').check();
+  for(const [tab,section,list,count,progress] of [
+    ['campaign','academy','quest-list',9,'quest-count'],
+    ['advanced','advanced','advanced-list',9,'advanced-count'],
+    ['population','population','population-steps',7,'population-progress'],
+    ['pmetrics','pmetrics','pmetrics-steps',5,'pmetrics-progress'],
+    ['mipd','mipd','mipd-steps',7,'mipd-progress']
+  ]){
+    await page.locator('#mode-'+tab).click();
+    await expect(page.locator('#'+section+'-mode')).toBeVisible();
+    for(let i=0;i<count;i++){
+      await page.locator('#'+list+' button').nth(i).click();
+      await expect(page.locator('#'+list+' button').nth(i)).toHaveAttribute('aria-current','step');
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    }
+    await expect(page.locator('#'+progress)).toHaveText(tab==='campaign'||tab==='advanced'?'0/'+count:'0 / '+count);
+  }
+  expect(errors).toEqual([]);
+ });
+}
+test('SAEM interpretation is sufficient without clicking every model',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=fr');
+ await page.evaluate(()=>localStorage.setItem('pmx-game-population-v4','[0,1]'));
+ await page.reload();
+ await page.locator('#mode-population').click();
+ await expect(page.locator('#pop-fit-rows')).toContainText('-224,01');
+ await page.locator('input[name="pop-saem-interpretation"][value="plateau"]').check();
+ await page.locator('#population-validate').click();
+ await expect(page.locator('#population-progress')).toHaveText('3 / 7');
+});
+test('MIPD invalid displayed doses cannot pass or crash the numerical engine',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(origin+'/pharmacometrie/game/?lang=en');
+ await page.locator('#game-free-mode').check();
+ await page.locator('#mode-mipd').click();
+ await page.locator('#mipd-steps button').nth(4).click();
+ await page.locator('#mipd-dose-input').fill('1250');
+ await page.locator('#mipd-dose-input').fill('2000');
+ await page.locator('#mipd-validate').click();
+ await expect(page.locator('#mipd-feedback')).toContainText('valid dose');
+ await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
+ await page.locator('#mipd-steps button').nth(5).click();
+ await page.locator('#mipd-shift-dose-input').fill('2000');
+ await page.locator('input[name="mipd-shift-shape"][value="shape"]').check();
+ await page.locator('#mipd-validate').click();
+ await expect(page.locator('#mipd-feedback')).toContainText('valid dose');
+ await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
+ expect(errors).toEqual([]);
 });

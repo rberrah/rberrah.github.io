@@ -416,7 +416,7 @@ function stage5(){
     'Equal AUC always implies identical trough.']],'mipd-shift-shape');
  function draw(){
   const raw=+$('mipd-shift-dose-input').value;
-  if(!Number.isFinite(raw)||raw<250||raw>3000){$('mipd-shift-comment').textContent=tr('Dose invalide.','Invalid dose.');return;}
+  if(!Number.isFinite(raw)||raw<250||raw>1500){$('mipd-shift-comment').textContent=tr('Dose invalide.','Invalid dose.');return;}
   revisedDose=raw;
   const x=scenarioComparison(post,selectedDose,.6,raw);
   $('mipd-shift-metrics').innerHTML=metrics([
@@ -535,13 +535,17 @@ function validate(){
    success('L’IIV et le poids du prior agissent sur la distribution a priori ; la RUV agit sur la vraisemblance.','IIV and prior weighting affect the prior; RUV affects the likelihood.'):
    failure('Interprétez comment le prior et la vraisemblance contribuent au posterior ; les curseurs restent facultatifs.','Explain how prior and likelihood shape the posterior; moving sliders is optional.');
  if(index===4){
-  const x=doseMetrics(dosePost(),selectedDose);
+  const raw=$('mipd-dose-input').valueAsNumber;
+  if(!Number.isFinite(raw)||raw<250||raw>1500)return failure('Saisissez une dose valide entre 250 et 1500 mg avant de valider.','Enter a valid dose between 250 and 1,500 mg before checking.');
+  const x=doseMetrics(dosePost(),raw);
   return x.meets.auc?
    success('La dose saisie atteint le seuil inférieur d’AUC. Interprétez aussi l’incertitude et la tolérance.','Your selected dose meets the lower AUC reference. Also assess uncertainty and tolerability.'):
    failure('L’AUC de cette dose est inférieure à 36 mg·h/L. Essayez une autre dose ou réexaminez les hypothèses du modèle.','This dose gives AUC below 36 mg·h/L. Consider another dose or review the model assumptions.');
  }
  if(index===5){
-  const cmp=scenarioComparison(dosePost(),selectedDose,.6,revisedDose);
+  const raw=$('mipd-shift-dose-input').valueAsNumber;
+  if(!Number.isFinite(raw)||raw<250||raw>1500)return failure('Saisissez une dose valide entre 250 et 1500 mg avant de valider.','Enter a valid dose between 250 and 1,500 mg before checking.');
+  const cmp=scenarioComparison(dosePost(),selectedDose,.6,raw);
   const percent=Math.abs(cmp.revised.auc/cmp.baseline.auc-1)*100;
   return percent<=5&&chosen('mipd-shift-shape')==='shape'?
    success('AUC proche de l’exposition initiale ; la C0 et l’incertitude peuvent changer.','AUC is close to baseline, but trough and uncertainty can change.'):
