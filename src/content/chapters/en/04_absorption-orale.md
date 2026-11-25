@@ -13,6 +13,8 @@ slides: ["s07"]
 prerequisites: ["clairance-volume-demi-vie"]
 glossary: ["Ka","F","Tlag","Cmax / Tmax","Flip-flop"]
 sources: ["savic-transit","gibaldi-perrier","rowland-tozer"]
+reviewed_on: "2026-07-09"
+reviewed_hash: "0fbedd98487a29998bd4861cfad233ec5f4578ab10a4a05b33cb3739b3806308"
 review_pending: true
 review_type: "author"
 quiz:
@@ -99,7 +101,7 @@ A transit model can also be described by a **gamma density**. With a chain of $n
 
 $$ g(t;a,b)=\frac{b^a t^{a-1} e^{-bt}}{\Gamma(a)},\quad t>0 $$
 
-The integral of $g$ is 1: it describes the **fraction of the dose entering per hour**, not a concentration. With the rate convention $b$ in h⁻¹, the mean input time is $a/b$, standard deviation $\sqrt a/b$, and the mode is $(a-1)/b$ for $a>1$. With $a=1$, this reduces to first-order exponential absorption.
+The integral of $g$ is 1: it describes the **fraction of the dose entering per hour**, not a concentration. With the rate convention $b$ in h⁻¹ (the statistical scale is $1/b$ in hours), the mean input time is $a/b$, standard deviation $\sqrt a/b$, and the mode is $(a-1)/b$ for $a>1$. With $a=1$, this reduces to first-order exponential absorption.
 
 Two parallel input routes give:
 
@@ -109,7 +111,7 @@ Total input feeds a single compartment: $dA/dt=F D g_{\mathrm{total}}(t)-k A$, $
 
 **Mycophenolate example:** Woillard et al. (2015), [DOI 10.1016/j.phrs.2015.07.012](https://doi.org/10.1016/j.phrs.2015.07.012), compared ITS and Pmetrics using a 1C double-gamma structure in heart transplant recipients. Their supplement uses C0, a1, b1, a2, b2, r, FAIV and alpha; C0 and FAIV have a specific parameterization, distinct from the generic formula above. The exact historical code conventions still need confirmation.
 
-**Try it:** [PMx Game, Path 4 Pmetrics](/pharmacometrie/game/?lang=en). Change the fraction r and the rate of the second input, compare absorption rates and concentrations, then investigate the population distribution.
+**Try it:** [PMx Game, Path 4 Pmetrics](/pharmacometrie/game/?lang=en&path=pmetrics). Change the fraction r and the rate of the second input, compare absorption rates and concentrations, then investigate the population distribution.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s07" viz="OralAbsorption" -->

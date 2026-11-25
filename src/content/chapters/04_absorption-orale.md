@@ -13,6 +13,8 @@ prerequisites: ["clairance-volume-demi-vie"]
 glossary: ["Ka", "F", "Tlag", "Cmax / Tmax", "Flip-flop"]
 slides: ["s07"]
 sources: ["savic-transit", "gibaldi-perrier", "rowland-tozer"]
+reviewed_on: "2026-07-09"
+reviewed_hash: "cfd8b824bcac045a5fcfac92d5fc1a35942119e5e2d22afbd5b7be5defd18542"
 review_pending: true
 review_type: "author"
 quiz:
@@ -107,7 +109,7 @@ Un modèle de transit peut aussi être décrit par une **densité gamma**. Pour 
 
 $$ g(t;a,b)=\frac{b^a t^{a-1} e^{-bt}}{\Gamma(a)},\quad t>0 $$
 
-L'intégrale de $g$ vaut 1 : $g$ décrit une **fraction de dose par heure**, pas une concentration. Avec la convention taux $b$ en h⁻¹, le temps moyen est $a/b$, l'écart-type $\sqrt a/b$, et si $a>1$ le mode est $(a-1)/b$. Pour $a=1$, on retrouve l'absorption exponentielle d'ordre 1.
+L'intégrale de $g$ vaut 1 : $g$ décrit une **fraction de dose par heure**, pas une concentration. Avec la convention taux $b$ en h⁻¹ (l’échelle au sens statistique vaut $1/b$ en heures), le temps moyen est $a/b$, l'écart-type $\sqrt a/b$, et si $a>1$ le mode est $(a-1)/b$. Pour $a=1$, on retrouve l'absorption exponentielle d'ordre 1.
 
 Deux voies parallèles donnent :
 
@@ -117,7 +119,7 @@ L'entrée totale alimente un seul compartiment : $dA/dt=F D g_{\mathrm{total}}(t
 
 **Cas du mycophénolate :** Woillard et al. (2015), [DOI 10.1016/j.phrs.2015.07.012](https://doi.org/10.1016/j.phrs.2015.07.012), ont comparé ITS et Pmetrics pour une structure 1C double gamma en transplantation cardiaque. Leur supplément utilise les paramètres C0, a1, b1, a2, b2, r, FAIV et alpha ; C0 et FAIV suivent une paramétrisation spécifique, à distinguer de la formule générique ci-dessus. Les conventions exactes du code historique restent à vérifier.
 
-**À vous de jouer :** [PMx Game, parcours 4 Pmetrics](/pharmacometrie/game/?lang=fr). Modifiez la fraction r et la vitesse de la deuxième entrée. Comparez les débits et les concentrations, puis étudiez la distribution populationnelle.
+**À vous de jouer :** [PMx Game, parcours 4 Pmetrics](/pharmacometrie/game/?lang=fr&path=pmetrics). Modifiez la fraction r et la vitesse de la deuxième entrée. Comparez les débits et les concentrations, puis étudiez la distribution populationnelle.
 <!-- /step -->
 
 <!-- step:title="Exemple concret" slides="s07" viz="OralAbsorption" -->

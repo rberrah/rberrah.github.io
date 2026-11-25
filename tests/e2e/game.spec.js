@@ -653,3 +653,15 @@ test('Pmetrics fifth-track navigation, fixed-grid fit, and Bayesian update are b
  await page.locator('#np-go-mipd').click();
  await expect(page.locator('#mipd-mode')).toBeVisible();
 });
+
+test('course deep link opens Pmetrics directly and gamma controls can be reset',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=en&path=pmetrics');
+ await expect(page.locator('#pmetrics-mode')).toBeVisible();
+ await page.locator('#np-gamma-reset').click();
+ await expect(page.locator('#np-speed-value')).toHaveText('× 1.00');
+ await page.locator('#np-gamma-example').click();
+ await expect(page.locator('#np-speed-value')).toHaveText('× 0.50');
+ await page.locator('#game-lang-fr').click();
+ await expect(page.locator('#np-gamma-reset')).toHaveText('Moyennes publiées');
+ await expect(page.locator('#np-speed-value')).toHaveText('× 0,50');
+});

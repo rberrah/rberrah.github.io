@@ -15,6 +15,8 @@ slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
 software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
+reviewed_on: "2026-10-12"
+reviewed_hash: "87e8d5446c855f14801c8072fe2f8474ab13af76d73195ab1320dcbb05c7a653"
 review_pending: true
 review_type: "author"
 quiz:
@@ -213,7 +215,7 @@ Le point de plus forte probabilité, les paramètres moyens postérieurs et la m
 
 **Dans la publication :** 37 profils de développement, 19 de validation, quatre prélèvements (20 min, 1 h, 3 h, 6 h) et RMSE relatives de l'AUC de 18,92 % (ITS) et 18,80 % (Pmetrics). Le supplément donne des moyennes et CV, pas les supports et poids originaux. Ces résumés ne permettent pas de reconstruire la distribution discrète.
 
-**Mise en pratique :** [PMx Game — parcours 4 Pmetrics](/pharmacometrie/game/?lang=fr) propose une estimation des poids sur une grille fixe et des observations entièrement synthétiques, puis une actualisation individuelle. Ce n'est pas un ajustement NPAG natif ni une reproduction du modèle clinique. Le parcours 5 MIPD permet ensuite de comparer l'inférence paramétrique et l'individualisation.
+**Mise en pratique :** [PMx Game — parcours 4 Pmetrics](/pharmacometrie/game/?lang=fr&path=pmetrics) propose une estimation des poids sur une grille fixe et des observations entièrement synthétiques, puis une actualisation individuelle. Ce n'est pas un ajustement NPAG natif ni une reproduction du modèle clinique. Le parcours 5 MIPD permet ensuite de comparer l'inférence paramétrique et l'individualisation.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->

@@ -15,7 +15,7 @@ const STEPS=[
 ];
 const KEY='pmx-game-pmetrics-v1';
 let done=[];try{done=normalizeCompleted(JSON.parse(localStorage.getItem(KEY)||'[]'),STEPS.length);}catch{}
-let index=firstIncomplete(done,STEPS.length),fraction=.44,speed=.5,cycle=0,sampleCount=4,ruv=.18,fit=null;
+let index=firstIncomplete(done,STEPS.length),fraction=.44,speed=.5,cycle=0,sampleCount=0,ruv=.18,fit=null;
 function fitted(){return fit??=fitFixedGrid(20);}
 function bars(w,post=false){return '<div class="np-support-bars">'+w.map((v,i)=>'<div class="np-support-row"><strong>'+SUPPORTS[i].id+'</strong><div class="np-support-track"><div class="np-support-fill '+(post?'posterior':'')+'" style="width:'+(v*100)+'%"></div></div><span>'+fmt(v*100,1)+' %</span></div>').join('')+'</div>';}
 function note(fr,en){return '<p class="career-note">'+tr(fr,en)+'</p>';}
@@ -28,15 +28,18 @@ function plot(id,series,highLabel,points=[],maxT=12){
  for(const p of points)s+='<circle cx="'+x(p.t)+'" cy="'+y(p.value)+'" r="4.5" fill="#f8c48f"/>';
  $(id).innerHTML=s+'<text x="48" y="25" fill="#d3e8e0" font-size="13">'+highLabel+'</text><text x="375" y="280" text-anchor="middle" fill="#d3e8e0" font-size="12">'+tr('Temps (h)','Time (h)')+'</text>';
 }
+function legend(items){return '<p class="career-chart-key">'+items.map(([color,fr,en])=>'<span><i style="background:'+color+'"></i>'+tr(fr,en)+'</span>').join('')+'</p>';}
+function slider(id,fr,en,min,max,step,value,output){return '<div class="np-slider"><label for="'+id+'">'+tr(fr,en)+'</label><output id="'+output+'" for="'+id+'"></output><input id="'+id+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+value+'"></div>';}
 function svg(id){return '<svg id="'+id+'" viewBox="0 0 730 285" class="career-chart" role="img" aria-label="'+tr('Graphique interactif','Interactive plot')+'"></svg>';}
 function stage(){
  const p=WOILLARD_MPA.populationParameters.Pmetrics;
  if(index===0){
   return note('Le MPA peut présenter une entrée précoce et une entrée retardée. Une gamma décrit un débit d’absorption ; la concentration résulte de ce débit et de l’élimination. Pour les paramètres b, la convention taux reste à confirmer pour le code historique.','MPA may show early and delayed inputs. A gamma function describes an absorption rate; concentration results from input and elimination. The rate convention for b still needs confirmation against the historical code.')+
-  '<div class="np-controls"><label for="np-fraction">r</label><input id="np-fraction" type="range" min="0" max="1" step=".01" value="'+fraction+'"><output id="np-frac-value"></output><label for="np-speed">b₂ ×</label><input id="np-speed" type="range" min=".2" max="2" step=".05" value="'+speed+'"><output id="np-speed-value"></output></div>'+
-  '<h3>'+tr('Débits d’absorption pondérés','Weighted absorption rates')+'</h3>'+svg('np-input')+note('Bleu : première gamma. Orange : seconde gamma. Vert : somme.','Blue: first gamma. Orange: second gamma. Green: sum.')+
+  '<div class="np-slider-grid">'+slider('np-fraction','Part de la première absorption (r)','Fraction of first absorption (r)',0,1,.01,fraction,'np-frac-value')+slider('np-speed','Vitesse de la deuxième absorption (× b₂)','Rate of second absorption (× b₂)',.2,2,.05,speed,'np-speed-value')+'</div>'+
+  '<div class="np-controls"><button id="np-gamma-reset" type="button" class="career-action">'+tr('Moyennes publiées','Published means')+'</button><button id="np-gamma-example" type="button" class="career-action">'+tr('Exemple : deuxième entrée retardée','Example: delayed second input')+'</button></div><div class="career-metrics" id="np-mat"></div>'+
+  '<h3>'+tr('Débits d’absorption pondérés','Weighted absorption rates')+'</h3>'+svg('np-input')+legend([['#78b8e7','Première gamma','First gamma'],['#e2ad70','Deuxième gamma','Second gamma'],['#87dfc3','Somme','Sum']])+
   '<h3>'+tr('Profil de concentration résultant','Resulting concentration profile')+'</h3>'+svg('np-conc')+
-  note('Exemple de calcul à partir des moyennes Pmetrics, avec r et b₂ modifiables ; aucun profil réel.','Calculation example based on Pmetrics means, with editable r and b₂; no actual patient profile.')+
+  note('Diminuez b₂ : la deuxième entrée devient plus tardive. Le temps moyen d’absorption (MAT) vaut a/b. Le bouton des moyennes publiées rétablit r = 0,44 et b₂ = 25,52. Les modifications sont des scénarios pédagogiques ; aucun profil réel.','Reduce b₂: the second input occurs later. Mean absorption time (MAT) is a/b. The published-means button restores r = 0.44 and b₂ = 25.52. Modified values are teaching scenarios; no actual patient profile.')+
   '<p>'+link('absorption-orale',tr('Cours : absorption et double gamma','Lesson: absorption and double gamma'))+'</p>';
  }
  if(index===1)return note('NPAG recherche une distribution jointe de vecteurs de paramètres. Les cinq points ci-dessous sont construits pour cet exercice à partir de variations autour des moyennes publiées ; ils ne sont pas les points de Woillard.','NPAG searches for a joint distribution of parameter vectors. The five points below are teaching examples constructed by varying the published means; they are not Woillard’s points.')+
@@ -46,9 +49,9 @@ function stage(){
  '<div class="np-controls"><button id="np-cycle" class="career-action">'+tr('Une itération','One iteration')+'</button><button id="np-fit" class="career-action">'+tr('Estimer les poids (20 itérations)','Fit weights (20 iterations)')+'</button><button id="np-fit-reset" class="career-action">'+tr('Réinitialiser','Reset')+'</button></div><p id="np-fit-status" class="career-note"></p><div id="np-fit-bars"></div>'+
  '<p>'+link('pmetrics-nonparametric',tr('Cours : ajustement NPAG et diagnostics','Lesson: NPAG fitting and diagnostics'))+'</p>';
  if(index===3)return note('Les poids populationnels estimés servent de prior. Choisissez combien de prélèvements utiliser et l’erreur résiduelle de démonstration. Les positions des supports ne changent pas.','Fitted population weights act as the prior. Choose the number of samples and the demonstration residual error. Support locations do not change.')+
- '<div class="np-controls"><label for="np-samples">'+tr('Prélèvements','Samples')+'</label><input id="np-samples" type="range" min="0" max="4" step="1" value="'+sampleCount+'"><output id="np-samples-value"></output><label for="np-ruv">RUV</label><input id="np-ruv" type="range" min=".08" max=".40" step=".01" value="'+ruv+'"><output id="np-ruv-value"></output></div>'+
- '<div class="archive-gof-grid"><div><h4>Prior</h4><div id="np-prior"></div></div><div><h4>Posterior</h4><div id="np-post"></div></div></div>'+svg('np-patient')+
- note('Courbe verte : moyenne des prédictions pondérées. Courbe violette : point MAP discret. Points orange : concentrations fictives retenues.','Green: weighted mean prediction. Purple: discrete MAP point. Orange: selected fictional concentrations.')+'<p id="np-auc" class="career-note"></p><p>'+link('bayes-ebes',tr('Cours : Bayes et estimation individuelle','Lesson: Bayes and individual estimation'))+'</p>';
+ '<div class="np-slider-grid">'+slider('np-samples','Nombre de prélèvements','Number of samples',0,4,1,sampleCount,'np-samples-value')+slider('np-ruv','Erreur résiduelle proportionnelle (RUV)','Proportional residual error (RUV)',.08,.40,.01,ruv,'np-ruv-value')+'</div><div id="np-sampling-table" class="career-table-wrap"></div>'+
+ '<div class="archive-gof-grid"><div><h4>'+tr('Distribution a priori','Prior distribution')+'</h4><div id="np-prior"></div></div><div><h4>'+tr('Distribution a posteriori','Posterior distribution')+'</h4><div id="np-post"></div></div></div>'+svg('np-patient')+
+ legend([['#a0bbcc','Prédiction moyenne a priori','Prior mean prediction'],['#87dfc3','Prédiction moyenne a posteriori','Posterior mean prediction'],['#b7a1e8','Point MAP discret','Discrete MAP point'],['#f8c48f','Prélèvements retenus','Selected samples']])+note('À zéro prélèvement, le posterior est identique au prior. L’erreur proportionnelle est combinée ici à un terme additif de 0,15 mg/L (exercice uniquement).','With zero samples, the posterior equals the prior. Proportional error is combined with a 0.15 mg/L additive term (exercise only).')+'<p id="np-auc" class="career-note"></p><p>'+link('bayes-ebes',tr('Cours : Bayes et estimation individuelle','Lesson: Bayes and individual estimation'))+'</p>';
  return '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>'+tr('Méthode','Method')+'</th><th>'+tr('RMSE relative AUC','Relative AUC RMSE')+'</th></tr></thead><tbody><tr><td>ITS</td><td>'+fmt(18.92)+' %</td></tr><tr><td>Pmetrics</td><td>'+fmt(18.80)+' %</td></tr></tbody></table></div>'+
  note('Woillard 2015 : 37 profils de développement, 19 de validation ; prélèvements à 20 min, 1 h, 3 h et 6 h. Les résultats sont publiés, mais ne sont pas ceux de cet atelier synthétique.','Woillard 2015: 37 development profiles, 19 validation profiles; samples at 20 min, 1 h, 3 h and 6 h. These are published findings, not the results of this synthetic workshop.')+
  '<p><a href="https://doi.org/10.1016/j.phrs.2015.07.012" target="_blank" rel="noopener">Woillard et al. (2015)</a> · '+link('pmetrics-nonparametric','Pmetrics')+'</p>'+
@@ -59,7 +62,8 @@ function drawGamma(){
  const a=times.map(t=>({t,c:p.r*gammaDensity(t,p.a1,p.b1)})),b=times.map(t=>({t,c:(1-p.r)*gammaDensity(t,p.a2,p.b2)})),sum=a.map((v,i)=>({t:v.t,c:v.c+b[i].c}));
  plot('np-input',[{values:a,color:'#78b8e7'},{values:b,color:'#e2ad70'},{values:sum,color:'#87dfc3',width:3}],tr('Fraction absorbée par heure','Fraction absorbed per hour'));
  plot('np-conc',[{values:times.map(t=>({t,c:referenceGammaConcentration(t,p,1000)})),color:'#87dfc3'}],'MPA (mg/L)');
- $('np-frac-value').textContent=fmt(fraction*100,0)+' %';$('np-speed-value').textContent=fmt(speed);
+ $('np-frac-value').textContent=fmt(fraction*100,0)+' %';$('np-speed-value').textContent='× '+fmt(speed);
+ $('np-mat').innerHTML='<div><span>MAT₁</span><strong>'+fmt(p.a1/p.b1)+' h</strong></div><div><span>MAT₂</span><strong>'+fmt(p.a2/p.b2)+' h</strong></div>';
 }
 function drawFit(){
  const row=fitted()[cycle];
@@ -70,7 +74,8 @@ function drawPatient(){
  const prior=fitted().at(-1).weights,obs=PATIENT.slice(0,sampleCount),post=updateWeights(prior,obs,ruv).weights,summary=summarize(post),times=Array.from({length:61},(_,i)=>i/5);
  $('np-prior').innerHTML=bars(prior);$('np-post').innerHTML=bars(post,true);
  $('np-samples-value').textContent=sampleCount+' / 4';$('np-ruv-value').textContent=fmt(ruv*100,0)+' %';
- plot('np-patient',[{values:times.map(t=>({t,c:post.reduce((s,w,i)=>s+w*prediction(i,t),0)})),color:'#87dfc3'},{values:times.map(t=>({t,c:prediction(summary.map,t)})),color:'#b7a1e8'}],'MPA (mg/L)',obs);
+ $('np-sampling-table').innerHTML='<table class="career-table"><thead><tr><th>'+tr('Temps','Time')+'</th><th>'+tr('Concentration fictive (mg/L)','Fictional concentration (mg/L)')+'</th><th>'+tr('Utilisée','Included')+'</th></tr></thead><tbody>'+PATIENT.map((p,i)=>'<tr><td>'+fmt(p.t)+' h</td><td>'+(i<sampleCount?fmt(p.value):'—')+'</td><td>'+(i<sampleCount?tr('Oui','Yes'):tr('Non','No'))+'</td></tr>').join('')+'</tbody></table>';
+ plot('np-patient',[{values:times.map(t=>({t,c:prior.reduce((s,w,i)=>s+w*prediction(i,t),0)})),color:'#a0bbcc'},{values:times.map(t=>({t,c:post.reduce((s,w,i)=>s+w*prediction(i,t),0)})),color:'#87dfc3',width:3},{values:times.map(t=>({t,c:prediction(summary.map,t)})),color:'#b7a1e8'}],'MPA (mg/L)',obs);
  $('np-auc').textContent=tr('AUC moyenne postérieure : ','Posterior mean AUC: ')+fmt(summary.aucMean)+' mg·h/L · '+tr('AUC du point MAP : ','MAP-point AUC: ')+fmt(summary.aucMap)+' mg·h/L';
 }
 function nav(){
@@ -84,7 +89,7 @@ function render(){
  $('pmetrics-title').textContent=tr(...s.title);$('pmetrics-description').textContent=tr(...s.desc);
  $('pmetrics-feedback').hidden=true;$('pmetrics-hint-text').hidden=true;$('pmetrics-hint-text').textContent=tr(...s.hint);
  $('pmetrics-workspace').innerHTML=stage()+'<section class="np-question"><h3>'+tr(...s.question)+'</h3><div class="career-choices" role="radiogroup">'+s.choices.map((q,i)=>'<label><input type="radio" name="np-answer" value="'+i+'"><span>'+tr(...q)+'</span></label>').join('')+'</div></section>';
- if(index===0){$('np-fraction').oninput=e=>{fraction=+e.target.value;drawGamma();};$('np-speed').oninput=e=>{speed=+e.target.value;drawGamma();};drawGamma();}
+ if(index===0){$('np-fraction').oninput=e=>{fraction=+e.target.value;drawGamma();};$('np-speed').oninput=e=>{speed=+e.target.value;drawGamma();};const restore=(s)=>{fraction=.44;speed=s;$('np-fraction').value=String(fraction);$('np-speed').value=String(speed);drawGamma();};$('np-gamma-reset').onclick=()=>restore(1);$('np-gamma-example').onclick=()=>restore(.5);drawGamma();}
  if(index===2){$('np-cycle').onclick=()=>{cycle=Math.min(20,cycle+1);drawFit();};$('np-fit').onclick=()=>{cycle=20;drawFit();};$('np-fit-reset').onclick=()=>{cycle=0;drawFit();};drawFit();}
  if(index===3){$('np-samples').oninput=e=>{sampleCount=+e.target.value;drawPatient();};$('np-ruv').oninput=e=>{ruv=+e.target.value;drawPatient();};drawPatient();}
  if(index===4)$('np-go-mipd').onclick=()=>$('mode-mipd').click();
@@ -94,15 +99,16 @@ function render(){
 function select(i){if(canVisit(i,done,STEPS.length,isFree())){index=i;render();}}
 $('pmetrics-validate').onclick=()=>{
  const answer=$('pmetrics-workspace').querySelector('input[name=np-answer]:checked'),el=$('pmetrics-feedback');
- if(!answer){$('pmetrics-workspace').querySelector('input[name=np-answer]')?.focus();return;}
+ if(!answer){el.hidden=false;el.classList.remove('success','error');el.textContent=tr('Choisissez une réponse avant de valider.','Select an answer before checking.');$('pmetrics-workspace').querySelector('input[name=np-answer]')?.focus();return;}
  const correct=Number(answer.value)===STEPS[index].answer;
- el.hidden=false;el.classList.toggle('error',!correct);el.textContent=correct?tr(...STEPS[index].explain):tr('Réessayez : ','Try again: ')+tr(...STEPS[index].hint);
+ el.hidden=false;el.classList.toggle('error',!correct);el.classList.toggle('success',correct);el.textContent=correct?tr(...STEPS[index].explain):tr('Réessayez : ','Try again: ')+tr(...STEPS[index].hint);
  if(correct){done=normalizeCompleted([...done,index],STEPS.length);try{localStorage.setItem(KEY,JSON.stringify(done));}catch{}nav();}
 };
 $('pmetrics-hint').onclick=()=>$('pmetrics-hint-text').hidden=false;
 $('pmetrics-next').onclick=()=>select(isFree()?Math.min(index+1,STEPS.length-1):firstIncomplete(done,STEPS.length));
-$('pmetrics-reset').onclick=()=>{if(!confirm(tr('Réinitialiser le parcours Pmetrics ?','Reset the Pmetrics pathway?')))return;done=[];try{localStorage.removeItem(KEY);}catch{}index=0;fraction=.44;speed=.5;cycle=0;sampleCount=4;ruv=.18;render();};
+$('pmetrics-reset').onclick=()=>{if(!confirm(tr('Réinitialiser le parcours Pmetrics ?','Reset the Pmetrics pathway?')))return;done=[];try{localStorage.removeItem(KEY);}catch{}index=0;fraction=.44;speed=.5;cycle=0;sampleCount=0;ruv=.18;render();};
 $('mode-pmetrics').addEventListener('click',render);
 window.addEventListener('pmx-game-learning-mode',()=>{if(!canVisit(index,done,STEPS.length,isFree()))index=firstIncomplete(done,STEPS.length);if(!$('pmetrics-mode').hidden)render();});
 window.addEventListener('pmx-game-language-change',()=>{if(!$('pmetrics-mode').hidden)render();});
 nav();
+if(new URLSearchParams(location.search).get('path')==='pmetrics')$('mode-pmetrics').click();

@@ -15,6 +15,8 @@ slides: []
 sources: ["pmetrics","neely-pmetrics","yamada-npag"]
 software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
+reviewed_on: "2026-10-12"
+reviewed_hash: "cc92c0b2b979507184f96c21cf447efe44fd88f3c59f40637b49a6eed5fd0915"
 review_pending: true
 review_type: "author"
 quiz:
@@ -207,7 +209,7 @@ The highest-probability point, posterior mean parameters and mean predictions ca
 
 **Published findings:** 37 development profiles, 19 validation profiles, four samples (20 min, 1 h, 3 h, 6 h) and relative AUC RMSE of 18.92% (ITS) and 18.80% (Pmetrics). The supplement reports means and CVs, not the original support points and weights. These summaries cannot reconstruct the discrete distribution.
 
-**Practice:** [PMx Game — Path 4 Pmetrics](/pharmacometrie/game/?lang=en) fits weights on a fixed grid using entirely synthetic observations, then updates an individual posterior. It is not a native NPAG fit or a clinical model reproduction. Path 5 MIPD then explores parametric inference and dose individualization.
+**Practice:** [PMx Game — Path 4 Pmetrics](/pharmacometrie/game/?lang=en&path=pmetrics) fits weights on a fixed grid using entirely synthetic observations, then updates an individual posterior. It is not a native NPAG fit or a clinical model reproduction. Path 5 MIPD then explores parametric inference and dose individualization.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
