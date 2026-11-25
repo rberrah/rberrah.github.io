@@ -42,6 +42,12 @@ quiz:
       - "two biological phenotypes have been demonstrated"
       - "the number of regions always equals the number of missing covariates"
     correct: 0
+  - prompt: "What changes during Bayesian updating on a fixed support grid?"
+    options:
+      - "the probabilities of the support points"
+      - "the locations of all support points"
+      - "the structural model"
+    correct: 0
 ---
 
 <!-- step:title="Why this chapter" -->
@@ -189,7 +195,7 @@ The three available artifacts are **synthetic demonstrations** for one-compartme
 <!-- step:title="Worked case: MPA, from ITS to Pmetrics" -->
 In [Woillard et al. 2015](https://doi.org/10.1016/j.phrs.2015.07.012), both methods share a **1C, double-gamma** structure but represent variability differently. Review [double-gamma absorption](/pharmacometrie/chapitres/absorption-orale/?lang=en) before this workshop.
 
-A discrete nonparametric distribution contains vectors \(\theta_j\) and weights \(w_j\). Given observations \(y_i\), the marginal likelihood for one subject is:
+A discrete nonparametric distribution contains vectors $\theta_j$ and weights $w_j$. Given observations $y_i$, the marginal likelihood for one subject is:
 
 $$ L_i=\sum_j w_j p(y_i\mid\theta_j) $$
 

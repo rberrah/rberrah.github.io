@@ -42,6 +42,12 @@ quiz:
       - "deux phénotypes biologiques sont démontrés"
       - "le nombre de régions est toujours égal au nombre de covariables manquantes"
     correct: 0
+  - prompt: "Lors d'une actualisation bayésienne sur une grille de supports fixe, qu'est-ce qui change ?"
+    options:
+      - "les probabilités des points"
+      - "les positions de tous les points"
+      - "le modèle structural"
+    correct: 0
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
@@ -195,7 +201,7 @@ Les trois artefacts disponibles sont des **démonstrations synthétiques** IV à
 <!-- step:title="Cas pratique : MPA, de ITS à Pmetrics" -->
 Dans l'étude de [Woillard et al. 2015](https://doi.org/10.1016/j.phrs.2015.07.012), les deux méthodes partagent une structure **1C, double gamma**, mais pas la représentation de la variabilité. Revoir [l'absorption double gamma](/pharmacometrie/chapitres/absorption-orale/?lang=fr) avant cet atelier.
 
-Une distribution non paramétrique discrète contient des vecteurs \(\theta_j\) et des poids \(w_j\). Pour des observations \(y_i\), la vraisemblance marginale d'un sujet est :
+Une distribution non paramétrique discrète contient des vecteurs $\theta_j$ et des poids $w_j$. Pour des observations $y_i$, la vraisemblance marginale d'un sujet est :
 
 $$ L_i=\sum_j w_j p(y_i\mid\theta_j) $$
 

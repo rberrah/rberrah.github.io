@@ -34,6 +34,12 @@ quiz:
       - "l'élimination est plus lente que l'absorption"
       - "la distribution est plus lente que l'élimination"
     correct: 0
+  - prompt: "Que représentent les deux fonctions gamma dans le modèle du MPA ?"
+    options:
+      - "deux entrées parallèles dans un seul compartiment"
+      - "deux compartiments de distribution"
+      - "deux groupes de patients"
+    correct: 0
 ---
 
 <!-- step:title="Pourquoi ce chapitre" slides="s07" viz="OralAbsorption" -->
@@ -97,17 +103,17 @@ Cochez « Comparer aux compartiments de transit » : plus $n$ augmente, plus la 
 <!-- /step -->
 
 <!-- step:title="Absorption gamma et double gamma" -->
-Un modèle de transit peut aussi être décrit par une **densité gamma**. Pour une chaîne de \(n\) étapes identiques (n entier), le temps jusqu'à l'entrée suit une loi gamma de forme \(n\) et de taux \(b=k_{tr}\). La généralisation à une forme \(a>0\) non entière donne une entrée souple :
+Un modèle de transit peut aussi être décrit par une **densité gamma**. Pour une chaîne de $n$ étapes identiques (n entier), le temps jusqu'à l'entrée suit une loi gamma de forme $n$ et de taux $b=k_{tr}$. La généralisation à une forme $a>0$ non entière donne une entrée souple :
 
 $$ g(t;a,b)=\frac{b^a t^{a-1} e^{-bt}}{\Gamma(a)},\quad t>0 $$
 
-L'intégrale de \(g\) vaut 1 : \(g\) décrit une **fraction de dose par heure**, pas une concentration. Avec la convention taux \(b\) en h⁻¹, le temps moyen est \(a/b\), l'écart-type \(\sqrt a/b\), et si \(a>1\) le mode est \((a-1)/b\). Pour \(a=1\), on retrouve l'absorption exponentielle d'ordre 1.
+L'intégrale de $g$ vaut 1 : $g$ décrit une **fraction de dose par heure**, pas une concentration. Avec la convention taux $b$ en h⁻¹, le temps moyen est $a/b$, l'écart-type $\sqrt a/b$, et si $a>1$ le mode est $(a-1)/b$. Pour $a=1$, on retrouve l'absorption exponentielle d'ordre 1.
 
 Deux voies parallèles donnent :
 
 $$ g_{\mathrm{total}}(t)=r g(t;a_1,b_1)+(1-r)g(t;a_2,b_2),\quad 0\le r\le1 $$
 
-L'entrée totale alimente un seul compartiment : \(dA/dt=F D g_{\mathrm{total}}(t)-k A\), \(C=A/V\). Le profil de concentration dépend des deux entrées **et** de la disposition. Deux gammas ne signifient pas deux compartiments, ni nécessairement deux pics visibles, ni preuve de recirculation entérohépatique.
+L'entrée totale alimente un seul compartiment : $dA/dt=F D g_{\mathrm{total}}(t)-k A$, $C=A/V$. Le profil de concentration dépend des deux entrées **et** de la disposition. Deux gammas ne signifient pas deux compartiments, ni nécessairement deux pics visibles, ni preuve de recirculation entérohépatique.
 
 **Cas du mycophénolate :** Woillard et al. (2015), [DOI 10.1016/j.phrs.2015.07.012](https://doi.org/10.1016/j.phrs.2015.07.012), ont comparé ITS et Pmetrics pour une structure 1C double gamma en transplantation cardiaque. Leur supplément utilise les paramètres C0, a1, b1, a2, b2, r, FAIV et alpha ; C0 et FAIV suivent une paramétrisation spécifique, à distinguer de la formule générique ci-dessus. Les conventions exactes du code historique restent à vérifier.
 

@@ -1065,7 +1065,7 @@
     "description": "Pourquoi une courbe orale monte avant de redescendre.",
     "summary": "Explication accessible de la vitesse d'absorption, du temps de latence, du Cmax et du Tmax.",
     "order": 4,
-    "duration": "12 min",
+    "duration": "16 min",
     "level": "beginner",
     "layer": "",
     "tags": [
@@ -1095,10 +1095,10 @@
     "updated_on": "",
     "software_verified_on": "",
     "software_version": "",
-    "reviewed_on": "2026-07-09",
-    "reviewed_hash": "cfd8b824bcac045a5fcfac92d5fc1a35942119e5e2d22afbd5b7be5defd18542",
+    "reviewed_on": "",
+    "reviewed_hash": "",
     "review_type": "author",
-    "review_pending": false,
+    "review_pending": true,
     "status": "",
     "quiz": [
       {
@@ -1127,9 +1127,18 @@
           "la distribution est plus lente que l'élimination"
         ],
         "correct": 0
+      },
+      {
+        "prompt": "Que représentent les deux fonctions gamma dans le modèle du MPA ?",
+        "options": [
+          "deux entrées parallèles dans un seul compartiment",
+          "deux compartiments de distribution",
+          "deux groupes de patients"
+        ],
+        "correct": 0
       }
     ],
-    "stepCount": 8,
+    "stepCount": 9,
     "sourceFile": "04_absorption-orale.md",
     "translations": {
       "en": {
@@ -1140,7 +1149,7 @@
         "description": "Why an oral curve rises before it falls.",
         "summary": "An accessible account of absorption rate, lag time, Cmax and Tmax.",
         "order": 4,
-        "duration": "12 min",
+        "duration": "16 min",
         "level": "beginner",
         "layer": "",
         "tags": [
@@ -1170,10 +1179,10 @@
         "updated_on": "",
         "software_verified_on": "",
         "software_version": "",
-        "reviewed_on": "2026-07-09",
-        "reviewed_hash": "0fbedd98487a29998bd4861cfad233ec5f4578ab10a4a05b33cb3739b3806308",
+        "reviewed_on": "",
+        "reviewed_hash": "",
         "review_type": "author",
-        "review_pending": false,
+        "review_pending": true,
         "status": "",
         "quiz": [
           {
@@ -1202,9 +1211,18 @@
               "distribution is slower than elimination"
             ],
             "correct": 0
+          },
+          {
+            "prompt": "What do the two gamma functions represent in the MPA model?",
+            "options": [
+              "two parallel inputs into one compartment",
+              "two distribution compartments",
+              "two patient groups"
+            ],
+            "correct": 0
           }
         ],
-        "stepCount": 8,
+        "stepCount": 9,
         "sourceFile": "04_absorption-orale.md"
       }
     }
@@ -3132,8 +3150,8 @@
     "updated_on": "",
     "software_verified_on": "2026-10-12",
     "software_version": "Pmetrics 3.2.6",
-    "reviewed_on": "2026-10-12",
-    "reviewed_hash": "87e8d5446c855f14801c8072fe2f8474ab13af76d73195ab1320dcbb05c7a653",
+    "reviewed_on": "",
+    "reviewed_hash": "",
     "review_type": "author",
     "review_pending": true,
     "status": "",
@@ -3173,9 +3191,18 @@
           "le nombre de régions est toujours égal au nombre de covariables manquantes"
         ],
         "correct": 0
+      },
+      {
+        "prompt": "Lors d'une actualisation bayésienne sur une grille de supports fixe, qu'est-ce qui change ?",
+        "options": [
+          "les probabilités des points",
+          "les positions de tous les points",
+          "le modèle structural"
+        ],
+        "correct": 0
       }
     ],
-    "stepCount": 10,
+    "stepCount": 11,
     "sourceFile": "08c_pmetrics-nonparametric.md",
     "translations": {
       "en": {
@@ -3217,8 +3244,8 @@
         "updated_on": "",
         "software_verified_on": "2026-10-12",
         "software_version": "Pmetrics 3.2.6",
-        "reviewed_on": "2026-10-12",
-        "reviewed_hash": "cc92c0b2b979507184f96c21cf447efe44fd88f3c59f40637b49a6eed5fd0915",
+        "reviewed_on": "",
+        "reviewed_hash": "",
         "review_type": "author",
         "review_pending": true,
         "status": "",
@@ -3258,9 +3285,18 @@
               "the number of regions always equals the number of missing covariates"
             ],
             "correct": 0
+          },
+          {
+            "prompt": "What changes during Bayesian updating on a fixed support grid?",
+            "options": [
+              "the probabilities of the support points",
+              "the locations of all support points",
+              "the structural model"
+            ],
+            "correct": 0
           }
         ],
-        "stepCount": 10,
+        "stepCount": 11,
         "sourceFile": "08c_pmetrics-nonparametric.md"
       }
     }
