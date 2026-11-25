@@ -7,6 +7,14 @@ import katex from 'katex';
 import MarkdownIt from 'markdown-it';
 
 const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
+// The standalone game is mounted after the SvelteKit build, so in-app routing
+// would otherwise open the placeholder page instead of the published game.
+const renderLink = md.renderer.rules.link_open ?? ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options));
+md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+  const href = tokens[idx].attrGet('href') ?? '';
+  if (/^\/pharmacometrie\/game\/(?:[?#]|$)/.test(href)) tokens[idx].attrSet('data-sveltekit-reload', '');
+  return renderLink(tokens, idx, options, env, self);
+};
 
 const CALLOUTS = {
   pitfall: 'Piège',

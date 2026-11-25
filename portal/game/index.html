@@ -41,12 +41,13 @@
 <body>
 <div class="wrap">
   <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><div class="button-row" role="group" aria-label="Language / Langue"><button id="game-lang-fr" type="button" aria-pressed="true" lang="fr">FR</button><button id="game-lang-en" type="button" aria-pressed="false" lang="en">EN</button></div><span class="pill">Jeu pédagogique · sans données patients</span></header>
-  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Quatre parcours pour découvrir la PK : comprendre les courbes, construire des modèles, mener une étude de pharmacométrie de population et individualiser une dose sur un cas entièrement fictif. Un atelier libre complète les missions.</p></section>
+  <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Cinq parcours pour découvrir la PK : lire les courbes, construire des modèles, mener une étude PopPK, explorer Pmetrics et individualiser une dose sur un cas fictif. Un atelier libre complète les missions.</p></section>
   <nav class="game-mode" aria-label="Choisir un mode">
     <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
     <button id="mode-advanced" aria-pressed="false">Parcours avancé · 9 défis</button>
     <button id="mode-population" aria-pressed="false">Parcours 3 · Pharmacométrie</button>
-    <button id="mode-mipd" aria-pressed="false">Parcours 4 · MIPD</button>
+    <button id="mode-pmetrics" aria-pressed="false">Parcours 4 · Pmetrics</button>
+    <button id="mode-mipd" aria-pressed="false">Parcours 5 · MIPD</button>
     <button id="mode-lab" aria-pressed="false">Atelier libre · Construire</button>
     <span class="mode-caption">Progression pédagogique sauvegardée uniquement dans ce navigateur.</span>
   </nav>
@@ -193,9 +194,28 @@
     <p class="quest-caveat">Données expérimentales de warfarine aux étapes 1, 2 et 6 ; replay SAEM sur 28 sujets artificiels aux étapes d'estimation et de diagnostics. Aucun modèle issu de l'étude réelle n'est ajusté ici. Les résultats ne servent pas à prescrire.</p>
   </div>
 </section>
+<section id="pmetrics-mode" class="career-layout" hidden aria-label="Parcours Pmetrics">
+  <aside class="panel career-sidebar">
+    <div class="career-kicker">PARCOURS 4 · PMETRICS</div>
+    <h2>De la population au patient</h2>
+    <p>Le cas du MPA de Woillard : structure double gamma, distribution discrète et actualisation bayésienne.</p>
+    <div class="career-progress"><strong id="pmetrics-progress">0 / 5</strong><span>missions terminées</span></div>
+    <div id="pmetrics-steps" class="career-step-list"></div>
+    <button id="pmetrics-reset" class="reset-journey">Réinitialiser ce parcours</button>
+  </aside>
+  <div class="career-main">
+    <div class="quest-heading"><span class="chapter" id="pmetrics-chapter">Structure</span><span class="quest-level" id="pmetrics-level">Étape 1 / 5</span><h2 id="pmetrics-title"></h2><p id="pmetrics-description"></p></div>
+    <section id="pmetrics-workspace" class="panel career-workspace" aria-label="Atelier Pmetrics"></section>
+    <section class="panel tutor-panel"><div id="pmetrics-feedback" class="quest-feedback" role="status" aria-live="polite" hidden></div>
+      <div class="quest-actions"><button id="pmetrics-validate" class="quest-btn primary">Vérifier l'analyse</button><button id="pmetrics-hint" class="quest-btn">Indice</button><button id="pmetrics-next" class="quest-btn primary" hidden>Étape suivante</button></div>
+      <p id="pmetrics-hint-text" class="tutorial-notice" hidden></p>
+    </section>
+    <p class="quest-caveat">Exercice synthétique sur grille fixe : ni ajustement NPAG natif, ni distribution Pmetrics publiée, ni outil de prescription.</p>
+  </div>
+</section>
 <section id="mipd-mode" class="career-layout" hidden aria-label="Parcours MIPD et individualisation posologique pédagogique">
   <aside class="panel career-sidebar">
-    <div class="career-kicker">PARCOURS 4 · MIPD</div>
+    <div class="career-kicker">PARCOURS 5 · MIPD</div>
     <h2>MPA après transplantation cardiaque</h2>
     <p>MMF oral, cible AUC du MPA référencée, MAP-BE, effet de l’IIV/RUV, prior aplati et adaptations posologiques étudiées librement.</p>
     <div class="career-progress"><strong id="mipd-progress">0 / 7</strong><span>missions terminées</span></div>
@@ -272,12 +292,13 @@
       </section>
     </div>
   </main>
-  <div class="footer"><strong>PMx Explain · Jeu pédagogique.</strong> Le calcul reproduit uniquement un modèle linéaire compartimental pédagogique (absorption d'ordre 1 ou bolus IV, élimination linéaire). Aucun modèle PBPK ni aucune adaptation posologique clinique. Pas d'enregistrement ni de transmission de données. Cette expérience est librement accessible et ne remplace pas un conseil clinique.</div>
+  <div class="footer"><strong>PMx Explain · Jeu pédagogique.</strong> Les simulations, les données expérimentales et les résultats archivés sont distingués dans chaque parcours. Les modèles sont pédagogiques ; aucune adaptation posologique clinique. La progression et la langue sont conservées localement dans ce navigateur ; aucune donnée patient n’est collectée ni transmise par le jeu.</div>
 </div>
 <script type="module" src="./app.js"></script>
 <script type="module" src="./academy.js"></script>
 <script type="module" src="./advanced.js"></script>
 <script type="module" src="./population-course.js"></script>
+<script type="module" src="./pmetrics-course.js"></script>
 <script type="module" src="./mipd-course.js"></script>
 <script type="module" src="./locale.js"></script>
 </body></html>

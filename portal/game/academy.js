@@ -40,16 +40,19 @@ function showMode(name){
   const advanced=name==='advanced';
   const population=name==='population';
   const mipd=name==='mipd';
+  const pmetrics=name==='pmetrics';
   $('academy-mode').hidden=!academy;
   $('lab-mode').hidden=!lab;
   $('advanced-mode').hidden=!advanced;
   $('population-mode').hidden=!population;
   $('mipd-mode').hidden=!mipd;
+  $('pmetrics-mode').hidden=!pmetrics;
   $('mode-campaign').setAttribute('aria-pressed',String(academy));
   $('mode-lab').setAttribute('aria-pressed',String(lab));
   $('mode-advanced').setAttribute('aria-pressed',String(advanced));
   $('mode-population').setAttribute('aria-pressed',String(population));
   $('mode-mipd').setAttribute('aria-pressed',String(mipd));
+  $('mode-pmetrics').setAttribute('aria-pressed',String(pmetrics));
   if(!academy)pause();
   else {
     const play=$('play');
@@ -139,7 +142,7 @@ function success(reward=true){
     output.append(badge);
   }
   $('academy-next').hidden=index===QUESTS.length-1;
-  $('academy-explore').hidden=index!==QUESTS.length-1;
+  $('academy-explore').hidden=progress.completed.length!==QUESTS.length;
 }
 function selectQuest(i){
   if(!Number.isInteger(i)||i<0||i>=QUESTS.length)return;
@@ -187,7 +190,7 @@ function answer(event){
   }else{
     const panel=$('academy-feedback');panel.hidden=false;panel.classList.add('error');panel.replaceChildren();
     const head=document.createElement('strong');head.textContent='Ce n’est pas encore ça.';
-    const text=document.createElement('p');text.textContent='Réessayez après avoir changé d’échelle ou mesuré deux points. Demandez un indice si nécessaire.';
+    const text=document.createElement('p');text.textContent=quest.hint;
     panel.append(head,text);
   }
 }
@@ -217,6 +220,7 @@ $('mode-campaign').addEventListener('click',()=>showMode('academy'));
 $('mode-lab').addEventListener('click',()=>showMode('lab'));
 $('mode-advanced').addEventListener('click',()=>showMode('advanced'));
 $('mode-population').addEventListener('click',()=>showMode('population'));
+$('mode-pmetrics').addEventListener('click',()=>showMode('pmetrics'));
 $('mode-mipd').addEventListener('click',()=>showMode('mipd'));
 $('tutorial-next').addEventListener('click',nextTutorial);
 $('academy-linear').addEventListener('click',()=>{scale='linear';probes=[];drawChart();});

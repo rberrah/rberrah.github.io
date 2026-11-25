@@ -50,7 +50,7 @@
     <div>
       <span class="badge">PMx GAME</span>
       <h2>{$language === 'en' ? 'Learn pharmacometrics by playing' : 'Apprendre la pharmacométrie en jouant'}</h2>
-      <p>{$language === 'en' ? 'Four journeys: PK curves, advanced models, population PK with diagnostics, and Bayesian individualized dosing.' : 'Quatre parcours : courbes PK, modèles avancés, PopPK et diagnostics, puis individualisation bayésienne.'}</p>
+      <p>{$language === 'en' ? 'Five journeys: PK curves, advanced models, population PK with diagnostics, Pmetrics, and Bayesian individualized dosing.' : 'Cinq parcours : courbes PK, modèles avancés, PopPK et diagnostics, Pmetrics, puis individualisation bayésienne.'}</p>
     </div>
     <a href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="game-learn-open">{$language === 'en' ? 'Start PMx Game' : 'Lancer PMx Game'}</a>
   </section>

@@ -280,7 +280,7 @@ function report(){
     '1. STUDY POPULATION\n'+STUDY_META.nSubjects+' volunteers; '+STUDY_META.nPK+' measured PK concentrations and '+
      STUDY_META.nPD+' measured prothrombin complex activity values following single oral warfarin 1.5 mg/kg. Source: '+STUDY_META.sourceUrl+'\n'+
     '2. STRUCTURAL MODEL\n'+
-    'Exploration of the experimental cohort supports assessing oral absorption and disposition phases. No population NLME model has been fitted to these 32 participants within this analysis.\n'+
+    'Exploration of the experimental cohort supports assessing oral absorption and disposition phases. No new population NLME fit to these 32 participants was run in the game. The executed nlmixr2 notebook provides archived fits on the original data: BIC 927.82 (1C), 817.10 (1C + Tlag), 859.36 (2C + Tlag), followed by combined2 and weight on V. These results are distinct from the simulated replay.\n'+
     'Separate simulation benchmark: '+POPULATION_META.nSubjects+' simulated subjects, '+POPULATION_META.nObservations+' simulated concentrations. Archived SAEM fits: one-compartment BIC '+fmt(ref.bic)+
     '; one-compartment with Tlag '+fmt(lag.bic)+'; two-compartment '+fmt(comparisons.find(m=>m.id==='two').bic)+
     '. One-compartment vs Tlag ΔBIC '+fmt(Math.abs(ref.bic-lag.bic))+' is not discriminative.\n'+
@@ -292,17 +292,17 @@ function report(){
     '5. PK/PD AND CONCLUSION\n'+
     'According to the official Monolix tutorial using the original study, the one-compartment model with first-order absorption and Tlag is preferred: Tlag improves early and peak fits, while the two-compartment model has unstable, imprecise peripheral parameter estimates. Following parsimony, retain 1C + Tlag as the structural base. The tutorial subsequently selects a combined2 residual-error model and assesses weight and age covariates; these tutorial fits were not recomputed here. The distinct simulated benchmark (ΔBIC 0.23) cannot establish or refute Tlag in the real study. PCA supports a delayed effect, addressed in the Monolix PK/PD workflow; no PK/PD model was refitted in this game.\n'+
     'Monolix reference: https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
-  return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
-    '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
+  return 'WARFARINE — RAPPORT D’ANALYSE PHARMACOMÉTRIQUE\n'+
+    '1. POPULATION ÉTUDIÉE\n'+
     'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
-    '2. STRUCTURAL MODEL / MODÈLE STRUCTURAL\n'+
-    'L’exploration de la cohorte expérimentale met en évidence une phase d’absorption et une décroissance multitemporelle ; la structure ne peut être déterminée sur les courbes exploratoires seules. Aucun modèle NLME n’a été ajusté sur ces 32 volontaires dans cette analyse.\n'+
+    '2. MODÈLE STRUCTURAL\n'+
+    'L’exploration de la cohorte expérimentale met en évidence une phase d’absorption et une décroissance multitemporelle ; la structure ne peut être déterminée sur les courbes exploratoires seules. Aucun nouvel ajustement NLME de ces 32 volontaires n’est réalisé dans le jeu. Le notebook nlmixr2 exécuté fournit des résultats archivés sur les données originales : BIC 927,82 (1C), 817,10 (1C + Tlag), 859,36 (2C + Tlag), puis erreur combinée 2 et effet du poids sur V. Ces résultats sont distincts du replay simulé.\n'+
     'Benchmark distinct : '+POPULATION_META.nSubjects+' individus simulés, '+POPULATION_META.nObservations+' observations simulées. Comparaison par SAEM archivé : BIC 1C = '+fmt(ref.bic)+' ; 1C + Tlag = '+fmt(lag.bic)+' ; 2C = '+fmt(comparisons.find(m=>m.id==='two').bic)+'. ΔBIC(1C,Tlag) = '+fmt(Math.abs(ref.bic-lag.bic))+', non discriminant.\n'+
-    '3. INTERINDIVIDUAL AND RESIDUAL VARIABILITY\n'+
+    '3. VARIABILITÉ INTERINDIVIDUELLE ET RÉSIDUELLE\n'+
     'Benchmark 1C + Tlag : ωCL = '+fmt(v.omega,3)+' (IIV CV lognormal '+fmt(v.omegaCv,1)+' %) ; σlog = '+fmt(v.sigma,3)+' (RUV CV lognormal '+fmt(v.sigmaCv,1)+' %) ; shrinkage descriptif des EBE de CL = '+fmt(v.shrinkage,1)+' %. Aucun effet aléatoire sur V, Ka, Tlag dans ce replay.\n'+
-    '4. MODEL DIAGNOSTICS / CONTRÔLES\n'+
+    '4. DIAGNOSTICS DU MODÈLE\n'+
     'Examinés sur le benchmark : DV/PRED, DV/IPRED, profils individuels, résidus log-standardisés versus temps/IPRED et QQ-plot, EBE-versus-poids, IIV/RUV et VPC P5/P50/P95 à 120 réplications. Ne sont pas estimés : CWRES exacts, NPDE, matrice de covariance, RSE, bootstrap, IOV, pcVPC et validation externe.\n'+
-    '5. PK/PD AND CONCLUSION\n'+
+    '5. PK/PD ET CONCLUSION\n'+
     'Le tutoriel officiel Monolix retient sur les observations originales le modèle 1C avec absorption d’ordre 1 et Tlag : les ajustements précoces et des pics sont améliorés, tandis que le 2C ajoute des paramètres périphériques peu précis et moins stables. Le principe de parcimonie conduit à privilégier 1C + Tlag ; le tutoriel poursuit avec une RUV combinée 2 et l’évaluation d’effets du poids et de l’âge. Ces ajustements Monolix n’ont pas été recalculés dans ce jeu. Le ΔBIC = 0,23 du benchmark simulé ne permet ni de prouver ni de réfuter Tlag dans les données réelles. Le décalage PCA–PK motive une relation indirecte/turnover ; aucune analyse PK/PD nouvelle n’a été refaite ici.\n'+
     'Référence Monolix : https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
 }
@@ -420,7 +420,7 @@ function plotSAEMConvergence(svg,kind,param,step){
 }
 function renderSAEM(){
   const options=Object.entries(FITS).map(([id,f])=>'<button data-pop-model="'+id+'" aria-pressed="'+(id===selectedFit)+'">'+f.label+'</button>').join('');
-  $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez chaque modèle pour examiner sa trajectoire et les paramètres estimés.','ENQUÊTE N° 03 · REPLAY SAEM')+
+  $('population-workspace').innerHTML=story('<strong>Attention : atelier de calcul distinct.</strong> Les résultats SAEM ci-dessous ont été obtenus sur une cohorte <strong>artificielle de 28 sujets</strong>, et non sur les 32 volontaires de l’étude originale. Trois structures sont candidates. Ces valeurs proviennent de <strong>170 itérations de démonstration enregistrées</strong> et non d’un algorithme tournant dans votre navigateur. Sélectionnez un modèle pour examiner sa trajectoire. Le tableau contient dès le départ les résultats des trois modèles.','ENQUÊTE N° 03 · REPLAY SAEM')+
     '<div class="career-model-buttons">'+options+'</div>'+
     '<div class="career-metrics">'+metric('Itérations enregistrées','170')+
     metric('Effets aléatoires','ηCL')+metric('Erreur','log-normale')+'</div>'+
@@ -429,7 +429,8 @@ function renderSAEM(){
     '<p class="career-note">Chaque ligne indique le changement relatif du paramètre par rapport à sa valeur finale. Les modèles sont comparés uniquement lorsqu’ils possèdent ce paramètre ; le plateau ne prouve pas que la solution est identifiable.</p>'+ 
     '<div id="pop-fit-summary" class="career-metrics"></div>'+
     '<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Structure</th><th>−2LL approx.</th><th>BIC approx.</th><th>ΔBIC</th><th>Statut</th></tr></thead><tbody id="pop-fit-rows"></tbody></table></div>'+
-    '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>';
+    '<p class="career-note"><strong>Méthode :</strong> ηCL simulé par Metropolis, approximation stochastique et M-step numérique conditionnelle. BIC calculé ensuite par quadrature marginale 1D (161 nœuds). L’animation est un replay, sans optimisation dans le navigateur. Un BIC faible n’est pas une preuve mécanistique. <strong>Les BIC et EBE ne décrivent pas les mesures expérimentales présentées aux étapes 1–2.</strong></p>'+
+    '<h3>Interpréter une trajectoire d’estimation</h3>'+radio([['plateau','Le plateau suggère une stabilisation numérique ; il faut encore examiner les diagnostics, la précision et la stabilité entre initialisations.'],['proof','Un plateau démontre que tous les paramètres sont identifiables et le modèle prédictif.'],['iterations','170 itérations garantissent la convergence de tout modèle.']],'pop-saem-interpretation');
   function redraw(){
     const fit=FITS[selectedFit],timeIndex=+$('pop-iteration').value;
     const keys=selectedFit==='one'?['CL','V','Ka','omegaCL','sigmaLog']:selectedFit==='lag'?['CL','V','Ka','Tlag','omegaCL','sigmaLog']:['CL','Vc','Ka','Q','Vp','omegaCL','sigmaLog'];
@@ -451,8 +452,8 @@ function renderSAEM(){
     more.classList.add('career-param-line');
     $('pop-fit-summary').after(more);
     $('pop-fit-rows').innerHTML=modelComparison().map(m=>'<tr data-selected="'+(selectedFit===m.id)+'"><td>'+m.label+'</td><td>'+
-      (viewed.has(m.id)?fmt(m.neg2ll):'—')+'</td><td>'+(viewed.has(m.id)?fmt(m.bic):'—')+'</td><td>'+
-      (viewed.has(m.id)?fmt(m.deltaBic):'—')+'</td><td>'+(viewed.has(m.id)?'Rejoué':'À examiner')+'</td></tr>').join('');
+      fmt(m.neg2ll)+'</td><td>'+fmt(m.bic)+'</td><td>'+
+      fmt(m.deltaBic)+'</td><td>'+(viewed.has(m.id)?'Trajectoire consultée':'Disponible')+'</td></tr>').join('');
   }
   $('population-workspace').querySelectorAll('[data-pop-model]').forEach(b=>b.addEventListener('click',()=>{
     selectedFit=b.dataset.popModel;viewed.add(selectedFit);
@@ -647,7 +648,7 @@ function render(){
   $('population-help').textContent=[
     'Associez chaque colonne au bon rôle avant d’autoriser les estimations.',
     'Utilisez l’échelle et les observations, pas le seul nombre de paramètres.',
-    'Cliquez sur chacune des trois structures et inspectez la trajectoire sauvegardée avant d’arbitrer.',
+    'Comparez les résultats des trois structures et interprétez les limites du plateau d’estimation. Les boutons de modèle sont facultatifs.',
     'Une bonne qualification associe plusieurs contrôles ; aucun score ne suffit isolément.',
     'Lisez la différence de BIC et la parcimonie sans présenter une petite différence comme décisive.',
     'Un effet retardé exige une hypothèse dynamique à estimer et à confronter aux données.',
@@ -656,7 +657,7 @@ function render(){
   $('population-hint-text').textContent=[
     'Le fichier source a DVID=1 pour PK, DVID=2 pour PCA et AMT pour la dose ; il ne possède pas EVID.',
     'L’échelle semi-log met souvent en évidence les phases terminales.',
-    'Les tableaux ne révèlent les BIC qu’après examen de la structure correspondante.',
+    'Un plateau de la trajectoire n’est pas une preuve de stabilité entre initialisations, ni d’identifiabilité.',
     'Contrôlez GOF, IIV, modèle résiduel, EBE, covariables, VPC et robustesse/identifiabilité.',
     'ΔBIC inférieur à 2 n’apporte pas ici d’argument discriminant solide.',
     'Le retard peut provenir d’une dynamique d’effet ou de turnover ; la courbe seule ne prouve rien.',
@@ -691,14 +692,22 @@ function validate(){
     return values.id==='id'&&values.time==='time'&&values.dose==='amt'&&values.concentration==='dv'&&values.event==='dvid'?success('Correspondance correcte des colonnes du fichier expérimental.'):failure('Vérifiez AMT, DV et DVID ; le CSV source ne contient pas EVID.');
   }
   if(index===2){
-    return viewed.size===3?success('Trois calculs archivés ont été comparés. Les paramètres et BIC ne suffisent pas encore à valider le modèle.'):
-      failure('Examinez les trois structures, pas seulement la première sélectionnée.');
+    return w.querySelector('input[name="pop-saem-interpretation"]:checked')?.value==='plateau'?success('Une trajectoire stabilisée est encourageante, mais les diagnostics, la précision et des départs multiples sont nécessaires.'):
+      failure('Un plateau seul ne démontre ni l’identifiabilité ni la qualité prédictive du modèle.');
   }
   if(index===3){
     const answers=Object.fromEntries(DIAG_QUESTIONS.map(q=>[q.key,w.querySelector('input[name="pop-diagnostic-'+q.key+'"]:checked')?.value]));
-    return gradeDiagnosticQuestions(answers)?
-      success('Six domaines examinés : GOF, résidus, IIV/covariables, RUV, VPC, stabilité et précision.'):
-      failure('Répondez à chaque question, puis analysez les divergences entre graphiques et modèle.');
+    const pending=DIAG_QUESTIONS.filter(q=>answers[q.key]!==q.correct);
+    for(const q of DIAG_QUESTIONS){
+      const field=w.querySelector('[data-diagnostic-question="'+q.key+'"]');
+      field?.classList.toggle('diagnostic-needs-review',pending.includes(q));
+      field?.classList.toggle('diagnostic-correct',!pending.includes(q));
+    }
+    if(!pending.length)return success('Six domaines examinés : GOF, résidus, IIV/covariables, RUV, VPC, stabilité et précision.');
+    const first=w.querySelector('[data-diagnostic-question="'+pending[0].key+'"]');
+    if(first?.closest('details'))first.closest('details').open=true;
+    first?.scrollIntoView({block:'center',behavior:'auto'});
+    return failure('Les questions correctes sont conservées. Revoyez uniquement les questions signalées.');
   }
   if(index===6){
     const answer=w.querySelector('input[name="pop-conclusion"]:checked')?.value;

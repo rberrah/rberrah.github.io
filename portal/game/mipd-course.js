@@ -1,5 +1,5 @@
 import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
-// PMx Game path 4 — MPA after heart transplantation (fictional patient).
+// PMx Game path 5 — MPA after heart transplantation (fictional patient).
 // The numeric target is documented; the structural model and observations are
 // deliberately simulated, and not an externally validated MPA PopPK model.
 import {CASE,OBSERVATIONS,SAMPLING_TIMES,posterior,doseMetrics,scenarioComparison,
@@ -168,6 +168,7 @@ function stage1(){
   'For immediate-release oral MMF, a limited sampling schedule at <strong>0.5 h, 1 h, 2 h</strong> has been studied in heart transplant recipients to estimate MPA AUC. Evaluate it <em>in context</em>; do not generalize to other models or formulations.')+
   metrics([[tr('Prélèvement 1','Sample 1'),'0.5 h'],[tr('Prélèvement 2','Sample 2'),'1 h'],[tr('Prélèvement 3','Sample 3'),'2 h'],
    [tr('Voie et formulation','Route and formulation'),tr('MMF oral immédiat','Immediate-release oral MMF')]])+
+  '<p class="career-note"><a href="/pharmacometrie/chapitres/absorption-orale/?lang='+lang()+'" target="_blank" rel="noopener">'+tr('Cours : absorption et double gamma','Lesson: absorption and double gamma')+'</a> · <button type="button" class="career-action" id="mipd-go-pmetrics">'+tr('Parcours Pmetrics','Pmetrics pathway')+'</button></p>'+
   '<p class="career-note">'+tr('Les horaires sont proposés : il faut vérifier leur justification dans la littérature et leur compatibilité avec le modèle retenu.',
    'Sampling times are proposed: verify supporting evidence and compatibility with the selected model.')+'</p>'+
   options([['three','Ce plan est documenté dans cette situation, mais sa précision dépend du modèle, de la formulation et du contexte.','This plan has supporting evidence in this setting, but accuracy depends on model, formulation and context.'],
@@ -177,7 +178,7 @@ function stage1(){
   '<p>'+tr('Kaczmarek et al. (2008) : 0,5 / 1 / 2 h, régression linéaire chez des greffés cardiaques sous MMF et tacrolimus. Ce résultat ne valide pas le MAP-BE fictif du jeu.','Kaczmarek et al. (2008): 0.5 / 1 / 2 h, linear regression in heart transplant recipients on MMF and tacrolimus. This result does not validate the game’s fictional MAP-BE.')+'</p>'+
   '<p>'+tr('Woillard et al. : modèles bayésiens avec absorption à deux fonctions gamma ; stratégie étudiée à 20 min, 1 h, 3 h et 6 h.','Woillard et al.: Bayesian models with two gamma absorption functions; sampling at 20 min, 1 h, 3 h and 6 h was studied.')+' <a href="https://doi.org/10.1016/j.healun.2013.01.230" target="_blank" rel="noopener">2013</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/26192348/" target="_blank" rel="noopener">2015</a></p>'+
   '<p>'+tr('Wang et al. (2021) : modèle 2C avec Tlag et covariables. Les horaires, la formulation et la méthode analytique doivent être compatibles.','Wang et al. (2021): 2C model with Tlag and covariates. Sampling times, formulation and assay must be compatible.')+' <a href="https://doi.org/10.3389/fphar.2021.748609" target="_blank" rel="noopener">2021</a></p>'+
-  '<p class="career-note">'+tr('Ces modèles publiés ne sont pas encore implémentés dans le simulateur : les paramètres et concentrations de la démonstration restent fictifs.','These published models are not yet implemented in the simulator: the demonstration parameters and concentrations remain fictional.')+'</p></section>'+
+  '<p class="career-note">'+tr('Les estimateurs bayésiens publiés ne sont pas encore implémentés. Les étapes MAP-BE suivantes utilisent un modèle 1C simplifié et des observations fictives ; la visualisation double gamma ci-dessous utilise séparément les moyennes publiées.','The published Bayesian estimators are not yet implemented. The following MAP-BE steps use a simplified one-compartment model and fictional observations; the double-gamma visualization below separately uses published population means.')+'</p></section>'+
   '<section class="career-archive" id="mipd-woillard-structure"><h3>'+tr('Woillard 2015 : comprendre la double gamma','Woillard 2015: understand double-gamma absorption')+'</h3>'+
   '<p>'+tr('Le modèle publié utilise un compartiment, deux entrées gamma parallèles et une élimination linéaire. Le plan optimal étudié comporte quatre prélèvements : 20 min, 1 h, 3 h et 6 h.','The published model uses one compartment, two parallel gamma inputs and linear elimination. The optimized schedule comprises four samples: 20 min, 1 h, 3 h and 6 h.')+'</p>'+
   metrics([[tr('Profils de développement','Development profiles'),WOILLARD_MPA.designProfiles],[tr('Profils de validation','Validation profiles'),WOILLARD_MPA.validationProfiles],[tr('RMSE relative ITS','ITS relative RMSE'),fmt(WOILLARD_MPA.validationRelativeRmsePct.ITS,2)+' %'],[tr('RMSE relative Pmetrics','Pmetrics relative RMSE'),fmt(WOILLARD_MPA.validationRelativeRmsePct.Pmetrics,2)+' %']])+
@@ -228,6 +229,7 @@ function stage1(){
  $('mipd-gamma-fraction').addEventListener('input',drawGamma);
  $('mipd-gamma-delay').addEventListener('input',drawGamma);
  resetGamma();
+ $('mipd-go-pmetrics').onclick=()=>$('mode-pmetrics').click();
 }
 function stage2(){
  $('mipd-workspace').innerHTML=story(
@@ -414,7 +416,7 @@ function stage5(){
     'Equal AUC always implies identical trough.']],'mipd-shift-shape');
  function draw(){
   const raw=+$('mipd-shift-dose-input').value;
-  if(!Number.isFinite(raw)||raw<250||raw>3000){$('mipd-shift-comment').textContent=tr('Dose invalide.','Invalid dose.');return;}
+  if(!Number.isFinite(raw)||raw<250||raw>1500){$('mipd-shift-comment').textContent=tr('Dose invalide.','Invalid dose.');return;}
   revisedDose=raw;
   const x=scenarioComparison(post,selectedDose,.6,raw);
   $('mipd-shift-metrics').innerHTML=metrics([
@@ -533,13 +535,17 @@ function validate(){
    success('L’IIV et le poids du prior agissent sur la distribution a priori ; la RUV agit sur la vraisemblance.','IIV and prior weighting affect the prior; RUV affects the likelihood.'):
    failure('Interprétez comment le prior et la vraisemblance contribuent au posterior ; les curseurs restent facultatifs.','Explain how prior and likelihood shape the posterior; moving sliders is optional.');
  if(index===4){
-  const x=doseMetrics(dosePost(),selectedDose);
+  const raw=$('mipd-dose-input').valueAsNumber;
+  if(!Number.isFinite(raw)||raw<250||raw>1500)return failure('Saisissez une dose valide entre 250 et 1500 mg avant de valider.','Enter a valid dose between 250 and 1,500 mg before checking.');
+  const x=doseMetrics(dosePost(),raw);
   return x.meets.auc?
    success('La dose saisie atteint le seuil inférieur d’AUC. Interprétez aussi l’incertitude et la tolérance.','Your selected dose meets the lower AUC reference. Also assess uncertainty and tolerability.'):
    failure('L’AUC de cette dose est inférieure à 36 mg·h/L. Essayez une autre dose ou réexaminez les hypothèses du modèle.','This dose gives AUC below 36 mg·h/L. Consider another dose or review the model assumptions.');
  }
  if(index===5){
-  const cmp=scenarioComparison(dosePost(),selectedDose,.6,revisedDose);
+  const raw=$('mipd-shift-dose-input').valueAsNumber;
+  if(!Number.isFinite(raw)||raw<250||raw>1500)return failure('Saisissez une dose valide entre 250 et 1500 mg avant de valider.','Enter a valid dose between 250 and 1,500 mg before checking.');
+  const cmp=scenarioComparison(dosePost(),selectedDose,.6,raw);
   const percent=Math.abs(cmp.revised.auc/cmp.baseline.auc-1)*100;
   return percent<=5&&chosen('mipd-shift-shape')==='shape'?
    success('AUC proche de l’exposition initiale ; la C0 et l’incertitude peuvent changer.','AUC is close to baseline, but trough and uncertainty can change.'):

@@ -67,12 +67,12 @@
 <section class="beginner-feature" data-testid="pmx-game-feature" aria-labelledby="game-feature-title">
   <div class="beginner-feature-body">
     <p class="eyebrow">PMx GAME · {$language === 'en' ? 'LEARN BY DOING' : 'APPRENDRE EN JOUANT'}</p>
-    <h2 id="game-feature-title">{$language === 'en' ? 'Four interactive pharmacometrics journeys' : 'Quatre parcours de pharmacométrie interactifs'}</h2>
+    <h2 id="game-feature-title">{$language === 'en' ? 'Five interactive pharmacometrics journeys' : 'Cinq parcours de pharmacométrie interactifs'}</h2>
     <p class="beginner-feature-description">{$language === 'en' ? 'From concentration-time curves and compartment models to population pharmacokinetics, diagnostic plots, variability, residual error and Bayesian dose individualization. Educational examples, not clinical advice.' : 'Des courbes et modèles compartimentaux à la pharmacométrie de population, ses diagnostics, l’IIV, l’erreur résiduelle et l’individualisation bayésienne. Exemples pédagogiques, sans valeur de prescription.'}</p>
     <div class="beginner-feature-details">
-      <span><GraduationCap size={17} aria-hidden="true" /> {$language === 'en' ? 'Four progressive tracks' : 'Quatre parcours progressifs'}</span>
+      <span><GraduationCap size={17} aria-hidden="true" /> {$language === 'en' ? 'Five progressive tracks' : 'Cinq parcours progressifs'}</span>
       <span><FlaskConical size={17} aria-hidden="true" /> {$language === 'en' ? 'Simulations and decisions' : 'Simulations et décisions'}</span>
-      <span><BookOpen size={17} aria-hidden="true" /> {$language === 'en' ? 'Population PK and MIPD' : 'PopPK et MIPD'}</span>
+      <span><BookOpen size={17} aria-hidden="true" /> {$language === 'en' ? 'PopPK, Pmetrics and MIPD' : 'PopPK, Pmetrics et MIPD'}</span>
     </div>
   </div>
   <a class="btn btn-primary beginner-feature-link" href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="game-feature-open">

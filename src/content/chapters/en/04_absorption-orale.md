@@ -6,7 +6,7 @@ description: "Why an oral curve rises before it falls."
 summary: "An accessible account of absorption rate, lag time, Cmax and Tmax."
 track: "core"
 order: 4
-duration: "12 min"
+duration: "16 min"
 level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
 slides: ["s07"]
@@ -14,8 +14,9 @@ prerequisites: ["clairance-volume-demi-vie"]
 glossary: ["Ka","F","Tlag","Cmax / Tmax","Flip-flop"]
 sources: ["savic-transit","gibaldi-perrier","rowland-tozer"]
 reviewed_on: "2026-07-09"
-review_type: "author"
 reviewed_hash: "0fbedd98487a29998bd4861cfad233ec5f4578ab10a4a05b33cb3739b3806308"
+review_pending: true
+review_type: "author"
 quiz:
   - prompt: "Ka mainly controls..."
     options:
@@ -34,6 +35,12 @@ quiz:
       - "absorption is slower than elimination"
       - "elimination is slower than absorption"
       - "distribution is slower than elimination"
+    correct: 0
+  - prompt: "What do the two gamma functions represent in the MPA model?"
+    options:
+      - "two parallel inputs into one compartment"
+      - "two distribution compartments"
+      - "two patient groups"
     correct: 0
 ---
 
@@ -87,6 +94,24 @@ A single $K_a$ assumes an immediate rise, which fits poorly to an entry spread o
 $$ \frac{dT_1}{dt} = -k_{tr}\,T_1 \qquad \frac{dT_i}{dt} = k_{tr}\,(T_{i-1}-T_i) \qquad \frac{dA}{dt} = k_{tr}\,T_n - k\,A $$
 
 **Key point —** tick "compare with transit compartments": as $n$ grows, the rise becomes **rounder and more delayed** — a flexible alternative to a plain $T_{lag}$.
+<!-- /step -->
+
+<!-- step:title="Gamma and double-gamma absorption" -->
+A transit model can also be described by a **gamma density**. With a chain of $n$ identical stages (integer n), time to entry follows a gamma distribution with shape $n$ and rate $b=k_{tr}$. Generalizing to a noninteger shape $a>0$ yields a flexible input:
+
+$$ g(t;a,b)=\frac{b^a t^{a-1} e^{-bt}}{\Gamma(a)},\quad t>0 $$
+
+The integral of $g$ is 1: $g$ describes the **fraction of the dose entering per hour**, not a concentration. With the rate convention $b$ in h⁻¹ (the statistical scale is $1/b$ in hours), the mean input time is $a/b$, standard deviation $\sqrt a/b$, and the mode is $(a-1)/b$ for $a>1$. With $a=1$, this reduces to first-order exponential absorption.
+
+Two parallel input routes give:
+
+$$ g_{\mathrm{total}}(t)=r g(t;a_1,b_1)+(1-r)g(t;a_2,b_2),\quad 0\le r\le1 $$
+
+Total input feeds a single compartment: $dA/dt=F D g_{\mathrm{total}}(t)-k A$, $C=A/V$. Concentration depends on both inputs **and** disposition. Two gamma functions do not imply two compartments, necessarily two visible peaks, or proof of enterohepatic recycling.
+
+**Mycophenolate example:** Woillard et al. (2015), [DOI 10.1016/j.phrs.2015.07.012](https://doi.org/10.1016/j.phrs.2015.07.012), compared ITS and Pmetrics using a 1C double-gamma structure in heart transplant recipients. Their supplement uses C0, a1, b1, a2, b2, r, FAIV and alpha; C0 and FAIV have a specific parameterization, distinct from the generic formula above. The exact historical code conventions still need confirmation.
+
+**Try it:** [PMx Game, Path 4 Pmetrics](/pharmacometrie/game/?lang=en&path=pmetrics). Change the fraction r and the rate of the second input, compare absorption rates and concentrations, then investigate the population distribution.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s07" viz="OralAbsorption" -->

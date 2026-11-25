@@ -58,7 +58,7 @@ for (const chapter of chapterIndex) {
 }
 for (const slug of Object.keys(quizRationales)) assert(chapterIndex.some(c => c.slug === slug),
   `Explanation references unknown chapter: ${slug}`);
-assert.equal(courseQuizTotal, 282, 'Unexpected number of chapter quiz questions');
+assert.equal(courseQuizTotal, 284, 'Unexpected number of chapter quiz questions');
 assert.equal(courseQuizExplained, courseQuizTotal, 'All course questions must have individual bilingual explanations');
 const ratio = x => (1 + x) / Math.sqrt(1 + x*x);
 const absoluteGap = x => 1 + x - Math.sqrt(1 + x*x);
