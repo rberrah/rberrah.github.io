@@ -265,6 +265,12 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
   .introduction .intro-copy { margin-block: .75rem; }
   .introduction .research-line { margin-bottom: .5rem; }
   .feature { padding-top: 1.5rem; }
+  /* Preserve the PMx entry in the first viewport on short, narrow phones. */
+  .introduction { padding-top: .85rem; }
+  .introduction h1 { margin-bottom: .5rem; }
+  .introduction .intro-copy { margin-block: .55rem; }
+  #pharmacometrics.feature { padding-top: .85rem; }
+  #pharmacometrics.feature > .wrap > .eyebrow { margin-bottom: .4rem; }
   .pathways { grid-template-columns: minmax(0,1fr); }
 }
 @media print {
