@@ -138,7 +138,9 @@ test('campaign teaches linear/semi-log, numerical Tlag and slope, then unlocks n
   await expect(page.locator('#academy-chart')).not.toContainText('Tlag : 2 h');
   await page.locator('#academy-number').fill('1');
   await page.locator('#academy-verify').click();
-  await expect(page.locator('#academy-feedback')).toContainText(/réessayez/i);
+  await expect(page.locator('#academy-feedback')).toHaveClass(/\berror\b/);
+  await expect(page.locator('#academy-feedback')).toContainText('Le premier échantillon non nul apparaît');
+  await expect(page.locator('#quest-count')).toHaveText('3/9');
   await page.locator('#academy-number').fill('2');
   await page.locator('#academy-verify').click();
   await expect(page.locator('#academy-feedback')).toContainText('Tlag');
