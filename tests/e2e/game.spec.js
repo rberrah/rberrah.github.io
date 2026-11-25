@@ -810,16 +810,34 @@ test('same-AUC exercise connects manual parameter exploration to MAP-BE in both 
  await expect(page.locator('#adv-amb-map')).toContainText('without making F and CL separately identifiable');
 });
 
-test('Draw model: simulated DV and reversible graph edits',async({page})=>{
- await page.goto(origin+'/pharmacometrie/game/?lang=fr');await page.locator('#mode-advanced').click();
- await expect(page.locator('#adv-graph-dv circle')).toHaveCount(14);await expect(page.locator('#adv-graph-dv polyline')).toHaveCount(0);
- await page.locator('#adv-graph-log').click();await expect(page.locator('#adv-graph-dv circle')).toHaveCount(13);
- for(const id of ['gut','central','peripheral'])await page.locator('[data-add-node="'+id+'"]').click();
- const link=async(a,b)=>{await page.locator('[data-graph-node="'+a+'"]').click();await page.locator('[data-graph-node="'+b+'"]').click();};
- await link('gut','central');await link('central','peripheral');await link('peripheral','central');
- await page.locator('#adv-graph-delete').click();
- const edge=page.locator('[data-graph-edge="central>peripheral"]');await edge.focus();await page.keyboard.press('Enter');
- await expect(edge).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(1);
- await page.locator('[data-graph-node="peripheral"]').click();await expect(page.locator('[data-graph-node="peripheral"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="gut>central"]')).toHaveCount(1);
- await page.locator('#game-lang-en').click();await expect(page.locator('#adv-graph-delete')).toHaveText('Delete');await expect(page.locator('#adv-graph-dv')).toHaveAttribute('aria-label','Simulated plasma concentrations over time');
-});
+for(const lang of ['fr','en']){
+ test('Draw model: simulated DV and reversible graph edits ('+lang+')',async({page})=>{
+  const errors=[];page.on('pageerror',err=>errors.push(err.message));
+  await page.goto(origin+'/pharmacometrie/game/?lang='+lang);await page.locator('#mode-advanced').click();
+  const en=lang==='en';
+  await expect(page.locator('#adv-graph-connect')).toHaveText(en?'Connect':'Relier');
+  await expect(page.locator('#adv-graph-delete')).toHaveText(en?'Delete':'Supprimer');
+  await expect(page.locator('#adv-graph-dv')).toHaveAttribute('aria-label',en?'Simulated plasma concentrations over time':'Concentrations plasmatiques simulées en fonction du temps');
+  await expect(page.locator('#adv-graph-dv circle')).toHaveCount(14);
+  await expect(page.locator('#adv-graph-dv polyline')).toHaveCount(0);
+  await page.locator('#adv-graph-log').click();await expect(page.locator('#adv-graph-dv circle')).toHaveCount(13);
+  for(const id of ['gut','central','peripheral'])await page.locator('[data-add-node="'+id+'"]').click();
+  await expect(page.locator('[data-graph-node="gut"]')).toHaveAttribute('aria-label',en?'Oral depot':'Dépôt oral');
+  const link=async(a,b)=>{await page.locator('[data-graph-node="'+a+'"]').click();await page.locator('[data-graph-node="'+b+'"]').click();};
+  await link('gut','central');await link('central','peripheral');await link('peripheral','central');
+  await expect(page.locator('#adv-graph-status')).toContainText(en?'3 connection(s)':'3 transfert(s)');
+  await page.locator('#adv-graph-delete').click();
+  await expect(page.locator('#adv-graph-help')).toContainText(en?'Delete mode':'Mode Supprimer');
+  const edge=page.locator('[data-graph-edge="central>peripheral"]');
+  await expect(edge).toHaveAttribute('aria-label',en?'Central → Peripheral':'Central → Périphérique');
+  await edge.focus();await page.keyboard.press('Enter');
+  await expect(edge).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(1);
+  await page.locator('[data-graph-node="peripheral"]').click();await expect(page.locator('[data-graph-node="peripheral"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="gut>central"]')).toHaveCount(1);
+  await page.locator('#game-lang-'+(en?'fr':'en')).click();
+  await expect(page.locator('#adv-graph-delete')).toHaveText(en?'Supprimer':'Delete');
+  await expect(page.locator('[data-graph-node="gut"]')).toHaveAttribute('aria-label',en?'Dépôt oral':'Oral depot');
+  await expect(page.locator('#adv-graph-dv circle')).toHaveCount(13);
+  await expect(page.locator('[data-graph-edge="gut>central"]')).toHaveCount(1);
+  expect(errors).toEqual([]);
+ });
+}

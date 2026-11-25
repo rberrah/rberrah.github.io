@@ -125,6 +125,11 @@ function select(i){
   }
   nav();
 }
+function graphTr(fr,en){return document.documentElement.lang==='en'?en:fr;}
+function graphLabel(id){
+ const labels={gut:'Oral depot',central:'Central',peripheral:'Peripheral',exit:'Eliminated',iv_input:'IV injection',p2:'Second peripheral'};
+ return graphTr(GRAPH_OPTIONS.find(n=>n.id===id).label,labels[id]);
+}
 function graphPath(from,to){
   const a=GRAPH_OPTIONS.find(n=>n.id===from),b=GRAPH_OPTIONS.find(n=>n.id===to);
   const vx=b.x-a.x,vy=b.y-a.y,len=Math.hypot(vx,vy);
@@ -140,15 +145,15 @@ function renderGraph(){
     '<path d="M0 0 L8 4 L0 8" fill="none" stroke="#9cebd1" stroke-width="2"/></marker></defs>';
   for(const edge of graphEdges){
     const [from,to]=edge.split('>');
-    out+='<g data-graph-edge="'+edge+'" role="button" tabindex="'+(graphDelete&&!completed?'0':'-1')+'" aria-label="'+GRAPH_OPTIONS.find(n=>n.id===from).label+' → '+GRAPH_OPTIONS.find(n=>n.id===to).label+'"><path class="graph-edge-hit" d="'+graphPath(from,to)+'" fill="none" stroke="transparent" stroke-width="20"/><path class="graph-edge-line" d="'+graphPath(from,to)+'" fill="none" stroke="#8cd7cf" stroke-width="3.6" marker-end="url(#adv-arrow)"/></g>';
+    out+='<g data-graph-edge="'+edge+'" role="button" tabindex="'+(graphDelete&&!completed?'0':'-1')+'" aria-label="'+graphLabel(from)+' → '+graphLabel(to)+'"><path class="graph-edge-hit" d="'+graphPath(from,to)+'" fill="none" stroke="transparent" stroke-width="20"/><path class="graph-edge-line" d="'+graphPath(from,to)+'" fill="none" stroke="#8cd7cf" stroke-width="3.6" marker-end="url(#adv-arrow)"/></g>';
   }
   for(const node of GRAPH_OPTIONS){
     if(!graphNodes.includes(node.id))continue;
-    const selected=node.id===graphStart;
-    out+='<g data-graph-node="'+node.id+'" role="button" tabindex="0" aria-label="'+node.label+
+    const selected=node.id===graphStart,label=graphLabel(node.id);
+    out+='<g data-graph-node="'+node.id+'" role="button" tabindex="'+(completed?'-1':'0')+'" aria-label="'+label+
       '"><rect x="'+(node.x-78)+'" y="'+(node.y-40)+'" width="156" height="80" rx="13" fill="'+
       (selected?'#317968':'#1c4247')+'" stroke="'+(selected?'#d4ffe6':'#78b5a8')+
-      '" stroke-width="2.6"/><text x="'+node.x+'" y="'+(node.y+5)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#f3fdf8">'+node.label+'</text></g>';
+      '" stroke-width="2.6"/><text x="'+node.x+'" y="'+(node.y+5)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#f3fdf8">'+label+'</text></g>';
   }
   svg.innerHTML=out;
   svg.classList.toggle('delete-mode',graphDelete&&!completed);
@@ -156,19 +161,19 @@ function renderGraph(){
   $('adv-graph-connect').disabled=completed;$('adv-graph-delete').disabled=completed;
   $('adv-graph-clear').textContent=completed?'Refaire le dessin':'Recommencer le dessin';
   $('adv-graph-help').textContent=completed?'Schéma validé. Vous pouvez refaire le dessin sans perdre votre progression.':graphDelete?'Mode Supprimer : cliquez sur un bloc ou une flèche. Retirer un bloc retire aussi ses flèches.':'Mode Relier : cliquez sur un bloc de départ puis un bloc d’arrivée.';
-  $('adv-graph-status').textContent=graphStart?'Départ sélectionné : '+GRAPH_OPTIONS.find(n=>n.id===graphStart).label+'. Cliquez sur le nœud d’arrivée.':
-    graphNodes.length+' bloc(s) placés · '+graphEdges.length+' transfert(s). Cliquez sur un départ puis sur une arrivée.';
+  $('adv-graph-status').textContent=graphStart?graphTr('Départ sélectionné : ','Origin selected: ')+graphLabel(graphStart)+graphTr('. Cliquez sur le nœud d’arrivée.','. Click the destination node.'):
+    graphNodes.length+graphTr(' bloc(s) placé(s) · ',' block(s) placed · ')+graphEdges.length+graphTr(' transfert(s)',' connection(s)');
   $('adv-graph-palette').querySelectorAll('button').forEach(b=>b.disabled=graphNodes.includes(b.dataset.addNode)||completed);
   const nodesArea=$('adv-graph-nodes');
   nodesArea.replaceChildren(...graphNodes.map(id=>{
     const b=document.createElement('button');b.type='button';b.className='quest-btn';
-    b.textContent='Retirer '+GRAPH_OPTIONS.find(n=>n.id===id).label;b.disabled=completed;
+    b.textContent=graphTr('Retirer ','Remove ')+graphLabel(id);b.disabled=completed;
     b.addEventListener('click',()=>{graphNodes=graphNodes.filter(n=>n!==id);graphEdges=graphEdges.filter(e=>!e.split('>').includes(id));graphStart=null;renderGraph();});
     return b;
   }));
   $('adv-graph-edges').replaceChildren(...graphEdges.map(edge=>{
     const b=document.createElement('button');b.type='button';b.className='quest-btn';
-    const [a,z]=edge.split('>');b.textContent='× '+GRAPH_OPTIONS.find(n=>n.id===a).label+' → '+GRAPH_OPTIONS.find(n=>n.id===z).label;
+    const [a,z]=edge.split('>');b.textContent='× '+graphLabel(a)+' → '+graphLabel(z);b.setAttribute('aria-label',graphTr('Retirer ','Remove ')+graphLabel(a)+' → '+graphLabel(z));
     b.disabled=completed;
     b.addEventListener('click',()=>{graphEdges=graphEdges.filter(e=>e!==edge);renderGraph();});return b;
   }));
@@ -418,5 +423,5 @@ window.addEventListener('pmx-game-learning-mode',()=>{
   if(!isFree()&&current>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[current].id))select(maxOpen());
   else {nav();$('advanced-next').hidden=current===ADVANCED_MISSIONS.length-1||(!completed&&!isFree());}
 });
-window.addEventListener('pmx-game-language-change',()=>{if(ADVANCED_MISSIONS[current].id==='graph'&&!$('advanced-mode').hidden)drawGraphDV();});
+window.addEventListener('pmx-game-language-change',()=>{if(ADVANCED_MISSIONS[current].id==='graph'){drawGraphDV();renderGraph();}});
 select(current);

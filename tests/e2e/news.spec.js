@@ -29,3 +29,18 @@ test('news is accessible from the resources navigation and fits mobile',async({p
   await expect(page.getByRole('heading',{name:'News and updates'})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
+
+for(const lang of ['fr','en']){
+ test('News direct entry and navigation preserve language ('+lang+')',async({page})=>{
+  const en=lang==='en';
+  await page.goto('/actualites/?lang='+lang);
+  await expect(page.getByRole('heading',{name:en?'News and updates':'Actualités',exact:true})).toBeVisible();
+  await expect(page.locator('.update').first()).toContainText(en?'Introducing PMx Game: five interactive pathways':'Lancement de PMx Game : cinq parcours interactifs');
+  await page.getByRole('button',{name:en?'Learning':'Pédagogie',exact:true}).click();
+  await expect(page.locator('.update')).toHaveCount(4);
+  await expect(page.locator('#pmetrics .primary-link')).toHaveAttribute('href',new RegExp('lang='+lang+'$'));
+  await page.locator('.language-toggle').getByRole('button',{name:en?'FR':'EN'}).click();
+  await expect(page.getByRole('heading',{name:en?'Actualités':'News and updates',exact:true})).toBeVisible();
+  await expect(page.locator('.update')).toHaveCount(4);
+ });
+}
