@@ -641,6 +641,7 @@ test('Pmetrics fifth-track navigation, fixed-grid fit, and Bayesian update are b
  await page.locator('#np-fit').click();
  await expect(page.locator('#np-fit-status')).toContainText('Iteration 20');
  await expect(page.locator('#np-fit-status')).not.toHaveText(before);
+ await expect(page.locator('#np-fit-trace circle')).toHaveCount(21);
  await expect(page.locator('#pmetrics-progress')).toHaveText('0 / 5');
  await page.locator('#pmetrics-steps button').nth(3).click();
  await page.locator('#np-samples').fill('0');
@@ -657,6 +658,7 @@ test('Pmetrics fifth-track navigation, fixed-grid fit, and Bayesian update are b
 test('course deep link opens Pmetrics directly and gamma controls can be reset',async({page})=>{
  await page.goto(origin+'/pharmacometrie/game/?lang=en&path=pmetrics');
  await expect(page.locator('#pmetrics-mode')).toBeVisible();
+ await expect(page.locator('#pmetrics-title')).toHaveText('Understand double-gamma absorption');
  await page.locator('#np-gamma-reset').click();
  await expect(page.locator('#np-speed-value')).toHaveText('× 1.00');
  await page.locator('#np-gamma-example').click();
@@ -664,4 +666,13 @@ test('course deep link opens Pmetrics directly and gamma controls can be reset',
  await page.locator('#game-lang-fr').click();
  await expect(page.locator('#np-gamma-reset')).toHaveText('Moyennes publiées');
  await expect(page.locator('#np-speed-value')).toHaveText('× 0,50');
+});
+
+test('chapter Pmetrics game link bypasses the placeholder route',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/chapitres/absorption-orale/?lang=en');
+ const gameLink=page.locator('a[href="/pharmacometrie/game/?lang=en&path=pmetrics"]').first();
+ await expect(gameLink).toHaveAttribute('data-sveltekit-reload','');
+ await gameLink.click();
+ await expect(page.locator('#pmetrics-mode')).toBeVisible();
+ await expect(page.locator('#pmetrics-title')).toHaveText('Understand double-gamma absorption');
 });
