@@ -44,3 +44,27 @@ for(const lang of ['fr','en']){
   await expect(page.locator('.update')).toHaveCount(4);
  });
 }
+
+for(const lang of ['fr','en']){
+ test('Home latest update sits beside title on desktop and below on mobile ('+lang+')',async({page})=>{
+  const en=lang==='en';
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto('/?lang='+lang);
+  const hero=page.getByTestId('hero'),news=hero.getByTestId('latest-news');
+  await expect(news).toBeVisible();
+  await expect(news).toContainText(en?'Introducing PMx Game: five interactive pathways':'Lancement de PMx Game : cinq parcours interactifs');
+  const title=await hero.locator('h1').boundingBox(),card=await news.boundingBox();
+  expect(card.x).toBeGreaterThanOrEqual(title.x+title.width-1);
+  await page.getByTestId('goal-resources').locator('summary').click();
+  await expect(page.getByTestId('nav-news')).toHaveText(en?'What’s new':'Actualités');
+  await page.keyboard.press('Escape');
+  await page.setViewportSize({width:390,height:844});
+  const mobileTitle=await hero.locator('h1').boundingBox(),mobileCard=await news.boundingBox();
+  expect(mobileCard.y).toBeGreaterThan(mobileTitle.y+mobileTitle.height);
+  expect(mobileCard.x+mobileCard.width).toBeLessThanOrEqual(391);
+  await news.getByTestId('home-news-link').click();
+  await expect(page.getByRole('heading',{name:en?'News and updates':'Actualités',exact:true})).toBeVisible();
+  expect(errors).toEqual([]);
+ });
+}
