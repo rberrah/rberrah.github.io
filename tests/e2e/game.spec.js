@@ -389,7 +389,9 @@ test('population pharmacometrician route runs from mapping through archived gene
   await page.locator('#population-validate').click();
   await page.locator('#population-next').click();
 
-  await expect(page.locator('#pop-report')).toContainText('PHARMACOMETRIC ANALYSIS REPORT');
+  await expect(page.locator('#pop-report')).toContainText('RAPPORT D’ANALYSE PHARMACOMÉTRIQUE');
+  await expect(page.locator('#pop-report')).not.toContainText('STUDY POPULATION');
+  await expect(page.locator('#pop-report')).toContainText('817,10');
   await page.locator('input[name="pop-conclusion"][value="conditional"]').check();
   await page.locator('#population-validate').click();
   await expect(page.locator('#population-progress')).toHaveText('7 / 7');
@@ -541,6 +543,7 @@ test('game is bilingual at canonical address and legacy address redirects',async
   await page.reload();
   await page.locator('#mode-population').click();
   await expect(page.locator('#pop-report')).toContainText('STUDY POPULATION');
+  await expect(page.locator('#pop-report')).toContainText('817.10');
   await expect(page.locator('#pop-report')).not.toContainText('ÉTUDE EXPÉRIMENTALE');
   await page.locator('#game-lang-fr').click();
   await expect(page.locator('html')).toHaveAttribute('lang','fr');
@@ -759,4 +762,16 @@ test('MIPD invalid displayed doses cannot pass or crash the numerical engine',as
  await expect(page.locator('#mipd-feedback')).toContainText('valid dose');
  await expect(page.locator('#mipd-progress')).toHaveText('0 / 7');
  expect(errors).toEqual([]);
+});
+
+test('language consistency of five pathways, accessibility labels and local-only storage notice',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=en');
+ await expect(page.locator('#academy-mode')).toHaveAttribute('aria-label','PMx Game learning pathway');
+ await expect(page.locator('#mode-pmetrics')).toHaveText('Path 4 · Pmetrics');
+ await expect(page.locator('#mode-mipd')).toContainText('Path 5');
+ await expect(page.locator('.footer')).toContainText('saved locally in this browser');
+ await page.locator('#game-lang-fr').click();
+ await expect(page.locator('#academy-mode')).toHaveAttribute('aria-label','Parcours pédagogique PMx Game');
+ await expect(page.locator('#mode-pmetrics')).toHaveText('Parcours 4 · Pmetrics');
+ await expect(page.locator('.footer')).toContainText('conservées localement');
 });

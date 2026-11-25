@@ -280,7 +280,7 @@ function report(){
     '1. STUDY POPULATION\n'+STUDY_META.nSubjects+' volunteers; '+STUDY_META.nPK+' measured PK concentrations and '+
      STUDY_META.nPD+' measured prothrombin complex activity values following single oral warfarin 1.5 mg/kg. Source: '+STUDY_META.sourceUrl+'\n'+
     '2. STRUCTURAL MODEL\n'+
-    'Exploration of the experimental cohort supports assessing oral absorption and disposition phases. No population NLME model has been fitted to these 32 participants within this analysis.\n'+
+    'Exploration of the experimental cohort supports assessing oral absorption and disposition phases. No new population NLME fit to these 32 participants was run in the game. The executed nlmixr2 notebook provides archived fits on the original data: BIC 927.82 (1C), 817.10 (1C + Tlag), 859.36 (2C + Tlag), followed by combined2 and weight on V. These results are distinct from the simulated replay.\n'+
     'Separate simulation benchmark: '+POPULATION_META.nSubjects+' simulated subjects, '+POPULATION_META.nObservations+' simulated concentrations. Archived SAEM fits: one-compartment BIC '+fmt(ref.bic)+
     '; one-compartment with Tlag '+fmt(lag.bic)+'; two-compartment '+fmt(comparisons.find(m=>m.id==='two').bic)+
     '. One-compartment vs Tlag ΔBIC '+fmt(Math.abs(ref.bic-lag.bic))+' is not discriminative.\n'+
@@ -292,17 +292,17 @@ function report(){
     '5. PK/PD AND CONCLUSION\n'+
     'According to the official Monolix tutorial using the original study, the one-compartment model with first-order absorption and Tlag is preferred: Tlag improves early and peak fits, while the two-compartment model has unstable, imprecise peripheral parameter estimates. Following parsimony, retain 1C + Tlag as the structural base. The tutorial subsequently selects a combined2 residual-error model and assesses weight and age covariates; these tutorial fits were not recomputed here. The distinct simulated benchmark (ΔBIC 0.23) cannot establish or refute Tlag in the real study. PCA supports a delayed effect, addressed in the Monolix PK/PD workflow; no PK/PD model was refitted in this game.\n'+
     'Monolix reference: https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
-  return 'WARFARIN — PHARMACOMETRIC ANALYSIS REPORT\n'+
-    '1. STUDY POPULATION / POPULATION ÉTUDIÉE\n'+
+  return 'WARFARINE — RAPPORT D’ANALYSE PHARMACOMÉTRIQUE\n'+
+    '1. POPULATION ÉTUDIÉE\n'+
     'Étude expérimentale : '+STUDY_META.nSubjects+' volontaires, '+STUDY_META.nPK+' mesures de warfarine plasmatique et '+STUDY_META.nPD+' mesures de PCA après administration orale unique de 1,5 mg/kg. Données originales : '+STUDY_META.sourceUrl+'\n'+
-    '2. STRUCTURAL MODEL / MODÈLE STRUCTURAL\n'+
-    'L’exploration de la cohorte expérimentale met en évidence une phase d’absorption et une décroissance multitemporelle ; la structure ne peut être déterminée sur les courbes exploratoires seules. Aucun modèle NLME n’a été ajusté sur ces 32 volontaires dans cette analyse.\n'+
+    '2. MODÈLE STRUCTURAL\n'+
+    'L’exploration de la cohorte expérimentale met en évidence une phase d’absorption et une décroissance multitemporelle ; la structure ne peut être déterminée sur les courbes exploratoires seules. Aucun nouvel ajustement NLME de ces 32 volontaires n’est réalisé dans le jeu. Le notebook nlmixr2 exécuté fournit des résultats archivés sur les données originales : BIC 927,82 (1C), 817,10 (1C + Tlag), 859,36 (2C + Tlag), puis erreur combinée 2 et effet du poids sur V. Ces résultats sont distincts du replay simulé.\n'+
     'Benchmark distinct : '+POPULATION_META.nSubjects+' individus simulés, '+POPULATION_META.nObservations+' observations simulées. Comparaison par SAEM archivé : BIC 1C = '+fmt(ref.bic)+' ; 1C + Tlag = '+fmt(lag.bic)+' ; 2C = '+fmt(comparisons.find(m=>m.id==='two').bic)+'. ΔBIC(1C,Tlag) = '+fmt(Math.abs(ref.bic-lag.bic))+', non discriminant.\n'+
-    '3. INTERINDIVIDUAL AND RESIDUAL VARIABILITY\n'+
+    '3. VARIABILITÉ INTERINDIVIDUELLE ET RÉSIDUELLE\n'+
     'Benchmark 1C + Tlag : ωCL = '+fmt(v.omega,3)+' (IIV CV lognormal '+fmt(v.omegaCv,1)+' %) ; σlog = '+fmt(v.sigma,3)+' (RUV CV lognormal '+fmt(v.sigmaCv,1)+' %) ; shrinkage descriptif des EBE de CL = '+fmt(v.shrinkage,1)+' %. Aucun effet aléatoire sur V, Ka, Tlag dans ce replay.\n'+
-    '4. MODEL DIAGNOSTICS / CONTRÔLES\n'+
+    '4. DIAGNOSTICS DU MODÈLE\n'+
     'Examinés sur le benchmark : DV/PRED, DV/IPRED, profils individuels, résidus log-standardisés versus temps/IPRED et QQ-plot, EBE-versus-poids, IIV/RUV et VPC P5/P50/P95 à 120 réplications. Ne sont pas estimés : CWRES exacts, NPDE, matrice de covariance, RSE, bootstrap, IOV, pcVPC et validation externe.\n'+
-    '5. PK/PD AND CONCLUSION\n'+
+    '5. PK/PD ET CONCLUSION\n'+
     'Le tutoriel officiel Monolix retient sur les observations originales le modèle 1C avec absorption d’ordre 1 et Tlag : les ajustements précoces et des pics sont améliorés, tandis que le 2C ajoute des paramètres périphériques peu précis et moins stables. Le principe de parcimonie conduit à privilégier 1C + Tlag ; le tutoriel poursuit avec une RUV combinée 2 et l’évaluation d’effets du poids et de l’âge. Ces ajustements Monolix n’ont pas été recalculés dans ce jeu. Le ΔBIC = 0,23 du benchmark simulé ne permet ni de prouver ni de réfuter Tlag dans les données réelles. Le décalage PCA–PK motive une relation indirecte/turnover ; aucune analyse PK/PD nouvelle n’a été refaite ici.\n'+
     'Référence Monolix : https://monolixsuite.slp-software.com/tutorials/2024R1/modeling-the-pharmacokinetics-and-pharmacodynamics\n';
 }
