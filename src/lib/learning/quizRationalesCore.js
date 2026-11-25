@@ -110,6 +110,10 @@ export const coreQuizRationales = {
     {
       "fr": "Quand l’absorption est plus lente que l’élimination, elle peut commander la pente finale : c’est le flip-flop.",
       "en": "When absorption is slower than elimination, it may govern the terminal slope: this is flip-flop."
+    },
+    {
+      "fr": "Les deux fonctions gamma représentent deux débits d’entrée pondérés par r et 1 − r. Ils alimentent le même compartiment central ; ils ne définissent ni deux compartiments ni deux populations.",
+      "en": "The two gamma functions describe input rates weighted by r and 1 − r. Both feed the same central compartment; they do not define two compartments or two populations."
     }
   ],
   "covariates-symbolic": [
@@ -300,6 +304,10 @@ export const coreQuizRationales = {
     {
       "fr": "Deux groupes de points peuvent indiquer plusieurs modes, mais pas forcément deux profils biologiques réels.",
       "en": "Two point groups may indicate multiple modes but not necessarily two real biological profiles."
+    },
+    {
+      "fr": "Les concentrations individuelles modifient les probabilités des points de support selon leur vraisemblance. Sur une grille fixe, les vecteurs de paramètres et la structure du modèle restent inchangés.",
+      "en": "Individual concentrations update support-point probabilities according to their likelihoods. On a fixed grid, parameter vectors and the structural model remain unchanged."
     }
   ],
   "validation-vpc": [
