@@ -101,7 +101,7 @@ A transit model can also be described by a **gamma density**. With a chain of $n
 
 $$ g(t;a,b)=\frac{b^a t^{a-1} e^{-bt}}{\Gamma(a)},\quad t>0 $$
 
-The integral of $g$ is 1: it describes the **fraction of the dose entering per hour**, not a concentration. With the rate convention $b$ in h⁻¹ (the statistical scale is $1/b$ in hours), the mean input time is $a/b$, standard deviation $\sqrt a/b$, and the mode is $(a-1)/b$ for $a>1$. With $a=1$, this reduces to first-order exponential absorption.
+The integral of $g$ is 1: $g$ describes the **fraction of the dose entering per hour**, not a concentration. With the rate convention $b$ in h⁻¹ (the statistical scale is $1/b$ in hours), the mean input time is $a/b$, standard deviation $\sqrt a/b$, and the mode is $(a-1)/b$ for $a>1$. With $a=1$, this reduces to first-order exponential absorption.
 
 Two parallel input routes give:
 
