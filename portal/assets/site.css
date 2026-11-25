@@ -259,7 +259,11 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
   .degree { display: block; font-size: 1.05rem; margin-top: .15rem; }
   .intro-copy { font-size: .94rem; line-height: 1.55; margin-block: 1rem; }
   .affiliation { margin-bottom: .5rem; }
-  .social { margin-top: .75rem; }
+  /* Keep all identity links compact on 320px displays without reducing text size. */
+  .introduction .social { margin-top: .5rem; gap: .25rem .55rem; }
+  .introduction .social a { white-space: nowrap; }
+  .introduction .intro-copy { margin-block: .75rem; }
+  .introduction .research-line { margin-bottom: .5rem; }
   .feature { padding-top: 1.5rem; }
   .pathways { grid-template-columns: minmax(0,1fr); }
 }
