@@ -798,3 +798,14 @@ test('Pmetrics arbitrary sampling and reproducible RUV overfit compare exactly t
  await expect(page.locator('#np-overfit-feedback')).toContainText('Surajustement observé');
  expect(errors).toEqual([]);
 });
+
+test('same-AUC exercise connects manual parameter exploration to MAP-BE in both languages',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=fr');
+ await page.locator('#game-free-mode').check();
+ await page.locator('#mode-advanced').click();
+ await page.locator('#advanced-list button').last().click();
+ await expect(page.locator('#adv-amb-map')).toContainText('plausibilité a priori');
+ await page.locator('#game-lang-en').click();
+ await expect(page.locator('#adv-amb-map')).toContainText('prior plausibility');
+ await expect(page.locator('#adv-amb-map')).toContainText('without making F and CL separately identifiable');
+});

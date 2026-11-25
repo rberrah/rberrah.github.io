@@ -1,4 +1,5 @@
 export const FR_EN_CLASSIC = {
+  "L’estimation individuelle par MAP-BE reprend cette démarche de façon automatisée et méthodique : elle recherche les paramètres qui expliquent le mieux les concentrations mesurées tout en tenant compte de leur plausibilité a priori. Le compromis dépend de la variabilité interindividuelle (IIV) et de l’erreur résiduelle (RUV). Le prior aide à départager des solutions compatibles avec les données, sans rendre F et CL séparément identifiables à partir de la seule AUC.": "Individual MAP-BE estimation follows this approach in an automated, systematic way: it searches for parameters that explain the measured concentrations while accounting for their prior plausibility. The trade-off depends on interindividual variability (IIV) and residual variability (RUV). The prior helps distinguish solutions compatible with the data, without making F and CL separately identifiable from AUC alone.",
   "Tutoriel": "Tutorial",
   "Chapitre I · Lire": "Chapter I · Read",
   "Chapitre II · Absorber": "Chapter II · Absorption",
