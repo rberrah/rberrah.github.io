@@ -38,6 +38,8 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
+      await expect(page.getByTestId('portal-about-cv')).toHaveText('About & CV');
+      await expect(page.getByTestId('portal-about-cv')).toHaveAttribute('href','/a-propos/');
       await expect(page.getByTestId('portal-tdm-guide-link'))
         .toHaveAttribute('href', '/pharmacometrie/cibles-tdm/?lang=en');
       await expect(page.locator('.pathways').getByRole('link', { name: 'MIPD Engine', exact: true }))

@@ -68,3 +68,25 @@ for(const lang of ['fr','en']){
   expect(errors).toEqual([]);
  });
 }
+
+for (const lang of ['fr','en']) {
+ test('Home learning map and personal-site link ('+lang+')', async ({page})=>{
+  const en=lang==='en';const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.setViewportSize({width:1440,height:900});await page.goto('/?lang='+lang);
+  await expect(page.getByTestId('hero').locator('h1')).toHaveText(en?'Pharmacometrics, from theory to practice.':'La pharmacométrie, de la théorie à la pratique.');
+  await expect(page.getByTestId('home-main-site')).toHaveAttribute('href','https://rberrah.github.io/');
+  await expect(page.getByTestId('home-main-site')).toContainText(en?'Personal website':'Site personnel');
+  const card=await page.getByTestId('latest-news').boundingBox();expect(card.width).toBeLessThanOrEqual(211);
+  await expect(page.getByTestId('course-track-card')).toHaveCount(16);
+  for (const layer of ['tronc','approfondissement','domaine','reference']) await expect(page.getByTestId('layer-'+layer)).toBeVisible();
+  await expect(page.getByTestId('track-open-core')).toBeVisible();
+  const chapters=page.getByTestId('featured-chapters');await expect(chapters.locator('details')).not.toHaveAttribute('open','');
+  await chapters.locator('summary').click();await expect(chapters.getByTestId('chapter-link').first()).toBeVisible();
+  await chapters.locator('summary').click();await expect(chapters.getByTestId('chapter-link').first()).toBeHidden();
+  await page.locator('.language-toggle').getByRole('button',{name:en?'FR':'EN'}).click();
+  await expect(page.getByTestId('hero').locator('h1')).toHaveText(en?'La pharmacométrie, de la théorie à la pratique.':'Pharmacometrics, from theory to practice.');
+  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await page.getByTestId('track-open-core').click();await expect(page).toHaveURL(/\/parcours\/core\//);
+  expect(errors).toEqual([]);
+ });
+}
