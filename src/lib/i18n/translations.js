@@ -33,21 +33,21 @@ export const dictionary = {
       disclaimer: 'Educational content only. Not medical advice. No patient-specific dosing.'
     },
     home: {
-      eyebrow: 'A visual course in pharmacometrics',
-      titlePrefix: 'Reading the',
-      titleHighlight: 'concentration-time',
-      titleSuffix: 'curve, one idea at a time.',
+      eyebrow: 'OPEN, INTERACTIVE PHARMACOMETRICS',
+      titlePrefix: 'Pharmacometrics,',
+      titleHighlight: 'from theory',
+      titleSuffix: 'to practice.',
       lede:
-        'Scroll-driven essays that turn PK/PD theory into something you can see: clearance and volume, variability between and within patients, TDM, and where modern AI fits, always with units and uncertainty in view.',
+        'Understand how drugs behave, build and evaluate PK/PD models, and explore model-informed precision dosing. Interactive lessons, simulations and practical tools connect the fundamentals with population modelling and artificial intelligence, with assumptions, units and uncertainty made explicit.',
       start: 'Start the course',
       browse: 'Browse chapters',
       disclaimer: 'Educational content only · not medical advice.',
-      tracksTitle: 'The course, in four layers',
+      tracksTitle: 'Explore pharmacometrics',
       layers: {
-        tronc: { title: 'Core track — start here', desc: 'The trunk: what every pharmacometrician must know, read in order.' },
-        approfondissement: { title: 'Deep dives', desc: 'Cross-cutting methods and concepts that go all the way — non-compartmental analysis, PBPK, pharmacodynamics, AI, model validation. They apply across every domain.' },
-        domaine: { title: 'Application domains', desc: 'Zooms on a specific research area, each assuming the core track: oncology, infectious diseases, monoclonal antibodies, clinical trials.' },
-        reference: { title: 'Reference', desc: 'You consult these when you need them — nobody reads them end to end.' }
+        tronc: { title: 'Build your foundations', desc: 'Understand dose, concentration, absorption, distribution, elimination, variability and individualisation.' },
+        approfondissement: { title: 'Develop your modelling skills', desc: 'Compare methods, explore mechanistic models and assess their reliability.' },
+        domaine: { title: 'Apply models to clinical questions', desc: 'Explore how pharmacometrics addresses specific therapeutic and research questions.' },
+        reference: { title: 'Your reference toolbox', desc: 'Find mathematical concepts, estimation methods and software workflows whenever needed.' }
       },
       featuredTitle: 'Core pharmacometrics',
       resourcesTitle: 'Teaching resources',
@@ -255,21 +255,21 @@ export const dictionary = {
       disclaimer: "Contenu pédagogique uniquement. Pas de conseil médical. Pas d'ajustement posologique patient-spécifique."
     },
     home: {
-      eyebrow: 'Cours visuel de pharmacométrie',
-      titlePrefix: 'Lire la courbe',
-      titleHighlight: 'concentration-temps',
-      titleSuffix: 'une idée à la fois.',
+      eyebrow: 'PHARMACOMÉTRIE · APPRENTISSAGE INTERACTIF',
+      titlePrefix: 'La pharmacométrie,',
+      titleHighlight: 'de la théorie',
+      titleSuffix: 'à la pratique.',
       lede:
-        "Des chapitres interactifs qui rendent la théorie PK/PD visible : clairance et volume, variabilité entre patients et entre occasions, TDM, et place de l'IA moderne, toujours avec les unités et l'incertitude sous les yeux.",
+        "Comprendre le devenir des médicaments, construire et évaluer des modèles PK/PD, explorer l’individualisation posologique. Des cours interactifs, des simulations et des outils pratiques relient les fondamentaux à la modélisation de population et à l’intelligence artificielle, en explicitant hypothèses, unités et incertitude.",
       start: 'Commencer le cours',
       browse: 'Voir les chapitres',
       disclaimer: 'Contenu pédagogique uniquement · pas de conseil médical.',
-      tracksTitle: 'Le cours, en quatre couches',
+      tracksTitle: 'Explorez la pharmacométrie',
       layers: {
-        tronc: { title: 'Tronc commun — commencez ici', desc: "L'essentiel, à lire dans l'ordre : ce que tout pharmacométricien doit savoir." },
-        approfondissement: { title: 'Approfondissements', desc: "Des méthodes et concepts transversaux menés au bout : analyse non-compartimentale, PBPK, pharmacodynamie, IA, validation de modèle. Ils s'appliquent à tous les domaines." },
-        domaine: { title: "Domaines d'application", desc: "Des zooms sur une aire de recherche, qui supposent le tronc acquis : oncologie, infectiologie, anticorps monoclonaux, essais cliniques." },
-        reference: { title: 'Référence', desc: "On y va quand on en a besoin — personne ne les lit d'une traite." }
+        tronc: { title: 'Acquérir les fondamentaux', desc: 'Comprendre la dose, la concentration, l’absorption, la distribution, l’élimination, la variabilité et l’individualisation.' },
+        approfondissement: { title: 'Approfondir les méthodes', desc: 'Comparer les approches, explorer les modèles mécanistes et évaluer leur fiabilité.' },
+        domaine: { title: 'Appliquer les modèles en clinique', desc: 'Explorer les questions thérapeutiques et de recherche propres à chaque domaine.' },
+        reference: { title: 'La boîte à outils', desc: 'Retrouver les notions mathématiques, les méthodes d’estimation et les logiciels au moment où vous en avez besoin.' }
       },
       featuredTitle: 'Pharmacométrie fondamentale',
       resourcesTitle: 'Ressources pédagogiques',
