@@ -135,7 +135,7 @@ function setupAmbiguity(root,completed){
     '<span>AUC∞ de B<strong id="adv-amb-b"></strong></span></div>'+
     '<div class="advanced-overlap"><div><span>Patient fictif A</span><div class="advanced-bar-track"><div id="adv-amb-bar-a"></div></div></div>'+
     '<div><span>Patient fictif B</span><div class="advanced-bar-track"><div id="adv-amb-bar-b"></div></div></div></div>'+
-    '<p class="advanced-small">Même AUC ≠ même clairance : une baisse simultanée de F et de CL peut conserver le même rapport F/CL. Une courbe complète ou une référence IV pourrait apporter des informations supplémentaires.</p>+
+    '<p class="advanced-small">Même AUC ≠ même clairance : une baisse simultanée de F et de CL peut conserver le même rapport F/CL. Une courbe complète ou une référence IV pourrait apporter des informations supplémentaires.</p>'+
     '<p class="advanced-small" id="adv-amb-map">L’estimation individuelle par MAP-BE reprend cette démarche de façon automatisée et méthodique : elle recherche les paramètres qui expliquent le mieux les concentrations mesurées tout en tenant compte de leur plausibilité a priori. Le compromis dépend de la variabilité interindividuelle (IIV) et de l’erreur résiduelle (RUV). Le prior aide à départager des solutions compatibles avec les données, sans rendre F et CL séparément identifiables à partir de la seule AUC.</p>';
   function update(){
     const r=ambiguityChallenge(f,cl);
