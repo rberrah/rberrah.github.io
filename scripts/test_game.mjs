@@ -205,3 +205,52 @@ for(const g of ARCHIVE_GOF){
   const expected=Buffer.from(Array.isArray(data)?data.join(''):data,'base64');
   assert.ok(readFileSync('portal/game/warfarin-archive/'+g.id+'.png').equals(expected));
 }
+
+import {doubleGammaConcentration as gammaC,doubleGammaAuc as gammaAuc} from '../portal/game/double-gamma.js';
+import {WOILLARD_MPA} from '../portal/game/woillard-mpa-source.js';
+const gammaFixtures=JSON.parse(readFileSync('portal/game/double-gamma-fixtures.json','utf8')).fixtures;
+for(const f of gammaFixtures){
+ const p=f.parameters;
+ f.times.forEach((t,i)=>assert.ok(Math.abs(gammaC(t,p)-f.concentrations[i])<1e-7));
+ assert.ok(Math.abs(gammaC(0,p)-gammaC(p.tau,p))<1e-10);
+ assert.ok(Math.abs(gammaC(1,{...p,dose:p.dose*2})-2*gammaC(1,p))<1e-9);
+ assert.equal(gammaAuc(p),f.auc);
+ const n=480;
+ let area=0;
+ for(let i=0;i<=n;i++)area+=(i===0||i===n?.5:1)*gammaC(i*p.tau/n,p)*p.tau/n;
+ assert.ok(Math.abs(area/f.auc-1)<.001);
+ const swapped={...p,a1:p.a2,b1:p.b2,a2:p.a1,b2:p.b1,f:1-p.f};
+ assert.ok(Math.abs(gammaC(3,p)-gammaC(3,swapped))<1e-9);
+}
+const q=gammaFixtures[2].parameters;
+for(const t of gammaFixtures[2].times){
+ const k=q.cl/q.v,ka=q.b1,phase=t%q.tau;
+ const fo=q.dose*ka/(q.v*(ka-k))*(Math.exp(-k*phase)/(-Math.expm1(-k*q.tau))-Math.exp(-ka*phase)/(-Math.expm1(-ka*q.tau)));
+ assert.ok(Math.abs(gammaC(t,q)-fo)<1e-8);
+}
+assert.throws(()=>gammaC(1,{...q,a1:0}),RangeError);
+assert.throws(()=>gammaC(1,{...q,f:1.1}),RangeError);
+assert.equal(WOILLARD_MPA.enabled,false);
+assert.equal(WOILLARD_MPA.populationParameters.ITS.a1,13.51);
+assert.equal(WOILLARD_MPA.variability.Pmetrics.alpha,70.5);
+assert.deepEqual(WOILLARD_MPA.samplingHours,[1/3,1,3,6]);
+console.log('PASS: independent double-gamma fixture comparisons, periodicity, AUC and source lock.');
+
+// Independent SciPy gamma.pdf/quad references, conditional on 100 mg convention and constant C0.
+const {referenceGammaConcentration,referenceGammaAuc,gammaDensity}=await import('../portal/game/double-gamma.js');
+const refTimes=[0,1/3,1,3,6,12];
+const refCases=[
+ ['ITS',[1.7000000000000002,2.292625319040597,8.305940729406348,3.391684388282943,1.7587612777546875,1.7000708977271124],35.22136526988649],
+ ['Pmetrics',[1.6,1.6026664326799929,13.873411848808653,2.7796164517376014,1.6088723983960398,1.6000005019275125],36.868711348510715]
+];
+for(const [method,expected,auc] of refCases){
+ const p=WOILLARD_MPA.populationParameters[method];
+ refTimes.forEach((t,i)=>assert.ok(Math.abs(referenceGammaConcentration(t,p,1000)-expected[i])<1e-7));
+ assert.ok(Math.abs(referenceGammaAuc(12,p,1000)-auc)<1e-7);
+ assert.equal(referenceGammaConcentration(0,p,100),p.c0);
+ assert.ok(Math.abs(referenceGammaAuc(12,p,500)-auc/2)<1e-7);
+}
+assert.equal(gammaDensity(0,2,4),0);
+assert.ok(Math.abs(gammaDensity(1,1,2)-2*Math.exp(-2))<1e-12);
+assert.equal(WOILLARD_MPA.residualError,null);
+assert.equal(WOILLARD_MPA.enabled,false);
