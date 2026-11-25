@@ -145,3 +145,5 @@
 #pmetrics-mode .career-chart{margin-top:8px}#pmetrics-mode .career-chart-key{margin-top:8px;gap:8px 18px}#pmetrics-mode .career-chart-key span{white-space:normal}#pmetrics-mode .career-metrics{margin-top:12px}
 
 .career-diagnostic-question.diagnostic-needs-review{border-color:#e5a682}.career-diagnostic-question.diagnostic-correct{border-color:#75bfa8}.career-diagnostic-question.diagnostic-needs-review legend{color:#f5c39f}.career-diagnostic-question.diagnostic-correct legend{color:#a6e4c9}
+
+.np-patient-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px;align-items:start;margin:14px 0}.np-sampling{padding:12px;border:1px solid #365758;border-radius:10px;background:#132e35}.np-sampling input{min-width:0;width:92px;padding:8px;color:#e5f4ef;background:#0b2630;border:1px solid #557a76;border-radius:6px;font:inherit}.career-chart-key .np-truth-key{background:none!important;border-top:3px dashed #f2c18e;height:0!important}.career-chart-key .np-sample-key{width:9px!important;height:9px!important;background:#f8c48f;border-radius:50%}

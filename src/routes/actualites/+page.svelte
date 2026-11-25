@@ -4,6 +4,8 @@
   import { newsEntries, newsDate, newsHref } from '#lib/content/news.js';
   const base = resolve('/').replace(/\/$/, '');
   let category = 'all';
+  /** @type {'fr' | 'en'} */
+  let lang = 'fr';
   $: lang = $language === 'en' ? 'en' : 'fr';
   $: labels = lang === 'en'
     ? {all:'All updates', learning:'Learning', tools:'Tools', maintenance:'Maintenance'}

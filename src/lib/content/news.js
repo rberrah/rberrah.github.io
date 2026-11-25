@@ -3,6 +3,24 @@
 export const newsEntries = [
   {
     "date": "2026-11-25",
+    "id": "pmx-game",
+    "category": "learning",
+    "path": "/game/",
+    "pr": 269,
+    "deploy": 45605298107,
+    "fr": {
+      "title": "Lancement de PMx Game : cinq parcours interactifs",
+      "summary": "37 missions pour progresser de la lecture des courbes PK à la construction des modèles, à l’analyse PopPK, à l’approche non paramétrique Pmetrics et à l’individualisation posologique (MIPD). Parcours guidé ou exploration libre, en français et en anglais. Les exercices sont pédagogiques et ne sont pas des prescriptions.",
+      "action": "Jouer à PMx Game"
+    },
+    "en": {
+      "title": "Introducing PMx Game: five interactive pathways",
+      "summary": "37 activities take learners from reading PK curves to model building, population PK, nonparametric Pmetrics and model-informed precision dosing (MIPD). Guided learning or free exploration, in French and English. Activities are educational, not prescribing advice.",
+      "action": "Play PMx Game"
+    }
+  },
+  {
+    "date": "2026-11-25",
     "id": "pmetrics",
     "category": "learning",
     "path": "/game/?path=pmetrics",
@@ -10,12 +28,12 @@ export const newsEntries = [
     "deploy": 45605298107,
     "fr": {
       "title": "Pmetrics : comprendre les distributions non paramétriques",
-      "summary": "Un cinquième parcours complète PMx Game, avec un atelier sur les deux fonctions gamma, les points de support, leur pondération et l’actualisation bayésienne. Le cours d’absorption orale et le chapitre Pmetrics ont également été enrichis.",
+      "summary": "Le quatrième parcours de PMx Game propose un atelier sur les deux fonctions gamma, les points de support, leur pondération et l’actualisation bayésienne. Le cours d’absorption orale et le chapitre Pmetrics ont également été enrichis.",
       "action": "Découvrir le parcours Pmetrics"
     },
     "en": {
       "title": "Pmetrics: understanding nonparametric distributions",
-      "summary": "A fifth learning pathway completes PMx Game, with an interactive workshop on two gamma functions, support points, their weights and Bayesian updating. The oral absorption and Pmetrics lessons have also been extended.",
+      "summary": "The fourth PMx Game pathway features an interactive workshop on two gamma functions, support points, their weights and Bayesian updating. The oral absorption and Pmetrics lessons have also been extended.",
       "action": "Explore the Pmetrics pathway"
     }
   },

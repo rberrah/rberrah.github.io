@@ -66,7 +66,7 @@
 </section>
 
 <section class="news-strip" aria-label={$language === 'en' ? 'Latest update' : 'Dernière actualité'} data-testid="latest-news">
-  <div><p class="eyebrow">{$language === 'en' ? 'LATEST UPDATE' : 'DERNIÈRE ACTUALITÉ'} · <time datetime={newsEntries[0].date}>{newsDate(newsEntries[0].date, $language)}</time></p>
+  <div><p class="eyebrow">{$language === 'en' ? 'LATEST UPDATE' : 'DERNIÈRE ACTUALITÉ'} · <time datetime={newsEntries[0].date}>{newsDate(newsEntries[0].date, $language === 'en' ? 'en' : 'fr')}</time></p>
     <p class="news-title">{latestNews.title}</p></div>
   <a href={`${base}/actualites/?lang=${$language}`} data-testid="home-news-link">{$language === 'en' ? 'All updates' : 'Toutes les actualités'} <ArrowRight size={16} aria-hidden="true" /></a>
 </section>

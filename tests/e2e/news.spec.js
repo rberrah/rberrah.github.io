@@ -5,7 +5,7 @@ test('published news is bilingual, filterable and reachable from home', async ({
   await expect(page.getByTestId('latest-news')).toContainText('DERNIÈRE ACTUALITÉ');
   await page.getByTestId('home-news-link').click();
   await expect(page.getByRole('heading', {name:'Actualités', exact:true})).toBeVisible();
-  await expect(page.locator('.update').first()).toContainText('Pmetrics');
+  await expect(page.locator('.update').first()).toContainText('Lancement de PMx Game : cinq parcours interactifs');
   await expect(page.locator('.update').first().locator('time')).toHaveAttribute('datetime','2026-11-25');
   await page.getByRole('button',{name:'Maintenance',exact:true}).click();
   await expect(page.locator('.update')).toHaveCount(1);
@@ -13,9 +13,9 @@ test('published news is bilingual, filterable and reachable from home', async ({
   await expect(page.getByRole('heading',{name:'News and updates'})).toBeVisible();
   await expect(page.locator('.update')).toContainText('Direct game access');
   await page.getByRole('button',{name:'All updates',exact:true}).click();
-  await expect(page.locator('.update')).toHaveCount(4);
-  await expect(page.locator('.update').first().locator('.primary-link')).toHaveAttribute('href',/\/game\/\?path=pmetrics&lang=en$/);
-  await expect(page.locator('.update').first().locator('.primary-link')).toHaveAttribute('data-sveltekit-reload','');
+  await expect(page.locator('.update')).toHaveCount(5);
+  await expect(page.locator('#pmetrics .primary-link')).toHaveAttribute('href',/\/game\/\?path=pmetrics&lang=en$/);
+  await expect(page.locator('#pmetrics .primary-link')).toHaveAttribute('data-sveltekit-reload','');
   const xml = await (await request.get('/sitemap.xml')).text();
   expect(xml).toContain('/pharmacometrie/actualites/</loc>');
 });

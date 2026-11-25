@@ -654,9 +654,9 @@ test('Pmetrics fifth-track navigation, fixed-grid fit, and Bayesian update are b
  await expect(page.locator('#np-fit-trace circle')).toHaveCount(21);
  await expect(page.locator('#pmetrics-progress')).toHaveText('0 / 5');
  await page.locator('#pmetrics-steps button').nth(3).click();
- await page.locator('#np-samples').fill('0');
+ await page.locator('#np-clear').click();
  await expect(page.locator('#np-patient circle')).toHaveCount(0);
- await page.locator('#np-samples').fill('4');
+ await page.locator('#np-standard').click();
  await expect(page.locator('#np-patient circle')).toHaveCount(4);
  await page.locator('#game-lang-fr').click();
  await expect(page.locator('#pmetrics-title')).toHaveText('Actualiser les probabilités du patient');
@@ -774,4 +774,27 @@ test('language consistency of five pathways, accessibility labels and local-only
  await expect(page.locator('#academy-mode')).toHaveAttribute('aria-label','Parcours pédagogique PMx Game');
  await expect(page.locator('#mode-pmetrics')).toHaveText('Parcours 4 · Pmetrics');
  await expect(page.locator('.footer')).toContainText('conservées localement');
+});
+
+test('Pmetrics arbitrary sampling and reproducible RUV overfit compare exactly three curves',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(origin+'/pharmacometrie/game/?lang=en&path=pmetrics');
+ await page.locator('#game-free-mode').check();
+ await page.locator('#pmetrics-steps button').nth(3).click();
+ await expect(page.locator('#np-patient polyline')).toHaveCount(3);
+ await expect(page.locator('#np-patient polyline[stroke-dasharray]')).toHaveCount(1);
+ await page.locator('#np-time').fill('2.25');await page.locator('#np-add').click();
+ await expect(page.locator('#np-patient circle')).toHaveCount(1);
+ await page.locator('#np-add').click();await expect(page.locator('#np-patient circle')).toHaveCount(1);
+ await page.locator('[data-np-remove="0"]').click();await expect(page.locator('#np-patient circle')).toHaveCount(0);
+ await page.locator('#np-overfit').click();
+ const reference=await page.locator('#np-patient polyline').nth(1).getAttribute('points');
+ const measure=await page.locator('#np-sampling-table tbody').innerText();
+ await page.locator('#np-ruv-low').click();
+ await expect(page.locator('#np-overfit-feedback')).toContainText('Overfitting observed');
+ await expect(page.locator('#np-patient polyline').nth(1)).not.toHaveAttribute('points',reference);
+ await expect(page.locator('#np-sampling-table tbody')).toHaveText(measure);
+ await page.locator('#game-lang-fr').click();
+ await expect(page.locator('#np-overfit-feedback')).toContainText('Surajustement observé');
+ expect(errors).toEqual([]);
 });
