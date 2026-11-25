@@ -789,11 +789,11 @@ test('Pmetrics arbitrary sampling and reproducible RUV overfit compare exactly t
  await page.locator('[data-np-remove="0"]').click();await expect(page.locator('#np-patient circle')).toHaveCount(0);
  await page.locator('#np-overfit').click();
  const reference=await page.locator('#np-patient polyline').nth(1).getAttribute('points');
- const measure=await page.locator('#np-sampling-table tbody').innerText();
+ const measure=await page.locator('#np-sampling-table tbody').textContent();
  await page.locator('#np-ruv-low').click();
  await expect(page.locator('#np-overfit-feedback')).toContainText('Overfitting observed');
  await expect(page.locator('#np-patient polyline').nth(1)).not.toHaveAttribute('points',reference);
- await expect(page.locator('#np-sampling-table tbody')).toHaveText(measure);
+ expect(await page.locator('#np-sampling-table tbody').textContent()).toBe(measure);
  await page.locator('#game-lang-fr').click();
  await expect(page.locator('#np-overfit-feedback')).toContainText('Surajustement observé');
  expect(errors).toEqual([]);
@@ -808,4 +808,18 @@ test('same-AUC exercise connects manual parameter exploration to MAP-BE in both 
  await page.locator('#game-lang-en').click();
  await expect(page.locator('#adv-amb-map')).toContainText('prior plausibility');
  await expect(page.locator('#adv-amb-map')).toContainText('without making F and CL separately identifiable');
+});
+
+test('Draw model: simulated DV and reversible graph edits',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=fr');await page.locator('#mode-advanced').click();
+ await expect(page.locator('#adv-graph-dv circle')).toHaveCount(14);await expect(page.locator('#adv-graph-dv polyline')).toHaveCount(0);
+ await page.locator('#adv-graph-log').click();await expect(page.locator('#adv-graph-dv circle')).toHaveCount(13);
+ for(const id of ['gut','central','peripheral'])await page.locator('[data-add-node="'+id+'"]').click();
+ const link=async(a,b)=>{await page.locator('[data-graph-node="'+a+'"]').click();await page.locator('[data-graph-node="'+b+'"]').click();};
+ await link('gut','central');await link('central','peripheral');await link('peripheral','central');
+ await page.locator('#adv-graph-delete').click();
+ const edge=page.locator('[data-graph-edge="central>peripheral"]');await edge.focus();await page.keyboard.press('Enter');
+ await expect(edge).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(1);
+ await page.locator('[data-graph-node="peripheral"]').click();await expect(page.locator('[data-graph-node="peripheral"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="gut>central"]')).toHaveCount(1);
+ await page.locator('#game-lang-en').click();await expect(page.locator('#adv-graph-delete')).toHaveText('Delete');await expect(page.locator('#adv-graph-dv')).toHaveAttribute('aria-label','Simulated plasma concentrations over time');
 });

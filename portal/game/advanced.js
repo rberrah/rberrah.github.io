@@ -1,6 +1,6 @@
 import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
 import {
-  ADVANCED_MISSIONS,GRAPH_NODES,GRAPH_OPTIONS,GRAPH_EDGES,ODE_TERMS,ODE_STATES,
+  ADVANCED_MISSIONS,GRAPH_NODES,GRAPH_OPTIONS,GRAPH_EDGES,GRAPH_OBSERVATIONS,ODE_TERMS,ODE_STATES,
   validateGraph,validateOdes,gradeMic,nonlinearChallenge,oneDoseProfile,
   gradeDdi,ddiChallenge,NONLINEAR
 } from './advanced-core.js';
@@ -17,13 +17,13 @@ try {
 let current=ADVANCED_MISSIONS.findIndex(m=>!progress.completed.includes(m.id));
 if(current<0)current=ADVANCED_MISSIONS.length-1;
 let completed=false;
-let graphNodes=[],graphEdges=[],graphStart=null;
+let graphNodes=[],graphEdges=[],graphStart=null,graphDelete=false,graphLog=false;
 let extended=null;
 let odePicks={};
 let micDose=100,micTau=8,linearDose=180,mmDose=180,ddiCl=2.5;
 
 const explanations={
- graph:'Les quatre blocs décrivent une topologie mammillaire orale : dépôt → central, échanges réversibles avec le périphérique, élimination depuis le central. Les flèches expriment des flux mathématiques, non des déplacements anatomiques littéraux.',
+ graph:'Le modèle oral 2C est une hypothèse parcimonieuse compatible avec ces DV simulées. Une modification de pente ne suffit pas à prouver la structure : il faut ajuster et comparer les modèles. Les flèches représentent des flux mathématiques.',
  odes:'Les équations de quantités conservent la masse : les échanges entre central et périphérique se compensent, l’absorption quitte le dépôt et rejoint le central, et l’élimination est comptabilisée dans Ae.',
  mic:'Pour ce médicament fictif à distribution 1C après bolus IV, fT > CMI dépend de la fraction libre, de la CMI et de la vitesse de décroissance. La valeur de 70 % et la limite AUC24 sont des objectifs inventés, non des cibles thérapeutiques recommandées.',
  nonlinear:'Pour une élimination linéaire, AUC∞=Dose/CL. Dans l’exemple Michaelis–Menten, la vitesse d’élimination se sature ; AUC∞ croît plus vite que la dose. Les deux doses nécessaires pour une même cible AUC peuvent donc différer.',
@@ -93,7 +93,7 @@ function select(i){
   if(!isFree()&&i>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[i].id))return;
   current=i;const m=ADVANCED_MISSIONS[i];
   completed=progress.completed.includes(m.id);
-  graphNodes=[];graphEdges=[];graphStart=null;extended=null;
+  graphNodes=completed&&m.id==='graph'?GRAPH_NODES.map(n=>n.id):[];graphEdges=completed&&m.id==='graph'?[...GRAPH_EDGES]:[];graphStart=null;graphDelete=false;graphLog=false;extended=null;
   odePicks=Object.fromEntries(ODE_STATES.map(s=>[s.id,[]]));
   micDose=100;micTau=8;linearDose=180;mmDose=180;ddiCl=2.5;
   $('advanced-chapter').textContent=m.chapter;
@@ -130,7 +130,7 @@ function graphPath(from,to){
   const vx=b.x-a.x,vy=b.y-a.y,len=Math.hypot(vx,vy);
   if(!len)return '';
   const ux=vx/len,uy=vy/len;
-  const cross=from==='central'&&to==='peripheral'?-11:from==='peripheral'&&to==='central'?11:0;
+  const cross=from==='central'&&to==='peripheral'?-13:from==='peripheral'&&to==='central'?13:0;
   return 'M '+(a.x+ux*79).toFixed(1)+' '+(a.y+uy*44+cross).toFixed(1)+' L '+
     (b.x-ux*79).toFixed(1)+' '+(b.y-uy*44+cross).toFixed(1);
 }
@@ -140,7 +140,7 @@ function renderGraph(){
     '<path d="M0 0 L8 4 L0 8" fill="none" stroke="#9cebd1" stroke-width="2"/></marker></defs>';
   for(const edge of graphEdges){
     const [from,to]=edge.split('>');
-    out+='<path d="'+graphPath(from,to)+'" fill="none" stroke="#8cd7cf" stroke-width="3.6" marker-end="url(#adv-arrow)"/>';
+    out+='<g data-graph-edge="'+edge+'" role="button" tabindex="'+(graphDelete&&!completed?'0':'-1')+'" aria-label="'+GRAPH_OPTIONS.find(n=>n.id===from).label+' → '+GRAPH_OPTIONS.find(n=>n.id===to).label+'"><path class="graph-edge-hit" d="'+graphPath(from,to)+'" fill="none" stroke="transparent" stroke-width="20"/><path class="graph-edge-line" d="'+graphPath(from,to)+'" fill="none" stroke="#8cd7cf" stroke-width="3.6" marker-end="url(#adv-arrow)"/></g>';
   }
   for(const node of GRAPH_OPTIONS){
     if(!graphNodes.includes(node.id))continue;
@@ -151,6 +151,11 @@ function renderGraph(){
       '" stroke-width="2.6"/><text x="'+node.x+'" y="'+(node.y+5)+'" text-anchor="middle" font-size="17" font-weight="700" fill="#f3fdf8">'+node.label+'</text></g>';
   }
   svg.innerHTML=out;
+  svg.classList.toggle('delete-mode',graphDelete&&!completed);
+  $('adv-graph-connect').setAttribute('aria-pressed',String(!graphDelete));$('adv-graph-delete').setAttribute('aria-pressed',String(graphDelete));
+  $('adv-graph-connect').disabled=completed;$('adv-graph-delete').disabled=completed;
+  $('adv-graph-clear').textContent=completed?'Refaire le dessin':'Recommencer le dessin';
+  $('adv-graph-help').textContent=completed?'Schéma validé. Vous pouvez refaire le dessin sans perdre votre progression.':graphDelete?'Mode Supprimer : cliquez sur un bloc ou une flèche. Retirer un bloc retire aussi ses flèches.':'Mode Relier : cliquez sur un bloc de départ puis un bloc d’arrivée.';
   $('adv-graph-status').textContent=graphStart?'Départ sélectionné : '+GRAPH_OPTIONS.find(n=>n.id===graphStart).label+'. Cliquez sur le nœud d’arrivée.':
     graphNodes.length+' bloc(s) placés · '+graphEdges.length+' transfert(s). Cliquez sur un départ puis sur une arrivée.';
   $('adv-graph-palette').querySelectorAll('button').forEach(b=>b.disabled=graphNodes.includes(b.dataset.addNode)||completed);
@@ -170,6 +175,7 @@ function renderGraph(){
 }
 function graphClick(node){
   if(completed || !graphNodes.includes(node))return;
+  if(graphDelete){graphNodes=graphNodes.filter(n=>n!==node);graphEdges=graphEdges.filter(e=>!e.split('>').includes(node));graphStart=null;renderGraph();return;}
   if(graphStart===null){graphStart=node;renderGraph();return;}
   if(node!==graphStart){
     const key=graphStart+'>'+node;
@@ -177,31 +183,48 @@ function graphClick(node){
   }
   graphStart=null;renderGraph();
 }
+function drawGraphDV(){
+ const rows=GRAPH_OBSERVATIONS.filter(p=>!graphLog||p.c>0),x=t=>53+t/48*610,y=c=>220-(graphLog?(Math.log10(c)+2)/3:c/8)*186;
+ const locale=document.documentElement.lang==='en'?'en-US':'fr-FR';
+ let out='<rect x="53" y="34" width="610" height="186" rx="8" fill="#0d2530"/>';
+ for(const v of graphLog?[.01,.1,1,10]:[0,2,4,6,8])out+='<path d="M53 '+y(v)+' H663" stroke="#36565d" stroke-dasharray="4 5"/><text x="46" y="'+(y(v)+4)+'" text-anchor="end" font-size="12" fill="#c8ddd7">'+v.toLocaleString(locale)+'</text>';
+ for(const t of [0,6,12,24,36,48])out+='<text x="'+x(t)+'" y="238" text-anchor="middle" font-size="12" fill="#c8ddd7">'+t+'</text>';
+ for(const p of rows)out+='<circle cx="'+x(p.t)+'" cy="'+y(p.c)+'" r="4.5" fill="#9cebd1" stroke="#123039" stroke-width="1.4"><title>'+p.t.toLocaleString(locale)+' h · '+p.c.toLocaleString(locale,{maximumFractionDigits:3})+' mg/L</title></circle>';
+ $('adv-graph-dv').innerHTML=out+'<text x="53" y="22" font-size="13" fill="#c8ddd7">DV (mg/L)</text><text x="358" y="260" text-anchor="middle" font-size="12" fill="#c8ddd7">Temps (h)</text>';
+ $('adv-graph-linear').setAttribute('aria-pressed',String(!graphLog));$('adv-graph-log').setAttribute('aria-pressed',String(graphLog));
+}
 function setupGraph(){
-  $('advanced-stage').innerHTML='<p class="advanced-instruction">Une substance est <strong>avalée</strong> : la concentration mesurée est d’abord nulle, monte, puis la décroissance présente une phase rapide et une queue lente en semi-log. Quel <strong>schéma compartimental minimal</strong> proposeriez-vous parmi les blocs disponibles ? Certains sont des leurres. Reliez vos blocs sans aide sur les flèches.</p>'+
+  $('advanced-stage').innerHTML='<p class="advanced-instruction">Une dose orale unique de 100 mg a été administrée à un patient fictif. Observez les DV simulées, puis proposez une structure compartimentale minimale compatible avec ces données.</p>'+
+    '<section class="graph-dv-panel"><h3>Concentrations observées (DV)</h3><div class="advanced-palette"><button type="button" id="adv-graph-linear" class="quest-btn">Linéaire</button><button type="button" id="adv-graph-log" class="quest-btn">Semi-log</button></div><svg id="adv-graph-dv" class="advanced-chart" viewBox="0 0 705 270" role="img" aria-label="Concentrations plasmatiques simulées en fonction du temps"></svg><p class="advanced-small">Points = prélèvements simulés avec bruit ; aucune courbe ajustée. Les zéros sont exclus en semi-log.</p></section>'+
+    '<h3>Construire le modèle</h3><div class="advanced-palette"><button type="button" id="adv-graph-connect" class="quest-btn">Relier</button><button type="button" id="adv-graph-delete" class="quest-btn">Supprimer</button></div><p id="adv-graph-help" class="advanced-small"></p><h4>Ajouter un bloc</h4>'+
     '<div class="advanced-palette" id="adv-graph-palette">'+GRAPH_OPTIONS.map(n=>'<button data-add-node="'+n.id+'" class="quest-btn">+ '+n.label+'</button>').join('')+'</div>'+
     '<svg id="adv-graph-svg" viewBox="0 0 570 375" class="advanced-graph" role="img" aria-label="Dessinez les compartiments et les flèches du modèle"></svg>'+
-    '<p id="adv-graph-status" class="advanced-prompt"></p><div class="advanced-arrows" id="adv-graph-nodes"></div><div id="adv-graph-edges" class="advanced-arrows"></div>'+
+    '<p id="adv-graph-status" class="advanced-prompt" role="status"></p><div class="graph-remove-list"><h4>Supprimer un bloc</h4><div class="advanced-arrows" id="adv-graph-nodes"></div><h4>Supprimer une flèche</h4><div id="adv-graph-edges" class="advanced-arrows"></div></div>'+
     '<button type="button" id="adv-graph-clear" class="quest-btn">Recommencer le dessin</button>';
   $('adv-graph-palette').addEventListener('click',ev=>{
     const b=ev.target.closest('[data-add-node]');
     if(!b||completed)return;
     if(!graphNodes.includes(b.dataset.addNode))graphNodes.push(b.dataset.addNode);
-    renderGraph();
+    graphDelete=false;graphStart=null;renderGraph();
   });
+  $('adv-graph-connect').onclick=()=>{graphDelete=false;graphStart=null;renderGraph();};
+  $('adv-graph-delete').onclick=()=>{graphDelete=true;graphStart=null;renderGraph();};
+  $('adv-graph-linear').onclick=()=>{graphLog=false;drawGraphDV();};$('adv-graph-log').onclick=()=>{graphLog=true;drawGraphDV();};
   $('adv-graph-svg').addEventListener('click',ev=>{
+    const edge=ev.target.closest('[data-graph-edge]');if(edge&&graphDelete&&!completed){graphEdges=graphEdges.filter(e=>e!==edge.dataset.graphEdge);graphStart=null;renderGraph();return;}
     const el=ev.target.closest('[data-graph-node]');if(el)graphClick(el.dataset.graphNode);
   });
   $('adv-graph-svg').addEventListener('keydown',ev=>{
     if(ev.key!=='Enter'&&ev.key!==' ')return;
+    const edge=ev.target.closest('[data-graph-edge]');if(edge&&graphDelete&&!completed){ev.preventDefault();graphEdges=graphEdges.filter(e=>e!==edge.dataset.graphEdge);graphStart=null;renderGraph();return;}
     const el=ev.target.closest('[data-graph-node]');
     if(el){ev.preventDefault();graphClick(el.dataset.graphNode);}
   });
   $('adv-graph-clear').addEventListener('click',()=>{
-    if(completed)return;
-    graphNodes=[];graphEdges=[];graphStart=null;renderGraph();
+    if(completed){completed=false;$('advanced-check').disabled=false;$('advanced-feedback').hidden=true;}
+    graphNodes=[];graphEdges=[];graphStart=null;graphDelete=false;renderGraph();
   });
-  renderGraph();
+  drawGraphDV();renderGraph();
 }
 function drawEquations(){
   for(const row of ODE_STATES){
@@ -345,7 +368,7 @@ function check(){
   switch(ADVANCED_MISSIONS[current].id){
     case 'graph': {
       const r=validateGraph(graphNodes,graphEdges);
-      if(r.ok)complete();
+      if(r.ok){complete();renderGraph();}
       else feedback(false,'Votre proposition n’est pas encore cohérente avec le scénario : revoyez les éléments retenus, les échanges éventuels et le sens des flux. Les blocs inutiles sont à retirer.');
       return;
     }
@@ -395,4 +418,5 @@ window.addEventListener('pmx-game-learning-mode',()=>{
   if(!isFree()&&current>maxOpen()&&!progress.completed.includes(ADVANCED_MISSIONS[current].id))select(maxOpen());
   else {nav();$('advanced-next').hidden=current===ADVANCED_MISSIONS.length-1||(!completed&&!isFree());}
 });
+window.addEventListener('pmx-game-language-change',()=>{if(ADVANCED_MISSIONS[current].id==='graph'&&!$('advanced-mode').hidden)drawGraphDV();});
 select(current);
