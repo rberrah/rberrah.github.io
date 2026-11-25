@@ -1,6 +1,6 @@
 // Course-based fictional PK exercises, kept separate from clinical MIPD.
 export const ADVANCED_MISSIONS=Object.freeze([
- {id:'graph',title:'Dessiner le modèle',chapter:'Architecture PK',summary:'Créez les compartiments puis les transferts d’un modèle oral à deux compartiments.',xp:100},
+ {id:'graph',title:'Dessiner le modèle',chapter:'Architecture PK',summary:'Proposez une structure compartimentale parcimonieuse à partir des concentrations observées.',xp:100},
  {id:'odes',title:'Écrire les équations',chapter:'Systèmes dynamiques',summary:'Assemblez toutes les équations d’état, sans terme manquant ni double comptage.',xp:110},
  {id:'mic',title:'Mission CMI',chapter:'Antibiothérapie simulée',summary:'Jouez sur la dose et l’intervalle pour atteindre un objectif fictif de fT > CMI.',xp:120},
  {id:'nonlinear',title:'Le piège de la dose',chapter:'Linéaire ou saturable ?',summary:'Atteignez la même AUC avec une élimination linéaire puis saturable.',xp:120},
@@ -189,3 +189,7 @@ export function ambiguityChallenge(f=1,cl=6){
   const independent=Math.abs(f-baseline.f)>=0.1 && Math.abs(cl-baseline.cl)>=0.5;
   return {baseline,auc,f,cl,independent,ok:Math.abs(auc-baseline.auc)<=.5&&independent};
 }
+
+// Oral 2C synthetic samples: dose=100 mg, Vc=10 L, CL=2 L/h, Q=6 L/h, Vp=30 L, Ka=2 h^-1. Analytic first-order absorption convolution.
+export function graphCaseConcentration(t){const ka=2,k10=.2,k12=.6,k21=.2,s=k10+k12+k21,d=Math.sqrt(s*s-4*k10*k21),a=(s+d)/2,b=(s-d)/2,A=(a-k21)/(a-b),B=(k21-b)/(a-b);return 10*ka*(A*(Math.exp(-a*t)-Math.exp(-ka*t))/(ka-a)+B*(Math.exp(-b*t)-Math.exp(-ka*t))/(ka-b));}
+export const GRAPH_OBSERVATIONS=Object.freeze([0,.25,.5,1,2,3,4,6,8,12,18,24,36,48].map((t,i)=>Object.freeze({t,c:graphCaseConcentration(t)*(1+.045*Math.sin(i*2.3))})));

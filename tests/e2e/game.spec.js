@@ -654,9 +654,9 @@ test('Pmetrics fifth-track navigation, fixed-grid fit, and Bayesian update are b
  await expect(page.locator('#np-fit-trace circle')).toHaveCount(21);
  await expect(page.locator('#pmetrics-progress')).toHaveText('0 / 5');
  await page.locator('#pmetrics-steps button').nth(3).click();
- await page.locator('#np-samples').fill('0');
+ await page.locator('#np-clear').click();
  await expect(page.locator('#np-patient circle')).toHaveCount(0);
- await page.locator('#np-samples').fill('4');
+ await page.locator('#np-standard').click();
  await expect(page.locator('#np-patient circle')).toHaveCount(4);
  await page.locator('#game-lang-fr').click();
  await expect(page.locator('#pmetrics-title')).toHaveText('Actualiser les probabilités du patient');
@@ -775,3 +775,69 @@ test('language consistency of five pathways, accessibility labels and local-only
  await expect(page.locator('#mode-pmetrics')).toHaveText('Parcours 4 · Pmetrics');
  await expect(page.locator('.footer')).toContainText('conservées localement');
 });
+
+test('Pmetrics arbitrary sampling and reproducible RUV overfit compare exactly three curves',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(origin+'/pharmacometrie/game/?lang=en&path=pmetrics');
+ await page.locator('#game-free-mode').check();
+ await page.locator('#pmetrics-steps button').nth(3).click();
+ await expect(page.locator('#np-patient polyline')).toHaveCount(3);
+ await expect(page.locator('#np-patient polyline[stroke-dasharray]')).toHaveCount(1);
+ await page.locator('#np-time').fill('2.25');await page.locator('#np-add').click();
+ await expect(page.locator('#np-patient circle')).toHaveCount(1);
+ await page.locator('#np-add').click();await expect(page.locator('#np-patient circle')).toHaveCount(1);
+ await page.locator('[data-np-remove="0"]').click();await expect(page.locator('#np-patient circle')).toHaveCount(0);
+ await page.locator('#np-overfit').click();
+ const reference=await page.locator('#np-patient polyline').nth(1).getAttribute('points');
+ const measure=await page.locator('#np-sampling-table tbody').textContent();
+ await page.locator('#np-ruv-low').click();
+ await expect(page.locator('#np-overfit-feedback')).toContainText('Overfitting observed');
+ await expect(page.locator('#np-patient polyline').nth(1)).not.toHaveAttribute('points',reference);
+ expect(await page.locator('#np-sampling-table tbody').textContent()).toBe(measure);
+ await page.locator('#game-lang-fr').click();
+ await expect(page.locator('#np-overfit-feedback')).toContainText('Surajustement observé');
+ expect(errors).toEqual([]);
+});
+
+test('same-AUC exercise connects manual parameter exploration to MAP-BE in both languages',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=fr');
+ await page.locator('#game-free-mode').check();
+ await page.locator('#mode-advanced').click();
+ await page.locator('#advanced-list button').last().click();
+ await expect(page.locator('#adv-amb-map')).toContainText('plausibilité a priori');
+ await page.locator('#game-lang-en').click();
+ await expect(page.locator('#adv-amb-map')).toContainText('prior plausibility');
+ await expect(page.locator('#adv-amb-map')).toContainText('without making F and CL separately identifiable');
+});
+
+for(const lang of ['fr','en']){
+ test('Draw model: simulated DV and reversible graph edits ('+lang+')',async({page})=>{
+  const errors=[];page.on('pageerror',err=>errors.push(err.message));
+  await page.goto(origin+'/pharmacometrie/game/?lang='+lang);await page.locator('#mode-advanced').click();
+  const en=lang==='en';
+  await expect(page.locator('#adv-graph-connect')).toHaveText(en?'Connect':'Relier');
+  await expect(page.locator('#adv-graph-delete')).toHaveText(en?'Delete':'Supprimer');
+  await expect(page.locator('#adv-graph-dv')).toHaveAttribute('aria-label',en?'Simulated plasma concentrations over time':'Concentrations plasmatiques simulées en fonction du temps');
+  await expect(page.locator('#adv-graph-dv circle')).toHaveCount(14);
+  await expect(page.locator('#adv-graph-dv polyline')).toHaveCount(0);
+  await page.locator('#adv-graph-log').click();await expect(page.locator('#adv-graph-dv circle')).toHaveCount(13);
+  for(const id of ['gut','central','peripheral'])await page.locator('[data-add-node="'+id+'"]').click();
+  await expect(page.locator('[data-graph-node="gut"]')).toHaveAttribute('aria-label',en?'Oral depot':'Dépôt oral');
+  const link=async(a,b)=>{await page.locator('[data-graph-node="'+a+'"]').click();await page.locator('[data-graph-node="'+b+'"]').click();};
+  await link('gut','central');await link('central','peripheral');await link('peripheral','central');
+  await expect(page.locator('#adv-graph-status')).toContainText(en?'3 connection(s)':'3 transfert(s)');
+  await page.locator('#adv-graph-delete').click();
+  await expect(page.locator('#adv-graph-help')).toContainText(en?'Delete mode':'Mode Supprimer');
+  const edge=page.locator('[data-graph-edge="central>peripheral"]');
+  await expect(edge).toHaveAttribute('aria-label',en?'Central → Peripheral':'Central → Périphérique');
+  await edge.focus();await page.keyboard.press('Enter');
+  await expect(edge).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(1);
+  await page.locator('[data-graph-node="peripheral"]').click();await expect(page.locator('[data-graph-node="peripheral"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="peripheral>central"]')).toHaveCount(0);await expect(page.locator('[data-graph-edge="gut>central"]')).toHaveCount(1);
+  await page.locator('#game-lang-'+(en?'fr':'en')).click();
+  await expect(page.locator('#adv-graph-delete')).toHaveText(en?'Supprimer':'Delete');
+  await expect(page.locator('[data-graph-node="gut"]')).toHaveAttribute('aria-label',en?'Dépôt oral':'Oral depot');
+  await expect(page.locator('#adv-graph-dv circle')).toHaveCount(13);
+  await expect(page.locator('[data-graph-edge="gut>central"]')).toHaveCount(1);
+  expect(errors).toEqual([]);
+ });
+}

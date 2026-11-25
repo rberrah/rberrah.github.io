@@ -21,7 +21,17 @@ export function prediction(i,t){
 export function supportAuc(i){return referenceGammaAuc(12,SUPPORTS[i].parameters,1000);}
 const truth=[0,0,0,0,1,1,2,2,2,3,3,4];
 export const SYNTHETIC_PROFILES=Object.freeze(truth.map((j,i)=>Object.freeze(TIMES.map((t,k)=>Object.freeze({t,value:prediction(j,t)*(1+.065*Math.sin((i+1)*2.1+(k+1)*1.7))})))));
-export const PATIENT=Object.freeze(TIMES.map((t,k)=>Object.freeze({t,value:prediction(4,t)*(1+.045*Math.cos(k+1))})));
+// The patient is simulated on S1. Observations include reproducible noise,
+// independent of the assumed RUV. The 1.75 h sample deliberately has +15% error.
+export const TRUE_SUPPORT=0;
+export const OVERFIT_TIME=1.75;
+export function trueConcentration(t){return prediction(TRUE_SUPPORT,t);}
+export function patientSample(t){
+ if(!Number.isFinite(t)||t<0||t>12)throw new RangeError('Sample time must be within 0–12 h');
+ const error=Math.abs(t-OVERFIT_TIME)<1e-8?.15:.07*Math.cos(1.9*t+.3);
+ return {t,value:trueConcentration(t)*(1+error)};
+}
+export const PATIENT=Object.freeze(TIMES.map(t=>Object.freeze(patientSample(t))));
 export const INITIAL=Object.freeze(SUPPORTS.map(()=>1/SUPPORTS.length));
 function checkWeights(w){
  if(!Array.isArray(w)||w.length!==SUPPORTS.length||w.some(x=>!Number.isFinite(x)||x<0)||Math.abs(w.reduce((a,b)=>a+b,0)-1)>1e-8)throw new RangeError('Expected normalized nonnegative support weights');
@@ -58,4 +68,20 @@ export function fitFixedGrid(iterations=12,profiles=SYNTHETIC_PROFILES){
 export function summarize(weights){
  checkWeights(weights);const map=weights.indexOf(Math.max(...weights));
  return {map,aucMean:weights.reduce((s,w,i)=>s+w*supportAuc(i),0),aucMap:supportAuc(map)};
+}
+
+/** Individual MAP on the existing fixed support grid, not a continuous MAP fit. */
+export function individualPrediction(prior,observations,ruv=.18){
+ const posterior=updateWeights(prior,observations,ruv).weights;
+ const map=summarize(posterior).map;
+ const priorAt=t=>prior.reduce((s,w,i)=>s+w*prediction(i,t),0);
+ const estimateAt=t=>observations.length?prediction(map,t):priorAt(t);
+ const mse=(values)=>values.reduce((s,x)=>s+x*x,0)/values.length;
+ const sampleRmse=observations.length?Math.sqrt(mse(observations.map(o=>estimateAt(o.t)-o.value))):null;
+ const grid=Array.from({length:121},(_,i)=>i/10).filter(t=>!observations.some(o=>Math.abs(o.t-t)<1e-8));
+ const truthRmse=Math.sqrt(mse(grid.map(t=>estimateAt(t)-trueConcentration(t))));
+ return {posterior,map,priorAt,estimateAt,sampleRmse,truthRmse,
+  aucPrior:prior.reduce((s,w,i)=>s+w*supportAuc(i),0),
+  aucEstimate:observations.length?supportAuc(map):prior.reduce((s,w,i)=>s+w*supportAuc(i),0),
+  aucTruth:supportAuc(TRUE_SUPPORT)};
 }

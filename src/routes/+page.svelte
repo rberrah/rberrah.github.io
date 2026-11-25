@@ -3,6 +3,8 @@
   const base = resolve('/').replace(/\/$/, '');
   import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, GraduationCap, ArrowRight } from '@lucide/svelte';
   import chapters from '#lib/content/loadChapters.js';
+  import { newsEntries, newsDate } from '#lib/content/news.js';
+  $: latestNews = newsEntries[0][$language === 'en' ? 'en' : 'fr'];
   import { beginnerTrack, tracks, chaptersByTrack } from '#lib/content/tracks.js';
   import { language } from '#lib/stores/language.js';
   import { localizeChapter, localizeTrack, ui } from '#lib/i18n/translations.js';
@@ -52,15 +54,24 @@
 </svelte:head>
 
 <section class="hero" data-testid="hero">
-  <p class="eyebrow">{copy.home.eyebrow}</p>
-  <h1>{copy.home.titlePrefix} <span class="hl">{copy.home.titleHighlight}</span> {copy.home.titleSuffix}</h1>
-  <p class="lede">{copy.home.lede}</p>
-  <div class="cta">
-    <a class="btn btn-primary" href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="cta-game">{$language === 'en' ? 'Play PMx Game · interactive PK' : 'Jouer à PMx Game · la PK interactive'}</a>
-    <a class="btn btn-outline" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="cta-start">{$language === 'en' ? 'Guided beginner track' : 'Parcours débutant guidé'}</a>
-    <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
+  <div class="hero-intro">
+    <p class="eyebrow">{copy.home.eyebrow}</p>
+    <h1>{copy.home.titlePrefix} <span class="hl">{copy.home.titleHighlight}</span> {copy.home.titleSuffix}</h1>
+    <p class="lede">{copy.home.lede}</p>
+    <div class="cta">
+      <a class="btn btn-primary" href={`${base}/game/?lang=${$language}`} data-sveltekit-reload data-testid="cta-game">{$language === 'en' ? 'Play PMx Game · interactive PK' : 'Jouer à PMx Game · la PK interactive'}</a>
+      <a class="btn btn-outline" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="cta-start">{$language === 'en' ? 'Guided beginner track' : 'Parcours débutant guidé'}</a>
+      <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
+    </div>
+    <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>
   </div>
-  <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>
+  <aside class="news-strip" aria-label={$language === 'en' ? 'Latest update' : 'Dernière actualité'} data-testid="latest-news">
+    <p class="eyebrow">{$language === 'en' ? 'LATEST UPDATE' : 'DERNIÈRE ACTUALITÉ'}</p>
+    <time datetime={newsEntries[0].date}>{newsDate(newsEntries[0].date, $language === 'en' ? 'en' : 'fr')}</time>
+    <h2 class="news-title">{latestNews.title}</h2>
+    <p class="news-summary">{latestNews.summary}</p>
+    <a href={`${base}/actualites/?lang=${$language}`} data-testid="home-news-link">{$language === 'en' ? 'All updates' : 'Toutes les actualités'} <ArrowRight size={16} aria-hidden="true" /></a>
+  </aside>
 </section>
 
 <!-- Primary interactive-learning entry; older guided chapter track remains available. -->
@@ -200,12 +211,22 @@
   .beginner-feature-details span { display: inline-flex; align-items: center; gap: var(--space-2); }
   .beginner-feature-details :global(svg) { flex-shrink: 0; color: var(--accent-pk); }
   .beginner-feature-link { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; }
+  .news-strip { min-width:0; padding:var(--space-5); margin-top:var(--space-8); background:var(--bg-tertiary); border:1px solid var(--border-strong); border-top:3px solid var(--accent-pk); border-radius:10px; }
+  .news-strip .eyebrow { margin:0 0 8px; }
+  .news-strip time { display:block; font-size:var(--text-xs); color:var(--text-secondary); margin-bottom:10px; }
+  .news-title { margin:0 0 8px; font-size:1.1rem; line-height:1.35; font-weight:700; color:var(--text-primary); }
+  .news-summary { margin:0 0 var(--space-4); font-size:var(--text-sm); color:var(--text-secondary); line-height:1.55; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden; }
+  .news-strip a { display:inline-flex; gap:8px; align-items:center; font-weight:600; font-size:var(--text-sm); }
+  .news-strip a :global(svg) { flex-shrink:0; }
+  @media(max-width:980px) { .news-strip { margin-top:0; max-width:100%; } }
   .objectives { padding: 24px 0; border-block: 1px solid var(--border-strong); margin-bottom: 24px; }
   .objectives h2 { font-size: 22px; letter-spacing: 0; }
   .objectives > div { display: grid; grid-template-columns: repeat(auto-fit,minmax(205px,1fr)); gap: 12px 24px; }
   .objectives a { display: flex; align-items: center; gap: 10px; padding: 12px 0; color: var(--text-primary); font-size: 14px; text-decoration: none; border-bottom: 2px solid #087b83; }
   .objectives a :global(svg) { flex-shrink: 0; } .objectives a span { flex: 1; }
-  .hero { max-width: 820px; padding: var(--space-16) 0 var(--space-12); }
+  .hero { display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,285px); align-items:start; gap:clamp(24px,4vw,60px); padding:var(--space-16) 0 var(--space-12); }
+  .hero-intro { min-width:0; max-width:820px; }
+  @media(max-width:980px) { .hero { grid-template-columns:minmax(0,1fr); gap:var(--space-5); } }
   .hl { color: var(--accent-pk); }
   h1 { font-size: var(--text-4xl); font-weight: 900; margin: var(--space-3) 0 var(--space-6); }
   .lede { font-size: var(--text-lg); color: var(--text-secondary); max-width: 60ch; }

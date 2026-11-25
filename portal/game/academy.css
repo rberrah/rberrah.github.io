@@ -170,3 +170,5 @@
   .ddi-comparison label{font-size:.83rem}
   .advanced-stage .adv-scenario{padding:12px}
 }
+
+.graph-dv-panel{margin:0 0 20px;padding:12px;background:#102b34;border:1px solid #385b60;border-radius:12px}.graph-dv-panel h3{margin:6px 0}.graph-remove-list{border:1px solid #37565b;border-radius:9px;padding:10px;margin:12px 0}.graph-remove-list h4{font-size:.82rem;margin:8px 0;color:#c5ddd7}#adv-graph-delete[aria-pressed=true]{background:#f3b6a3;color:#301b16;border-color:#f3b6a3}#adv-graph-connect[aria-pressed=true],#adv-graph-linear[aria-pressed=true],#adv-graph-log[aria-pressed=true]{background:#83e2cb;color:#0a2a2a;border-color:#83e2cb}.advanced-graph [data-graph-edge]{pointer-events:none}.advanced-graph.delete-mode [data-graph-edge]{pointer-events:stroke;cursor:pointer}.advanced-graph.delete-mode [data-graph-node]:hover rect,.advanced-graph.delete-mode [data-graph-node]:focus-visible rect{stroke:#ffb9a5;stroke-width:4}.advanced-graph.delete-mode [data-graph-edge]:hover .graph-edge-line,.advanced-graph.delete-mode [data-graph-edge]:focus-visible .graph-edge-line{stroke:#ffb9a5;stroke-width:5}
