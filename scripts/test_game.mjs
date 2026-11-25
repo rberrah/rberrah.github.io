@@ -231,6 +231,26 @@ for(const t of gammaFixtures[2].times){
 assert.throws(()=>gammaC(1,{...q,a1:0}),RangeError);
 assert.throws(()=>gammaC(1,{...q,f:1.1}),RangeError);
 assert.equal(WOILLARD_MPA.enabled,false);
-assert.equal(WOILLARD_MPA.populationParameters,null);
+assert.equal(WOILLARD_MPA.populationParameters.ITS.a1,13.51);
+assert.equal(WOILLARD_MPA.variability.Pmetrics.alpha,70.5);
 assert.deepEqual(WOILLARD_MPA.samplingHours,[1/3,1,3,6]);
 console.log('PASS: independent double-gamma fixture comparisons, periodicity, AUC and source lock.');
+
+// Independent SciPy gamma.pdf/quad references, conditional on 100 mg convention and constant C0.
+const {referenceGammaConcentration,referenceGammaAuc,gammaDensity}=await import('../portal/game/double-gamma.js');
+const refTimes=[0,1/3,1,3,6,12];
+const refCases=[
+ ['ITS',[1.7000000000000002,2.292625319040597,8.305940729406348,3.391684388282943,1.7587612777546875,1.7000708977271124],35.22136526988649],
+ ['Pmetrics',[1.6,1.6026664326799929,13.873411848808653,2.7796164517376014,1.6088723983960398,1.6000005019275125],36.868711348510715]
+];
+for(const [method,expected,auc] of refCases){
+ const p=WOILLARD_MPA.populationParameters[method];
+ refTimes.forEach((t,i)=>assert.ok(Math.abs(referenceGammaConcentration(t,p,1000)-expected[i])<1e-7));
+ assert.ok(Math.abs(referenceGammaAuc(12,p,1000)-auc)<1e-7);
+ assert.equal(referenceGammaConcentration(0,p,100),p.c0);
+ assert.ok(Math.abs(referenceGammaAuc(12,p,500)-auc/2)<1e-7);
+}
+assert.equal(gammaDensity(0,2,4),0);
+assert.ok(Math.abs(gammaDensity(1,1,2)-2*Math.exp(-2))<1e-12);
+assert.equal(WOILLARD_MPA.residualError,null);
+assert.equal(WOILLARD_MPA.enabled,false);

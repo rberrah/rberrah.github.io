@@ -4,7 +4,7 @@ import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learnin
 // deliberately simulated, and not an externally validated MPA PopPK model.
 import {CASE,OBSERVATIONS,SAMPLING_TIMES,posterior,doseMetrics,scenarioComparison,
   mpaConcentration,qualityGate} from './mipd-course-core.js';
-import {doubleGammaConcentration,doubleGammaAuc} from './double-gamma.js';
+import {gammaDensity,referenceGammaConcentration,referenceGammaAuc} from './double-gamma.js';
 import {WOILLARD_MPA} from './woillard-mpa-source.js';
 const $=id=>document.getElementById(id);
 const tr=(fr,en)=>lang()==='en'?en:fr;
@@ -57,7 +57,7 @@ function options(list,name){
  return '<div class="career-choices" role="radiogroup">'+list.map(item=>'<label><input type="radio" name="'+name+
   '" value="'+item[0]+'"><span>'+tr(item[1],item[2])+'</span></label>').join('')+'</div>';
 }
-function chart(svg,series,{maxTime=12,high=20,dots=[],bands=[]}={}){
+function chart(svg,series,{maxTime=12,high=20,dots=[],bands=[],yLabel=tr('Concentration totale MPA (mg/L)','Total MPA concentration (mg/L)')}={}){
  const x=t=>64+t/maxTime*626,y=c=>243-c/high*201;
  let out='<rect x="64" y="42" width="626" height="201" rx="9" fill="#0b2630"/>';
  for(let i=0;i<=4;i++){
@@ -74,7 +74,7 @@ function chart(svg,series,{maxTime=12,high=20,dots=[],bands=[]}={}){
    '" stroke-width="'+(entry.width||3)+'" points="'+entry.values.map(p=>x(p.t).toFixed(1)+','+y(p.c).toFixed(1)).join(' ')+'"/>';
  }
  for(const p of dots){out+='<circle cx="'+x(p.t)+'" cy="'+y(p.c||p.value)+'" r="5" fill="#f8c48f" stroke="#17323a" stroke-width="1.5"/>';}
- svg.innerHTML=out+'<text x="65" y="26" fill="#d3e8e0" font-size="12">'+tr('Concentration totale MPA (mg/L)','Total MPA concentration (mg/L)')+
+ svg.innerHTML=out+'<text x="65" y="26" fill="#d3e8e0" font-size="12">'+yLabel+
   '</text><text x="376" y="280" text-anchor="middle" fill="#c4dad2" font-size="12">'+tr('Temps après prise (h)','Time after dose (h)')+'</text>';
 }
 function marginal(post,key){
@@ -181,23 +181,53 @@ function stage1(){
   '<section class="career-archive" id="mipd-woillard-structure"><h3>'+tr('Woillard 2015 : comprendre la double gamma','Woillard 2015: understand double-gamma absorption')+'</h3>'+
   '<p>'+tr('Le modèle publié utilise un compartiment, deux entrées gamma parallèles et une élimination linéaire. Le plan optimal étudié comporte quatre prélèvements : 20 min, 1 h, 3 h et 6 h.','The published model uses one compartment, two parallel gamma inputs and linear elimination. The optimized schedule comprises four samples: 20 min, 1 h, 3 h and 6 h.')+'</p>'+
   metrics([[tr('Profils de développement','Development profiles'),WOILLARD_MPA.designProfiles],[tr('Profils de validation','Validation profiles'),WOILLARD_MPA.validationProfiles],[tr('RMSE relative ITS','ITS relative RMSE'),fmt(WOILLARD_MPA.validationRelativeRmsePct.ITS,2)+' %'],[tr('RMSE relative Pmetrics','Pmetrics relative RMSE'),fmt(WOILLARD_MPA.validationRelativeRmsePct.Pmetrics,2)+' %']])+
-  '<p class="career-alert">'+tr('Illustration structurelle uniquement : paramètres fictifs, non issus de la table supplémentaire de Woillard. L’estimation MAP-BE du parcours reste le modèle simple séparé.','Structural illustration only: fictional parameters, not from Woillard’s supplementary table. The pathway MAP-BE remains the separate simple model.')+'</p>'+
-  '<label class="career-note" for="mipd-gamma-fraction">'+tr('Fraction de la première absorption','Fraction of first absorption')+' <output id="mipd-gamma-fraction-value"></output></label>'+
-  '<input id="mipd-gamma-fraction" type="range" min="0" max="1" step="0.05" value="0.65" aria-label="'+tr('Fraction de la première absorption','Fraction of first absorption')+'">'+
-  '<svg id="mipd-gamma-curve" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="'+tr('Concentrations simulées avec une absorption double gamma','Simulated concentrations with double-gamma absorption')+'"></svg>'+
-  '<p class="career-chart-key"><span><i style="background:#87dfc3"></i>'+tr('Profil fictif','Fictional profile')+'</span><span><i style="background:#f8c48f"></i>'+tr('Horaires de Woillard (pas des observations)','Woillard sampling times (not observations)')+'</span></p>'+
-  '<p class="career-note" id="mipd-gamma-auc"></p><a href="https://doi.org/'+WOILLARD_MPA.doi+'" target="_blank" rel="noopener">'+tr('Article original (2015)','Original paper (2015)')+'</a></section>';
+  '<p class="career-note">'+tr('Une gamma décrit la répartition dans le temps de l’entrée du médicament : a règle la forme, b la vitesse, et a/b le temps moyen d’absorption. Deux gammas représentent deux entrées parallèles dans le même compartiment, et non deux compartiments de distribution.','A gamma distribution describes the timing of drug input: a controls shape, b controls rate, and a/b is the mean absorption time. Two gamma functions represent two parallel inputs into one compartment, not two distribution compartments.')+'</p>'+
+  '<div class="career-archive"><strong>'+tr('Deux entrées, une seule élimination','Two inputs, one elimination process')+'</strong>'+
+  '<svg viewBox="0 0 730 122" class="career-chart" role="img" aria-label="'+tr('Deux absorptions parallèles vers un compartiment central','Two parallel absorption routes into one central compartment')+'"><g fill="#123f47" stroke="#76bfb8"><rect x="20" y="12" width="160" height="38" rx="8"/><rect x="20" y="72" width="160" height="38" rx="8"/><rect x="300" y="40" width="180" height="42" rx="8"/></g><g fill="#e0f0eb" font-size="14" text-anchor="middle"><text x="100" y="36">Gamma 1 · r</text><text x="100" y="96">Gamma 2 · 1−r</text><text x="390" y="66">MPA · 1C</text></g><g stroke="#a5dfd0" fill="none" stroke-width="2"><path d="M180 31 H235 V61 H300 M180 91 H235 V61 M292 55 L300 61 L292 67 M480 61 H650 M642 55 L650 61 L642 67"/></g><text x="565" y="49" fill="#e0f0eb" text-anchor="middle" font-size="13">α · '+tr('Élimination','Elimination')+'</text></svg></div>'+
+  '<p class="career-alert">'+tr('Moyennes publiées : ITS et Pmetrics. Les conventions de calcul (b en h⁻¹, dose de référence 100 mg et C0 constant) proviennent de publications méthodologiques apparentées et restent à confirmer pour le code de 2015. Le MAP-BE historique n’est pas encore reproduit.','Published means: ITS and Pmetrics. Calculation conventions (b in h⁻¹, 100 mg reference dose and constant C0) come from related methodological papers and still need confirmation for the 2015 implementation. The historical MAP-BE has not yet been reproduced.')+'</p>'+
+  '<label class="career-note" for="mipd-gamma-source">'+tr('Paramètres populationnels publiés','Published population parameters')+'</label> <select id="mipd-gamma-source"><option value="ITS">ITS</option><option value="Pmetrics">Pmetrics</option></select>'+
+  '<div id="mipd-gamma-table" class="career-table-wrap"></div>'+
+  '<label class="career-note" for="mipd-gamma-fraction">'+tr('Fraction de la première absorption r','Fraction of first absorption r')+' <output id="mipd-gamma-fraction-value"></output></label>'+
+  '<input id="mipd-gamma-fraction" type="range" min="0" max="1" step="0.01" value="0.47" aria-label="'+tr('Fraction de la première absorption','Fraction of first absorption')+'">'+
+  '<label class="career-note" for="mipd-gamma-delay">'+tr('Vitesse de la deuxième absorption (× b₂ publié)','Second absorption rate (× published b₂)')+' <output id="mipd-gamma-delay-value"></output></label>'+
+  '<input id="mipd-gamma-delay" type="range" min="0.2" max="2" step="0.05" value="1" aria-label="'+tr('Vitesse de la deuxième absorption','Second absorption rate')+'">'+
+  '<button id="mipd-gamma-reset" class="career-action" type="button">'+tr('Restaurer les moyennes publiées','Restore published means')+'</button>'+
+  '<h4>'+tr('1. Débit d’absorption : chaque entrée et leur somme','1. Absorption rate: each input and their sum')+'</h4>'+
+  '<svg id="mipd-gamma-input" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="'+tr('Deux fonctions gamma et leur somme','Two gamma functions and their sum')+'"></svg>'+
+  '<p class="career-chart-key"><span><i style="background:#78b8e7"></i>Gamma 1</span><span><i style="background:#e2ad70"></i>Gamma 2</span><span><i style="background:#87dfc3"></i>'+tr('Somme','Sum')+'</span></p>'+
+  '<h4>'+tr('2. Concentration : absorption et élimination simultanées','2. Concentration: simultaneous absorption and elimination')+'</h4>'+
+  '<svg id="mipd-gamma-curve" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="'+tr('Concentrations calculées avec les paramètres de Woillard','Concentrations calculated using Woillard parameters')+'"></svg>'+
+  '<p class="career-chart-key"><span><i style="background:#87dfc3"></i>'+tr('Profil calculé','Calculated profile')+'</span><span><i style="background:#f8c48f"></i>'+tr('Horaires de Woillard (pas des observations)','Woillard sampling times (not observations)')+'</span></p>'+
+  '<p class="career-note" id="mipd-gamma-auc"></p><p class="career-note">'+tr('Un deuxième pic peut apparaître, mais deux entrées ne garantissent pas deux pics visibles. Ce modèle empirique ne démontre pas un cycle entérohépatique. Les paramètres modifiés sont des scénarios pédagogiques ; les CV publiés ne suffisent pas pour reproduire le prior joint.','A second peak may appear, but two inputs do not guarantee two visible peaks. This empirical model does not prove enterohepatic recycling. Modified parameters are teaching scenarios; published CVs alone do not reproduce the joint prior.')+'</p>'+
+  '<a href="https://doi.org/'+WOILLARD_MPA.doi+'" target="_blank" rel="noopener">'+tr('Article original (2015)','Original paper (2015)')+'</a> · <a href="https://doi.org/'+WOILLARD_MPA.conventionSource+'" target="_blank" rel="noopener">'+tr('Convention de calcul apparentée','Related calculation convention')+'</a></section>';
  function drawGamma(){
-  const fraction=Number($('mipd-gamma-fraction').value);
-  const p={dose:1000,cl:25,v:80,tau:12,a1:2.5,b1:4,a2:5.2,b2:.8,f:fraction};
-  const values=Array.from({length:121},(_,i)=>({t:i/10,c:doubleGammaConcentration(i/10,p)}));
-  const dots=WOILLARD_MPA.samplingHours.map(t=>({t,c:doubleGammaConcentration(t,p)}));
-  chart($('mipd-gamma-curve'),[{values,color:'#87dfc3'}],{high:15,dots});
+  const method=$('mipd-gamma-source').value;
+  const base=WOILLARD_MPA.populationParameters[method],cv=WOILLARD_MPA.variability[method];
+  const fraction=Number($('mipd-gamma-fraction').value),speed=Number($('mipd-gamma-delay').value);
+  const p={...base,r:fraction,b2:base.b2*speed};
+  const times=Array.from({length:241},(_,i)=>i/20);
+  const g1=times.map(t=>({t,c:p.r*gammaDensity(t,p.a1,p.b1)}));
+  const g2=times.map(t=>({t,c:(1-p.r)*gammaDensity(t,p.a2,p.b2)}));
+  const sum=g1.map((q,i)=>({t:q.t,c:q.c+g2[i].c}));
+  chart($('mipd-gamma-input'),[{values:g1,color:'#78b8e7'},{values:g2,color:'#e2ad70'},{values:sum,color:'#87dfc3'}],{high:Math.max(1,...sum.map(q=>q.c))*1.12,yLabel:tr('Fraction de dose absorbée par heure (h⁻¹)','Fraction of dose absorbed per hour (h⁻¹)')});
+  const values=times.map(t=>({t,c:referenceGammaConcentration(t,p,1000)}));
+  const dots=WOILLARD_MPA.samplingHours.map(t=>({t,c:referenceGammaConcentration(t,p,1000)}));
+  chart($('mipd-gamma-curve'),[{values,color:'#87dfc3'}],{high:Math.max(1,...values.map(q=>q.c))*1.12,dots});
   $('mipd-gamma-fraction-value').textContent=fmt(fraction*100,0)+' %';
-  $('mipd-gamma-auc').textContent=tr('AUC à l’équilibre : ','Steady-state AUC: ')+fmt(doubleGammaAuc(p),1)+' mg·h/L. '+tr('La forme change, pas l’AUC, à dose et clairance constantes.','The profile shape changes, but AUC does not at constant dose and clearance.');
+  $('mipd-gamma-delay-value').textContent='× '+fmt(speed,2);
+  $('mipd-gamma-auc').textContent='MAT₁ = '+fmt(p.a1/p.b1,2)+' h · MAT₂ = '+fmt(p.a2/p.b2,2)+' h · AUC₀–₁₂h = '+fmt(referenceGammaAuc(12,p,1000),2)+' mg·h/L · '+tr('dose illustrative 1000 mg','illustrative 1000 mg dose');
+  const labels={c0:'C0',a1:'a₁',b1:'b₁',a2:'a₂',b2:'b₂',r:'r',faiv:'FAIV',alpha:'α'};
+  $('mipd-gamma-table').innerHTML='<table class="career-table"><thead><tr><th>'+tr('Paramètre','Parameter')+'</th><th>'+tr('Moyenne publiée','Published mean')+'</th><th>CV (%)</th></tr></thead><tbody>'+Object.keys(labels).map(k=>'<tr><td>'+labels[k]+'</td><td>'+fmt(base[k],2)+'</td><td>'+fmt(cv[k],1)+'</td></tr>').join('')+'</tbody></table>';
  }
+ function resetGamma(){
+  $('mipd-gamma-fraction').value=String(WOILLARD_MPA.populationParameters[$('mipd-gamma-source').value].r);
+  $('mipd-gamma-delay').value='1';drawGamma();
+ }
+ $('mipd-gamma-source').addEventListener('change',resetGamma);
+ $('mipd-gamma-reset').addEventListener('click',resetGamma);
  $('mipd-gamma-fraction').addEventListener('input',drawGamma);
- drawGamma();
+ $('mipd-gamma-delay').addEventListener('input',drawGamma);
+ resetGamma();
 }
 function stage2(){
  $('mipd-workspace').innerHTML=story(

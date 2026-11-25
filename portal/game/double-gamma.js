@@ -46,3 +46,41 @@ export function doubleGammaConcentration(t,p){
  return p.dose/p.v*((p.f===0?0:p.f*component(phase,k,p.tau,p.a1,p.b1))+(p.f===1?0:(1-p.f)*component(phase,k,p.tau,p.a2,p.b2)));
 }
 export function doubleGammaAuc(p){check(p);return p.dose/p.cl;}
+
+// Reference-dose, independent baseline convention used in the Limoges gamma
+// modeling family (Fromage 2025, DOI 10.1111/bcp.16374). Not periodic superposition.
+export function gammaDensity(t,a,b){
+ if(![t,a,b].every(Number.isFinite)||t<0||a<=0||b<=0)throw new RangeError('Invalid gamma input');
+ if(t===0)return a===1?b:a>1?0:Infinity;
+ return Math.exp(a*Math.log(b)+(a-1)*Math.log(t)-b*t-logGamma(a));
+}
+function finiteGammaIntegral(t,a,b,weight){
+ if(t===0)return 0;
+ const zmax=Math.min(b*t,Math.max(65,2*a+45)),lg=logGamma(a);
+ let sum=0;
+ for(let lo=0;lo<zmax;lo+=1){
+  const hi=Math.min(lo+1,zmax);
+  if(lo===0&&a<1){
+   const amplitude=Math.exp(a*Math.log(hi)-Math.log(a)-lg);
+   sum+=integrate(x=>{const z=hi*x**(1/a);return amplitude*Math.exp(-z)*weight(z/b);},0,1);
+  }else if(lo===0){
+   const m=8,amplitude=m*Math.exp(a*Math.log(hi)-lg);
+   sum+=integrate(x=>{const z=hi*x**m;return amplitude*x**(m*a-1)*Math.exp(-z)*weight(z/b);},0,1);
+  }else sum+=integrate(z=>Math.exp((a-1)*Math.log(z)-z-lg)*weight(z/b),lo,hi);
+ }
+ return sum;
+}
+function checkReference(t,p,dose){
+ if(![t,dose,p.c0,p.a1,p.b1,p.a2,p.b2,p.r,p.faiv,p.alpha].every(Number.isFinite)||t<0||dose<0||p.c0<0||p.faiv<=0||p.alpha<=0||p.r<0||p.r>1||p.a1<=0||p.a2<=0||p.b1<=0||p.b2<=0)throw new RangeError('Invalid reference-dose parameters');
+}
+function mixedIntegral(t,p,weight){
+ return p.r*finiteGammaIntegral(t,p.a1,p.b1,weight)+(1-p.r)*finiteGammaIntegral(t,p.a2,p.b2,weight);
+}
+export function referenceGammaConcentration(t,p,dose){
+ checkReference(t,p,dose);
+ return dose/100*(p.c0+p.faiv*mixedIntegral(t,p,u=>Math.exp(-p.alpha*(t-u))));
+}
+export function referenceGammaAuc(t,p,dose){
+ checkReference(t,p,dose);
+ return dose/100*(p.c0*t+p.faiv*mixedIntegral(t,p,u=>-Math.expm1(-p.alpha*(t-u))/p.alpha));
+}
