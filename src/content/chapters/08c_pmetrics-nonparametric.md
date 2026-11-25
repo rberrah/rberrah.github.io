@@ -15,10 +15,8 @@ slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
 software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
-reviewed_on: "2026-10-12"
-review_type: "author"
 review_pending: true
-reviewed_hash: "87e8d5446c855f14801c8072fe2f8474ab13af76d73195ab1320dcbb05c7a653"
+review_type: "author"
 quiz:
   - prompt: "Dans Pmetrics, ab(0.02, 0.5) définit pour NPAG..."
     options:
@@ -192,6 +190,24 @@ Une simulation qui tire directement un point conserve la distribution discrète 
 Les trois artefacts disponibles sont des **démonstrations synthétiques** IV à un compartiment, orale à un compartiment et IV à deux compartiments ; ce ne sont pas des distributions estimées dans des articles. Les covariables ne sont pas encore prises en charge par ce backend. Les données et fichiers d'ajustement sont temporaires ; les artefacts de démonstration publics ne contiennent pas de données patients.
 
 **Disponibilité vérifiée le 12 octobre 2026 :** backend natif testé localement et présent dans le dépôt. Un test navigateur du moteur public confirme que la source Pmetrics n'y est pas disponible. Il ne s'agit pas d'une incompatibilité générale entre Pmetrics et Shiny : le déploiement Shinyapps.io testé reste bloqué par la version Rust/Cargo de son image de construction. Aucune ancienne version de Pmetrics n'a été imposée pour contourner ce blocage. Le traducteur Pmetrics et ce cours restent accessibles sur le site.
+<!-- /step -->
+
+<!-- step:title="Cas pratique : MPA, de ITS à Pmetrics" -->
+Dans l'étude de [Woillard et al. 2015](https://doi.org/10.1016/j.phrs.2015.07.012), les deux méthodes partagent une structure **1C, double gamma**, mais pas la représentation de la variabilité. Revoir [l'absorption double gamma](/pharmacometrie/chapitres/absorption-orale/?lang=fr) avant cet atelier.
+
+Une distribution non paramétrique discrète contient des vecteurs \(\theta_j\) et des poids \(w_j\). Pour des observations \(y_i\), la vraisemblance marginale d'un sujet est :
+
+$$ L_i=\sum_j w_j p(y_i\mid\theta_j) $$
+
+Sur une grille fixe, une itération EM calcule les probabilités conditionnelles de chaque point pour chaque sujet, puis actualise les poids par leur moyenne. NPAG va au-delà de cet exercice : il adapte également les points de recherche. Après ajustement de population, l'actualisation individuelle utilise des supports fixés :
+
+$$ w_{j\mid y}=\frac{w_j p(y\mid\theta_j)}{\sum_k w_k p(y\mid\theta_k)} $$
+
+Le point de plus forte probabilité, les paramètres moyens postérieurs et la moyenne des prédictions peuvent différer. L'AUC moyenne postérieure se calcule en pondérant les AUC de chacun des points ; elle n'est pas automatiquement l'AUC calculée avec les paramètres moyens.
+
+**Dans la publication :** 37 profils de développement, 19 de validation, quatre prélèvements (20 min, 1 h, 3 h, 6 h) et RMSE relatives de l'AUC de 18,92 % (ITS) et 18,80 % (Pmetrics). Le supplément donne des moyennes et CV, pas les supports et poids originaux. Ces résumés ne permettent pas de reconstruire la distribution discrète.
+
+**Mise en pratique :** [PMx Game — parcours 4 Pmetrics](/pharmacometrie/game/?lang=fr) propose une estimation des poids sur une grille fixe et des observations entièrement synthétiques, puis une actualisation individuelle. Ce n'est pas un ajustement NPAG natif ni une reproduction du modèle clinique. Le parcours 5 MIPD permet ensuite de comparer l'inférence paramétrique et l'individualisation.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->

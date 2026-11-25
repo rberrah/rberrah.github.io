@@ -15,10 +15,8 @@ slides: []
 sources: ["pmetrics","neely-pmetrics","yamada-npag"]
 software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
-reviewed_on: "2026-10-12"
-review_type: "author"
 review_pending: true
-reviewed_hash: "cc92c0b2b979507184f96c21cf447efe44fd88f3c59f40637b49a6eed5fd0915"
+review_type: "author"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
     options:
@@ -186,6 +184,24 @@ A simulation that directly samples a support point preserves the estimated discr
 The three available artifacts are **synthetic demonstrations** for one-compartment IV, one-compartment oral and two-compartment IV models; they are not distributions estimated in publications. Covariates are not yet supported by this backend. Patient data and fitting files are temporary; public demonstration artifacts contain no patient data.
 
 **Availability verified on 12 October 2026:** the native backend is tested locally and included in the repository. A browser test confirms that the public engine does not expose the Pmetrics source. This is not a general incompatibility between Pmetrics and Shiny: the tested Shinyapps.io deployment remains blocked by the build image's Rust/Cargo version. No old Pmetrics version was forced as a workaround. The Pmetrics translator and this course remain accessible on the website.
+<!-- /step -->
+
+<!-- step:title="Worked case: MPA, from ITS to Pmetrics" -->
+In [Woillard et al. 2015](https://doi.org/10.1016/j.phrs.2015.07.012), both methods share a **1C, double-gamma** structure but represent variability differently. Review [double-gamma absorption](/pharmacometrie/chapitres/absorption-orale/?lang=en) before this workshop.
+
+A discrete nonparametric distribution contains vectors \(\theta_j\) and weights \(w_j\). Given observations \(y_i\), the marginal likelihood for one subject is:
+
+$$ L_i=\sum_j w_j p(y_i\mid\theta_j) $$
+
+On a fixed grid, an EM iteration computes conditional probabilities for each subject and point, then updates weights by averaging those probabilities. NPAG goes beyond this exercise: it also adapts the search points. After population fitting, individual updating uses fixed support points:
+
+$$ w_{j\mid y}=\frac{w_j p(y\mid\theta_j)}{\sum_k w_k p(y\mid\theta_k)} $$
+
+The highest-probability point, posterior mean parameters and mean predictions can differ. Posterior mean AUC is the weighted mean of the support-specific AUCs, not necessarily the AUC obtained using mean parameters.
+
+**Published findings:** 37 development profiles, 19 validation profiles, four samples (20 min, 1 h, 3 h, 6 h) and relative AUC RMSE of 18.92% (ITS) and 18.80% (Pmetrics). The supplement reports means and CVs, not the original support points and weights. These summaries cannot reconstruct the discrete distribution.
+
+**Practice:** [PMx Game — Path 4 Pmetrics](/pharmacometrie/game/?lang=en) fits weights on a fixed grid using entirely synthetic observations, then updates an individual posterior. It is not a native NPAG fit or a clinical model reproduction. Path 5 MIPD then explores parametric inference and dose individualization.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

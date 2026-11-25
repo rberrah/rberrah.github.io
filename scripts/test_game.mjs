@@ -254,3 +254,24 @@ assert.equal(gammaDensity(0,2,4),0);
 assert.ok(Math.abs(gammaDensity(1,1,2)-2*Math.exp(-2))<1e-12);
 assert.equal(WOILLARD_MPA.residualError,null);
 assert.equal(WOILLARD_MPA.enabled,false);
+
+import {SUPPORTS,INITIAL,TIMES,PATIENT,SYNTHETIC_PROFILES,fitFixedGrid,updateWeights,summarize,populationLogLikelihood} from '../portal/game/pmetrics-course-core.js';
+assert.equal(SUPPORTS.length,5);
+assert.equal(SYNTHETIC_PROFILES.length,12);
+assert.deepEqual(TIMES,[1/3,1,3,6]);
+const npFit=fitFixedGrid(20);
+for(let i=0;i<npFit.length;i++){
+ const row=npFit[i];assert.ok(Math.abs(row.weights.reduce((s,w)=>s+w,0)-1)<1e-12);
+ assert.ok(row.weights.every(w=>w>=0&&Number.isFinite(w)));
+ if(i)assert.ok(row.ll>=npFit[i-1].ll-1e-10);
+}
+assert.ok(npFit.at(-1).ll>npFit[0].ll);
+const npPrior=npFit.at(-1).weights;
+const npEmpty=updateWeights(npPrior,[]).weights;
+npEmpty.forEach((w,i)=>assert.ok(Math.abs(w-npPrior[i])<1e-12));
+const npPost=updateWeights(npPrior,PATIENT).weights;
+assert.ok(npPost[4]>npPrior[4]);
+assert.equal(summarize(npPost).map,4);
+assert.ok(summarize(npPost).aucMean>0);
+assert.throws(()=>updateWeights([1,1,1,1,1],PATIENT));
+console.log('PASS: fixed-support mixture likelihood, discrete Bayesian update and synthetic source isolation.');

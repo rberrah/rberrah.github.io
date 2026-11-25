@@ -626,3 +626,30 @@ test('Woillard double gamma illustration is bilingual and not presented as a cal
  await page.locator('#game-lang-fr').click();
  await expect(panel).toContainText('Moyennes publiées : ITS et Pmetrics');
 });
+
+test('Pmetrics fifth-track navigation, fixed-grid fit, and Bayesian update are bilingual',async({page})=>{
+ await page.goto(origin+'/pharmacometrie/game/?lang=en');
+ await page.locator('#mode-pmetrics').click();
+ await expect(page.locator('#pmetrics-mode')).toBeVisible();
+ await expect(page.locator('#mipd-mode')).toBeHidden();
+ await expect(page.locator('#mode-mipd')).toContainText('Path 5');
+ await expect(page.locator('#pmetrics-title')).toHaveText('Understand double-gamma absorption');
+ await expect(page.locator('#np-input polyline')).toHaveCount(3);
+ await page.locator('#game-free-mode').check();
+ await page.locator('#pmetrics-steps button').nth(2).click();
+ const before=await page.locator('#np-fit-status').textContent();
+ await page.locator('#np-fit').click();
+ await expect(page.locator('#np-fit-status')).toContainText('Iteration 20');
+ await expect(page.locator('#np-fit-status')).not.toHaveText(before);
+ await expect(page.locator('#pmetrics-progress')).toHaveText('0 / 5');
+ await page.locator('#pmetrics-steps button').nth(3).click();
+ await page.locator('#np-samples').fill('0');
+ await expect(page.locator('#np-patient circle')).toHaveCount(0);
+ await page.locator('#np-samples').fill('4');
+ await expect(page.locator('#np-patient circle')).toHaveCount(4);
+ await page.locator('#game-lang-fr').click();
+ await expect(page.locator('#pmetrics-title')).toHaveText('Actualiser les probabilités du patient');
+ await page.locator('#pmetrics-steps button').last().click();
+ await page.locator('#np-go-mipd').click();
+ await expect(page.locator('#mipd-mode')).toBeVisible();
+});

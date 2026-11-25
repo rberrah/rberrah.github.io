@@ -1,5 +1,5 @@
 import { isFree, firstIncomplete, canVisit, normalizeCompleted } from './learning-mode.js';
-// PMx Game path 4 — MPA after heart transplantation (fictional patient).
+// PMx Game path 5 — MPA after heart transplantation (fictional patient).
 // The numeric target is documented; the structural model and observations are
 // deliberately simulated, and not an externally validated MPA PopPK model.
 import {CASE,OBSERVATIONS,SAMPLING_TIMES,posterior,doseMetrics,scenarioComparison,
@@ -168,6 +168,7 @@ function stage1(){
   'For immediate-release oral MMF, a limited sampling schedule at <strong>0.5 h, 1 h, 2 h</strong> has been studied in heart transplant recipients to estimate MPA AUC. Evaluate it <em>in context</em>; do not generalize to other models or formulations.')+
   metrics([[tr('Prélèvement 1','Sample 1'),'0.5 h'],[tr('Prélèvement 2','Sample 2'),'1 h'],[tr('Prélèvement 3','Sample 3'),'2 h'],
    [tr('Voie et formulation','Route and formulation'),tr('MMF oral immédiat','Immediate-release oral MMF')]])+
+  '<p class="career-note"><a href="/pharmacometrie/chapitres/absorption-orale/?lang='+lang()+'" target="_blank" rel="noopener">'+tr('Cours : absorption et double gamma','Lesson: absorption and double gamma')+'</a> · <button type="button" class="career-action" id="mipd-go-pmetrics">'+tr('Parcours Pmetrics','Pmetrics pathway')+'</button></p>'+
   '<p class="career-note">'+tr('Les horaires sont proposés : il faut vérifier leur justification dans la littérature et leur compatibilité avec le modèle retenu.',
    'Sampling times are proposed: verify supporting evidence and compatibility with the selected model.')+'</p>'+
   options([['three','Ce plan est documenté dans cette situation, mais sa précision dépend du modèle, de la formulation et du contexte.','This plan has supporting evidence in this setting, but accuracy depends on model, formulation and context.'],
@@ -228,6 +229,7 @@ function stage1(){
  $('mipd-gamma-fraction').addEventListener('input',drawGamma);
  $('mipd-gamma-delay').addEventListener('input',drawGamma);
  resetGamma();
+ $('mipd-go-pmetrics').onclick=()=>$('mode-pmetrics').click();
 }
 function stage2(){
  $('mipd-workspace').innerHTML=story(
