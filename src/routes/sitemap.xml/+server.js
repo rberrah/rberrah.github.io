@@ -31,6 +31,7 @@ const FIXED_PAGES = [
   '/ecosystem/',
   '/domaines/',
   '/references/',
+  '/actualites/',
   '/a-propos/',
   '/confidentialite/'
 ];

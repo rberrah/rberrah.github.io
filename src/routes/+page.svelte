@@ -3,6 +3,8 @@
   const base = resolve('/').replace(/\/$/, '');
   import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, GraduationCap, ArrowRight } from '@lucide/svelte';
   import chapters from '#lib/content/loadChapters.js';
+  import { newsEntries, newsDate } from '#lib/content/news.js';
+  $: latestNews = newsEntries[0][$language === 'en' ? 'en' : 'fr'];
   import { beginnerTrack, tracks, chaptersByTrack } from '#lib/content/tracks.js';
   import { language } from '#lib/stores/language.js';
   import { localizeChapter, localizeTrack, ui } from '#lib/i18n/translations.js';
@@ -61,6 +63,12 @@
     <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
   </div>
   <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>
+</section>
+
+<section class="news-strip" aria-label={$language === 'en' ? 'Latest update' : 'Dernière actualité'} data-testid="latest-news">
+  <div><p class="eyebrow">{$language === 'en' ? 'LATEST UPDATE' : 'DERNIÈRE ACTUALITÉ'} · <time datetime={newsEntries[0].date}>{newsDate(newsEntries[0].date, $language)}</time></p>
+    <p class="news-title">{latestNews.title}</p></div>
+  <a href={`${base}/actualites/?lang=${$language}`} data-testid="home-news-link">{$language === 'en' ? 'All updates' : 'Toutes les actualités'} <ArrowRight size={16} aria-hidden="true" /></a>
 </section>
 
 <!-- Primary interactive-learning entry; older guided chapter track remains available. -->
@@ -200,6 +208,10 @@
   .beginner-feature-details span { display: inline-flex; align-items: center; gap: var(--space-2); }
   .beginner-feature-details :global(svg) { flex-shrink: 0; color: var(--accent-pk); }
   .beginner-feature-link { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); white-space: nowrap; }
+  .news-strip { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 24px; padding:16px 0; margin-bottom:24px; border-block:1px solid var(--border-subtle); }
+  .news-strip .eyebrow { margin:0 0 6px; }
+  .news-title { margin:0; font-weight:600; color:var(--text-primary); }
+  .news-strip a { display:inline-flex; gap:8px; align-items:center; font-weight:600; }
   .objectives { padding: 24px 0; border-block: 1px solid var(--border-strong); margin-bottom: 24px; }
   .objectives h2 { font-size: 22px; letter-spacing: 0; }
   .objectives > div { display: grid; grid-template-columns: repeat(auto-fit,minmax(205px,1fr)); gap: 12px 24px; }

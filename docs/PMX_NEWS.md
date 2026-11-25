@@ -1,0 +1,3 @@
+# Journal des actualités PMx Explain
+
+Source éditoriale unique : `src/lib/content/news.js`. Ajouter une entrée lorsque la modification est **déployée avec succès**, jamais au simple merge. Date de publication Europe/Paris, identifiant stable, catégorie, lien vers la fonctionnalité, résumé FR et EN de même portée, numéro de PR publique et ID du déploiement réussi. Placer les nouvelles entrées en tête (ordre antichronologique). Regrouper les corrections mineures en une annonce utile au lecteur. Ne pas publier de données privées, de résultats non validés ni de promesses de fonctionnalité. L’accueil et la page Actualités lisent la même source. L’actualisation se fait avec les prochaines versions ; aucun flux de commits en direct ni appel GitHub depuis le navigateur.
