@@ -503,8 +503,8 @@ function renderDiagnostics(){
     '<details open><summary><strong>1. Ajustements individuels et GOF</strong></summary>'+
     '<p class="career-note">Points DV ; courbe bleu pâle PRED (population) ; courbe verte IPRED (EBE CL). Les deux GOF ci-dessous confrontent les valeurs observées aux prédictions ; ligne pointillée = identité.</p>'+
     '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Fit individuel DV, PRED et IPRED"></svg>'+
-    '<div class="career-plot-grid"><figure><figcaption>DV versus PRED (population)</figcaption><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus population predictions"></svg></figure>'+
-    '<figure><figcaption>DV versus IPRED (individuel)</figcaption><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg></figure></div>'+diagnosticQuiz('gof')+'</details>'+
+    '<div class="career-plot-grid"><figure><figcaption>DV versus PRED (population)</figcaption><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observations versus prédictions populationnelles"></svg></figure>'+
+    '<figure><figcaption>DV versus IPRED (individuel)</figcaption><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observations versus prédictions individuelles"></svg></figure></div>'+diagnosticQuiz('gof')+'</details>'+
     '<details><summary><strong>2. Résidus et leur distribution</strong></summary>'+
     '<p class="career-note">Résidus conditionnels <em>approximatifs</em> : [log(DV) − log(IPRED)] / σlog. Ce ne sont <strong>ni des CWRES, ni des NPDE</strong> : les calculs correspondants ne sont pas disponibles.</p>'+
     '<div class="career-plot-grid"><figure><figcaption>Résidus versus temps</figcaption><svg id="pop-resid-time" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus temps"></svg></figure>'+
