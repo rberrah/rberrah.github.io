@@ -133,6 +133,8 @@ function refresh(){
   document.getElementById('game-lang-fr')?.setAttribute('aria-pressed',String(current==='fr'));
   document.getElementById('game-lang-en')?.setAttribute('aria-pressed',String(current==='en'));
   updateNode(document.body);
+  const description=document.querySelector('meta[name="description"]');
+  if(description)description.content=current==='en'?'Interactive educational laboratory for compartmental pharmacokinetics.':'Laboratoire pédagogique interactif de pharmacocinétique compartimentale.';
   document.title=current==='en'?'PMx Game · Interactive pharmacokinetics':'PMx Game · Laboratoire de pharmacocinétique';
 }
 function setLanguage(lang){
