@@ -330,7 +330,10 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
   .home-pmx { padding:1rem; }
 }
 @media(max-width:370px) {
-  .home-identity { padding-top:.85rem; padding-bottom:.25rem; }
+  .home-identity { padding-top:.65rem; padding-bottom:0; }
+  .home-identity .intro-copy { margin-block:.45rem; }
+  .home-identity .affiliation { line-height:1.4; margin-bottom:.35rem; }
+  .home-pmx > .wrap > .eyebrow { margin-bottom:.3rem; }
   .home-identity h1 { font-size:2.6rem; margin-bottom:.5rem; }
   .home-pmx { padding:.8rem; }
 }
