@@ -368,6 +368,6 @@ const referenceWhereEn = {
 export function localizeReference(reference, lang) {
   if (!reference || lang !== 'en') return reference;
   const note = referenceNotesEn[reference.id];
-  const title = referenceTitlesEn[reference.id] ?? (note ? reference.title.replace(/\s+\([^()]*\)$/, ' (' + note + ')') : reference.title);
+  const title = referenceTitlesEn[reference.id] ?? (note ? reference.title.replace(/\s+\([\s\S]*\)$/, ' (' + note + ')') : reference.title);
   return { ...reference, title, where: referenceWhereEn[reference.id] ?? reference.where };
 }
