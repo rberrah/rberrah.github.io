@@ -34,6 +34,7 @@ def get(url, label, ua=NORMAL_UA, kind=None, required=True):
             status = response.status
             final = response.geturl()
             ctype = response.headers.get("Content-Type", "<missing>")
+            robots_header = response.headers.get("X-Robots-Tag", "")
             body = response.read(2_000_000)
     except urllib.error.HTTPError as error:
         level = "FAIL" if required else "WARN"
@@ -46,7 +47,7 @@ def get(url, label, ua=NORMAL_UA, kind=None, required=True):
         report(label, "connection error", required)
         return None
 
-    print(f"HTTP [{label}] {status} {url} -> {final} ({ctype}, {len(body)} bytes)", flush=True)
+    print(f"HTTP [{label}] {status} {url} -> {final} ({ctype}, {len(body)} bytes, X-Robots-Tag={robots_header!r})", flush=True)
     if status != 200 or final != url:
         report(label, f"HTTP {status} or redirect to {final}", required)
     if kind == "xml":
@@ -65,8 +66,13 @@ def get(url, label, ua=NORMAL_UA, kind=None, required=True):
         print(f"XML [{label}] <{node}>; {len(locations)} <loc> values", flush=True)
         if not locations:
             report(label, "empty sitemap", required)
+        if len(set(locations)) != len(locations):
+            report(label, "duplicate sitemap locations", required)
+        if "__SITE_ORIGIN__" in body.decode("utf-8", errors="replace"):
+            report(label, "unresolved site origin placeholder", required)
         for location in locations:
-            if urlparse(location).netloc != urlparse(ORIGIN).netloc:
+            parsed = urlparse(location)
+            if parsed.scheme != urlparse(ORIGIN).scheme or parsed.netloc != urlparse(ORIGIN).netloc or parsed.fragment or parsed.query:
                 report(label, f"outside-site <loc>: {location}", required)
         return node, locations
     if kind == "robots":
@@ -173,6 +179,8 @@ def main():
     get(ORIGIN + "/sitemap-index.xml", "index/simulated-Googlebot", ua=GOOGLEBOT_UA, kind="xml")
     get(ORIGIN + "/sitemap.xml", "portal/browser", kind="xml")
     get(ORIGIN + "/sitemap.xml", "portal/simulated-Googlebot", ua=GOOGLEBOT_UA, kind="xml")
+    if index and index[0] != "sitemapindex":
+        failures.append("index: expected sitemapindex root")
     if index and index[0] == "sitemapindex":
         required_children = {
             ORIGIN + "/sitemap.xml",
@@ -191,6 +199,8 @@ def main():
                     kind="xml",
                     required=child in required_children,
                 )
+                get(child, "index child simulated-Googlebot " + urlparse(child).path,
+                    ua=GOOGLEBOT_UA, kind="xml", required=child in required_children)
     # Verify representative indexable pages as real HTML, not only sitemap XML.
     for path in [
         "/", "/tools/", "/publications/", "/pharmacometrie/",
