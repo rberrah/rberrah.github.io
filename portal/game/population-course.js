@@ -215,11 +215,9 @@ function plotResidualError(el,sigma){
     svg+='<polyline points="'+data.map(p=>x(p.pred).toFixed(2)+','+y(p[field]).toFixed(2)).join(' ')+
       '" fill="none" stroke="'+color+'" stroke-width="'+(field==='median'?3:1.6)+'" '+dash+'/>';
   }
-  const en=document.documentElement.lang==='en';
-  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">'+
-    (en?'Predicted observation (mg/L)':'Observation prédite (mg/L)')+'</text>'+
-    '<text x="377" y="281" text-anchor="middle" fill="#c8ddd8" font-size="12">'+
-    (en?'Individual prediction IPRED (mg/L)':'Prédiction individuelle IPRED (mg/L)')+'</text>';
+  // Keep French source nodes so the locale observer can restore them on language changes.
+  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">Observation prédite (mg/L)</text>'+
+    '<text x="377" y="281" text-anchor="middle" fill="#c8ddd8" font-size="12">Prédiction individuelle IPRED (mg/L)</text>';
 }
 function normQuantile(p){
   // Acklam approximation; used solely for a diagnostic QQ axis, not inference.

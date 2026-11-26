@@ -126,5 +126,9 @@ export const FR_EN_AUDIT = {
   "Marginalisation numérique 1D de ηCL, quadrature de Gauss–Legendre à 161 nœuds; BIC approximatif et non sortie Monolix/nlmixr2.": "One-dimensional numerical marginalization over ηCL, 161-node Gauss–Legendre quadrature; approximate BIC, not Monolix/nlmixr2 output.",
   "Replay d’ajustements réellement calculés par un moteur de démonstration non validé. Ne pas assimiler au SAEM Monolix, à une validation externe ou à un modèle utilisable en clinique.": "Replay of fits actually computed by an unvalidated demonstration engine. This is not Monolix SAEM, external validation or a clinically usable model.",
   "Oral 1C, sans Tlag": "Oral 1C, without Tlag",
-  "Oral 2C, sans Tlag": "Oral 2C, without Tlag"
+  "Oral 2C, sans Tlag": "Oral 2C, without Tlag",
+  "Médicament imaginaire : CMI = 2 mg/L, fraction libre 80 %, bolus IV répétés, modèle 1C. Atteignez fT > CMI ≥ 70 % et AUC24 ≤ 150 mg·h/L.": "Fictional drug: MIC = 2 mg/L, unbound fraction 80%, repeated IV boluses, one-compartment model. Achieve fT > MIC ≥ 70% and AUC24 ≤ 150 mg·h/L.",
+  "et non d’un algorithme tournant dans votre navigateur. Sélectionnez un modèle pour examiner sa trajectoire. Le tableau contient dès le départ les résultats des trois modèles.": "and not from an algorithm running in your browser. Select a model to examine its trajectory. The table displays the results of all three models from the outset.",
+  "Observation prédite (mg/L)": "Predicted observation (mg/L)",
+  "Prédiction individuelle IPRED (mg/L)": "Individual prediction IPRED (mg/L)"
 };
