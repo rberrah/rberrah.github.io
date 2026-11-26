@@ -872,7 +872,7 @@ async function collectGameLanguage(page, section){
    const s=value.replace(/\s+/g,' ').trim();
    if(s&&/[a-zA-ZÀ-ÿ]/.test(s))rows.push({element:el.id||el.closest('[id]')?.id||el.tagName,kind,text:s});
   }
-  for(const scope of [document.querySelector('header'),document.querySelector('.footer'),root]){
+  for(const scope of [document.querySelector('header'),document.querySelector('.hero'),document.querySelector('.game-mode'),document.querySelector('.learning-mode-controls'),document.querySelector('.footer'),root]){
    if(!scope)continue;
    const walk=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
    add(scope,'aria-label',scope.getAttribute('aria-label'));
@@ -882,6 +882,9 @@ async function collectGameLanguage(page, section){
     else for(const attr of ['aria-label','title','placeholder','alt','data-tooltip'])add(n,attr,n.getAttribute(attr));
    }
   }
+  rows.push({element:'head',kind:'title',text:document.title});
+  const meta=document.querySelector('meta[name="description"]');
+  if(meta)rows.push({element:'head',kind:'description',text:meta.content});
   return rows;
  },section);
 }
