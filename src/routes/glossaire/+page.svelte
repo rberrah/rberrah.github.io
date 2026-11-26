@@ -5,7 +5,7 @@
   import { resolve } from '$app/paths';
   const base = resolve('/').replace(/\/$/, '');
   import { glossary, glossaryCategories } from '#lib/stores/glossary.js';
-  import { categoryEnglish } from '#lib/content/glossaryMeta.js';
+  import { categoryEnglish, glossaryDisplayTerm, glossaryDisplayUnit, glossaryDisplayEquation, glossaryDisplayAliases } from '#lib/content/glossaryMeta.js';
   import { language } from '#lib/stores/language.js';
   import { ui } from '#lib/i18n/translations.js';
 
@@ -32,7 +32,7 @@
     .filter((g) => g.list.length);
   $: local = $language === 'en' ? (/** @type {any} */ value) => value?.en : (/** @type {any} */ value) => value?.fr;
   $: shown = $language === 'en'
-    ? (/** @type {any} */ item) => ({ term: item.en?.term || item.term, full: item.en?.full, def: item.en?.def })
+    ? (/** @type {any} */ item) => ({ term: glossaryDisplayTerm(item.term,'en'), full: item.en?.full, def: item.en?.def })
     : (/** @type {any} */ item) => item;
   $: relationLabel = ((lang) => (/** @type {string} */ relation) => ({
     prerequisite_of: lang === 'en' ? 'Prerequisite for' : 'Prérequis de',
@@ -67,19 +67,19 @@
       {#each g.list as it}
         {@const view = shown(it)}
         <div class="entry">
-          <dt>{view.term}{#if view.full}<span class="full">· {view.full}</span>{/if}</dt>
+          <dt>{view.term}{#if view.full && view.full!==view.term}<span class="full">· {view.full}</span>{/if}</dt>
           <dd>
             <p>{view.def}</p>
             {#if it.details}
               <dl class="details">
-                {#if it.details.unit}<div><dt>{$language === 'en' ? 'Unit' : 'Unité'}</dt><dd>{it.details.unit}</dd></div>{/if}
-                {#if it.details.equation}<div><dt>{$language === 'en' ? 'Equation' : 'Équation'}</dt><dd><code>{it.details.equation}</code></dd></div>{/if}
+                {#if it.details.unit}<div><dt>{$language === 'en' ? 'Unit' : 'Unité'}</dt><dd>{glossaryDisplayUnit(it.details.unit,$language)}</dd></div>{/if}
+                {#if it.details.equation}<div><dt>{$language === 'en' ? 'Equation' : 'Équation'}</dt><dd><code>{glossaryDisplayEquation(it.details.equation,$language)}</code></dd></div>{/if}
                 {#if it.details.intuition}<div><dt>Intuition</dt><dd>{local(it.details.intuition)}</dd></div>{/if}
                 {#if it.details.assumption}<div><dt>{$language === 'en' ? 'Assumption' : 'Hypothèse'}</dt><dd>{local(it.details.assumption)}</dd></div>{/if}
                 {#if it.details.mistake}<div><dt>{$language === 'en' ? 'Common error' : 'Erreur fréquente'}</dt><dd>{local(it.details.mistake)}</dd></div>{/if}
                 {#if it.details.limitation}<div><dt>{$language === 'en' ? 'Do not infer' : 'Ne pas conclure'}</dt><dd>{local(it.details.limitation)}</dd></div>{/if}
                 {#if it.details.example}<div><dt>{$language === 'en' ? 'Example' : 'Exemple'}</dt><dd>{local(it.details.example)}</dd></div>{/if}
-                {#if it.details.aliases?.length}<div><dt>{$language === 'en' ? 'Aliases' : 'Alias'}</dt><dd>{it.details.aliases.join(' · ')}</dd></div>{/if}
+                {#if it.details.aliases?.length}<div><dt>{$language === 'en' ? 'Aliases' : 'Alias'}</dt><dd>{glossaryDisplayAliases(it.details.aliases,$language).join(' · ')}</dd></div>{/if}
               </dl>
               <nav class="links" aria-label={$language === 'en' ? 'Related resources' : 'Ressources associées'}>
                 {#if it.details.chapter}<a href={`${base}/chapitres/${it.details.chapter}/`}>{$language === 'en' ? 'Course and sources' : 'Cours et sources'}</a>{/if}
@@ -90,7 +90,7 @@
                 <div class="relations">
                   {#each Object.entries(it.details.relations) as [relation, targets]}
                     <span class="relation-label">{relationLabel(relation)}</span>
-                    {#each targets as target}<a href={`${base}/glossaire/?q=${encodeURIComponent(target)}`}>{target}</a>{/each}
+                    {#each targets as target}<a href={`${base}/glossaire/?q=${encodeURIComponent(target)}`}>{glossaryDisplayTerm(target,$language)}</a>{/each}
                   {/each}
                 </div>
               {/if}
