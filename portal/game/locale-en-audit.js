@@ -108,5 +108,15 @@ export const FR_EN_AUDIT = {
   " : [log(DV) − log(IPRED)] / σlog. Ce ne sont": ": [log(DV) − log(IPRED)] / σlog. These are",
   "Score :": "Score:",
   "Cumul": "Cumulative",
-  "Plasma": "Plasma"
+  "Plasma": "Plasma",
+  "Dose / administration": "Dose per administration",
+  "Avant": "Before",
+  "Dose initiale": "Initial dose",
+  "Nombre de doses": "Number of doses",
+  "Rapport pic / creux": "Peak-to-trough ratio",
+  "Clairance de B": "Clearance of B",
+  "Demi-vie apparente locale :": "Local apparent half-life:",
+  "Langue": "Language",
+  "Cible": "Target",
+  "heures": "hours"
 };
