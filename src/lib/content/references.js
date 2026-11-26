@@ -289,7 +289,85 @@ export function refIdentifier(r) {
 }
 
 /** @param {string[]|undefined} ids */
-export function resolveSources(ids) {
+export function resolveSources(ids, lang = 'fr') {
   if (!Array.isArray(ids)) return [];
-  return ids.map((id) => refById[id]).filter(Boolean);
+  return ids.map((id) => refById[id]).filter(Boolean).map(ref=>localizeReference(ref,lang));
+}
+
+// The original publication titles/identifiers remain unchanged in the registry.
+// Translate editorial annotations, not the bibliographic identity.
+const referenceNotesEn = {
+  "nelsen-copulas": "Sklar's theorem, Archimedean copulas, tail dependence",
+  "hastie-esl": "trees, SVM, boosting, k-means, PCA",
+  "sheiner-beal-estimation": "series I–III",
+  "sheiner-forecasting": "individual Bayesian forecasting, a foundation of model-informed TDM",
+  "anderson-holford-allometry": "allometry and maturation",
+  "beal-bql": "M1–M7 methods",
+  "savic-transit": "transit chain, k_tr, MTT = n/k_tr",
+  "houston-metabolite": "formation-limited vs elimination-limited kinetics, terminal slope",
+  "holford-sheiner-dose-effect": "Emax and log-linear models",
+  "goutelle-hill": "sigmoidicity coefficient",
+  "sharma-jusko-indirect": "tolerance, rebound, moderator model",
+  "kaplan-meier-1958": "Kaplan–Meier estimator, right censoring",
+  "cox-1972": "proportional hazards model",
+  "holford-tte-tutorial": "hazard function, S(t), parametric forms",
+  "wulfsohn-tsiatis-joint": "joint model framework",
+  "katzman-deepsurv": "deep learning for survival",
+  "lindstrom-bates": "linearisation underlying FO/FOCE",
+  "wang-nonmem-methods": "FO, FOCE, FOCE-I and Laplace formulas",
+  "akaike-aic": "AIC = −2 log L + 2p",
+  "wilks-1938": "ΔOFV ~ χ²; 3.84 threshold at 1 df",
+  "schwarz-1978": "BIC = OFV + k·ln n",
+  "asa-pvalue": "what a p-value does and does not tell us",
+  "efron-bootstrap": "resampling with replacement",
+  "mentre-optimal-design": "Fisher information in NLME",
+  "jonsson-karlsson-scm": "SCM: forward inclusion / backward elimination",
+  "delyon-saem": "mathematical basis of SAEM",
+  "poulin-theil": "mechanistic prediction of Kp using tissue composition",
+  "amidon-bcs": "BCS: solubility × permeability",
+  "yu-amidon-acat": "CAT/ACAT model",
+  "simeoni": "Simeoni model",
+  "claret-tgi-os": "TGI–OS, Claret model",
+  "stein-tumor-growth": "decomposition into regression and regrowth",
+  "roberts-dali": "β-lactam underexposure, augmented renal clearance",
+  "neumann-hcv": "biphasic decline",
+  "perelson-hiv": "virion clearance, lifespan of infected cells",
+  "ryman-meibohm": "FcRn, lymphatic absorption, immunogenicity",
+  "dirks-meibohm": "PK impact of anti-drug antibodies",
+  "cortes-vapnik-svm": "early development of SVM",
+  "friedman-gbm": "foundational gradient boosting article",
+  "chen-xgboost": "regularised second-order objective",
+  "prokhorenkova-catboost": "ordered boosting",
+  "hornung-ordinal-forests": "random forests for ordinal outcomes: toxicity grades, RECIST",
+  "marchenko-pastur": "Marchenko–Pastur law",
+  "pearson-1901-pca": "origins of PCA",
+  "brown-gpt3": "scaling and in-context learning",
+  "ema-bioequivalence": "80–125% criteria, 90% CI for AUC and Cmax",
+  "fda-immunogenicity": "ADA measurement, circulating drug interference",
+  "eucast": "MIC determination, twofold dilutions"
+};
+const referenceTitlesEn = {
+  "mapbayr": "mapbayr — Bayesian MAP estimation in R",
+  "gibiansky-qss": "Approximations of the target-mediated drug disposition model (QSS, rapid-binding) and identifiability",
+  "pfim": "PFIM — optimal design in nonlinear mixed-effects models",
+  "nonmem": "NONMEM — the longstanding population PK software",
+  "iame": "IAME — infectious disease modelling (Bichat)",
+  "compo": "COMPO — Cancer, modelling & pharmacology (Marseille)",
+  "vanderschaar": "van der Schaar Lab — machine learning for medicine"
+};
+const referenceWhereEn = {
+  "gabrielsson-weiner": "5th ed., Swedish Pharmaceutical Press",
+  "gibaldi-perrier": "2nd ed., Marcel Dekker — a classic of compartmental PK",
+  "davidian-giltinan": "Chapman & Hall — statistical foundations of mixed-effects models",
+  "nelsen-copulas": "2nd ed., Springer Series in Statistics 2006",
+  "hastie-esl": "2nd ed., Springer — freely available online",
+  "sheiner-beal-estimation": "J. Pharmacokinet. Biopharm. 1980–1983 — foundations of population PK",
+  "fda-poppk": "2022 (revision)",
+  "ema-fih": "revised 2017"
+};
+export function localizeReference(reference, lang) {
+  if (!reference || lang !== 'en') return reference;
+  const note = referenceNotesEn[reference.id];
+  const title = referenceTitlesEn[reference.id] ?? (note ? reference.title.replace(/\s+\([^()]*\)$/, ' (' + note + ')') : reference.title);
+  return { ...reference, title, where: referenceWhereEn[reference.id] ?? reference.where };
 }
