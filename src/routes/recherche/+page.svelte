@@ -9,6 +9,7 @@
   import { guidedActivities } from '#lib/content/guidedActivities.js';
   import { molecularLabIds, molecularLabs } from '#lib/labs/molecular.js';
   import { glossary } from '#lib/stores/glossary.js';
+  import { glossaryDisplayTerm } from '#lib/content/glossaryMeta.js';
   import { language } from '#lib/stores/language.js';
   import { localizeChapter, localizeTrack } from '#lib/i18n/translations.js';
   import { trackById } from '#lib/content/tracks.js';
@@ -22,7 +23,7 @@
   ];
   const norm = (value) => (value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const plain = (value) => (value ?? '').replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
-  const localized = (value) => value?.[$language] ?? '';
+  $: localized = ((lang) => (value) => value?.[lang] ?? '')($language);
   const chapterTrack = new Map(chapters.map(chapter => [chapter.slug, chapter.track]));
   const synonymGroups = [
     ['cl', 'clairance', 'clearance'],
@@ -43,7 +44,7 @@
     }),
     ...glossaryItems.map(item => {
       const view = $language === 'en' ? item.en : item;
-      return { typeKey: 'glossary', type: $language === 'en' ? 'Glossary' : 'Glossaire', title: view?.term ?? item.term, description: `${view?.full ?? ''} ${view?.def ?? ''}`.trim(), content: (item.details?.aliases ?? []).join(' '), href: `${base}/glossaire/?lang=${$language}&q=${encodeURIComponent(view?.term ?? item.term)}` };
+      return { typeKey: 'glossary', type: $language === 'en' ? 'Glossary' : 'Glossaire', title: glossaryDisplayTerm(item.term,$language), description: `${view?.full ?? ''} ${view?.def ?? ''}`.trim(), content: (item.details?.aliases ?? []).join(' '), href: `${base}/glossaire/?lang=${$language}&q=${encodeURIComponent(item.term)}` };
     }),
     ...fundamentalLabs.map(item => ({ typeKey: 'laboratory', type: $language === 'en' ? 'Laboratory' : 'Laboratoire', title: item[$language], description: $language === 'en' ? 'Interactive mechanism and concentration curves.' : 'Mécanisme interactif et courbes de concentration.', track: 'core', href: `${base}/laboratoires/?lang=${$language}&lab=${item.id}` })),
     ...molecularLabIds.map(id => ({ typeKey: 'laboratory', type: $language === 'en' ? 'Laboratory' : 'Laboratoire', title: localized(molecularLabs[id].title), description: localized(molecularLabs[id].summary), track: chapterTrack.get(molecularLabs[id].related) ?? '', href: `${base}/laboratoires/?lang=${$language}&lab=${id}` })),
@@ -69,7 +70,7 @@
   $: trackOptions = [...new Set(index.map(item => item.track).filter(Boolean))]
     .map(id => ({ id, title: localizeTrack(trackById(id), $language).title ?? id }))
     .sort((a, b) => a.title.localeCompare(b.title, $language));
-  const trackTitle = (id) => localizeTrack(trackById(id), $language).title ?? id;
+  $: trackTitle = ((lang) => (id) => localizeTrack(trackById(id), lang).title ?? id)($language);
 </script>
 
 <svelte:head><title>{$language === 'en' ? 'Search' : 'Recherche'} | PMx Explain</title></svelte:head>
