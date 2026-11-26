@@ -30,16 +30,16 @@
   $: groups = cats
     .map((c) => ({ cat: c, list: filtered.filter((it) => it.cat === c) }))
     .filter((g) => g.list.length);
-  const local = (/** @type {any} */ value) => $language === 'en' ? value?.en : value?.fr;
-  const shown = (/** @type {any} */ item) => $language === 'en'
-    ? { term: item.en?.term || item.term, full: item.en?.full, def: item.en?.def }
-    : item;
-  const relationLabel = (/** @type {string} */ relation) => ({
-    prerequisite_of: $language === 'en' ? 'Prerequisite for' : 'Prérequis de',
-    related_to: $language === 'en' ? 'Related concepts' : 'Concepts associés',
-    used_in: $language === 'en' ? 'Used in' : 'Utilisé dans',
-    diagnosed_by: $language === 'en' ? 'Diagnosed by' : 'Diagnostiqué par'
-  })[relation] ?? relation;
+  $: local = $language === 'en' ? (/** @type {any} */ value) => value?.en : (/** @type {any} */ value) => value?.fr;
+  $: shown = $language === 'en'
+    ? (/** @type {any} */ item) => ({ term: item.en?.term || item.term, full: item.en?.full, def: item.en?.def })
+    : (/** @type {any} */ item) => item;
+  $: relationLabel = ((lang) => (/** @type {string} */ relation) => ({
+    prerequisite_of: lang === 'en' ? 'Prerequisite for' : 'Prérequis de',
+    related_to: lang === 'en' ? 'Related concepts' : 'Concepts associés',
+    used_in: lang === 'en' ? 'Used in' : 'Utilisé dans',
+    diagnosed_by: lang === 'en' ? 'Diagnosed by' : 'Diagnostiqué par'
+  })[relation] ?? relation)($language);
 </script>
 
 <header class="head">
