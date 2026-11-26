@@ -1,7 +1,12 @@
 import { DEFAULTS, CHALLENGE, simulate, atTime, fitScore } from './engine.js';
 
 const $ = id => document.getElementById(id);
-const en=()=>document.documentElement.lang==='en';
+const en=()=>{
+  const forced=new URLSearchParams(location.search).get('lang');
+  if(forced==='fr'||forced==='en')return forced==='en';
+  try{const saved=localStorage.getItem('pharmacometrie-language');if(saved==='fr'||saved==='en')return saved==='en';}catch{}
+  return document.documentElement.lang==='en';
+};
 const tr=(fr,english)=>en()?english:fr;
 const fmt = (x, digits = 1) => Number(x).toLocaleString(en()?'en-US':'fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const UNIT = { dose: 'mg', f: '', ka: 'h⁻¹', lag: 'h', cl: 'L/h', vc: 'L', q1: 'L/h', vp1: 'L', q2: 'L/h', vp2: 'L' };
@@ -46,7 +51,7 @@ function recompute() {
   $('mission-title').textContent = challenge ? 'Mission · Retrouver la courbe' : 'Mission libre · Comprendre l’exposition';
   const score = fitScore(result, reference);
   $('mission-text').innerHTML = challenge
-    ? 'Reproduisez la courbe dorée en jouant sur les compartiments et les paramètres. <span class="score">Score : ' + score + '/100</span><br>Le score mesure seulement une proximité des courbes : plusieurs modèles peuvent produire des profils semblables.'
+    ? tr('Reproduisez la courbe dorée en jouant sur les compartiments et les paramètres.','Reproduce the golden curve by adjusting compartments and parameters.') + ' <span class="score">'+tr('Score : ','Score: ') + score + '/100</span><br>'+tr('Le score mesure seulement une proximité des courbes : plusieurs modèles peuvent produire des profils semblables.','The score only measures curve similarity: several models can produce similar profiles.')
     : 'Essayez de doubler la clairance CL : que deviennent Cmax, AUC et la quantité éliminée ?';
   drawChart();
   showTime();
