@@ -1,7 +1,9 @@
 import { DEFAULTS, CHALLENGE, simulate, atTime, fitScore } from './engine.js';
 
 const $ = id => document.getElementById(id);
-const fmt = (x, digits = 1) => Number(x).toLocaleString('fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+const en=()=>document.documentElement.lang==='en';
+const tr=(fr,english)=>en()?english:fr;
+const fmt = (x, digits = 1) => Number(x).toLocaleString(en()?'en-US':'fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const UNIT = { dose: 'mg', f: '', ka: 'h⁻¹', lag: 'h', cl: 'L/h', vc: 'L', q1: 'L/h', vp1: 'L', q2: 'L/h', vp2: 'L' };
 const positions = {
   gut: { x: 138, y: 135 }, central: { x: 386, y: 223 },
@@ -117,11 +119,11 @@ function drawDiagram(phase = performance.now()/1000) {
     svg += r2 >= 0 ? flow('central','p2',r2,phase) : flow('p2','central',-r2,phase);
   }
   svg += flow('central','eliminated',c.cl*cc,phase);
-  if (c.route === 'oral') svg += node('gut','Dépôt digestif','Absorption',p.gut,'#23494e',total);
+  if (c.route === 'oral') svg += node('gut',tr('Dépôt digestif','Digestive depot'),'Absorption',p.gut,'#23494e',total);
   svg += node('central','Central','Plasma',p.central,'#22574f',total);
-  if (c.model >= 2) svg += node('p1','Périphérique 1','Distribution',p.p1,'#25434f',total);
-  if (c.model >= 3) svg += node('p2','Périphérique 2','Distribution',p.p2,'#25434f',total);
-  svg += node('eliminated','Éliminé','Cumul',p.eliminated,'#3b3834',total);
+  if (c.model >= 2) svg += node('p1',tr('Périphérique 1','Peripheral 1'),'Distribution',p.p1,'#25434f',total);
+  if (c.model >= 3) svg += node('p2',tr('Périphérique 2','Peripheral 2'),'Distribution',p.p2,'#25434f',total);
+  svg += node('eliminated',tr('Éliminé','Eliminated'),tr('Cumul','Cumulative'),p.eliminated,'#3b3834',total);
   $('diagram').innerHTML = svg;
 }
 function pathFor(points, height, horizon) {
@@ -264,3 +266,6 @@ diagram.addEventListener('keydown',ev=>{
   diagram.querySelector('[data-node="'+node+'"]')?.focus();
 });
 recompute();
+
+// Keep plotted labels and numeric formatting in sync without changing the model state.
+window.addEventListener('pmx-game-language-change',()=>recompute());
