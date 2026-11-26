@@ -25,11 +25,9 @@
     },
     {
       id: 'pillar-a',
-      name: 'Pilier A', nameEn: 'Pillar A',
-      statusFr: 'Programme de recherche · sans publication liée',
-      statusEn: 'Research programme · no linked publication',
-      summaryFr: 'Organiser les connaissances biologiques et leurs sources afin de formuler des hypothèses mécanistes vérifiables.',
-      summaryEn: 'Organise biological knowledge and its sources to formulate testable mechanistic hypotheses.'
+      name: 'Ontologie et graphe de connaissances', nameEn: 'Ontology & knowledge graph',
+      statusFr: 'À venir',
+      statusEn: 'Coming soon'
     },
     {
       id: 'pillar-b',
@@ -44,19 +42,15 @@
     },
     {
       id: 'pillar-c',
-      name: 'Pilier C', nameEn: 'Pillar C',
-      statusFr: 'Programme de recherche · sans publication liée',
-      statusEn: 'Research programme · no linked publication',
-      summaryFr: 'Étudier l’arbitrage entre explications mécanistes et modèles prédictifs, avec des critères explicites.',
-      summaryEn: 'Study the arbitration between mechanistic explanations and predictive models using explicit criteria.'
+      name: 'Vérification', nameEn: 'Verification',
+      statusFr: 'À venir',
+      statusEn: 'Coming soon'
     },
     {
       id: 'pillar-d',
-      name: 'Pilier D', nameEn: 'Pillar D',
-      statusFr: 'Programme de recherche · sans publication liée',
-      statusEn: 'Research programme · no linked publication',
-      summaryFr: 'Explorer l’évaluation causale des décisions thérapeutiques dans des cadres de jumeaux pharmacologiques.',
-      summaryEn: 'Explore causal evaluation of treatment decisions within pharmacological twin frameworks.'
+      name: 'Individualisation', nameEn: 'Individualisation',
+      statusFr: 'À venir',
+      statusEn: 'Coming soon'
     },
     {
       id: 'phenopass',
@@ -132,8 +126,8 @@
   <section class="thesis-program" aria-labelledby="thesis-title" data-testid="thesis-research-program">
     <header class="section-intro">
       <p class="eyebrow">{t('03 · PROGRAMME DE THÈSE','03 · THESIS RESEARCH PROGRAMME')}</p>
-      <h2 id="thesis-title">{t('De la connaissance aux jumeaux pharmacologiques','From biological knowledge to pharmacological twins')}</h2>
-      <p>{t('Quatre axes complémentaires structurent le programme. Les projets transversaux explorent l’intégration des connaissances biologiques et la caractérisation individuelle. Les statuts sont fondés sur les productions publiques disponibles, pas sur des résultats non publiés.','Four complementary research axes structure the programme. Cross-cutting projects investigate biological knowledge integration and individual characterisation. Status labels reflect available public outputs, not unpublished results.')}</p>
+      <h2 id="thesis-title">{t('Programme de recherche','Research programme')}</h2>
+      <p>{t('Les projets sont présentés au fil des communications et publications disponibles.','Projects are presented as public communications and publications become available.')}</p>
     </header>
     <div class="thesis-grid">
       <div class="pillar-lane" aria-label={t('Axes de recherche','Research axes')}>
@@ -142,7 +136,7 @@
             <span class="pillar-letter" aria-hidden="true">{project.id.slice(-1).toUpperCase()}</span>
             <div><h3>{t(project.name,project.nameEn ?? project.name)}</h3>
               <p class="thesis-status">{t(project.statusFr,project.statusEn)}</p>
-              <p>{t(project.summaryFr,project.summaryEn)}</p>
+              {#if project.summaryFr && project.summaryEn}<p>{t(project.summaryFr,project.summaryEn)}</p>{/if}
               {#if project.source}<a href={$language==='fr'?project.source.replace('/communications/','/communications/fr/'):project.source}>{t(project.sourceFr ?? '',project.sourceEn ?? '')} →</a>{/if}
             </div>
           </article>
@@ -153,7 +147,7 @@
         {#each thesisProjects.filter(p=>!p.id.startsWith('pillar-')) as project (project.id)}
           <article class="thesis-card" data-project={project.id}>
             <h3>{project.name}</h3><p class="thesis-status">{t(project.statusFr,project.statusEn)}</p>
-            <p>{t(project.summaryFr,project.summaryEn)}</p>
+            {#if project.summaryFr && project.summaryEn}<p>{t(project.summaryFr,project.summaryEn)}</p>{/if}
             {#if project.source}<a href={$language==='fr'?project.source.replace('/communications/','/communications/fr/'):project.source}>{t(project.sourceFr ?? '',project.sourceEn ?? '')} →</a>{/if}
           </article>
         {/each}

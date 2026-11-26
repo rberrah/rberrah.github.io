@@ -18,9 +18,18 @@ test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async 
   await expect(page.getByTestId('nav-omics2pk')).toHaveAttribute('href', 'https://rberrah.github.io/Omics2PK/');
 
   const thesis = page.getByTestId('thesis-research-program');
-  await expect(thesis.getByRole('heading', { level: 2 })).toContainText('From biological knowledge');
-  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Pillar A');
+  await expect(thesis.getByRole('heading', { level: 2 })).toHaveText('Research programme');
+  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontology & knowledge graph');
   await expect(thesis.locator('.thesis-card')).toHaveCount(6);
+  for (const [id, name] of [['a','Ontology & knowledge graph'],['c','Verification'],['d','Individualisation']]) {
+    const card = thesis.locator(`[data-project="pillar-${id}"]`);
+    await expect(card.locator('h3')).toHaveText(name);
+    await expect(card.locator('p')).toHaveCount(1);
+    await expect(card.locator('p')).toHaveText('Coming soon');
+    await expect(card.locator('a')).toHaveCount(0);
+  }
+  await expect(thesis).not.toContainText('pharmacological twins');
+  await expect(thesis).not.toContainText('causal evaluation');
   await expect(thesis.locator('[data-project="netpk"] a')).toHaveAttribute('href', 'https://rberrah.github.io/communications/netpk-peprsn-2026/');
   await expect(thesis.locator('[data-project="pillar-b"] a')).toHaveAttribute('href', 'https://rberrah.github.io/communications/autonomous-pharmacometrics-page-2026/');
   await expect(thesis.locator('[data-project="phenopass"] a')).toHaveCount(0);
@@ -30,13 +39,19 @@ test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async 
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
   await expect(ecosystem.locator('summary')).toContainText('Écosystème');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Apprendre, analyser, puis intégrer');
-  await expect(page.getByTestId('thesis-research-program').getByRole('heading', { level: 2 })).toContainText('De la connaissance');
+  await expect(page.getByTestId('thesis-research-program').getByRole('heading', { level: 2 })).toHaveText('Programme de recherche');
   await expect(page.getByTestId('thesis-research-program').locator('[data-project="phenopass"]')).toContainText('résultats non publiés');
-  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Pilier A');
+  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontologie et graphe de connaissances');
+  for (const [id,name] of [['a','Ontologie et graphe de connaissances'],['c','Vérification'],['d','Individualisation']]) {
+    const card=thesis.locator(`[data-project="pillar-${id}"]`);
+    await expect(card.locator('h3')).toHaveText(name);
+    await expect(card.locator('p')).toHaveText('À venir');
+  }
+  await expect(thesis).not.toContainText('jumeaux pharmacologiques');
   await expect(thesis.locator('[data-project="netpk"] a')).toHaveAttribute('href','https://rberrah.github.io/communications/fr/netpk-peprsn-2026/');
   await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Ouvrir MultiOmics/})).toHaveAttribute('href','https://rberrah.github.io/multiomics/?lang=fr');
   await page.locator('.language-toggle').getByRole('button',{name:'EN',exact:true}).click();
-  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Pillar A');
+  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontology & knowledge graph');
 });
 
 for(const lang of ['fr','en'])test('ecosystem map and evidence labels remain readable at 320px ('+lang+')',async({page})=>{
