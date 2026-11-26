@@ -1,5 +1,5 @@
 <script>
-  import { referenceGroups, refIdentifier } from '#lib/content/references.js';
+  import { referenceGroups, refIdentifier, localizeReference } from '#lib/content/references.js';
   import { language } from '#lib/stores/language.js';
   import { ui } from '#lib/i18n/translations.js';
 
@@ -27,7 +27,8 @@
     <section class="group">
       <h2>{pick(g.title)}</h2>
       <ul>
-        {#each g.items as r}
+        {#each g.items as item}
+          {@const r = localizeReference(item, $language)}
           <li>
             <a href={r.url} target="_blank" rel="noopener noreferrer">
               <span class="kind kind-{r.kind}">{pick(kindLabel[r.kind] ?? kindLabel.article)}</span>
