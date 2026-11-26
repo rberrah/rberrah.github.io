@@ -27,7 +27,7 @@
   $: step = activity.steps[index];
   $: state = states[index];
   $: done = step.type === 'reflection' ? state.reviewed : state.correct || state.revealed;
-  $: sourceList = resolveSources(activity.sources);
+  $: sourceList = resolveSources(activity.sources, $language);
   $: linkedLab = labByChapter[activity.chapter];
   $: savedStatus = $learning.activities[activity.id];
   $: skills = [
