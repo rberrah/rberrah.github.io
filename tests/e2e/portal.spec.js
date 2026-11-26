@@ -130,7 +130,8 @@ for (const [name, width, height] of [['mobile', 390, 844], ['narrow', 320, 640],
       expect(await page.locator('#explain-title').evaluate(e => e.getBoundingClientRect().top)).toBeLessThan(height);
       const image = page.locator('.product-figure img');
       await image.scrollIntoViewIfNeeded();
-      expect(await image.evaluate(i => i.complete && i.naturalWidth > 500)).toBe(true);
+      // The preview is lazy-loaded below the fold on mobile; wait for the same decode criterion.
+      await expect.poll(() => image.evaluate(i => i.complete && i.naturalWidth > 500), {timeout: 8000}).toBe(true);
       await page.screenshot({ path: 'test-results/portal-' + name + '-' + theme + '.png', fullPage: true });
     });
   }
