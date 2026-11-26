@@ -841,3 +841,123 @@ for(const lang of ['fr','en']){
   expect(errors).toEqual([]);
  });
 }
+
+
+// Audit every learner-facing screen, not just navigation or a single translated label.
+// Raw strings are retained in the failure log to make each residual actionable.
+const bilingualPaths=[
+ ['campaign','academy','quest-list',9,'academy-hint'],
+ ['advanced','advanced','advanced-list',9,'advanced-hint'],
+ ['population','population','population-steps',7,'population-hint'],
+ ['pmetrics','pmetrics','pmetrics-steps',5,'pmetrics-hint'],
+ ['mipd','mipd','mipd-steps',7,'mipd-hint']
+];
+async function collectGameLanguage(page, section){
+ return page.evaluate(async section=>{
+  // Reveal user-accessible collapsibles, not hidden future feedback or other paths.
+  const root=document.getElementById(section+'-mode');
+  for(const d of root.querySelectorAll('details'))if(!d.closest('[hidden]'))d.open=true;
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const rows=[];
+  function active(el){
+   if(!el||el.closest('[hidden],script,style,noscript,code,pre,textarea'))return false;
+   for(let x=el;x;x=x.parentElement){
+    const st=getComputedStyle(x);
+    if(st.display==='none'||st.visibility==='hidden')return false;
+   }
+   return true;
+  }
+  function add(el,kind,value){
+   if(!active(el)||!value)return;
+   const s=value.replace(/\s+/g,' ').trim();
+   if(s&&/[a-zA-ZÀ-ÿ]/.test(s))rows.push({element:el.id||el.closest('[id]')?.id||el.tagName,kind,text:s});
+  }
+  for(const scope of [document.querySelector('header'),document.querySelector('.hero'),document.querySelector('.game-mode'),document.querySelector('.learning-mode-controls'),document.querySelector('.footer'),root]){
+   if(!scope)continue;
+   const walk=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
+   add(scope,'aria-label',scope.getAttribute('aria-label'));
+   while(walk.nextNode()){
+    const n=walk.currentNode;
+    if(n.nodeType===Node.TEXT_NODE)add(n.parentElement,'text',n.nodeValue);
+    else for(const attr of ['aria-label','title','placeholder','alt','data-tooltip'])add(n,attr,n.getAttribute(attr));
+   }
+  }
+  rows.push({element:'head',kind:'title',text:document.title});
+  const meta=document.querySelector('meta[name="description"]');
+  if(meta)rows.push({element:'head',kind:'description',text:meta.content});
+  return rows;
+ },section);
+}
+// Clear language markers rather than shared scientific terms (AUC, dose, model symbols,
+// Pmetrics, Monolix, shrinkage, prior/posterior, dataset names and bibliographic labels).
+function languageLeaks(rows,lang){
+ const frStrong=/(?:\b(?:choisissez|vérifiez|vérifier|clairance|prélèvement|prélèvements|données|courbe|courbes|équation|équations|modèle|modèles|élimination|variabilité|ajustement|ajustements|paramètres|résidus|poids|temps|réinitialiser|défi|défis|étape|étapes|parcours|mesurées|observées|sélectionnez|recommencer)\b)/iu;
+ const frGrammar=/(?<![\p{L}])(?:les|des|une|dans|avec|pour|sont|vous|votre|cette|aux|ces|sans|chez|puis|quelle|quel|deux|trois|avant|après)(?![\p{L}])/giu;
+ const enStrong=/(?<![\p{L}])(?:choose|select|check|reset|restart|clearance|observed|predicted|predictions|sampling|samples|weight|weights|steady-state|steady state|half-life|dosing interval|population overview|individual fits|show|hide|unbound|simulated|fictional|pathway|workshop|learning|completed|locked|incorrect|try again)(?![\p{L}])/iu;
+ const enGrammar=/(?<![\p{L}])(?:the|this|these|those|with|without|from|your|you|which|when|after|before|between|does|should|would|their|each|both)(?![\p{L}])/giu;
+ return rows.filter(({text:s})=>{
+  // Bibliographic titles/URLs, source identifiers, and explicitly bilingual language switch.
+  if(/^https?:\/\//i.test(s)||/^(?:FR|EN|Language \/ Langue)$/.test(s))return false;
+  if(/^(?:Source|Reference|Référence)?\s*:?\s*(?:O[’']Reilly|Woillard|Kaczmarek)\s+et al\./i.test(s)&&s.length<95)return false;
+  return lang==='en'?(frStrong.test(s)||(s.match(frGrammar)||[]).length>=2):(enStrong.test(s)||(s.match(enGrammar)||[]).length>=2);
+ });
+}
+
+for(const initial of ['fr','en']){
+ test('P0 exhaustive bilingual screen audit: all 37 missions and free workshop ('+initial+')',async({page},testInfo)=>{
+  test.setTimeout(180000);
+  const errors=[],findings=[],coverage=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(origin+'/pharmacometrie/game/?lang='+initial);
+  await expect(page.locator('html')).toHaveAttribute('lang',initial);
+  await page.locator('#game-free-mode').check();
+  const other=initial==='fr'?'en':'fr';
+  async function audit(section,label,lang){
+   const rows=await collectGameLanguage(page,section);
+   expect(rows.length,label+' '+lang+' has rendered text').toBeGreaterThan(10);
+   coverage.push({screen:label,language:lang,strings:rows.length});
+   for(const finding of languageLeaks(rows,lang))findings.push({screen:label,language:lang,...finding});
+  }
+  async function setLang(lang){
+   await page.locator('#game-lang-'+lang).click();
+   await expect(page.locator('html')).toHaveAttribute('lang',lang);
+  }
+  for(const [tab,section,list,count,hint] of bilingualPaths){
+   await page.locator('#mode-'+tab).click();
+   for(let i=0;i<count;i++){
+    const btn=page.locator('#'+list+' button').nth(i);
+    await btn.click();await expect(btn).toHaveAttribute('aria-current','step');
+    if(section==='academy'&&i===0){
+     // Cover the three introductory tutorial panels as well as the question.
+     for(let step=0;step<3;step++){
+      if(!await page.locator('#tutorial-next').isVisible())break;
+      await audit(section,tab+' tutorial '+(step+1),initial);
+      await setLang(other);await audit(section,tab+' tutorial '+(step+1),other);
+      await setLang(initial);await page.locator('#tutorial-next').click();
+     }
+    }
+    if(await page.locator('#'+hint).isVisible())await page.locator('#'+hint).click();
+    await audit(section,tab+' mission '+(i+1),initial);
+    await setLang(other);
+    await expect(btn).toHaveAttribute('aria-current','step');
+    if(await page.locator('#'+hint).isVisible())await page.locator('#'+hint).click();
+    await audit(section,tab+' mission '+(i+1),other);
+    await setLang(initial);
+    await expect(btn).toHaveAttribute('aria-current','step');
+   }
+  }
+  await page.locator('#mode-lab').click();
+  await page.locator('[data-model="3"]').click();
+  await page.locator('#challenge').click();
+  await audit('lab','free workshop 3C challenge',initial);
+  await setLang(other);await audit('lab','free workshop 3C challenge',other);
+  await setLang(initial);
+  const unique=[...new Map(findings.map(f=>[JSON.stringify(f),f])).values()];
+  await testInfo.attach('bilingual-coverage.json',{body:JSON.stringify(coverage,null,2),contentType:'application/json'});
+  await testInfo.attach('bilingual-findings.json',{body:JSON.stringify(unique,null,2),contentType:'application/json'});
+  for(const finding of unique)console.log('PMX_LOCALE_LEAK '+JSON.stringify(finding));
+  expect(errors).toEqual([]);
+  expect(unique,'Untranslated learner-facing strings; see PMX_LOCALE_LEAK in the workflow log').toEqual([]);
+ });
+}

@@ -1,7 +1,14 @@
 import { DEFAULTS, CHALLENGE, simulate, atTime, fitScore } from './engine.js';
 
 const $ = id => document.getElementById(id);
-const fmt = (x, digits = 1) => Number(x).toLocaleString('fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+const en=()=>{
+  const forced=new URLSearchParams(location.search).get('lang');
+  if(forced==='fr'||forced==='en')return forced==='en';
+  try{const saved=localStorage.getItem('pharmacometrie-language');if(saved==='fr'||saved==='en')return saved==='en';}catch{}
+  return document.documentElement.lang==='en';
+};
+const tr=(fr,english)=>en()?english:fr;
+const fmt = (x, digits = 1) => Number(x).toLocaleString(en()?'en-US':'fr-FR', { maximumFractionDigits: digits, minimumFractionDigits: digits });
 const UNIT = { dose: 'mg', f: '', ka: 'h⁻¹', lag: 'h', cl: 'L/h', vc: 'L', q1: 'L/h', vp1: 'L', q2: 'L/h', vp2: 'L' };
 const positions = {
   gut: { x: 138, y: 135 }, central: { x: 386, y: 223 },
@@ -44,7 +51,7 @@ function recompute() {
   $('mission-title').textContent = challenge ? 'Mission · Retrouver la courbe' : 'Mission libre · Comprendre l’exposition';
   const score = fitScore(result, reference);
   $('mission-text').innerHTML = challenge
-    ? 'Reproduisez la courbe dorée en jouant sur les compartiments et les paramètres. <span class="score">Score : ' + score + '/100</span><br>Le score mesure seulement une proximité des courbes : plusieurs modèles peuvent produire des profils semblables.'
+    ? tr('Reproduisez la courbe dorée en jouant sur les compartiments et les paramètres.','Reproduce the golden curve by adjusting compartments and parameters.') + ' <span class="score">'+tr('Score : ','Score: ') + score + '/100</span><br>'+tr('Le score mesure seulement une proximité des courbes : plusieurs modèles peuvent produire des profils semblables.','The score only measures curve similarity: several models can produce similar profiles.')
     : 'Essayez de doubler la clairance CL : que deviennent Cmax, AUC et la quantité éliminée ?';
   drawChart();
   showTime();
@@ -101,7 +108,7 @@ function drawDiagram(phase = performance.now()/1000) {
   const total = Math.max(1, result.delivered);
   let svg = '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#83dcd0" stroke-width="1.7"/></marker>' +
     '<marker id="back" markerWidth="8" markerHeight="8" refX="0" refY="3" orient="auto-start-reverse"><path d="M6 0 L0 3 L6 6" fill="none" stroke="#83dcd0" stroke-width="1.7"/></marker></defs>' +
-    '<text x="26" y="32" fill="#6daba8" font-size="14" letter-spacing="1.2">MODELE ' + c.model + 'C · ' + (c.route === 'oral' ? 'ORAL' : 'IV') + '</text>';
+    '<text x="26" y="32" fill="#6daba8" font-size="14" letter-spacing="1.2">' + tr('MODÈLE ','MODEL ') + c.model + 'C · ' + (c.route === 'oral' ? 'ORAL' : 'IV') + '</text>';
   if (c.route === 'oral') svg += line('gut','central','Ka');
   if (c.model >= 2) svg += line('central','p1','Q1',true);
   if (c.model >= 3) svg += line('central','p2','Q2',true);
@@ -117,11 +124,11 @@ function drawDiagram(phase = performance.now()/1000) {
     svg += r2 >= 0 ? flow('central','p2',r2,phase) : flow('p2','central',-r2,phase);
   }
   svg += flow('central','eliminated',c.cl*cc,phase);
-  if (c.route === 'oral') svg += node('gut','Dépôt digestif','Absorption',p.gut,'#23494e',total);
+  if (c.route === 'oral') svg += node('gut',tr('Dépôt digestif','Digestive depot'),'Absorption',p.gut,'#23494e',total);
   svg += node('central','Central','Plasma',p.central,'#22574f',total);
-  if (c.model >= 2) svg += node('p1','Périphérique 1','Distribution',p.p1,'#25434f',total);
-  if (c.model >= 3) svg += node('p2','Périphérique 2','Distribution',p.p2,'#25434f',total);
-  svg += node('eliminated','Éliminé','Cumul',p.eliminated,'#3b3834',total);
+  if (c.model >= 2) svg += node('p1',tr('Périphérique 1','Peripheral 1'),'Distribution',p.p1,'#25434f',total);
+  if (c.model >= 3) svg += node('p2',tr('Périphérique 2','Peripheral 2'),'Distribution',p.p2,'#25434f',total);
+  svg += node('eliminated',tr('Éliminé','Eliminated'),tr('Cumul','Cumulative'),p.eliminated,'#3b3834',total);
   $('diagram').innerHTML = svg;
 }
 function pathFor(points, height, horizon) {
@@ -264,3 +271,6 @@ diagram.addEventListener('keydown',ev=>{
   diagram.querySelector('[data-node="'+node+'"]')?.focus();
 });
 recompute();
+
+// Keep plotted labels and numeric formatting in sync without changing the model state.
+window.addEventListener('pmx-game-language-change',()=>recompute());

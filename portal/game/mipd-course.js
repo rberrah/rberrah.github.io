@@ -406,7 +406,7 @@ function stage5(){
   doseInput('mipd-shift-dose-input',revisedDose,tr('La dose à choisir n’est pas proposée dans une table : déduisez-la, puis comparez AUC et C0.',
    'No regimen table provides the answer: derive a dose, then compare AUC and trough.'))+
   '<div id="mipd-shift-metrics" class="career-metrics"></div>'+
-  '<svg id="mipd-shift-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="AUC preserving dose and changing clearance"></svg>'+
+  '<svg id="mipd-shift-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="'+tr('Dose préservant l’AUC et changement de clairance','AUC preserving dose and changing clearance')+'"></svg>'+
   '<p class="career-chart-key"><span><i style="background:#9debd2"></i>'+tr('Avant diminution de CL/F','Before CL/F change')+'</span>'+
   '<span><i style="background:#f1bd86"></i>'+tr('Après modification : dose choisie','After change: your chosen dose')+'</span></p>'+
   '<p id="mipd-shift-comment" class="career-note"></p>'+

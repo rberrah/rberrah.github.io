@@ -215,11 +215,9 @@ function plotResidualError(el,sigma){
     svg+='<polyline points="'+data.map(p=>x(p.pred).toFixed(2)+','+y(p[field]).toFixed(2)).join(' ')+
       '" fill="none" stroke="'+color+'" stroke-width="'+(field==='median'?3:1.6)+'" '+dash+'/>';
   }
-  const en=document.documentElement.lang==='en';
-  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">'+
-    (en?'Predicted observation (mg/L)':'Observation prédite (mg/L)')+'</text>'+
-    '<text x="377" y="281" text-anchor="middle" fill="#c8ddd8" font-size="12">'+
-    (en?'Individual prediction IPRED (mg/L)':'Prédiction individuelle IPRED (mg/L)')+'</text>';
+  // Keep French source nodes so the locale observer can restore them on language changes.
+  el.innerHTML=svg+'<text x="68" y="21" fill="#c8ddd8" font-size="12">Observation prédite (mg/L)</text>'+
+    '<text x="377" y="281" text-anchor="middle" fill="#c8ddd8" font-size="12">Prédiction individuelle IPRED (mg/L)</text>';
 }
 function normQuantile(p){
   // Acklam approximation; used solely for a diagnostic QQ axis, not inference.
@@ -503,8 +501,8 @@ function renderDiagnostics(){
     '<details open><summary><strong>1. Ajustements individuels et GOF</strong></summary>'+
     '<p class="career-note">Points DV ; courbe bleu pâle PRED (population) ; courbe verte IPRED (EBE CL). Les deux GOF ci-dessous confrontent les valeurs observées aux prédictions ; ligne pointillée = identité.</p>'+
     '<svg id="pop-diagnostic-chart" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Fit individuel DV, PRED et IPRED"></svg>'+
-    '<div class="career-plot-grid"><figure><figcaption>DV versus PRED (population)</figcaption><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus population predictions"></svg></figure>'+
-    '<figure><figcaption>DV versus IPRED (individuel)</figcaption><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observed versus individual predictions"></svg></figure></div>'+diagnosticQuiz('gof')+'</details>'+
+    '<div class="career-plot-grid"><figure><figcaption>DV versus PRED (population)</figcaption><svg id="pop-gof-pred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observations versus prédictions populationnelles"></svg></figure>'+
+    '<figure><figcaption>DV versus IPRED (individuel)</figcaption><svg id="pop-gof-ipred" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Observations versus prédictions individuelles"></svg></figure></div>'+diagnosticQuiz('gof')+'</details>'+
     '<details><summary><strong>2. Résidus et leur distribution</strong></summary>'+
     '<p class="career-note">Résidus conditionnels <em>approximatifs</em> : [log(DV) − log(IPRED)] / σlog. Ce ne sont <strong>ni des CWRES, ni des NPDE</strong> : les calculs correspondants ne sont pas disponibles.</p>'+
     '<div class="career-plot-grid"><figure><figcaption>Résidus versus temps</figcaption><svg id="pop-resid-time" class="career-chart" viewBox="0 0 730 285" role="img" aria-label="Résidus log-standardisés versus temps"></svg></figure>'+
