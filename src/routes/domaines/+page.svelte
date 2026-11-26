@@ -18,9 +18,10 @@
   ).length;
   const tool = `${SITE_ORIGIN}/multiomics/tool/`;
   const presentation = `${SITE_ORIGIN}/multiomics/`;
-  const t = (fr,en) => english ? en : fr;
-  const number = (value, digits=1) => new Intl.NumberFormat(english?'en-US':'fr-FR',
-    {minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value);
+  $: t = english ? (fr,en) => en : (fr,en) => fr;
+  $: locale = english?'en-US':'fr-FR';
+  $: number = ((locale) => (value, digits=1) => new Intl.NumberFormat(locale,
+    {minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value))(locale);
 </script>
 
 <svelte:head>
