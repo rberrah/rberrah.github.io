@@ -4,10 +4,11 @@
   const options = ['en', 'fr'];
 </script>
 
-<div class="language-toggle" aria-label="Language">
+<div class="language-toggle" role="group" aria-label={$language === 'en' ? 'Language' : 'Langue'}>
   {#each options as option}
     <button
       type="button"
+      lang={option}
       class:active={$language === option}
       aria-pressed={$language === option}
       onclick={() => language.set(option)}
