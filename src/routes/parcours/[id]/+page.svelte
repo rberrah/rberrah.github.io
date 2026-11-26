@@ -18,8 +18,8 @@
   import LearningProgress from '#lib/components/ui/LearningProgress.svelte';
   import Quiz from '#lib/components/ui/Quiz.svelte';
   export let data;
-  const t = (fr, en) => $language === 'en' ? en : fr;
-  const localized = (value) => localizeChapter(value, $language).chapter;
+  $: t = $language === 'en' ? (fr,en) => en : (fr,en) => fr;
+  $: localized = ((lang) => (value) => localizeChapter(value,lang).chapter)($language);
   $: track = data.track;
   $: title = localizeTrack(track, $language);
   $: list = chaptersForTrack(track, chapters);
@@ -50,11 +50,11 @@
     ? `${base}/parcours/${track.id}/?lang=${$language}&chapter=${remainingActivity.chapter}#activity-${remainingActivity.id}`
     : `${base}/chapitres/${firstUnread?.slug}/?lang=${$language}`;
 
-  const statusText = (id) => ({
-    attempted: t('Tenté', 'Attempted'),
-    reviewed: t('Corrigé consulté', 'Solution reviewed'),
-    passed: t('Réussi (étapes objectives)', 'Passed (objective steps)')
-  })[$learning.activities[id]] ?? t('À commencer', 'Not started');
+  $: statusText = ((translate, state) => (id) => ({
+    attempted: translate('Tenté', 'Attempted'),
+    reviewed: translate('Corrigé consulté', 'Solution reviewed'),
+    passed: translate('Réussi (étapes objectives)', 'Passed (objective steps)')
+  })[state.activities[id]] ?? translate('À commencer', 'Not started'))(t,$learning);
 
   afterNavigate(({ shallow }) => {
     chapterQuery = page.url.searchParams.get('chapter');

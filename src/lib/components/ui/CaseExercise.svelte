@@ -19,15 +19,15 @@
   import { labByChapter, labNames } from '#lib/learning/labLinks.js';
 
   export let activity;
-  const text = value => value?.[$language] ?? value?.fr ?? '';
-  const t = (fr, en) => $language === 'en' ? en : fr;
-  const number = value => new Intl.NumberFormat($language, { maximumSignificantDigits: 8 }).format(value);
+  $: text = ((lang) => value => value?.[lang] ?? value?.fr ?? '')($language);
+  $: t = $language === 'en' ? (fr,en) => en : (fr,en) => fr;
+  $: number = ((lang) => value => new Intl.NumberFormat(lang, { maximumSignificantDigits: 8 }).format(value))($language);
   let states = activity.steps.map(emptyStep), index = 0, open = false, finished = false;
   let visuals = {}, root, heading, status = '', mounted = false;
   $: step = activity.steps[index];
   $: state = states[index];
   $: done = step.type === 'reflection' ? state.reviewed : state.correct || state.revealed;
-  $: sourceList = resolveSources(activity.sources);
+  $: sourceList = resolveSources(activity.sources, $language);
   $: linkedLab = labByChapter[activity.chapter];
   $: savedStatus = $learning.activities[activity.id];
   $: skills = [

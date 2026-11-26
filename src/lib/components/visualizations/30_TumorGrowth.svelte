@@ -35,10 +35,10 @@
   $: progressionThreshold = Math.max(nadir.ts * 1.2, nadir.ts + 5);
   $: progressed = finalSize >= progressionThreshold && nadir.t < T;
   /** @returns {string} */
-  function recistLike(/** @type {number} */ pct) {
-    if (progressed) return $language === 'en' ? 'Progression-like regrowth' : 'Repousse compatible avec une progression';
-    if (pct <= -30) return $language === 'en' ? 'Partial-response-like decrease' : 'Diminution compatible avec une réponse partielle';
-    return $language === 'en' ? 'Neither threshold reached' : 'Aucun seuil atteint';
+  function recistLike(/** @type {number} */ pct, /** @type {boolean} */ isProgressed, /** @type {string|null} */ lang) {
+    if (isProgressed) return lang === 'en' ? 'Progression-like regrowth' : 'Repousse compatible avec une progression';
+    if (pct <= -30) return lang === 'en' ? 'Partial-response-like decrease' : 'Diminution compatible avec une réponse partielle';
+    return lang === 'en' ? 'Neither threshold reached' : 'Aucun seuil atteint';
   }
 
   const W = 480, H = 300, m = { top: 18, right: 16, bottom: 44, left: 48 };
@@ -62,7 +62,7 @@
     <div class="readout">
       <div><span>Nadir</span><strong>{nadir.ts.toFixed(0)} mm {$language === 'en' ? 'at' : 'à'} {nadir.t.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
       <div><span>{$language === 'en' ? 'Best response' : 'Meilleure réponse'}</span><strong>{bestChange >= 0 ? '+' : ''}{bestChange.toFixed(0)}%</strong></div>
-      <div class="verdict" class:pr={bestChange <= -30 && !progressed} class:pd={progressed}>{recistLike(bestChange)}</div>
+      <div class="verdict" class:pr={bestChange <= -30 && !progressed} class:pd={progressed}>{recistLike(bestChange, progressed, $language)}</div>
     </div>
     <p class="hint">{#if $language === 'en'}Conditional reduced model. The −30% baseline decrease and ≥20% plus ≥5 mm increase from nadir are target-lesion landmarks only, not a complete RECIST assessment.{:else}Modèle réduit conditionnel. La baisse de 30 % depuis la référence et la hausse ≥20 % et ≥5 mm depuis le nadir ne sont que des repères sur les lésions cibles, pas une évaluation RECIST complète.{/if}</p>
   </div>
@@ -73,7 +73,7 @@
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <!-- bandes RECIST -->
       <line x1="0" x2={iW} y1={yPR} y2={yPR} class="thr pr" />
-      <text x={iW - 2} y={yPR - 4} class="thrlbl pr">RP −30%</text>
+      <text x={iW - 2} y={yPR - 4} class="thrlbl pr">{$language === 'en' ? 'PR −30%' : 'RP −30%'}</text>
       <line x1="0" x2={iW} y1={yPD} y2={yPD} class="thr pd" />
       <text x={iW - 2} y={yPD - 4} class="thrlbl pd">{$language === 'en' ? 'from nadir: +20% and +5 mm' : 'depuis nadir : +20 % et +5 mm'}</text>
       <!-- courbes -->

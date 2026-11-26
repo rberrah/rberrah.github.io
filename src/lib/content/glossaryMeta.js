@@ -220,3 +220,94 @@ export const glossaryDetails = {
   'MLXTRAN': { intuition: both('Décrit les blocs de modèles, paramètres individuels, covariables et observations dans MonolixSuite.', 'Describes model blocks, individual parameters, covariates and observations in MonolixSuite.'), limitation: both('Une traduction automatique ne peut conserver que les constructions représentées par le schéma cible.', 'Automatic translation can preserve only constructs represented by the target schema.'), mistake: both('Accepter une conversion partielle silencieuse d’une équation complexe.', 'Accepting silent partial conversion of a complex equation.'), chapter: 'monolix-modele-structural', relations: { related_to: ['Monolix', 'Modèle structural', 'Covariable'] } },
   'Flip-flop': { equation: 'Ka < ke dans le cas simple', intuition: both('La pente terminale observée reflète l’absorption plus lente que l’élimination.', 'The observed terminal slope reflects absorption slower than elimination.'), assumption: both('Cette lecture suppose un modèle oral simple et une phase terminale informative.', 'This interpretation assumes a simple oral model and informative terminal phase.'), mistake: both('Interpréter la pente terminale comme une demi-vie d’élimination sans vérifier Ka.', 'Interpreting the terminal slope as elimination half-life without checking Ka.'), chapter: 'absorption-orale', lab: 'absorption', exercise: 'absorption-orale', relations: { related_to: ['Ka', 'ke', 't½'] } }
 };
+
+// Display names are separate from stable French keys used for links and searches.
+/** @type {Record<string,string>} */
+const termEn = {
+  "DFG": "GFR",
+  "EDO": "ODE",
+  "CMI": "MIC",
+  "Compartiments de transit": "Transit compartments",
+  "Phases α et β": "Alpha and beta phases",
+  "Modèle compartimental": "Compartmental model",
+  "Modèle structural": "Structural model",
+  "Effets mixtes": "Mixed effects",
+  "Erreur additive": "Additive error",
+  "Erreur proportionnelle": "Proportional error",
+  "Erreur combinée": "Combined error",
+  "Distribution normale": "Normal distribution",
+  "Distribution lognormale": "Lognormal distribution",
+  "Distribution logit-normale": "Logit-normal distribution",
+  "Covariable": "Covariate",
+  "Allométrie": "Allometry",
+  "Centrage": "Centering",
+  "Sélection forward/backward": "Forward inclusion / backward elimination",
+  "Vraisemblance": "Likelihood",
+  "Identifiabilité": "Identifiability",
+  "Résidus (WRES/CWRES/IWRES/NPDE)": "Residuals (WRES/CWRES/IWRES/NPDE)",
+  "Théorème de Bayes": "Bayes theorem",
+  "A priori / prior": "Prior",
+  "A posteriori / posterior": "Posterior",
+  "Coefficient de Hill": "Hill coefficient",
+  "Réponse indirecte / turnover": "Indirect response / turnover",
+  "Compartiment d’effet (ke0)": "Effect compartment (ke0)",
+  "Hystérèse": "Hysteresis",
+  "fT > CMI": "fT > MIC",
+  "fAUC / CMI": "fAUC / MIC",
+  "Jumeau numérique": "Digital twin",
+  "Distribution mélangeante": "Mixing distribution",
+  "Point de support": "Support point"
+};
+/** @type {Record<string,string>} */
+const unitEn = {
+  "L/h ou mL/min": "L/h or mL/min",
+  "mL/min/1,73 m²": "mL/min/1.73 m²",
+  "sans unité": "dimensionless",
+  "variable par unité de temps": "variable per unit time",
+  "dépend de l’échelle": "scale-dependent",
+  "% ou variance sur l’échelle du modèle": "% or variance on the model scale",
+  "variance/covariance des η": "variance/covariance of η",
+  "dépend du modèle résiduel": "depends on the residual error model",
+  "unité de concentration": "concentration unit",
+  "réponse/temps pour kin ; 1/temps pour kout": "response/time for kin; 1/time for kout",
+  "masse/temps pour Vmax ; concentration pour Km": "mass/time for Vmax; concentration for Km",
+  "unité de l'observation": "observation unit",
+  "entre 0 et 1": "between 0 and 1",
+  "% de l’intervalle": "% of dosing interval"
+};
+/** @type {Record<string,string>} */
+const equationEn = {
+  "CLr = filtration + sécrétion − réabsorption": "CLr = filtration + secretion − reabsorption",
+  "Flux net = Q × (C1 − C2)": "Net flux = Q × (C1 − C2)",
+  "dA/dt = entrées − sorties": "dA/dt = inputs − outputs",
+  "Paramètre individuel = effet fixe + effet aléatoire (sur une échelle choisie)": "Individual parameter = fixed effect + random effect (on a chosen scale)",
+  "η ~ N(0, Ω) (choix fréquent)": "η ~ N(0, Ω) (common choice)",
+  "Effet = (COV / COVref)^β ou β × (COV − COVref)": "Effect = (COV / COVref)^β or β × (COV − COVref)",
+  "L(θ) = p(données | θ, modèle)": "L(θ) = p(data | θ, model)",
+  "argmaxθ [log L(données | θ) + log p(θ)]": "argmaxθ [log L(data | θ) + log p(θ)]",
+  "N − P (cas linéaire simple)": "N − P (simple linear case)",
+  "fAUC / CMI": "fAUC / MIC",
+  "E = CLorgane / Qsanguin": "E = CLorgan / Qblood",
+  "Prédiction = Σm wm × prédictionm": "Prediction = Σm wm × predictionm",
+  "100 × durée(C libre > CMI) / τ": "100 × duration(unbound C > MIC) / τ",
+  "dA/dt = fmécaniste(A,θ) + fNN(A,x)": "dA/dt = fmechanistic(A,θ) + fNN(A,x)",
+  "Ka < ke dans le cas simple": "Ka < ke in the simple case"
+};
+/** @type {Record<string,string>} */
+const aliasEn = {
+  "pharmacocinétique": "pharmacokinetics",
+  "pharmacodynamie": "pharmacodynamics",
+  "absorption distribution métabolisme élimination": "absorption distribution metabolism elimination",
+  "équation différentielle": "differential equation",
+  "variabilité interindividuelle": "interindividual variability",
+  "erreur résiduelle": "residual error",
+  "suivi thérapeutique pharmacologique": "therapeutic drug monitoring"
+};
+/** @param {string} term @param {string|null} lang */
+export const glossaryDisplayTerm = (term,lang) => lang==='en' ? termEn[term] ?? term : term;
+/** @param {string} unit @param {string|null} lang */
+export const glossaryDisplayUnit = (unit,lang) => lang==='en' ? unitEn[unit] ?? unit : unit;
+/** @param {string} equation @param {string|null} lang */
+export const glossaryDisplayEquation = (equation,lang) => lang==='en' ? equationEn[equation] ?? equation : equation;
+/** @param {string[]} aliases @param {string|null} lang */
+export const glossaryDisplayAliases = (aliases,lang) => [...new Set(aliases.map(alias=>lang==='en'?aliasEn[alias]??alias:alias))];

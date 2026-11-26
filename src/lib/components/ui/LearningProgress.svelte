@@ -4,7 +4,7 @@
   import { language } from '#lib/stores/language.js';
   import { learning, loadLearning, enableLearning, clearLearning } from '#lib/stores/learning.js';
   let confirm = false;
-  const t = (/** @type {string} */ fr, /** @type {string} */ en) => $language === 'en' ? en : fr;
+  $: t = $language === 'en' ? (/** @type {string} */ fr, /** @type {string} */ en) => en : (/** @type {string} */ fr, /** @type {string} */ en) => fr;
   onMount(loadLearning);
 </script>
 

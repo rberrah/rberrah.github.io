@@ -14,10 +14,9 @@
     { id: 'r03', desc: '2 compartiments + Tlag', aic: 817.1, bic: 859.4, ll: -396.5, best: false }
   ];
 
-  /** @param {{id:string, desc:string}} model */
-  const compareDescription = (model) => $language === 'en'
+  $: compareDescription = ((lang) => (/** @type {{id:string, desc:string}} */ model) => lang === 'en'
     ? (/** @type {Record<string, string>} */ ({ r01: '1 compartment, no Tlag', r02: '1 compartment + Tlag', r03: '2 compartments + Tlag' })[model.id] ?? model.desc)
-    : model.desc;
+    : model.desc)($language);
 
   const structural = `# Modèle structural PK — 1 compartiment, absorption orale + Tlag (nlmixr2)
 pk_1cmt <- function() {
