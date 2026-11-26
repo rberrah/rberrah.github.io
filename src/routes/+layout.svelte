@@ -52,6 +52,7 @@
     { href: 'https://rberrah.github.io/multiomics/', key: 'multiomics', label: 'MultiOmics ↗', external: true },
     { href: 'https://rberrah.github.io/Omics2PK/', key: 'omics2pk', label: 'Omics2PK ↗', external: true },
     { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
+    { href: '/ressources-outils', key: 'useful-tools', label: $language === 'en' ? 'Other useful tools' : 'Autres outils utiles' },
     { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
     { href: '/actualites', key: 'news', label: $language === 'en' ? 'What’s new' : 'Actualités' },
     { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain' },
@@ -64,7 +65,7 @@
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'tdm-targets', 'ml', 'other-tools'] },
     { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'cross-domains', 'multiomics', 'omics2pk'] },
-    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['news', 'search', 'glossary', 'references', 'about', 'main-site'] }
+    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['news', 'search', 'glossary', 'references', 'useful-tools', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
   /** @type {HTMLElement | undefined} */
@@ -107,6 +108,7 @@
     '/translator/': { fr: 'Traduction des modèles pharmacométriques — PMx Explain', en: 'Pharmacometrics model translation — PMx Explain' },
     '/glossaire/': { fr: 'Glossaire de pharmacométrie — PMx Explain', en: 'Pharmacometrics glossary — PMx Explain' },
     '/actualites/': { fr: 'Actualités et mises à jour — PMx Explain', en: 'News and updates — PMx Explain' },
+    '/ressources-outils/': { fr: 'Autres outils utiles — PMx Explain', en: 'Other useful tools — PMx Explain' },
     '/references/': { fr: 'Références scientifiques PK/PD — PMx Explain', en: 'Scientific PK/PD references — PMx Explain' },
     '/ecosystem/': { fr: 'Écosystème des outils PK/PD — PMx Explain', en: 'PK/PD research ecosystem — PMx Explain' },
     '/domaines/': { fr: 'Des données omiques à la pharmacométrie — PMx Explain', en: 'From omics data to pharmacometrics — PMx Explain' }
