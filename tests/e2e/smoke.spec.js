@@ -131,3 +131,24 @@ test('les libellés scientifiques des visualisations passent en anglais', async 
   await expect(page.getByTestId('viz-panel')).not.toContainText('CMI (mg/L)');
   await expect(page.getByTestId('viz-panel').locator('svg')).toContainText('Time (h)');
 });
+
+test('curated external tools are reachable from Resources and switch language', async ({page}) => {
+  await page.goto('/?lang=en');
+  const menu=page.getByTestId('goal-resources');
+  await menu.locator('summary').click();
+  const link=page.getByTestId('nav-useful-tools');
+  await expect(link).toBeVisible();
+  await link.click();
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Other useful tools');
+  const urls=['https://monolixsuite.slp-software.com/monolix/2024R1','https://pmxrepo.com/','https://mlu-explain.github.io/','https://outils-pedagogique-unica-ubo.netlify.app/'];
+  for(const url of urls){
+    const a=page.locator('a[href="'+url+'"]');
+    await expect(a).toBeVisible();
+    await expect(a).toHaveAttribute('rel','noopener noreferrer');
+  }
+  await page.getByRole('button',{name:'FR',exact:true}).click();
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Autres outils utiles');
+  await expect(page.getByRole('heading',{name:'Pharmacométrie et modélisation'})).toBeVisible();
+  await page.setViewportSize({width:320,height:640});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
