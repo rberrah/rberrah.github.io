@@ -14,7 +14,7 @@
     course: { fr: 'ressource', en: 'resource' }
   };
   /** @param {{fr:string,en:string}} o */
-  const pick = (o) => (isEn ? o.en : o.fr);
+  $: pick = isEn ? (/** @type {{fr:string,en:string}} */ o) => o.en : (/** @type {{fr:string,en:string}} */ o) => o.fr;
 </script>
 
 <header class="head">
