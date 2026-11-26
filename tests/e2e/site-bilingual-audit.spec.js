@@ -213,3 +213,53 @@ test('P0 FR-to-EN: teacher sequence remains selected and ordered while labels tr
   await expect(builder).not.toContainText('Sélectionner et ordonner les ressources');
   await expect(checkbox).not.toBeChecked();
 });
+
+
+// Desktop scrollytelling only mounts one chart at a time. At mobile width,
+// every chapter visualization is rendered inline, so explicitly wait for all
+// expected visualizations before auditing both language variants.
+const mobileBatches=[];
+for(let i=0;i<index.length;i+=8)mobileBatches.push(index.slice(i,i+8));
+for(const [n,batch] of mobileBatches.entries()){
+  test('site language inventory: all inline chapter visualizations '+(n+1)+'/'+mobileBatches.length,async({page})=>{
+    test.setTimeout(180000);
+    await page.setViewportSize({width:390,height:844});
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+    const records=[],errors=[],pageErrors=[];
+    page.on('pageerror',e=>pageErrors.push(e.message));
+    try{
+      for(const c of batch)for(const lang of ['en','fr']){
+        const route='/pharmacometrie/chapitres/'+c.slug+'/';
+        const local=lang==='en'?c.translations.en:c;
+        const raw=readFileSync(path.join('src/content/chapters',lang==='en'?'en':'',local.sourceFile),'utf8');
+        const expected=[...raw.matchAll(/<!--\s*step:[\s\S]*?-->/g)].filter(m=>/\bviz\s*=\s*"[^"]+"/.test(m[0])).length;
+        pageErrors.length=0;
+        try{
+          const response=await page.goto(origin+route+'?lang='+lang,{waitUntil:'load',timeout:20000});
+          expect(response?.status()).toBe(200);
+          await expect(page.locator('html')).toHaveAttribute('lang',lang);
+          await expect(page.getByTestId('chapter-title')).toHaveText(local.title);
+          await expect(page.getByTestId('viz-panel')).toHaveCount(0);
+          await expect(page.getByTestId('viz-inline')).toHaveCount(expected,{timeout:10000});
+          await page.locator('details').evaluateAll(ds=>ds.forEach(d=>{if(d.getClientRects().length)d.open=true;}));
+          const capture=await collect(page);
+          const candidates=capture.rows.filter(row=>!row.markedLang&&suspect(row.text,lang));
+          records.push({route,lang,expectedVisualizations:expected,actualVisualizations:await page.getByTestId('viz-inline').count(),candidates});
+          if(pageErrors.length)errors.push({route,lang,pageErrors:[...pageErrors]});
+        }catch(e){errors.push({route,lang,error:String(e).slice(0,1000)});}
+      }
+    }finally{
+      persist('mobile-viz-'+String(n+1).padStart(3,'0'),{records,errors});
+      const unique=new Map();
+      for(const r of records)for(const c of r.candidates)if(r.lang==='en'){
+        const key=c.kind+'|'+c.text;
+        if(!unique.has(key))unique.set(key,{route:r.route,lang:r.lang,...c});
+      }
+      console.log('SITE_LANGUAGE_MOBILE '+JSON.stringify({batch:n+1,rendered:records.length,figures:records.reduce((s,r)=>s+r.actualVisualizations,0),errors,candidates:records.reduce((s,r)=>s+r.candidates.length,0)}));
+      for(const candidate of [...unique.values()].slice(0,100))console.log('SITE_LANGUAGE_MOBILE_CANDIDATE '+JSON.stringify(candidate));
+      if(unique.size>100)console.log('SITE_LANGUAGE_MOBILE_CANDIDATE_OVERFLOW '+(unique.size-100)+' more in the JSON artifact');
+    }
+    expect(errors).toEqual([]);
+  });
+}
