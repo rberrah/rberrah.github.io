@@ -306,12 +306,6 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
 .home-split .section-head > div { flex-basis:100%; }
 .home-personal h2,.home-apps h2 { font-size:1.85rem; margin-bottom:.5rem; }
 .home-split .project-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
-.home-personal .home-research .project-grid { grid-template-columns:1fr; gap:0; }
-.home-personal .home-research .project-grid article {
-  border:0; border-radius:0; border-top:1px solid var(--border); padding:.9rem 0;
-  min-height:0;
-}
-.home-personal .home-research .project-grid article:first-child { border-top:0; padding-top:0; }
 .home-split .project-grid h3 { font-size:1.25rem; margin-bottom:.55rem; }
 .home-split .project-grid .eyebrow { margin-bottom:.45rem; }
 .home-split .project-grid p:not(.eyebrow) { margin-bottom:.6rem; }
@@ -320,11 +314,7 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
 .home-personal .communication-highlight-preview img { aspect-ratio:16/9; }
 .home-personal .publication { grid-template-columns:44px minmax(0,1fr); gap:.7rem; padding-block:1.15rem; }
 .home-personal .publication h3 { font-size:.99rem; }
-.home-apps .pathways { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.1rem; margin-block:1.25rem; }
-.home-apps .pathways section:last-child { grid-column:1/-1; }
-.home-apps .product-showcase { grid-template-columns:minmax(0,1fr); gap:1rem; padding:1rem; margin-top:1.5rem; }
-.home-apps .product-showcase-copy { max-width:none; }
-.home-apps .product-figure { max-width:none; }
+.home-tool-list .tool-links { font-size:.86rem; gap:.4rem .8rem; }
 .home-related { display:grid; gap:0; margin-top:1.1rem; border-top:1px solid var(--border); }
 .home-related a { display:block; padding:.8rem .1rem; border-bottom:1px solid var(--border); font-weight:600; }
 .home-related small { display:block; color:var(--ink-3); font-size:.8rem; font-weight:400; text-decoration:none; }
@@ -335,7 +325,7 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
   .home-apps { border-left:0; padding-left:0; }
 }
 @media(max-width:480px) {
-  .home-split .project-grid,.home-apps .pathways { grid-template-columns:minmax(0,1fr); }
+  .home-split .project-grid { grid-template-columns:minmax(0,1fr); }
   .home-identity h1 { font-size:2.75rem; }
   .home-pmx { padding:1rem; }
 }
