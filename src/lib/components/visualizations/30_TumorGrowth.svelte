@@ -73,7 +73,7 @@
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <!-- bandes RECIST -->
       <line x1="0" x2={iW} y1={yPR} y2={yPR} class="thr pr" />
-      <text x={iW - 2} y={yPR - 4} class="thrlbl pr">RP −30%</text>
+      <text x={iW - 2} y={yPR - 4} class="thrlbl pr">{$language === 'en' ? 'PR −30%' : 'RP −30%'}</text>
       <line x1="0" x2={iW} y1={yPD} y2={yPD} class="thr pd" />
       <text x={iW - 2} y={yPD - 4} class="thrlbl pd">{$language === 'en' ? 'from nadir: +20% and +5 mm' : 'depuis nadir : +20 % et +5 mm'}</text>
       <!-- courbes -->

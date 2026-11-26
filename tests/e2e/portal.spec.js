@@ -42,22 +42,26 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
       await expect(page.getByTestId('portal-about-cv')).toHaveAttribute('href','/a-propos/');
       await expect(page.getByTestId('portal-tdm-guide-link'))
         .toHaveAttribute('href', '/pharmacometrie/cibles-tdm/?lang=en');
-      await expect(page.locator('.pathways').getByRole('link', { name: 'MIPD Engine', exact: true }))
+      await expect(page.getByTestId('home-pmx').getByRole('link', { name: 'Precision dosing', exact: true }))
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
-      await expect(page.locator('.pathways').getByText(/In PD\/infectiology, explore exposure, MIC/))
-        .toBeVisible();
+      await expect(page.getByTestId('home-pmx').getByRole('link', { name: 'Open PMx Explain' }))
+        .toHaveAttribute('href', '/pharmacometrie/?lang=en');
+      await expect(page.locator('.pathways, .product-showcase')).toHaveCount(0);
       await expect(page.locator('section[aria-labelledby="projects-title"] .project-grid h3')).toHaveText(['MIPD Engine', 'Multiomics', 'TacDDI', 'MissedDose']);
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open MIPD Engine' }))
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open Multiomics' }))
-        .toHaveAttribute('href', '/multiomics/tool/');
-      await expect(page.getByRole('heading', { name: 'Research directions' })).toBeVisible();
+        .toHaveAttribute('href', '/multiomics/tool/?lang=en');
+      await expect(page.getByTestId('home-identity')).toContainText('biology-informed PK models');
+      await expect(page.getByTestId('home-identity')).toContainText('Bayesian precision dosing');
+      await expect(page.getByRole('heading', { name: 'Research directions', exact:true })).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: 'About', exact:true })).toHaveCount(0);
       const homeSchemas = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(JSON.parse);
       const pmxApplication = homeSchemas.find(schema => schema['@type'] === 'SoftwareApplication');
       expect(pmxApplication?.name).toBe('PMx Explain');
       expect(pmxApplication?.author?.['@id']).toBe(publicOrigin + '/#racym-berrah');
       expect(pmxApplication?.hasPart?.['@type']).toBe('SoftwareSourceCode');
-      await expect(page.getByRole('heading', { name: 'Recent communication' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Recent communications' })).toBeVisible();
       await expect(page.locator('.communication-highlight').getByRole('link', { name: /NetPK: fusing published/ }))
         .toHaveAttribute('href', '/communications/netpk-peprsn-2026/');
       await expect(page.locator('#conference-title')).toHaveCount(0);
@@ -128,9 +132,9 @@ for (const [name, width, height] of [['mobile', 390, 844], ['narrow', 320, 640],
       }
       await page.goto(origin + '/');
       expect(await page.locator('#explain-title').evaluate(e => e.getBoundingClientRect().top)).toBeLessThan(height);
-      const image = page.locator('.product-figure img');
+      const image = page.locator('.communication-highlight-preview img');
       await image.scrollIntoViewIfNeeded();
-      // The preview is lazy-loaded below the fold on mobile; wait for the same decode criterion.
+      // The retained communication preview is lazy-loaded; wait for actual image decoding.
       await expect.poll(() => image.evaluate(i => i.complete && i.naturalWidth > 500), {timeout: 8000}).toBe(true);
       await page.screenshot({ path: 'test-results/portal-' + name + '-' + theme + '.png', fullPage: true });
     });
@@ -330,10 +334,14 @@ test('academic homepage separates research and platforms with accessible mobile 
   expect(a.x+a.width).toBeLessThan(b.x);
   expect(c.x+c.width).toBeLessThan(d.x);
   expect(Math.abs(c.y-d.y)).toBeLessThan(2);
-  await expect(personal.getByRole('heading',{name:'Research directions'})).toBeVisible();
+  await expect(personal.locator(':scope > section')).toHaveCount(2);
+  await expect(identity.getByTestId('portal-about-cv')).toHaveAttribute('href','/a-propos/');
   await expect(personal.getByRole('heading',{name:'Selected work'})).toBeVisible();
-  await expect(personal.getByRole('heading',{name:'Recent communication'})).toBeVisible();
-  await expect(apps.getByRole('heading',{name:'Explore PMx Explain'})).toBeVisible();
+  await expect(personal.getByRole('heading',{name:'Recent communications'})).toBeVisible();
+  await expect(apps.locator(':scope > section')).toHaveCount(1);
+  await expect(apps.getByRole('heading',{name:'More tools & projects'})).toBeVisible();
+  await expect(apps.getByRole('heading',{name:'Explore PMx Explain'})).toHaveCount(0);
+  await expect(pmx.getByRole('link',{name:/All platforms/})).toHaveAttribute('href','#platforms');
   await expect(apps.getByRole('link',{name:/Stat & Biologie/})).toHaveAttribute('href','/stats/');
   await expect(apps.getByRole('link',{name:/Omics2PK/})).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
   await page.setViewportSize({width:320,height:640});
