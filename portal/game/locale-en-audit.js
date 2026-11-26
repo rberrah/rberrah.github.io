@@ -118,5 +118,13 @@ export const FR_EN_AUDIT = {
   "Demi-vie apparente locale :": "Local apparent half-life:",
   "Langue": "Language",
   "Cible": "Target",
-  "heures": "hours"
+  "heures": "hours",
+  "Dossier Warfarine · cohorte synthétique": "Warfarin case · simulated cohort",
+  "Cohorte artificielle calculée avec une PK orale 1C; paramètres inspirés des démonstrations warfarine, données NON cliniques.": "Simulated cohort generated using oral one-compartment PK; parameters inspired by warfarin demonstrations, NOT clinical data.",
+  "SAEM éducatif généralisé : tirages Metropolis des effets aléatoires, approximation stochastique, M-step numérique conditionnelle.": "Educational generalized SAEM: Metropolis draws of random effects, stochastic approximation, conditional numerical M-step.",
+  "ηCL ~ N(0, ωCL²), V et Ka sans effet aléatoire": "ηCL ~ N(0, ωCL²), V and Ka without random effects",
+  "Marginalisation numérique 1D de ηCL, quadrature de Gauss–Legendre à 161 nœuds; BIC approximatif et non sortie Monolix/nlmixr2.": "One-dimensional numerical marginalization over ηCL, 161-node Gauss–Legendre quadrature; approximate BIC, not Monolix/nlmixr2 output.",
+  "Replay d’ajustements réellement calculés par un moteur de démonstration non validé. Ne pas assimiler au SAEM Monolix, à une validation externe ou à un modèle utilisable en clinique.": "Replay of fits actually computed by an unvalidated demonstration engine. This is not Monolix SAEM, external validation or a clinically usable model.",
+  "Oral 1C, sans Tlag": "Oral 1C, without Tlag",
+  "Oral 2C, sans Tlag": "Oral 2C, without Tlag"
 };
