@@ -303,11 +303,11 @@ const aliasEn = {
   "erreur résiduelle": "residual error",
   "suivi thérapeutique pharmacologique": "therapeutic drug monitoring"
 };
-/** @param {string} term @param {string} lang */
+/** @param {string} term @param {string|null} lang */
 export const glossaryDisplayTerm = (term,lang) => lang==='en' ? termEn[term] ?? term : term;
-/** @param {string} unit @param {string} lang */
+/** @param {string} unit @param {string|null} lang */
 export const glossaryDisplayUnit = (unit,lang) => lang==='en' ? unitEn[unit] ?? unit : unit;
-/** @param {string} equation @param {string} lang */
+/** @param {string} equation @param {string|null} lang */
 export const glossaryDisplayEquation = (equation,lang) => lang==='en' ? equationEn[equation] ?? equation : equation;
-/** @param {string[]} aliases @param {string} lang */
+/** @param {string[]} aliases @param {string|null} lang */
 export const glossaryDisplayAliases = (aliases,lang) => [...new Set(aliases.map(alias=>lang==='en'?aliasEn[alias]??alias:alias))];
