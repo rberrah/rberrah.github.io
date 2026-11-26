@@ -103,7 +103,7 @@ function drawDiagram(phase = performance.now()/1000) {
   const total = Math.max(1, result.delivered);
   let svg = '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="none" stroke="#83dcd0" stroke-width="1.7"/></marker>' +
     '<marker id="back" markerWidth="8" markerHeight="8" refX="0" refY="3" orient="auto-start-reverse"><path d="M6 0 L0 3 L6 6" fill="none" stroke="#83dcd0" stroke-width="1.7"/></marker></defs>' +
-    '<text x="26" y="32" fill="#6daba8" font-size="14" letter-spacing="1.2">MODELE ' + c.model + 'C · ' + (c.route === 'oral' ? 'ORAL' : 'IV') + '</text>';
+    '<text x="26" y="32" fill="#6daba8" font-size="14" letter-spacing="1.2">' + tr('MODÈLE ','MODEL ') + c.model + 'C · ' + (c.route === 'oral' ? 'ORAL' : 'IV') + '</text>';
   if (c.route === 'oral') svg += line('gut','central','Ka');
   if (c.model >= 2) svg += line('central','p1','Q1',true);
   if (c.model >= 3) svg += line('central','p2','Q2',true);
