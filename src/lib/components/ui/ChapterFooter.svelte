@@ -19,7 +19,7 @@
   };
   $: t = T[$language] ?? T.fr;
 
-  $: sources = resolveSources(chapter?.sources);
+  $: sources = resolveSources(chapter?.sources, $language);
   $: issueUrl =
     'https://github.com/rberrah/rberrah.github.io/issues/new?title=' +
     encodeURIComponent(`[${chapter?.slug ?? ''}] erreur / error`) +
