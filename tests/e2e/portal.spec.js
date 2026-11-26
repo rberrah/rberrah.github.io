@@ -52,7 +52,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open Multiomics' }))
         .toHaveAttribute('href', '/multiomics/tool/?lang=en');
-      await expect(page.getByTestId('home-identity')).toContainText('biology-informed PK modelling');
+      await expect(page.getByTestId('home-identity')).toContainText('biology-informed PK models');
       await expect(page.getByTestId('home-identity')).toContainText('Bayesian precision dosing');
       await expect(page.getByRole('heading', { name: 'Research directions', exact:true })).toHaveCount(0);
       await expect(page.getByRole('heading', { name: 'About', exact:true })).toHaveCount(0);
