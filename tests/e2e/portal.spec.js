@@ -91,6 +91,8 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
       // MultiOmics is mounted only after the portal + PMx artifact is assembled.
       // Its filesystem and browser acceptance are covered by multiomics-assembled-mount.spec.js.
       if (/^\/multiomics(\/|$)/.test(url.pathname)) continue;
+      // Omics2PK has its own Pages deployment, qualified independently by the workflow.
+      if (url.pathname === '/Omics2PK/') continue;
       const app = url.pathname.startsWith('/pharmacometrie/');
       const file = path.resolve(app ? 'build' : 'portal',
         '.' + (app ? url.pathname.slice('/pharmacometrie'.length) : url.pathname),
@@ -128,7 +130,8 @@ for (const [name, width, height] of [['mobile', 390, 844], ['narrow', 320, 640],
       expect(await page.locator('#explain-title').evaluate(e => e.getBoundingClientRect().top)).toBeLessThan(height);
       const image = page.locator('.product-figure img');
       await image.scrollIntoViewIfNeeded();
-      expect(await image.evaluate(i => i.complete && i.naturalWidth > 500)).toBe(true);
+      // The preview is lazy-loaded below the fold on mobile; wait for the same decode criterion.
+      await expect.poll(() => image.evaluate(i => i.complete && i.naturalWidth > 500), {timeout: 8000}).toBe(true);
       await page.screenshot({ path: 'test-results/portal-' + name + '-' + theme + '.png', fullPage: true });
     });
   }
@@ -316,4 +319,26 @@ test('essential navigation works without JavaScript', async ({ browser }) => {
   await expect(page.locator('h1')).toHaveText('Tools & Projects');
   await expect(page.locator('.theme-control')).toBeHidden();
   await context.close();
+});
+
+test('academic homepage separates research and platforms with accessible mobile ordering', async ({ page }) => {
+  await page.setViewportSize({width:1440,height:1000});
+  await page.goto(origin+'/');
+  const identity=page.getByTestId('home-identity'), pmx=page.getByTestId('home-pmx');
+  const personal=page.getByTestId('home-personal'), apps=page.getByTestId('home-apps');
+  const a=await identity.boundingBox(), b=await pmx.boundingBox(), c=await personal.boundingBox(), d=await apps.boundingBox();
+  expect(a.x+a.width).toBeLessThan(b.x);
+  expect(c.x+c.width).toBeLessThan(d.x);
+  expect(Math.abs(c.y-d.y)).toBeLessThan(2);
+  await expect(personal.getByRole('heading',{name:'Research directions'})).toBeVisible();
+  await expect(personal.getByRole('heading',{name:'Selected work'})).toBeVisible();
+  await expect(personal.getByRole('heading',{name:'Recent communication'})).toBeVisible();
+  await expect(apps.getByRole('heading',{name:'Explore PMx Explain'})).toBeVisible();
+  await expect(apps.getByRole('link',{name:/Stat & Biologie/})).toHaveAttribute('href','/stats/');
+  await expect(apps.getByRole('link',{name:/Omics2PK/})).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
+  await page.setViewportSize({width:320,height:640});
+  const mobileA=await identity.boundingBox(), mobileB=await pmx.boundingBox();
+  expect(mobileA.y+mobileA.height).toBeLessThanOrEqual(mobileB.y+1);
+  expect(await page.locator('#explain-title').evaluate(e=>e.getBoundingClientRect().top)).toBeLessThan(640);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
