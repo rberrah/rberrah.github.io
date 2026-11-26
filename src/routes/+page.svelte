@@ -97,7 +97,7 @@
 <!-- A dedicated entry point for first-time learners, separate from the advanced track catalog. -->
 <section class="beginner-feature" data-testid="beginner-track-feature" aria-labelledby="beginner-track-title">
   <div class="beginner-feature-body">
-    <p class="eyebrow">{$language === 'en' ? 'START HERE · BEGINNER TRACK' : 'COMMENCER ICI · BEGINNER TRACK'}</p>
+    <p class="eyebrow">{$language === 'en' ? 'START HERE · BEGINNER TRACK' : 'COMMENCER ICI · PARCOURS DÉBUTANT'}</p>
     <h2 id="beginner-track-title">{localizeTrack(beginnerTrack, $language).title}</h2>
     <p class="beginner-feature-description">{localizeTrack(beginnerTrack, $language).tagline}</p>
     <div class="beginner-feature-details">
@@ -107,7 +107,7 @@
     </div>
   </div>
   <a class="btn btn-primary beginner-feature-link" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="beginner-track-open">
-    {$language === 'en' ? 'Explore the Beginner Track' : 'Découvrir le Beginner Track'}
+    {$language === 'en' ? 'Explore the Beginner Track' : 'Découvrir le parcours débutant'}
     <ArrowRight size={18} aria-hidden="true" />
   </a>
 </section>
