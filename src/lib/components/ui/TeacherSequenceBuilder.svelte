@@ -11,14 +11,14 @@
   let previousGroup = '';
   let previousLanguage = '';
   let message = '';
-  $: text = ((lang) => value => value?.[lang] ?? value?.fr ?? value ?? '')($language);
   $: t = $language === 'en' ? (fr,en) => en : (fr,en) => fr;
 
-  function buildSequence(value) {
+  function buildSequence(value, lang) {
+    const text = v => v?.[lang] ?? v?.fr ?? v ?? '';
     const result = [];
     const usedLabs = new Set();
     for (const chapter of value.chapters) {
-      const localized = chapter.translations?.[$language === 'en' ? 'en' : 'fr'] ?? chapter;
+      const localized = chapter.translations?.[lang === 'en' ? 'en' : 'fr'] ?? chapter;
       result.push({ id: `course-${chapter.slug}`, kind: 'course', label: localized.title, href: `/chapitres/${chapter.slug}/`, included: true });
       for (const activity of value.activities.filter(item => item.chapter === chapter.slug)) {
         result.push({ id: `activity-${activity.id}`, kind: 'activity', label: text(activity.title), href: `/chapitres/${chapter.slug}/#activity-${activity.id}`, included: true });
@@ -26,7 +26,7 @@
       const lab = labByChapter[chapter.slug];
       if (lab && !usedLabs.has(lab)) {
         usedLabs.add(lab);
-        result.push({ id: `lab-${lab}`, kind: 'lab', label: labNames[lab]?.[$language] ?? lab, href: `/laboratoires/?lab=${lab}&teacher=1&hide=1`, included: true });
+        result.push({ id: `lab-${lab}`, kind: 'lab', label: labNames[lab]?.[lang] ?? lab, href: `/laboratoires/?lab=${lab}&teacher=1&hide=1`, included: true });
       }
     }
     for (const activity of value.syntheses) {
@@ -36,9 +36,16 @@
   }
 
   $: if (group?.id && (group.id !== previousGroup || $language !== previousLanguage || !sequence.length)) {
+    const fresh = buildSequence(group, $language);
+    if (group.id === previousGroup && sequence.length) {
+      // Preserve the teacher's order and selected items on a language change.
+      const byId = new Map(fresh.map(item => [item.id,item]));
+      const retained = sequence.filter(item=>byId.has(item.id)).map(item=>({...byId.get(item.id),included:item.included}));
+      const retainedIds = new Set(retained.map(item=>item.id));
+      sequence = [...retained,...fresh.filter(item=>!retainedIds.has(item.id))];
+    } else sequence = fresh;
     previousGroup = group.id;
     previousLanguage = $language;
-    sequence = buildSequence(group);
     message = '';
   }
 
