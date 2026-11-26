@@ -11,8 +11,8 @@
   let previousGroup = '';
   let previousLanguage = '';
   let message = '';
-  const text = value => value?.[$language] ?? value?.fr ?? value ?? '';
-  const t = (fr, en) => $language === 'en' ? en : fr;
+  $: text = ((lang) => value => value?.[lang] ?? value?.fr ?? value ?? '')($language);
+  $: t = $language === 'en' ? (fr,en) => en : (fr,en) => fr;
 
   function buildSequence(value) {
     const result = [];
@@ -42,12 +42,12 @@
     message = '';
   }
 
-  const kindLabel = kind => ({
-    course: t('cours', 'course'),
-    activity: t('activité', 'activity'),
-    lab: t('laboratoire', 'laboratory'),
-    synthesis: t('synthèse', 'synthesis')
-  })[kind];
+  $: kindLabel = ((translate) => kind => ({
+    course: translate('cours', 'course'),
+    activity: translate('activité', 'activity'),
+    lab: translate('laboratoire', 'laboratory'),
+    synthesis: translate('synthèse', 'synthesis')
+  })[kind])(t);
 
   function move(index, offset) {
     const target = index + offset;
