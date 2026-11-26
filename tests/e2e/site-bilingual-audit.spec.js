@@ -152,6 +152,14 @@ for(const [n,batch] of batches.entries()){
         candidates:records.reduce((sum,r)=>sum+r.candidates.length,0),
         flagged:records.filter(r=>r.candidates.length).map(r=>({route:r.route,lang:r.expected,state:r.state,count:r.candidates.length}))}));
     }
+    const unique = new Map();
+    for(const r of records) for(const c of r.candidates){
+      const key = r.expected+'|'+c.kind+'|'+c.text;
+      if(!unique.has(key))unique.set(key,{route:r.route,lang:r.expected,state:r.state,kind:c.kind,element:c.element,text:c.text});
+    }
+    for(const candidate of [...unique.values()].slice(0,100))
+      console.log('SITE_LANGUAGE_CANDIDATE '+JSON.stringify(candidate));
+    if(unique.size>100)console.log('SITE_LANGUAGE_CANDIDATE_OVERFLOW '+(unique.size-100)+' more in the JSON artifact');
     // Actual coverage/load/locale errors are a test failure; lexical candidates
     // are separately reviewed to avoid misclassifying references as defects.
     expect(errors).toEqual([]);
