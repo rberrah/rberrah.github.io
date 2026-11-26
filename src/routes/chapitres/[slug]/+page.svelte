@@ -15,6 +15,7 @@
   import { exercisesForChapter } from '#lib/content/exercises.js';
   import { activitiesForChapter, synthesisForTrack } from '#lib/content/guidedActivities.js';
   import { markLearning } from '#lib/stores/learning.js';
+  import { glossaryDisplayTerm } from '#lib/content/glossaryMeta.js';
   import { describeViz } from '#lib/content/vizDescriptions.js';
   import { language } from '#lib/stores/language.js';
   import { localizeChapter, ui } from '#lib/i18n/translations.js';
@@ -340,7 +341,7 @@
           <div class="recall-row">
             <span class="recall-label">{copy.chapter.glossaryLabel}</span>
             <span class="recall-items">
-              {#each glossaryTerms as t}<a class="chip chip-term" href={`${base}/glossaire?q=${encodeURIComponent(t)}`}>{t}</a>{/each}
+              {#each glossaryTerms as t}<a class="chip chip-term" href={`${base}/glossaire?q=${encodeURIComponent(t)}`}>{glossaryDisplayTerm(t,$language)}</a>{/each}
             </span>
           </div>
         {/if}
