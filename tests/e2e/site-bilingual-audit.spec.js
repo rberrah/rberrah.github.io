@@ -174,3 +174,42 @@ test('home French copy and language control are localized',async({page})=>{
   await expect(page.locator('.language-toggle')).toHaveAttribute('aria-label','Language');
   await expect(page.getByTestId('beginner-track-open')).toContainText('Beginner Track');
 });
+
+test('P0 FR-to-EN: glossary definitions, names, units and aliases update without reload',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/glossaire/?lang=fr');
+  const entry=page.locator('.entry').filter({has:page.locator('dt').filter({hasText:/^PK\s*·/})}).first();
+  await expect(entry).toContainText('Ce que l\'organisme fait au médicament');
+  await page.locator('.language-toggle button').filter({hasText:/^EN$/}).click();
+  await expect(entry).toContainText('What the body does to a drug');
+  await expect(entry).not.toContainText('pharmacocinétique');
+  await expect(page.locator('main')).not.toContainText('variable par unité de temps');
+  await expect(page.locator('main')).toContainText('Compartmental model');
+  await page.locator('.language-toggle button').filter({hasText:/^FR$/}).click();
+  await expect(entry).toContainText('Ce que l\'organisme fait au médicament');
+});
+test('P0 FR-to-EN: domain lessons and reference annotations update',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/domaines/?lang=fr');
+  await expect(page.locator('h1')).toContainText('Des omiques à la PK/PD');
+  await page.locator('.language-toggle button').filter({hasText:/^EN$/}).click();
+  await expect(page.locator('h1')).toContainText('From omics to PK/PD');
+  await expect(page.getByTestId('cross-domain-courses')).not.toContainText('Comment transformer des mesures génétiques');
+  await page.goto(origin+'/pharmacometrie/chapitres/math-fisher/?lang=en');
+  await expect(page.locator('.chfoot')).toContainText('PFIM — optimal design in nonlinear mixed-effects models');
+  await expect(page.locator('.chfoot')).not.toContainText('fondement statistique des modèles');
+  await page.goto(origin+'/pharmacometrie/references/?lang=fr');
+  await page.locator('.language-toggle button').filter({hasText:/^EN$/}).click();
+  await expect(page.locator('main')).toContainText('random forests for ordinal outcomes');
+  await expect(page.locator('main')).not.toContainText('forêts aléatoires pour une réponse ordinale');
+});
+test('P0 FR-to-EN: teacher sequence remains selected and ordered while labels translate',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/exercices/?lang=fr');
+  const builder=page.locator('.teacher-builder');
+  await builder.locator('summary').click();
+  const checkbox=builder.locator('li input[type=checkbox]').first();
+  await checkbox.uncheck();
+  await expect(checkbox).not.toBeChecked();
+  await page.locator('.language-toggle button').filter({hasText:/^EN$/}).click();
+  await expect(builder).toContainText('Prepare a sequence');
+  await expect(builder).not.toContainText('Sélectionner et ordonner les ressources');
+  await expect(checkbox).not.toBeChecked();
+});
