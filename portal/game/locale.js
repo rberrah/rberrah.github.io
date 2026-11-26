@@ -8,7 +8,8 @@ import {FR_EN_CLASSIC} from './locale-en-classic.js';
 import {FR_EN_V3} from './locale-en-v3.js';
 import {FR_EN_V4} from './locale-en-v4.js';
 import {FR_EN_V5} from './locale-en-v5.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5};
+import {FR_EN_AUDIT} from './locale-en-audit.js';
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5,...FR_EN_AUDIT};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
@@ -16,6 +17,10 @@ const forced=params.get('lang');
 let current=supported.has(forced)?forced:(()=>{try{return localStorage.getItem('pharmacometrie-language')||'fr';}catch{return 'fr';}})();
 if(!supported.has(current))current='fr';
 
+// Match typographic variants of the same source fragment (including inline markup boundaries).
+const normalize=s=>s.trim().replace(/\s+/g,' ').replace(/[’‘]/g,"'");
+const normalizedDictionary=new Map(Object.entries(DICTIONARY).map(([fr,en])=>[normalize(fr),en]));
+const englishValues=new Set(Object.values(DICTIONARY).map(normalize));
 const longKeys=Object.keys(DICTIONARY).filter(k=>k.length>=35).sort((a,b)=>b.length-a.length);
 const states=new WeakMap();
 const attrStates=new WeakMap();
@@ -63,14 +68,18 @@ const phraseRules=[
   ['Certaines équations ne sont pas encore cohérentes :','Some equations are not yet consistent:'],['dérivée(s) à revoir. Vérifiez le sens et le signe des flux.','derivative(s) to review. Check flow directions and signs.'],
   ['Vos résultats : AUC linéaire =','Your results: linear AUC ='],['et AUC saturable =','and saturable AUC ='],
   ['Votre simulation :','Your simulation:'],[' et AUC24 =',' and AUC24 ='],
+  [' h⁻¹ entre ',' h⁻¹ between '],[' h et ',' h and '],['Demi-vie apparente locale :','Local apparent half-life:'],
+  ['bloc(s) placé(s)','block(s) placed'],['Colonne ','Column '],
   ['mg/L. Sélectionnez un second point.','mg/L. Select a second point.'],
   ['prélèvements). Turquoise = données mesurées ; orange = sujet sélectionné ; violet = médiane et IQR par fenêtre (au moins 4 sujets), sans interpolation.','samples). Turquoise = observed data; orange = selected subject; purple = windowed median and IQR (at least 4 subjects), without interpolation.']
 ];
 function translate(fr){
   const trimmed=fr.trim();
   if(!trimmed)return fr;
-  const direct=DICTIONARY[trimmed];
+  const direct=DICTIONARY[trimmed]??normalizedDictionary.get(normalize(trimmed));
   if(direct!==undefined)return fr.replace(trimmed,direct);
+  // Explicit bilingual renderers already supply English; never translate it a second time.
+  if(englishValues.has(normalize(trimmed)))return fr;
   // Full explanatory sentences can be followed by computed results, and map labels combine translated fragments.
   const prefix=longKeys.find(k=>trimmed.startsWith(k+' '));
   if(prefix)return fr.replace(trimmed,DICTIONARY[prefix]+translate(trimmed.slice(prefix.length)));
@@ -96,7 +105,7 @@ function updateText(node){
 }
 function updateAttrs(el){
   if(!(el instanceof Element))return;
-  const names=['title','aria-label','placeholder'];
+  const names=['title','aria-label','placeholder','alt','data-tooltip'];
   let old=attrStates.get(el)||{};
   for(const attr of names){
     if(!el.hasAttribute(attr))continue;
@@ -124,13 +133,15 @@ function refresh(){
   document.getElementById('game-lang-fr')?.setAttribute('aria-pressed',String(current==='fr'));
   document.getElementById('game-lang-en')?.setAttribute('aria-pressed',String(current==='en'));
   updateNode(document.body);
+  const description=document.querySelector('meta[name="description"]');
+  if(description)description.content=current==='en'?'Interactive educational laboratory for compartmental pharmacokinetics.':'Laboratoire pédagogique interactif de pharmacocinétique compartimentale.';
   document.title=current==='en'?'PMx Game · Interactive pharmacokinetics':'PMx Game · Laboratoire de pharmacocinétique';
 }
 function setLanguage(lang){
   if(!supported.has(lang))return;
   current=lang;
   const url=new URL(location.href);
-  if(lang==='fr')url.searchParams.delete('lang');else url.searchParams.set('lang','en');
+  if(lang==='fr')url.searchParams.set('lang','fr');else url.searchParams.set('lang','en');
   history.replaceState(history.state,'',url.pathname+url.search+url.hash);
   try{localStorage.setItem('pharmacometrie-language',lang);}catch{}
   refresh();
@@ -146,5 +157,5 @@ const observer=new MutationObserver(records=>{
   }
 });
 observer.observe(document.body,{subtree:true,childList:true,characterData:true,
-  attributes:true,attributeFilter:['title','placeholder','aria-label']});
+  attributes:true,attributeFilter:['title','placeholder','aria-label','alt','data-tooltip']});
 refresh();
