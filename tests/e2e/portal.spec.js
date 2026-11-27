@@ -67,7 +67,12 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
       await expect(page.locator('#conference-title')).toHaveCount(0);
     }
     await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
+    if (route === '/a-propos/') {
+      await expect(page.locator('main')).not.toContainText('pharmacological digital twins');
+      await expect(page.locator('main')).toContainText('Research in quantitative pharmacology and pharmacometrics');
+    }
     if (route === '/tools/') {
+      await expect(page.locator('#grad')).not.toContainText('specialist agent delegation');
       await expect(page.locator('#stats').getByRole('link', { name: 'Open Stat & Biologie' }))
         .toHaveAttribute('href', '/stats/');
       await expect(page.locator('#tacddi').getByRole('link', { name: 'Open TacDDI' }))
