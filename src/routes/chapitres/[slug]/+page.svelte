@@ -29,6 +29,7 @@
     SITE_URL
   } from '#lib/site.js';
 
+  import { scrollKeyboardAccess } from '#lib/utils/scrollKeyboardAccess.js';
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { reducedMotion } from '#lib/motion/reducedMotion.js';
@@ -367,7 +368,7 @@
           bind:this={stepEls[i]}
         >
           <p class="step-kicker">{String(i + 1).padStart(2, '0')} · {step.title}</p>
-          <div class="prose">{@html step.html}</div>
+          <div class="prose" use:scrollKeyboardAccess={true}>{@html step.html}</div>
 
           <!-- Mobile : la figure de CETTE étape, à côté de son texte. -->
           {#if !isDesktop && step.viz && loadedViz[step.viz]}
@@ -417,7 +418,7 @@
 
     {#if isDesktop}
     <aside class="viz-panel" data-testid="viz-panel">
-      <div class="viz-inner">
+      <div class="viz-inner" use:scrollKeyboardAccess={false}>
         {#if activeViz && loadedViz[activeViz]}
           {#key activeViz}
             <div
@@ -535,7 +536,7 @@
   .recall-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
   .recall-label { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); min-width: 78px; }
   .recall-items { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { font-family: var(--font-mono); font-size: var(--text-xs); padding: 2px 9px; border-radius: 12px; text-decoration: none; border: 1px solid var(--border-subtle); }
+  .chip { font-family: var(--font-mono); font-size: var(--text-xs); display: inline-flex; align-items:center; min-height:24px; padding: 2px 9px; border-radius: 12px; text-decoration: none; border: 1px solid var(--border-subtle); }
   .chip-link { background: color-mix(in srgb, var(--accent-pk) 10%, var(--bg-tertiary)); color: var(--accent-pk); border-color: color-mix(in srgb, var(--accent-pk) 30%, transparent); }
   .chip-link:hover { background: color-mix(in srgb, var(--accent-pk) 18%, var(--bg-tertiary)); }
   .chip-term { background: var(--bg-tertiary); color: var(--text-secondary); }
