@@ -35,7 +35,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', publicOrigin + route);
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', publicOrigin + route);
-    await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
+    await expect(page.locator('.nav-links > a')).toHaveText(route === '/' ? ['Tools & Projects', 'Publications & Talks', 'About'] : ['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
       await expect(page.getByTestId('portal-about-cv')).toHaveText('About & CV');
@@ -129,7 +129,7 @@ for (const [name, width, height] of [['mobile', 390, 844], ['narrow', 320, 640],
       for (const route of pages) {
         await page.goto(origin + route);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), route).toBe(true);
-        const nav = await page.locator('.nav-links a').evaluateAll(nodes => nodes.map(n => {
+        const nav = await page.locator('.nav-links > a, .nav-links > details > summary').evaluateAll(nodes => nodes.map(n => {
           const r = n.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom };
         }));
         for (let i = 0; i < nav.length; i++) for (let j = i + 1; j < nav.length; j++)
@@ -354,4 +354,35 @@ test('academic homepage separates research and platforms with accessible mobile 
   expect(mobileA.y+mobileA.height).toBeLessThanOrEqual(mobileB.y+1);
   expect(await page.locator('#explain-title').evaluate(e=>e.getBoundingClientRect().top)).toBeLessThan(640);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
+
+for(const width of [320,1440]) test('home ecosystem disclosure at '+width, async ({page}) => {
+  await page.setViewportSize({width,height:800});
+  await page.goto(origin+'/');
+  const menu=page.getByTestId('portal-ecosystem-menu');
+  const toggle=menu.locator('summary');
+  await expect(toggle).toHaveText('Ecosystem');
+  await expect(menu).not.toHaveAttribute('open','');
+  await toggle.focus();
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveAttribute('open','');
+  for(const [name,href] of [
+    ['Ecosystem overview','/pharmacometrie/ecosystem/?lang=en'],
+    ['PMx Explain','/pharmacometrie/?lang=en'],
+    ['Omics Explain','/multiomics/?lang=en'],
+    ['Stat & Biologie','/stats/'],
+    ['Omics2PK','https://rberrah.github.io/Omics2PK/?lang=en'],
+    ['MIPD Engine','/pharmacometrie/tdm/?lang=en']
+  ]) await expect(menu.getByRole('link',{name:new RegExp('^'+name)})).toHaveAttribute('href',href);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1)).toBe(true);
+  await menu.getByRole('link',{name:/^PMx Explain/}).focus();
+  await page.keyboard.press('Escape');
+  await expect(menu).not.toHaveAttribute('open','');
+  await expect(toggle).toBeFocused();
+  await toggle.click();
+  await page.locator('#identity').click();
+  await expect(menu).not.toHaveAttribute('open','');
+  await toggle.click();
+  await menu.getByRole('link',{name:/^PMx Explain/}).click();
+  await expect(page).toHaveURL(/\/pharmacometrie\/\?lang=en$/);
 });
