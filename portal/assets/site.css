@@ -337,3 +337,27 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
   .home-identity h1 { font-size:2.6rem; margin-bottom:.5rem; }
   .home-pmx { padding:.8rem; }
 }
+
+/* Home ecosystem disclosure: native keyboard interaction and shared theme. */
+.ecosystem-menu { position:relative; flex:none; }
+.ecosystem-menu summary { color:var(--ink-2); font-size:.88rem; cursor:pointer; padding:.45rem 0; min-height:44px; display:flex; align-items:center; gap:.35rem; list-style:none; }
+.ecosystem-menu summary::-webkit-details-marker { display:none; }
+.ecosystem-menu summary::after { content:""; width:.45em; height:.45em; border-right:1px solid currentColor; border-bottom:1px solid currentColor; transform:rotate(45deg); margin-top:-.15em; }
+.ecosystem-menu[open] summary::after { transform:rotate(225deg); margin-top:.15em; }
+.ecosystem-menu-links { position:absolute; top:100%; left:0; z-index:20; width: min(250px, calc(100vw - 48px)); background:var(--paper); border:1px solid var(--border-strong); border-radius:8px; padding:.4rem; box-shadow:0 6px 20px #0002; }
+.ecosystem-menu-links a { display:block; min-height:44px; padding:.55rem .7rem; border-radius:4px; }
+.ecosystem-menu-links a:hover,.ecosystem-menu-links a:focus-visible { background:var(--surface); }
+.ecosystem-menu-links small { display:block; color:var(--ink-2); font-size:.78rem; }
+.ecosystem-menu summary:focus-visible,.ecosystem-menu-links a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+@media(max-width:600px){ .ecosystem-menu summary {font-size:.82rem;} }
+
+/* Both home menus share a disclosure pattern; on mobile anchor to the full nav width. */
+@media(max-width:600px){
+  /* Keep the closed header compact without shrinking its 44px controls. */
+  .navigation:has(> .nav-links > .ecosystem-menu) {padding-block:.35rem;gap:.35rem;}
+  .nav-links:has(> .ecosystem-menu) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:none;align-items:start;gap:.4rem 1rem;}
+  .nav-links > .ecosystem-menu {position:static;min-width:0;}
+  .nav-links > .ecosystem-menu[open] {grid-column:1/-1;}
+  .nav-links > .ecosystem-menu > .ecosystem-menu-links {position:static;width:100%;max-width:100%;box-shadow:none;}
+  .nav-links:has(> .ecosystem-menu) > a {min-height:44px;display:flex;align-items:center;}
+}

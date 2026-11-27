@@ -14,6 +14,7 @@
     button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #f6c375;outline-offset:3px}
     .wrap{max-width:1490px;margin:auto;padding:24px clamp(14px,3vw,44px) 58px}
     header{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap}
+    .game-back{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid #3e8381;border-radius:10px;color:#a8f4e3;text-decoration:none;font-weight:650}.game-back:hover{text-decoration:underline;background:#18353b}.game-back:focus-visible{outline:3px solid #f6c375;outline-offset:3px}
     #game-lang-fr[aria-pressed="true"],#game-lang-en[aria-pressed="true"]{background:#79ead0;color:#072019;border-color:#79ead0}
     .brand{display:flex;align-items:center;gap:12px}.emblem{width:42px;height:42px;border:1px solid #3e8381;border-radius:12px;display:grid;place-items:center;color:#78f0d1;font-weight:800;letter-spacing:-2px;background:#153039}.brand strong{font-size:1.04rem;letter-spacing:.04em}.brand small{display:block;font-size:.75rem;color:#91b0b1}.pill{font-size:.77rem;color:#a8dace;padding:7px 12px;background:#123333;border:1px solid #245d58;border-radius:999px}
     .hero{margin-bottom:24px}.eyebrow{text-transform:uppercase;font-size:.74rem;letter-spacing:.18em;font-weight:750;color:#6cd5c1}.hero h1{font-size:clamp(1.8rem,3.2vw,3rem);letter-spacing:-.04em;line-height:1.12;margin:8px 0 10px;max-width:820px}.hero p{color:#a9c0bf;line-height:1.55;max-width:830px;margin:0}
@@ -40,7 +41,7 @@
 </head>
 <body>
 <div class="wrap">
-  <header><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><div class="button-row" role="group" aria-label="Language / Langue"><button id="game-lang-fr" type="button" aria-pressed="true" lang="fr">FR</button><button id="game-lang-en" type="button" aria-pressed="false" lang="en">EN</button></div><span class="pill">Jeu pédagogique · sans données patients</span></header>
+  <header><a id="game-back-to-explain" class="game-back" href="/pharmacometrie/?lang=fr">Retour à PMx Explain</a><div class="brand"><div class="emblem" aria-hidden="true">P·</div><div><strong>PMx GAME</strong><small>Laboratoire de pharmacocinétique</small></div></div><div class="button-row" role="group" aria-label="Language / Langue"><button id="game-lang-fr" type="button" aria-pressed="true" lang="fr">FR</button><button id="game-lang-en" type="button" aria-pressed="false" lang="en">EN</button></div><span class="pill">Jeu pédagogique · sans données patients</span></header>
   <section class="hero"><div class="eyebrow">Observer · Enquêter · Débloquer</div><h1>Apprenez la pharmacocinétique en jouant.</h1><p>Cinq parcours pour découvrir la PK : lire les courbes, construire des modèles, mener une étude PopPK, explorer Pmetrics et individualiser une dose sur un cas fictif. Un atelier libre complète les missions.</p></section>
   <nav class="game-mode" aria-label="Choisir un mode">
     <button id="mode-campaign" aria-pressed="true">Parcours aventure · 9 quêtes</button>
