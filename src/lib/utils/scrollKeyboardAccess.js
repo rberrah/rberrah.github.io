@@ -13,9 +13,10 @@ export function scrollKeyboardAccess(node, descendants) {
   const selector = 'pre, .math-rendered, .katex-display';
   const resize = new ResizeObserver(schedule);
   function refresh() {
+    if (frame) cancelAnimationFrame(frame);
     frame = 0;
     const elements = descendants
-      ? Array.from(node.querySelectorAll(selector)).filter(el => el instanceof HTMLElement)
+      ? Array.from(node.querySelectorAll(selector)).filter(el => el instanceof HTMLElement).reverse()
       : [node];
     const current = new Set(elements);
     for (const el of watched) if (!current.has(el)) {
@@ -25,9 +26,12 @@ export function scrollKeyboardAccess(node, descendants) {
     for (const el of elements) {
       if (!watched.has(el)) { watched.add(el); resize.observe(el); }
       const style = getComputedStyle(el);
-      const scrolls = (/(auto|scroll)/.test(style.overflowX) && el.scrollWidth > el.clientWidth + 1)
-        || (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight + 1);
-      const focusableChild = el.querySelector('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]');
+      const scrolls = (/(auto|scroll)/.test(style.overflowX) && el.scrollWidth > el.clientWidth)
+        || (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight);
+      const focusableChild = Array.from(el.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')).some(child =>
+        child instanceof HTMLElement && child.tabIndex >= 0 && !child.matches(':disabled')
+        && !child.closest('[inert]') && child.getClientRects().length > 0
+        && getComputedStyle(child).visibility === 'visible');
       if (scrolls && !focusableChild && !el.hasAttribute('tabindex')) {
         el.tabIndex = 0; added.add(el);
       } else if ((!scrolls || focusableChild) && added.delete(el)) {
@@ -37,11 +41,18 @@ export function scrollKeyboardAccess(node, descendants) {
   }
   function schedule() { if (!frame) frame = requestAnimationFrame(refresh); }
   const mutations = new MutationObserver(schedule);
-  mutations.observe(node, { childList: true, subtree: true, characterData: true });
+  mutations.observe(node, { childList: true, subtree: true, characterData: true, attributes: true,
+    attributeFilter: ['class','style','hidden','disabled','inert','tabindex','href'] });
   resize.observe(node);
-  schedule();
+  // Late font substitution can change scrollWidth without resizing the box.
+  document.fonts?.addEventListener('loadingdone', schedule);
+  node.addEventListener('load', schedule, true);
+  // Synchronous initial measurement, plus a frame after first layout.
+  refresh(); schedule();
   return { destroy() {
     mutations.disconnect(); resize.disconnect(); cancelAnimationFrame(frame);
+    document.fonts?.removeEventListener('loadingdone', schedule);
+    node.removeEventListener('load', schedule, true);
     for (const el of added) el.removeAttribute('tabindex');
   }};
 }

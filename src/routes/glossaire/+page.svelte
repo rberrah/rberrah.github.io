@@ -134,7 +134,7 @@
   .links a { color:var(--accent-pk); display:inline-flex; align-items:center; min-height:24px; }
   .relations { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-top:9px; font-size:var(--text-xs); }
   .relation-label { font-family:var(--font-mono); font-weight:700; color:var(--text-muted); }
-  .relations a { display:inline-flex; align-items:center; min-height:24px; color:var(--text-secondary); text-decoration:underline; text-decoration-color:var(--border-strong); }
+  .relations a { display:inline-flex; align-items:center; justify-content:center; min-width:24px; min-height:24px; color:var(--text-secondary); text-decoration:underline; text-decoration-color:var(--border-strong); }
   @media (min-width: 760px) {
     .entry { grid-template-columns: 220px 1fr; gap: var(--space-4); align-items: baseline; }
     dt { position: sticky; }

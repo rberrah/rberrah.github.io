@@ -245,7 +245,7 @@ cp ~ add(add.err) + prop(prop.err)   # combined: additive floor + percentage`;
   .note { font-size: var(--text-sm); color: var(--text-muted); border-left: 3px solid var(--border-strong); padding-left: var(--space-3); }
   .cap { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-2); }
   .code { background: #1a1f2b; color: #e6edf3; border-radius: var(--radius); padding: var(--space-4); overflow-x: auto; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.55; }
-  .code code { white-space: pre; }
+  .code code { white-space: pre; color: inherit; background: transparent; padding: 0; }
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin: var(--space-2) 0; }
   th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border-subtle); }
