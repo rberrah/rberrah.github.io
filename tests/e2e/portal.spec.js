@@ -324,7 +324,10 @@ test('essential navigation works without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto(origin + '/');
-  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Tools & Projects' }).click();
+  const tools = page.getByTestId('portal-tools-menu');
+  await tools.locator('summary').click();
+  await expect(tools).toHaveAttribute('open','');
+  await tools.getByRole('link', { name: 'All tools & projects', exact:true }).click();
   await expect(page.locator('h1')).toHaveText('Tools & Projects');
   await expect(page.locator('.theme-control')).toBeHidden();
   await context.close();

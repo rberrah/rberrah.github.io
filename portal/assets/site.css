@@ -353,7 +353,9 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
 
 /* Both home menus share a disclosure pattern; on mobile anchor to the full nav width. */
 @media(max-width:600px){
-  .nav-links:has(> .ecosystem-menu) {position:relative;}
-  .nav-links > .ecosystem-menu {position:static;}
-  .nav-links > .ecosystem-menu > .ecosystem-menu-links {left:0;right:auto;top:100%;width:min(250px,100%);max-height: min(60vh, 480px);overflow-y:auto;}
+  .nav-links:has(> .ecosystem-menu) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:none;align-items:start;gap:.4rem 1rem;}
+  .nav-links > .ecosystem-menu {position:static;min-width:0;}
+  .nav-links > .ecosystem-menu[open] {grid-column:1/-1;}
+  .nav-links > .ecosystem-menu > .ecosystem-menu-links {position:static;width:100%;max-width:100%;box-shadow:none;}
+  .nav-links:has(> .ecosystem-menu) > a {min-height:44px;display:flex;align-items:center;}
 }
