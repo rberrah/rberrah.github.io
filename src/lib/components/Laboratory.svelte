@@ -13,6 +13,7 @@
   import LabPlot from './LabPlot.svelte';
   import LabDebrief from './LabDebrief.svelte';
   import LabComparisonSummary from './LabComparisonSummary.svelte';
+  import LabSensitivity from './LabSensitivity.svelte';
   let lab = 'distribution', p = { ...defaults.distribution }, reference = { ...p };
   let time = 0, playing = false, speed = 1, compare = true, mode = 'intuition', learningMode = 'guided';
   let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '', sourceChapter = '';
@@ -199,6 +200,7 @@
         </div>{/if}
         <div class="metrics"><div><span>C(t) · mg/L</span><strong data-testid="lab-concentration">{state.c.toFixed(2)}</strong></div><div><span>AUC 0-{time.toFixed(1)} h · mg.h/L</span><strong>{state.auc.toFixed(2)}</strong></div><div><span>{en ? 'Eliminated / given (mg)' : 'Éliminé / administré (mg)'}</span><strong>{state.eliminated.toFixed(1)} / {state.administered.toFixed(0)}</strong></div></div>
         {#if compare}<LabComparisonSummary {en} {time} changes={comparisonChanges} outcomes={comparisonOutcomes}/>{/if}
+        {#if learningMode === 'free'}<LabSensitivity {en} {lab} parameters={valid}/>{/if}
         <p id="lab-plot-summary" class="sr-summary">{en ? `At ${time.toFixed(1)} h, concentration is ${state.c.toFixed(2)} mg/L, AUC is ${state.auc.toFixed(2)} mg.h/L and ${state.eliminated.toFixed(1)} mg have been eliminated.` : `À ${time.toFixed(1)} h, la concentration vaut ${state.c.toFixed(2)} mg/L, l'AUC vaut ${state.auc.toFixed(2)} mg.h/L et ${state.eliminated.toFixed(1)} mg ont été éliminés.`}</p>
         {#key lab}<LabDebrief {en} explanation={debriefExplanation} application={applicationByLab[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Quantities, flows and dose schedule' : 'Quantites, flux et administrations'}</summary><div class="table-scroll"><table><caption>{en ? 'State at selected time' : 'Etat au temps selectionne'}</caption><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current model' : 'Modèle actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each quantities as [key,label]}<tr><th>{label}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{refState[key].toFixed(3)}</td>{/if}</tr>{/each}</tbody></table><table><caption>{en ? 'Planned administrations' : 'Administrations prévues'} · {route}</caption><thead><tr><th>h</th><th>mg</th>{#if lab === 'infusion'}<th>{en ? 'Duration (h)' : 'Durée (h)'}</th>{/if}</tr></thead><tbody>{#each schedule(lab, valid) as dose}<tr><td>{dose.time}</td><td>{dose.amount}</td>{#if lab === 'infusion'}<td>{dose.infusion}</td>{/if}</tr>{/each}</tbody></table></div></details>
