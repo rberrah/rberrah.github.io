@@ -53,7 +53,7 @@ try {
       const violations=a.violations.map(v=>({id:v.id,impact:v.impact,description:v.description,helpUrl:v.helpUrl,tags:v.tags,nodes:v.nodes.map(n=>({target:n.target,failureSummary:n.failureSummary}))}));
       const overflow=await page.evaluate(()=>Math.max(0,document.documentElement.scrollWidth-innerWidth));
       results.push({...c,url,violations,incomplete:a.incomplete.map(v=>({id:v.id,nodes:v.nodes.length})),passes:a.passes.length,overflow});
-      console.log('ACCESSIBILITY_RESULT '+JSON.stringify({...c,violations:violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length})),overflow}));
+      console.log('ACCESSIBILITY_RESULT '+JSON.stringify({...c,violations:violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length,targets:v.nodes.slice(0,5).map(n=>n.target)})),overflow}));
     }catch(error){errors.push({...c,error:String(error).slice(0,1000)});}
     finally{await context.close();}
     if(index%10===0)await writeFile(output+'/results.json',JSON.stringify({results,errors},null,2));
