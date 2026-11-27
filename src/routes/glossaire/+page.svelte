@@ -131,10 +131,10 @@
   .details dt { font:700 var(--text-xs)/1.5 var(--font-mono); color:var(--text-muted); text-transform:uppercase; }
   .details dd { color:var(--text-secondary); }
   .links { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; font-size:var(--text-sm); }
-  .links a { color:var(--accent-pk); }
+  .links a { color:var(--accent-pk); display:inline-flex; align-items:center; min-height:24px; }
   .relations { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-top:9px; font-size:var(--text-xs); }
   .relation-label { font-family:var(--font-mono); font-weight:700; color:var(--text-muted); }
-  .relations a { color:var(--text-secondary); text-decoration:underline; text-decoration-color:var(--border-strong); }
+  .relations a { display:inline-flex; align-items:center; min-height:24px; color:var(--text-secondary); text-decoration:underline; text-decoration-color:var(--border-strong); }
   @media (min-width: 760px) {
     .entry { grid-template-columns: 220px 1fr; gap: var(--space-4); align-items: baseline; }
     dt { position: sticky; }
