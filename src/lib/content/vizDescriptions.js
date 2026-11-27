@@ -5,6 +5,10 @@
 
 /** @type {Record<string, {fr:string, en:string}>} */
 export const visualizationDescriptions = {
+  'DoseIncidentExplorer': {
+    fr: 'Comparer les effets d’un retard, oubli ou vomissement et des compensations dans un modèle oral fictif à l’état stationnaire. Règle publiée de demi-vie, sans conseil individuel.',
+    en: 'Compare delayed or missed intake, vomiting and compensating inputs in a fictional steady-state oral model. Published half-life rule, no individual advice.'
+  },
   'CovariateEffects': {
     fr: 'Poids versus clairance : distinguer la relation typique décrite par bêta, la dispersion des ETA et le déplacement d’un individu.',
     en: 'Weight versus clearance: distinguish the typical beta relationship, ETA dispersion and the shift of one individual.'
