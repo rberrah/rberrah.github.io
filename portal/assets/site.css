@@ -353,6 +353,8 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
 
 /* Both home menus share a disclosure pattern; on mobile anchor to the full nav width. */
 @media(max-width:600px){
+  /* Keep the closed header compact without shrinking its 44px controls. */
+  .navigation:has(> .nav-links > .ecosystem-menu) {padding-block:.35rem;gap:.35rem;}
   .nav-links:has(> .ecosystem-menu) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:none;align-items:start;gap:.4rem 1rem;}
   .nav-links > .ecosystem-menu {position:static;min-width:0;}
   .nav-links > .ecosystem-menu[open] {grid-column:1/-1;}
