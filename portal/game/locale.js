@@ -9,7 +9,7 @@ import {FR_EN_V3} from './locale-en-v3.js';
 import {FR_EN_V4} from './locale-en-v4.js';
 import {FR_EN_V5} from './locale-en-v5.js';
 import {FR_EN_AUDIT} from './locale-en-audit.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5,...FR_EN_AUDIT};
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5,...FR_EN_AUDIT,'Retour à PMx Explain':'Back to PMx Explain'};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);
@@ -130,6 +130,8 @@ function updateNode(root){
 }
 function refresh(){
   document.documentElement.lang=current;
+  const back=document.getElementById('game-back-to-explain');
+  if(back)back.setAttribute('href',`/pharmacometrie/?lang=${current}`);
   document.getElementById('game-lang-fr')?.setAttribute('aria-pressed',String(current==='fr'));
   document.getElementById('game-lang-en')?.setAttribute('aria-pressed',String(current==='en'));
   updateNode(document.body);
