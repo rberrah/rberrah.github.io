@@ -35,7 +35,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', publicOrigin + route);
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', publicOrigin + route);
-    await expect(page.locator('.nav-links > a')).toHaveText(route === '/' ? ['Tools & Projects', 'Publications & Talks', 'About'] : ['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
+    await expect(page.locator('.nav-links > a')).toHaveText(route === '/' ? ['Publications & Talks', 'About'] : ['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
       await expect(page.getByTestId('portal-about-cv')).toHaveText('About & CV');
@@ -371,10 +371,25 @@ for(const width of [320,1440]) test('home ecosystem disclosure at '+width, async
     ['PMx Explain','/pharmacometrie/?lang=en'],
     ['Omics Explain','/multiomics/?lang=en'],
     ['Stat & Biologie','/stats/'],
-    ['Omics2PK','https://rberrah.github.io/Omics2PK/?lang=en'],
-    ['MIPD Engine','/pharmacometrie/tdm/?lang=en']
+    ['Omics2PK','https://rberrah.github.io/Omics2PK/?lang=en']
   ]) await expect(menu.getByRole('link',{name:new RegExp('^'+name)})).toHaveAttribute('href',href);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1)).toBe(true);
+  await expect(menu.getByRole('link',{name:/^MIPD Engine/})).toHaveCount(0);
+  const tools=page.getByTestId('portal-tools-menu');
+  await tools.locator('summary').click();
+  await expect(menu).not.toHaveAttribute('open','');
+  await expect(tools).toHaveAttribute('open','');
+  for(const [name,href] of [
+    ['All tools & projects','/tools/'],
+    ['MIPD Engine','/pharmacometrie/tdm/?lang=en'],
+    ['MultiOmics','/multiomics/tool/?lang=en'],
+    ['TacDDI','https://tdmhub.shinyapps.io/TacDDI/'],
+    ['MissedDose','https://tdmhub.shinyapps.io/MissedDoseApp/']
+  ]) await expect(tools.getByRole('link',{name:new RegExp('^'+name)})).toHaveAttribute('href',href);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1)).toBe(true);
+  await toggle.click();
+  await expect(tools).not.toHaveAttribute('open','');
+  await expect(menu).toHaveAttribute('open','');
   await menu.getByRole('link',{name:/^PMx Explain/}).focus();
   await page.keyboard.press('Escape');
   await expect(menu).not.toHaveAttribute('open','');
