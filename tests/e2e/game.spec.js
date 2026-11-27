@@ -961,3 +961,17 @@ for(const initial of ['fr','en']){
   expect(unique,'Untranslated learner-facing strings; see PMX_LOCALE_LEAK in the workflow log').toEqual([]);
  });
 }
+
+test('game back link preserves current language', async ({page}) => {
+  for(const lang of ['fr','en']){
+    await page.goto(origin+'/pharmacometrie/game/?lang='+lang);
+    const back=page.locator('#game-back-to-explain');
+    await expect(back).toBeVisible();
+    await expect(back).toHaveAttribute('href','/pharmacometrie/?lang='+lang);
+    const other=lang==='fr'?'en':'fr';
+    await page.locator('#game-lang-'+other).click();
+    await expect(back).toHaveAttribute('href','/pharmacometrie/?lang='+other);
+    await back.click();
+    await expect(page).toHaveURL(origin+'/pharmacometrie/?lang='+other);
+  }
+});
