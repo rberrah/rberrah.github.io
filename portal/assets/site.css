@@ -350,3 +350,10 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
 .ecosystem-menu-links small { display:block; color:var(--ink-2); font-size:.78rem; }
 .ecosystem-menu summary:focus-visible,.ecosystem-menu-links a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 @media(max-width:600px){ .ecosystem-menu summary {font-size:.82rem;} }
+
+/* Both home menus share a disclosure pattern; on mobile anchor to the full nav width. */
+@media(max-width:600px){
+  .nav-links:has(> .ecosystem-menu) {position:relative;}
+  .nav-links > .ecosystem-menu {position:static;}
+  .nav-links > .ecosystem-menu > .ecosystem-menu-links {left:0;right:auto;top:100%;width:min(250px,100%);max-height: min(60vh, 480px);overflow-y:auto;}
+}
