@@ -79,7 +79,7 @@
   <div class="legend"><span><i class="map"></i>MAP-BE</span><span><i class="ml"></i>XGBoost</span><small>{en ? 'Relative RMSE · logarithmic bar width' : 'RMSE relative · largeur logarithmique des barres'}</small></div>
   {#if rows.length}
     <div class="chart">{#each rows as row}
-      <div class="chart-row"><div><strong>{row.model}</strong><small>{row.drug} · {mode(row)}</small></div><div class="bars">{#each ['map', 'ml'] as method}<div class="bar-line"><div class="track" aria-label={heading(row, method)}><span class={method} style={`width:${width(metrics(row, method)?.relativeRmsePct)}`}></span></div><span>{format(metrics(row, method)?.relativeRmsePct)}</span></div>{/each}</div></div>
+      <div class="chart-row"><div><strong>{row.model}</strong><small>{row.drug} · {mode(row)}</small></div><div class="bars">{#each ['map', 'ml'] as method}<div class="bar-line"><div class="track" role="img" aria-label={heading(row, method)}><span class={method} style={`width:${width(metrics(row, method)?.relativeRmsePct)}`}></span></div><span>{format(metrics(row, method)?.relativeRmsePct)}</span></div>{/each}</div></div>
     {/each}</div>
     <div class="table-wrap"><table><caption>{en ? 'AUC24 estimation on the untouched test set' : 'Estimation de l’AUC24 sur le jeu de test non touché'}</caption><thead><tr><th>{en ? 'Model / mode' : 'Modèle / mode'}</th><th>{en ? 'Train / test' : 'Apprentissage / test'}</th><th>{en ? 'Method' : 'Méthode'}</th><th>{en ? 'Bias' : 'Biais'}</th><th>rRMSE</th><th>AUC ±20 %</th><th>{en ? 'Failures' : 'Échecs'}</th></tr></thead>
       <tbody>{#each rows as row}{#each ['map', 'ml'] as method}<tr>
