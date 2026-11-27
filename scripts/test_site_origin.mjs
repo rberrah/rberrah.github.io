@@ -7,7 +7,7 @@ import { configureSiteOrigin } from './configure_site_origin.mjs';
 
 
 async function materializeExternallyMountedRoutes(directory) {
-  for (const route of ['multiomics', 'multiomics/tool', 'multiomics/learn', 'multiomics/ecosystem', 'multiomics/disciplines', 'multiomics/resources',
+  for (const route of ['multiomics', 'multiomics/tool', 'multiomics/learn', 'multiomics/game', 'multiomics/practice', 'multiomics/demo', 'multiomics/ecosystem', 'multiomics/disciplines', 'multiomics/resources',
     'multiomics/glossary', 'multiomics/references', 'pharmacometrie/game']) {
     const target = path.join(directory, route);
     await mkdir(target, { recursive: true });
