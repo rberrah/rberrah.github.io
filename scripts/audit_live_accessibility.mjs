@@ -6,7 +6,7 @@ const origin=(process.env.PUBLIC_SITE_ORIGIN || 'https://rberrah.github.io').rep
 const output='quality-audit/accessibility';
 await mkdir(output,{recursive:true});
 const errors=[];
-const paths=new Set(['/','/pharmacometrie/','/pharmacometrie/game/','/pharmacometrie/tdm/','/multiomics/','/multiomics/tool/','/stats/','/Omics2PK/']);
+const paths=new Set(['/','/ecosystem/','/pharmacometrie/','/pharmacometrie/game/','/pharmacometrie/tdm/','/multiomics/','/multiomics/tool/','/stats/','/Omics2PK/']);
 for (const sitemap of ['/sitemap.xml','/pharmacometrie/sitemap.xml']) {
   try {
     const response=await fetch(origin+sitemap,{signal:AbortSignal.timeout(20000)});
@@ -22,13 +22,13 @@ for (const sitemap of ['/sitemap.xml','/pharmacometrie/sitemap.xml']) {
 }
 const cases=[];
 for(const path of paths){
-  const bilingual=path.startsWith('/pharmacometrie/')||path.startsWith('/multiomics/');
+  const bilingual=path==='/ecosystem/'||path.startsWith('/pharmacometrie/')||path.startsWith('/multiomics/');
   for(const lang of bilingual?['fr','en']:[null]){
     cases.push({path,lang,viewport:'desktop',theme:'light'});
   }
 }
-for(const path of ['/','/pharmacometrie/','/pharmacometrie/chapitres/clairance-volume-demi-vie/','/pharmacometrie/game/','/pharmacometrie/tdm/','/pharmacometrie/ecosystem/','/multiomics/tool/']){
-  for(const theme of ['light','dark']) cases.push({path,lang:path==='/'?null:'en',viewport:'mobile',theme});
+for(const path of ['/','/pharmacometrie/','/pharmacometrie/chapitres/clairance-volume-demi-vie/','/pharmacometrie/game/','/pharmacometrie/tdm/','/ecosystem/','/multiomics/tool/']){
+  for(const theme of ['light','dark']) for(const lang of path==='/ecosystem/'?['fr','en']:[path==='/'?null:'en']) cases.push({path,lang,viewport:'mobile',theme});
 }
 if(paths.has('/pharmacometrie/ressources-outils/')) cases.push({path:'/pharmacometrie/ressources-outils/',lang:'en',viewport:'mobile',theme:'dark'});
 const results=[];

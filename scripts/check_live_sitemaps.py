@@ -177,7 +177,13 @@ def main():
     get(ORIGIN + "/google57e0271e75bd6e07.html", "Google verification")
     index = get(ORIGIN + "/sitemap-index.xml", "index/browser", kind="xml")
     get(ORIGIN + "/sitemap-index.xml", "index/simulated-Googlebot", ua=GOOGLEBOT_UA, kind="xml")
-    get(ORIGIN + "/sitemap.xml", "portal/browser", kind="xml")
+    portal = get(ORIGIN + "/sitemap.xml", "portal/browser", kind="xml")
+    pmx = get(ORIGIN + "/pharmacometrie/sitemap.xml", "PMx canonical URLs", kind="xml")
+    if portal and (portal[0] != "urlset" or ORIGIN + "/ecosystem/" not in portal[1]):
+        failures.append("portal sitemap: missing canonical ecosystem URL")
+    for label, sitemap in [("portal", portal), ("PMx", pmx)]:
+        if sitemap and ORIGIN + "/pharmacometrie/ecosystem/" in sitemap[1]:
+            failures.append(f"{label} sitemap: retired ecosystem URL remains indexable")
     get(ORIGIN + "/sitemap.xml", "portal/simulated-Googlebot", ua=GOOGLEBOT_UA, kind="xml")
     if index and index[0] != "sitemapindex":
         failures.append("index: expected sitemapindex root")
@@ -203,7 +209,7 @@ def main():
                     ua=GOOGLEBOT_UA, kind="xml", required=child in required_children)
     # Verify representative indexable pages as real HTML, not only sitemap XML.
     for path in [
-        "/", "/tools/", "/publications/", "/pharmacometrie/",
+        "/", "/tools/", "/publications/", "/ecosystem/", "/pharmacometrie/",
         "/pharmacometrie/chapitres/",
         "/pharmacometrie/chapitres/clairance-volume-demi-vie/",
     ]:
