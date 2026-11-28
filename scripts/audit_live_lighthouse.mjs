@@ -11,7 +11,7 @@ await mkdir(output,{recursive:true});
 const routes=[
   '/', '/a-propos/', '/publications/', '/pharmacometrie/',
   '/pharmacometrie/chapitres/clairance-volume-demi-vie/',
-  '/pharmacometrie/game/', '/pharmacometrie/tdm/', '/ecosystem/',
+  '/pharmacometrie/game/', '/pharmacometrie/tdm/', '/pharmacometrie/ecosystem/',
   '/multiomics/tool/', '/stats/', '/Omics2PK/'
 ];
 // The new resources route exists only after deployment; do not make a pre-merge

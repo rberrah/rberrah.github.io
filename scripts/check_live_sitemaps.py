@@ -203,7 +203,7 @@ def main():
                     ua=GOOGLEBOT_UA, kind="xml", required=child in required_children)
     # Verify representative indexable pages as real HTML, not only sitemap XML.
     for path in [
-        "/", "/ecosystem/", "/tools/", "/publications/", "/pharmacometrie/",
+        "/", "/tools/", "/publications/", "/pharmacometrie/",
         "/pharmacometrie/chapitres/",
         "/pharmacometrie/chapitres/clairance-volume-demi-vie/",
     ]:
