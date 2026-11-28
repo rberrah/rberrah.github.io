@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Portal pages only. The applications retain their own sitemaps. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>__SITE_ORIGIN__/ecosystem/</loc><lastmod>2026-11-28</lastmod></url>
   <url><loc>__SITE_ORIGIN__/</loc><lastmod>2026-11-26</lastmod></url>
   <url><loc>__SITE_ORIGIN__/tools/</loc><lastmod>2026-11-26</lastmod></url>
   <url><loc>__SITE_ORIGIN__/publications/</loc><lastmod>2026-10-13</lastmod></url>

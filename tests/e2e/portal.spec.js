@@ -192,7 +192,7 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   await expect(page.locator('h1')).toHaveText('Page not found');
   const xml = await (await request.get(origin + '/sitemap.xml')).text();
   const urls = await page.evaluate(xml => [...new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('loc')].map(n => n.textContent), xml);
-  expect(urls.sort()).toEqual([...pages, ...communicationPages, ...gamePages, ...multiomicsPages].map(p => publicOrigin + p).sort());
+  expect(urls.sort()).toEqual([...pages, '/ecosystem/', ...communicationPages, ...gamePages, ...multiomicsPages].map(p => publicOrigin + p).sort());
   for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/'])
     expect((await request.get(origin + route)).status()).toBe(200);
   const response = await request.get(origin + '/internat/', { maxRedirects: 0 });
@@ -374,7 +374,7 @@ for(const width of [320,1440]) test('home ecosystem disclosure at '+width, async
   await page.keyboard.press('Enter');
   await expect(menu).toHaveAttribute('open','');
   for(const [name,href] of [
-    ['Ecosystem overview','/pharmacometrie/ecosystem/?lang=en'],
+    ['Ecosystem overview','/ecosystem/?lang=en'],
     ['PMx Explain','/pharmacometrie/?lang=en'],
     ['Omics Explain','/multiomics/?lang=en'],
     ['Stat & Biologie','/stats/'],

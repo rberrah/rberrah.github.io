@@ -47,14 +47,18 @@ test('Cross-domain navigation is discoverable and accessible from main menu',asy
  await expect(menu).toBeVisible();
  await expect(menu.locator('summary')).toContainText('Écosystème');
  await menu.locator('summary').click();
- await expect(menu.getByTestId('nav-ecosystem')).toHaveAttribute('href',/\/ecosystem\/?$/);
- await expect(menu.getByTestId('nav-cross-domains'))
-   .toHaveAttribute('href',/\/domaines\/?$/);
+ await expect(menu.getByTestId('nav-ecosystem')).toHaveAttribute('href','https://rberrah.github.io/ecosystem/?lang=fr');
  await expect(menu.getByTestId('nav-multiomics'))
-   .toHaveAttribute('href','https://rberrah.github.io/multiomics/');
+   .toHaveAttribute('href','https://rberrah.github.io/multiomics/?lang=fr');
  await expect(menu.getByTestId('nav-omics2pk'))
-   .toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
- await menu.getByTestId('nav-cross-domains').click();
+   .toHaveAttribute('href','https://rberrah.github.io/Omics2PK/?lang=fr');
+ await expect(menu.getByTestId('nav-cross-domains')).toHaveCount(0);
+ await menu.locator('summary').click();
+ const learn=page.getByTestId('goal-learn');
+ await expect(learn.locator('summary')).toContainText('Apprendre');
+ await learn.locator('summary').click();
+ await expect(learn.getByTestId('nav-cross-domains')).toHaveAttribute('href',/\/domaines\/?$/);
+ await learn.getByTestId('nav-cross-domains').click();
  await expect(page.getByTestId('cross-domain-courses')).toBeVisible();
 });
 

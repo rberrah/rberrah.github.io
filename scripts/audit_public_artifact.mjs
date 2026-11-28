@@ -51,9 +51,12 @@ for (const absolute of files) {
   if (['.pdf', '.pptx'].includes(extension) && !approvedDocuments.some((pattern) => pattern.test(relative))) {
     failures.push(`${relative}: public document is outside the explicit allowlist`);
   }
-  if (['.html', '.js', '.json', '.md', '.r', '.rmd', '.txt', '.xml'].includes(extension)) {
+  if (['.html', '.js', '.json', '.md', '.r', '.rmd', '.txt', '.xml', '.css', '.svg'].includes(extension)) {
     const content = await readFile(absolute, 'utf8');
     for (const pattern of secretPatterns) if (pattern.test(content)) failures.push(`${relative}: high-confidence secret pattern detected`);
+    // Block the retired programme component even when accidentally reintroduced via a stale branch or compiled chunk.
+    if (/thesis-research-program|pillar-lane|thesisProjects|data-project=["']pillar-[abcd]/i.test(content))
+      failures.push(`${relative}: retired private programme component in public artifact`);
   }
 }
 
