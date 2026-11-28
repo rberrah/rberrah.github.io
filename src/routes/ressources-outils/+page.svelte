@@ -1,6 +1,13 @@
 <script>
   import { language } from '#lib/stores/language.js';
+  import { base } from '$app/paths';
   $: en = $language === 'en';
+  $: researchApps = [
+    {name:'MIPD Engine',url:`${base}/tdm/?lang=${$language}`,external:false,fr:'Estimation bayésienne et exploration d’exposition à partir de modèles PK.',en:'Bayesian estimation and exposure exploration from PK models.'},
+    {name:en?'MIPD Engine · standalone Shiny':'MIPD Engine · Shiny autonome',url:'https://tdmhub.shinyapps.io/MIPD_Engine/',external:true,fr:'Version de recherche autonome ; distincte de l’interface intégrée à PMx Explain.',en:'Standalone research version; distinct from the embedded PMx Explain interface.'},
+    {name:'TacDDI',url:'https://tdmhub.shinyapps.io/TacDDI/',external:true,fr:'Explorer les interactions médicamenteuses complexes du tacrolimus avec une approche pharmacométrique.',en:'Explore complex tacrolimus drug interactions using a pharmacometric approach.'},
+    {name:'MissedDose',url:'https://tdmhub.shinyapps.io/MissedDoseApp/',external:true,fr:'Explorer les retards et oublis de prises par simulation PK de population.',en:'Explore delayed and missed doses through population PK simulation.'}
+  ];
   const groups = [
     {fr:'Pharmacométrie et modélisation',en:'Pharmacometrics and modelling',items:[
       {name:'MonolixSuite — Monolix 2024R1',url:'https://monolixsuite.slp-software.com/monolix/2024R1',fr:'Documentation officielle : modèles, estimation SAEM, covariables et diagnostics.',en:'Official documentation: models, SAEM estimation, covariates and diagnostics.',lang:'en'},
@@ -24,6 +31,19 @@
   <p>{en?'Explore complementary documentation, interactive lessons and educational tools beyond PMx Explain.':'Découvrez des documentations, des cours interactifs et des outils pédagogiques complémentaires à PMx Explain.'}</p>
 </header>
 <div class="groups">
+  <section id="research-applications" data-testid="research-applications">
+    <h2>{en?'Research applications':'Applications de recherche'}</h2>
+    <p class="note">{en?'These applications illustrate model-informed approaches. They are research software, not validated medical devices or individual medical advice. Use synthetic examples for learning; do not upload patient data for teaching.':'Ces applications illustrent les approches guidées par les modèles. Ce sont des logiciels de recherche, non des dispositifs médicaux validés ni des conseils individuels. Pour apprendre, utilisez des exemples fictifs, sans transmettre de données patients.'}</p>
+    <ul>
+      {#each researchApps as item}
+        <li><a href={item.url} target={item.external?'_blank':undefined} rel={item.external?'noopener noreferrer':undefined}>
+          <strong>{item.name}</strong><span aria-hidden="true">{item.external?'↗':'→'}</span>
+          <span class="description">{en?item.en:item.fr}</span>
+          {#if item.external}<small>{en?'External application · new tab':'Application externe · nouvel onglet'}</small>{:else}<small>{en?'Integrated PMx interface':'Interface PMx intégrée'}</small>{/if}
+        </a></li>
+      {/each}
+    </ul>
+  </section>
   {#each groups as group}
     <section>
       <h2>{en?group.en:group.fr}</h2>
