@@ -250,12 +250,14 @@ input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 3px;
-  background: var(--border-subtle);
+  height: 24px;
+  min-height: 24px;
+  background: linear-gradient(var(--border-subtle), var(--border-subtle)) center / 100% 3px no-repeat;
   border-radius: 2px;
   outline: none;
   cursor: pointer;
 }
+input[type='range']:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
