@@ -52,6 +52,8 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open Multiomics' }))
         .toHaveAttribute('href', '/multiomics/tool/?lang=en');
+      await expect(page.locator('.project-grid').getByRole('link',{name:'Open TacDDI'})).toHaveAttribute('href','https://tdmhub.shinyapps.io/TacDDI/');
+      await expect(page.locator('.project-grid').getByRole('link',{name:'Open MissedDose'})).toHaveAttribute('href','https://tdmhub.shinyapps.io/MissedDoseApp/');
       await expect(page.getByTestId('home-identity')).toContainText('biology-informed PK models');
       await expect(page.getByTestId('home-identity')).toContainText('Bayesian precision dosing');
       await expect(page.getByRole('heading', { name: 'Research directions', exact:true })).toHaveCount(0);
@@ -77,6 +79,8 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
         .toHaveAttribute('href', '/stats/');
       await expect(page.locator('#tacddi').getByRole('link', { name: 'Open TacDDI' }))
         .toHaveAttribute('href', 'https://tdmhub.shinyapps.io/TacDDI/');
+      await expect(page.locator('#mipd').getByRole('link',{name:'Open standalone Shiny application'})).toHaveAttribute('href','https://tdmhub.shinyapps.io/MIPD_Engine/');
+      await expect(page.locator('#misseddose').getByRole('link',{name:'Open MissedDose'})).toHaveAttribute('href','https://tdmhub.shinyapps.io/MissedDoseApp/');
       await expect(page.locator('#grad a')).toHaveCount(0);
       await expect(page.locator('#autonomous')).toContainText('under evaluation');
       const toolsGraph = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())['@graph'];

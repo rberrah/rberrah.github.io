@@ -56,6 +56,8 @@
     { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
     { href: '/actualites', key: 'news', label: $language === 'en' ? 'What’s new' : 'Actualités' },
     { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain' },
+    { href: 'https://tdmhub.shinyapps.io/TacDDI/', key: 'tacddi-app', label: 'TacDDI ↗', external: true },
+    { href: 'https://tdmhub.shinyapps.io/MissedDoseApp/', key: 'misseddose-app', label: 'MissedDose ↗', external: true },
     { href: `${SITE_ORIGIN}/tools/`, key: 'other-tools', label: $language === 'en' ? 'Other tools' : 'Autres outils', external: true },
     { href: `${SITE_ORIGIN}/`, key: 'main-site', label: 'Racym Berrah ↗', external: true }
   ]);
@@ -63,7 +65,7 @@
     { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['game', 'course', 'example', 'exercises'] },
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
-    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'tdm-targets', 'ml', 'other-tools'] },
+    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'tdm-targets', 'ml', 'tacddi-app', 'misseddose-app', 'other-tools'] },
     { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'cross-domains', 'multiomics', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['news', 'search', 'glossary', 'references', 'useful-tools', 'about', 'main-site'] }
   ]);
