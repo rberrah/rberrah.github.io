@@ -18,7 +18,17 @@ if (source.schema !== 'omics2pk-site-source.v1' ||
 }
 
 const pmxLayout = await readFile('src/routes/+layout.svelte', 'utf8');
-assert.ok(pmxLayout.includes(source.publicUrl), 'PMx Ecosystem link differs from Omics2PK release contract');
+const registry = JSON.parse(await readFile('src/lib/content/ecosystem.json', 'utf8'));
+// The layout now derives its links from the common registry. Verify both
+// the exact qualified destination and the registry's use by the navigation.
+assert.deepEqual(
+  registry.filter(item => item.key === 'omics2pk').map(item => ({url: item.url, localized: item.localized})),
+  [{url: source.publicUrl, localized: true}],
+  'PMx Ecosystem registry differs from Omics2PK release contract'
+);
+assert.ok(pmxLayout.includes("import ecosystem from '#lib/content/ecosystem.json'") &&
+  pmxLayout.includes('...ecosystem.map('),
+  'PMx navigation does not consume the shared Ecosystem registry');
 const mountedMultiomicsTest = await readFile('tests/e2e/multiomics-assembled-mount.spec.js', 'utf8');
 assert.ok(mountedMultiomicsTest.includes(source.publicUrl), 'Mounted MultiOmics Omics2PK navigation contract differs from PMx release contract');
 
