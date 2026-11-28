@@ -131,6 +131,8 @@
   .starter > a { flex: 0 0 auto; padding: 10px 14px; border: 1px solid var(--track); border-radius: 4px; text-decoration: none; font-weight: 700; }
   .track-head { display: flex; align-items: center; gap: var(--space-3); }
   .badge { font-family: var(--font-mono); font-size: var(--text-xs); background: var(--track); color: #fff; padding: 2px 8px; border-radius: 4px; }
+  .track[data-testid="track-section-pd"] .badge { background: var(--accent-pd); color: var(--bg-primary); }
+  .track[data-testid="track-section-pd"] .num { color: var(--accent-pd); }
   .track-head h2 { margin: 0; font-size: var(--text-2xl); }
   .soon { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 2px 8px; border-radius: 4px; }
   .tagline { color: var(--text-secondary); margin: var(--space-2) 0 var(--space-6); }

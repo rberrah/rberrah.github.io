@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFile } from 'node:fs/promises';
 
 for (const route of [
   '/?lang=en',
@@ -46,8 +47,10 @@ test('glossary related-resource targets are at least 24px high',async({page})=>{
   await page.goto('/glossaire/?lang=en');
   const links=page.locator('.links a,.relations a');
   await expect(links.first()).toBeVisible();
-  const heights=await links.evaluateAll(nodes=>nodes.map(el=>el.getBoundingClientRect().height));
-  expect(heights.every(height=>height>=24)).toBe(true);
+  const targets=await links.evaluateAll(nodes=>nodes.map(el=>({width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}))); 
+  expect(targets.every(({height})=>height>=24)).toBe(true);
+  const related=await page.locator('.relations a').evaluateAll(nodes=>nodes.map(el=>el.getBoundingClientRect().width));
+  expect(related.every(width=>width>=24)).toBe(true);
 });
 
 test('overflow code blocks gain keyboard access without changing the source text',async({page})=>{
@@ -60,4 +63,30 @@ test('overflow code blocks gain keyboard access without changing the source text
   await expect(pre).toHaveAttribute('tabindex','0');
   await pre.focus();
   await expect(pre).toBeFocused();
+});
+
+test('scroll access covers one-pixel and dynamic overflow without redundant stops', async ({page})=>{
+  const source=await readFile(new URL('../../src/lib/utils/scrollKeyboardAccess.js',import.meta.url),'utf8');
+  await page.setContent('<style>pre{width:100px;overflow:auto}span.wide{display:inline-block;width:101px}</style><main><pre id="one"><span class="wide">x</span></pre><pre id="short">short</pre><pre id="hidden"><span class="wide">x</span><button hidden>hidden</button></pre><pre id="authored" tabindex="0">short</pre></main>');
+  await page.addScriptTag({content:source.replace('export function','function')+'\nwindow.__scrollAccess=scrollKeyboardAccess(document.querySelector("main"),true);'});
+  await expect(page.locator('#one')).toHaveAttribute('tabindex','0');
+  await expect(page.locator('#hidden')).toHaveAttribute('tabindex','0');
+  await expect(page.locator('#short')).not.toHaveAttribute('tabindex','0');
+  await page.locator('#short').evaluate(el=>{el.innerHTML='<span class="wide">x</span>';});
+  await expect(page.locator('#short')).toHaveAttribute('tabindex','0');
+  await page.locator('#short span').evaluate(el=>{el.style.width='10px';});
+  await expect(page.locator('#short')).not.toHaveAttribute('tabindex','0');
+  await page.locator('#hidden button').evaluate(el=>{el.hidden=false;});
+  await expect(page.locator('#hidden')).not.toHaveAttribute('tabindex','0');
+  await page.evaluate(()=>window.__scrollAccess.destroy());
+  await expect(page.locator('#one')).not.toHaveAttribute('tabindex','0');
+  await expect(page.locator('#authored')).toHaveAttribute('tabindex','0');
+});
+test('native range targets on PD and FIH have 24px minimum height',async({page})=>{
+  for(const route of ['/chapitres/pd-direct/?lang=en','/chapitres/trials-fih/?lang=en']){
+    await page.goto(route);
+    const range=page.locator('input[type="range"]').first();
+    await expect(range).toBeVisible();
+    expect((await range.boundingBox())?.height).toBeGreaterThanOrEqual(24);
+  }
 });
