@@ -126,6 +126,18 @@ Do not estimate the elimination half-life blindly from the oral terminal slope.
 **Pitfall —** if absorption is slower than elimination, the last part of the curve reflects **absorption**, not elimination: this is **flip-flop** kinetics. The terminal slope then misleads about the true half-life.
 <!-- /step -->
 
+<!-- step:title="Application: vomiting after an oral intake" viz="VomitingExplorer" -->
+Part of an oral input may be lost before absorption. Even if the swallowed amount is known, the amount remaining in the absorbable depot depends on the elapsed time, $K_a$, and previous intakes. Drug that has already been absorbed does not disappear from the central compartment.
+
+In this **fictional normalized illustration**, compare the reference, an assumed loss, and different compensating inputs. Complete loss of the depot is an assumption, not a measurement of how much was actually vomited. Effects on exposure and peak concentration must be considered together.
+
+:::howto
+With half-life and interval fixed, compare two absorption rates, then vary the assumed fraction lost. Explain why the same event does not necessarily produce the same profile disturbance.
+:::
+
+The [public IATDMCT 2025 abstract, p. 226](https://www.iatdmct2025.org/wp-content/uploads/2025/09/IATDMCT2025-Abstract-book-2.pdf#page=35) illustrates a pharmacometric approach to this problem. This module is not the study's clinical model, does not reproduce the application and gives no individual instructions.
+<!-- /step -->
+
 <!-- step:title="Key takeaways" -->
 - An oral profile combines absorption and elimination.
 - $K_a$ controls the entry speed.

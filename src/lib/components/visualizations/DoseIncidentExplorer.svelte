@@ -13,11 +13,13 @@
   $: ymax=Math.max(.01,...data.points.map(p=>Math.max(p.reference,p.incident,p.corrected,showFull?p.alternative:0)))*1.1;
   $: x=(/** @type {number} */ value)=>48+(value+tau)/(3*tau)*440;
   $: y=(/** @type {number} */ value)=>204-value/ymax*184;
+  /** @type {{key:'reference'|'incident'|'corrected'|'alternative',label:string,style:string}[]} */
+  let series=[];
   $: series=[
     {key:'reference',label:t('Référence','Reference'),style:'ref'},
     {key:'incident',label:t('Incident sans compensation','Incident without compensation'),style:'incident'},
     {key:'corrected',label:scenario==='adherence'?t('Règle publiée, arrondie','Published rule, rounded'):t('Compensation testée','Tested compensation'),style:'candidate'},
-    ...(showFull?[{key:'alternative',label:t('Comparaison : entrée complète','Comparison: full input'),style:'alt'}]:[])
+    ...(showFull?[{key:/** @type {const} */ ('alternative'),label:t('Comparaison : entrée complète','Comparison: full input'),style:'alt'}]:[])
   ];
   $: fmt=new Intl.NumberFormat(en?'en':'fr',{maximumFractionDigits:2});
   const percent=(/** @type {number} */ n)=>Math.round(n*1000)/10;

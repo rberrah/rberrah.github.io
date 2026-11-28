@@ -136,6 +136,18 @@ Si l'absorption est plus lente que l'élimination, la dernière partie de la cou
 :::
 <!-- /step -->
 
+<!-- step:title="Application : le vomissement après une prise" viz="VomitingExplorer" -->
+Une partie de l'entrée orale peut être perdue avant son absorption. Même si la quantité avalée est connue, la quantité restant dans le dépôt absorbable dépend du délai, de $K_a$ et des prises précédentes. Le médicament déjà absorbé ne disparaît pas du compartiment central.
+
+Dans cette illustration **fictive et normalisée**, comparez la référence, une perte supposée et différentes entrées compensatoires. Une perte complète du dépôt est une hypothèse, pas une mesure de la quantité réellement vomie. L'effet sur l'exposition et le pic doit être étudié conjointement.
+
+:::howto
+À demi-vie et intervalle fixés, comparez deux vitesses d'absorption, puis faites varier la fraction supposée perdue. Expliquez pourquoi le même événement ne produit pas nécessairement la même perturbation du profil.
+:::
+
+Le [résumé scientifique IATDMCT 2025, p. 226](https://www.iatdmct2025.org/wp-content/uploads/2025/09/IATDMCT2025-Abstract-book-2.pdf#page=35) illustre une approche pharmacométrique de ce problème. Ce module n'est pas le modèle clinique de l'étude, ne reproduit pas l'application et ne fournit aucune conduite à tenir individuelle.
+<!-- /step -->
+
 <!-- step:title="À retenir" -->
 - Un profil oral combine absorption et élimination.
 - $K_a$ contrôle la vitesse d'entrée.

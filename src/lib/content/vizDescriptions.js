@@ -5,6 +5,10 @@
 
 /** @type {Record<string, {fr:string, en:string}>} */
 export const visualizationDescriptions = {
+  'VomitingExplorer': {
+    fr: 'Perte supposée du dépôt oral et comparaison des profils normalisés, sans calcul de dose individuelle.',
+    en: 'Assumed loss of the oral depot and comparison of normalized profiles, without individual dose calculation.'
+  },
   'DoseIncidentExplorer': {
     fr: 'Comparer les effets d’un retard, oubli ou vomissement et des compensations dans un modèle oral fictif à l’état stationnaire. Règle publiée de demi-vie, sans conseil individuel.',
     en: 'Compare delayed or missed intake, vomiting and compensating inputs in a fictional steady-state oral model. Published half-life rule, no individual advice.'

@@ -17,6 +17,7 @@ updated_on: "2026-10-10"
 reviewed_on: "2026-10-10"
 review_type: "author"
 reviewed_hash: "2d0b622dd8ea546eaca05bfd3f9115e26f205a2e5e2af092b086c43084bb0a0b"
+review_pending: true
 scientific_values: {"steady_state_half_lives_lower":4,"steady_state_half_lives_upper":5,"example_css_mg_l":10,"example_clearance_l_h":2,"example_infusion_rate_mg_h":20}
 units: {"concentration":"mg/L","clearance":"L/h","infusion_rate":"mg/h","time_to_steady_state":"half_lives"}
 quiz:
@@ -112,6 +113,18 @@ Raising the dose lifts Css but does **not** speed up the approach to steady stat
 
 A second trap: **superposition** (Css ∝ dose) only holds under **linear** kinetics. Under saturation (Michaelis-Menten, TMDD), accumulation is no longer proportional: a modest dose increase can send concentrations sharply upward, but the behaviour remains modelable with an appropriate nonlinear PK model.
 :::
+<!-- /step -->
+
+<!-- step:title="Application: delayed or missed intake" viz="DoseIncidentExplorer" -->
+At steady state, a delayed or missed intake disrupts the inputs without removing amounts from previous intakes. Half-life and the dosing interval govern exposure recovery; absorption and elimination also influence the peak.
+
+The [public IATDMCT/SFPT 2026 presentation](https://rberrah.github.io/communications/missed-dose-iatdmct-sfpt-2026/) describes a rule based on two half-life terms. The illustration reproduces this published equation in a fictional oral one-compartment model to understand the exposure-peak trade-off. It does not reproduce the complete research application or its clinical safeguards.
+
+:::howto
+Change the simulated individual half-life while keeping the population value fixed. Compare profiles and AUC/Cmax ratios to the reference for the two intervals. Explain why a population rule does not guarantee an individual target exposure.
+:::
+
+This is not a dosing calculator: no actual patient or drug, no individual recommendation, no established prospective clinical validation.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

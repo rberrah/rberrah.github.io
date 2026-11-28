@@ -17,6 +17,7 @@ updated_on: "2026-10-10"
 reviewed_on: "2026-10-10"
 review_type: "author"
 reviewed_hash: "98919d1f6154fdac5fe367f38543d969ad1b2f6f13344e923a197bfb00f45c53"
+review_pending: true
 scientific_values: {"steady_state_half_lives_lower":4,"steady_state_half_lives_upper":5,"example_css_mg_l":10,"example_clearance_l_h":2,"example_infusion_rate_mg_h":20}
 units: {"concentration":"mg/L","clearance":"L/h","infusion_rate":"mg/h","time_to_steady_state":"half_lives"}
 quiz:
@@ -112,6 +113,18 @@ Augmenter la dose monte la Css mais n'accélère **pas** l'arrivée à l'équili
 
 Second piège : le principe de **superposition** (Css ∝ dose) ne tient qu'en cinétique **linéaire**. Sous saturation (Michaelis-Menten, TMDD), l'accumulation n'est plus proportionnelle : une hausse modeste de dose peut faire fortement monter la concentration, mais le phénomène reste modélisable avec une PK non linéaire adaptée.
 :::
+<!-- /step -->
+
+<!-- step:title="Application : retard ou oubli d'une prise" viz="DoseIncidentExplorer" -->
+À l'état d'équilibre, un retard ou un oubli perturbe les entrées sans faire disparaître les quantités issues des prises précédentes. La demi-vie et l'intervalle structurent la récupération de l'exposition ; l'absorption et l'élimination influencent aussi le pic.
+
+La [communication publique IATDMCT/SFPT 2026](https://rberrah.github.io/communications/fr/missed-dose-iatdmct-sfpt-2026/) présente une règle fondée sur deux termes de demi-vie. L'illustration ci-contre reproduit cette équation publiée dans un modèle oral fictif à un compartiment, pour comprendre le compromis exposition-pic. Elle ne reproduit ni l'ensemble de l'application de recherche ni ses garde-fous cliniques.
+
+:::howto
+Modifiez la demi-vie individuelle simulée en laissant la valeur populationnelle inchangée. Comparez les profils et les rapports d'AUC et de Cmax à la référence pour les deux intervalles. Expliquez pourquoi une règle populationnelle ne garantit pas une exposition individuelle cible.
+:::
+
+Ce n'est pas un calculateur de posologie : aucun patient ou médicament réel, aucune recommandation individuelle, aucune validation clinique prospective démontrée.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
