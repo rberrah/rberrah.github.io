@@ -9,7 +9,7 @@ import {FR_EN_V3} from './locale-en-v3.js';
 import {FR_EN_V4} from './locale-en-v4.js';
 import {FR_EN_V5} from './locale-en-v5.js';
 import {FR_EN_AUDIT} from './locale-en-audit.js';
-const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5,...FR_EN_AUDIT,'Retour à PMx Explain':'Back to PMx Explain'};
+const DICTIONARY={...FR_EN,...FR_EN_LESSONS,...FR_EN_MIPD,...FR_EN_CLASSIC,...FR_EN_V3,...FR_EN_V4,...FR_EN_V5,...FR_EN_AUDIT,'Retour à PMx Explain':'Back to PMx Explain','Interpréter les résultats':'Interpret results','PARCOURS · INTERPRÉTATION':'JOURNEY · INTERPRETATION','Examinez les diagnostics disponibles, arbitrez entre modèles et formulez une conclusion. Les résultats archivés sur données réelles restent distincts du replay simulé.':'Examine available diagnostics, compare models and draw a conclusion. Archived results on real data remain separate from the simulated replay.','Six parcours pour découvrir la PK : lire les courbes, construire des modèles, mener une étude PopPK, explorer Pmetrics, individualiser une dose fictive et interpréter les résultats. Un atelier libre complète les missions.':'Six journeys to discover PK: read curves, build models, conduct a PopPK study, explore Pmetrics, individualize a fictional dose and interpret results. A free workshop complements the missions.'};
 
 const supported=new Set(['fr','en']);
 const params=new URLSearchParams(location.search);

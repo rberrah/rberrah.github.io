@@ -15,13 +15,21 @@ const STEPS=[
   {title:'Effet retardé',chapter:'PK → PD',desc:'Séparer la cinétique de la concentration de celle de la réponse.'},
   {title:'Conclusion scientifique',chapter:'Interprétation',desc:'Confronter résultats des modèles, diagnostics, incertitudes et décisions à étayer.'}
 ];
-const KEY='pmx-game-population-v4';
+const FULL_KEY='pmx-game-population-v4';
+const INTERPRETATION_KEY='pmx-game-interpretation-v1';
+let interpretation=new URLSearchParams(location.search).get('path')==='interpretation';
+let KEY=interpretation?INTERPRETATION_KEY:FULL_KEY;
+const activeSteps=()=>interpretation?[3,4,6]:STEPS.map((_,i)=>i);
+const pathDone=()=>done.map(i=>activeSteps().indexOf(i)).filter(i=>i>=0);
+const firstActive=()=>activeSteps()[firstIncomplete(pathDone(),activeSteps().length)];
+const canVisitActive=i=>canVisit(activeSteps().indexOf(i),pathDone(),activeSteps().length,isFree());
+const isLast=()=>index===activeSteps().at(-1);
 const read=()=>{
   try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(Array.isArray(x)){
-    return normalizeCompleted(x,STEPS.length);
+    return normalizeCompleted(x,STEPS.length).filter(i=>activeSteps().includes(i));
   }}catch{}return [];
 };
-let done=read(),index=firstIncomplete(done,STEPS.length);
+let done=read(),index=firstActive();
 let choice='',selectedFit='one',viewed=new Set(),selectedSubject=1,scale='linear',selectedChecks=new Set();
 let map={id:'',time:'',dose:'',concentration:'',event:''}, reportChecked=new Set(),reportText='';
 const fmt=(v,n=2)=>Number(v).toLocaleString((new URLSearchParams(location.search).get('lang')==='en'||document.documentElement.lang==='en')?'en-US':'fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
@@ -258,12 +266,13 @@ function simulatedVPC(kind){
   vpcCache.set(kind,p);return p;
 }
 function navigation(){
-  $('population-progress').textContent=done.length+' / '+STEPS.length;
+  $('population-progress').textContent=done.length+' / '+activeSteps().length;
   const frag=document.createDocumentFragment();
-  STEPS.forEach((step,i)=>{
-    const b=document.createElement('button');b.type='button';b.disabled=!canVisit(i,done,STEPS.length,isFree());
+  activeSteps().forEach((i,pos)=>{
+    const step=STEPS[i];
+    const b=document.createElement('button');b.type='button';b.disabled=!canVisitActive(i);
     if(i===index)b.setAttribute('aria-current','step');
-    const n=document.createElement('span');n.className='career-step-num';n.textContent=done.includes(i)?'✓':String(i+1);
+    const n=document.createElement('span');n.className='career-step-num';n.textContent=done.includes(i)?'✓':String(pos+1);
     const title=document.createElement('span');title.textContent=step.title;
     const sub=document.createElement('small');sub.textContent=done.includes(i)?'Vérifiée':b.disabled?'Verrouillée':step.chapter;
     title.append(sub);b.append(n,title);b.addEventListener('click',()=>select(i));frag.append(b);
@@ -636,11 +645,11 @@ function renderFinal(){
 function render(){
   const step=STEPS[index];selectedFit='one';
   $('population-chapter').textContent=step.chapter;
-  $('population-level').textContent='Étape '+(index+1)+' / '+STEPS.length;
+  $('population-level').textContent='Étape '+(activeSteps().indexOf(index)+1)+' / '+activeSteps().length;
   $('population-title').textContent=step.title;
   $('population-description').textContent=step.desc;
   $('population-feedback').hidden=true;
-  $('population-next').hidden=(!done.includes(index)&&!isFree())||index===STEPS.length-1;
+  $('population-next').hidden=(!done.includes(index)&&!isFree())||isLast();
   $('population-validate').disabled=done.includes(index);
   $('population-hint-text').hidden=true;
   $('population-help').textContent=[
@@ -667,7 +676,7 @@ function render(){
   navigation();
 }
 function select(i){
-  if(!canVisit(i,done,STEPS.length,isFree()))return;
+  if(!canVisitActive(i))return;
   index=i;viewed=new Set();selectedFit='one';selectedChecks.clear();choice='';scale='linear';selectedSubject=1;render();
 }
 function success(message){
@@ -675,7 +684,7 @@ function success(message){
   const el=$('population-feedback');el.hidden=false;el.classList.remove('error');
   el.innerHTML='<strong>Étape qualifiée</strong><p>'+escapeText(message)+'</p>';
   $('population-validate').disabled=true;
-  $('population-next').hidden=index===STEPS.length-1;
+  $('population-next').hidden=isLast();
   navigation();
 }
 function failure(message){
@@ -722,13 +731,25 @@ function validate(){
 window.addEventListener('pmx-game-language-change',()=>{if(index===1)renderEDA();else if(index===6)renderFinal();});
 $('population-validate').addEventListener('click',validate);
 $('population-hint').addEventListener('click',()=>{$('population-hint-text').hidden=false;});
-$('population-next').addEventListener('click',()=>select(isFree()?Math.min(STEPS.length-1,index+1):firstIncomplete(done,STEPS.length)));
+$('population-next').addEventListener('click',()=>select(isFree()?activeSteps()[Math.min(activeSteps().length-1,activeSteps().indexOf(index)+1)]:firstActive()));
 $('population-reset').addEventListener('click',()=>{
   if(!confirm(document.documentElement.lang==='en'?'Reset the population PK steps in this browser?':'Réinitialiser les étapes pharmacométriques de ce navigateur ?'))return;
-  done=[];store();select(0);
+  done=[];store();select(activeSteps()[0]);
 });
 window.addEventListener('pmx-game-learning-mode',()=>{
-  if(!canVisit(index,done,STEPS.length,isFree()))select(firstIncomplete(done,STEPS.length));
-  else {navigation();$('population-next').hidden=index===STEPS.length-1||(!done.includes(index)&&!isFree());}
+  if(!canVisitActive(index))select(firstActive());
+  else {navigation();$('population-next').hidden=isLast()||(!done.includes(index)&&!isFree());}
 });
+function updatePathHeading(){
+  $('population-kicker').textContent=interpretation?'PARCOURS · INTERPRÉTATION':'PARCOURS 3 · ANALYSE POPPK';
+  $('population-path-title').textContent=interpretation?'Interpréter les résultats':'Des données au modèle final';
+  $('population-path-description').textContent=interpretation?'Examinez les diagnostics disponibles, arbitrez entre modèles et formulez une conclusion. Les résultats archivés sur données réelles restent distincts du replay simulé.':'Une étude expérimentale de warfarine pour l\'import et l\'exploration ; un replay SAEM distinct sur cohorte artificielle pour apprendre l\'estimation et les diagnostics.';
+}
+window.addEventListener('pmx-game-population-path',event=>{
+  const next=Boolean(event.detail?.interpretation);
+  if(next===interpretation)return;
+  interpretation=next;KEY=interpretation?INTERPRETATION_KEY:FULL_KEY;
+  done=read();updatePathHeading();select(firstActive());
+});
+updatePathHeading();
 select(index);
