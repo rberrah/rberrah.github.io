@@ -33,3 +33,13 @@ test('retired ecosystem route redirects and no longer appears in PMx sitemap',as
   const portal=await (await request.get(origin+'/sitemap.xml')).text();
   expect(portal).toContain(publicOrigin+'/ecosystem/</loc>');
 });
+
+test('PMx menu uses the canonical public directory in both languages',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/?lang=en');
+  const menu=page.getByTestId('goal-connections');
+  await menu.locator('summary').click();
+  const links=menu.locator('.goal-links a');
+  expect(await links.evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(destinations.map(p=>publicOrigin+p+(p==='/stats/'?'':'?lang=en')));
+  await page.locator('.language-toggle').getByRole('button',{name:'FR',exact:true}).click();
+  expect(await links.evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(destinations.map(p=>publicOrigin+p+(p==='/stats/'?'':'?lang=fr')));
+});

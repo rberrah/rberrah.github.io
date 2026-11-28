@@ -10,7 +10,7 @@
 <svelte:head>
   <title>Explain ecosystem</title>
   <meta name="robots" content="noindex,follow"/>
-  <meta http-equiv="refresh" content="0;url=/ecosystem/"/>
+  <meta http-equiv="refresh" content="2;url=/ecosystem/"/>
 </svelte:head>
 <h1>{$language==='en'?'The ecosystem has moved':'L’écosystème a déménagé'}</h1>
 <p><a href={destination+'?lang='+$language} data-sveltekit-reload>{$language==='en'?'Open the Explain ecosystem':'Ouvrir l’écosystème Explain'}</a></p>
