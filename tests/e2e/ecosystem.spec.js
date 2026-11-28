@@ -1,64 +1,35 @@
-import { test, expect } from '@playwright/test';
-
-test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async ({ page }) => {
-  await page.goto('/pharmacometrie/ecosystem/?lang=en');
-
+import {test,expect} from '@playwright/test';
+import {getSiteOrigin} from '../../site.config.js';
+const origin=process.env.PORTAL_E2E_URL||'http://127.0.0.1:4181';
+const publicOrigin=getSiteOrigin();
+const destinations=['/ecosystem/','/pharmacometrie/','/multiomics/','/stats/','/Omics2PK/'];
+for(const lang of ['fr','en'])for(const width of [320,1440])test('central educational ecosystem '+lang+' '+width,async({page})=>{
+  await page.setViewportSize({width,height:800});
+  await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+  await page.goto(origin+'/ecosystem/?lang='+lang);
+  await expect(page.locator('html')).toHaveAttribute('lang',lang);
   await expect(page.getByTestId('ecosystem-page')).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Learn, analyze, then integrate');
-  await expect(page.getByTestId('ecosystem-platform-map')).toBeVisible();
-  await expect(page.getByTestId('ecosystem-platform-map').getByRole('heading',{name:'PMx Explain'})).toBeVisible();
-  await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Open MultiOmics/})).toHaveAttribute('href','https://rberrah.github.io/multiomics/?lang=en');
-  await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Open Omics2PK/})).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
-
-  const ecosystem = page.getByTestId('goal-connections');
-  await expect(ecosystem.locator('summary')).toContainText('Ecosystem');
-  await ecosystem.locator('summary').click();
-  await expect(page.getByTestId('nav-ecosystem')).toBeVisible();
-  await expect(page.getByTestId('nav-multiomics')).toHaveAttribute('href', 'https://rberrah.github.io/multiomics/');
-  await expect(page.getByTestId('nav-omics2pk')).toHaveAttribute('href', 'https://rberrah.github.io/Omics2PK/');
-
-  const thesis = page.getByTestId('thesis-research-program');
-  await expect(thesis.getByRole('heading', { level: 2 })).toHaveText('Research programme');
-  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontology & knowledge graph');
-  await expect(thesis.locator('.thesis-card')).toHaveCount(6);
-  for (const [id, name] of [['a','Ontology & knowledge graph'],['c','Verification'],['d','Individualisation']]) {
-    const card = thesis.locator(`[data-project="pillar-${id}"]`);
-    await expect(card.locator('h3')).toHaveText(name);
-    await expect(card.locator('p')).toHaveCount(1);
-    await expect(card.locator('p')).toHaveText('Coming soon');
-    await expect(card.locator('a')).toHaveCount(0);
-  }
-  await expect(thesis).not.toContainText('pharmacological twins');
-  await expect(thesis).not.toContainText('causal evaluation');
-  await expect(thesis.locator('[data-project="netpk"] a')).toHaveAttribute('href', 'https://rberrah.github.io/communications/netpk-peprsn-2026/');
-  await expect(thesis.locator('[data-project="pillar-b"] a')).toHaveAttribute('href', 'https://rberrah.github.io/communications/autonomous-pharmacometrics-page-2026/');
-  await expect(thesis.locator('[data-project="phenopass"] a')).toHaveCount(0);
-  await expect(thesis.locator('[data-project="phenopass"]')).toContainText('unpublished results');
-  await expect(thesis.locator('[data-project="pillar-c"] a, [data-project="pillar-d"] a')).toHaveCount(0);
-
-  await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
-  await expect(ecosystem.locator('summary')).toContainText('Écosystème');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Apprendre, analyser, puis intégrer');
-  await expect(page.getByTestId('thesis-research-program').getByRole('heading', { level: 2 })).toHaveText('Programme de recherche');
-  await expect(page.getByTestId('thesis-research-program').locator('[data-project="phenopass"]')).toContainText('résultats non publiés');
-  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontologie et graphe de connaissances');
-  for (const [id,name] of [['a','Ontologie et graphe de connaissances'],['c','Vérification'],['d','Individualisation']]) {
-    const card=thesis.locator(`[data-project="pillar-${id}"]`);
-    await expect(card.locator('h3')).toHaveText(name);
-    await expect(card.locator('p')).toHaveText('À venir');
-  }
-  await expect(thesis).not.toContainText('jumeaux pharmacologiques');
-  await expect(thesis.locator('[data-project="netpk"] a')).toHaveAttribute('href','https://rberrah.github.io/communications/fr/netpk-peprsn-2026/');
-  await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Ouvrir MultiOmics/})).toHaveAttribute('href','https://rberrah.github.io/multiomics/?lang=fr');
-  await page.locator('.language-toggle').getByRole('button',{name:'EN',exact:true}).click();
-  await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontology & knowledge graph');
-});
-
-for(const lang of ['fr','en'])test('ecosystem map and evidence labels remain readable at 320px ('+lang+')',async({page})=>{
-  await page.setViewportSize({width:320,height:640});
-  await page.goto('/pharmacometrie/ecosystem/?lang='+lang);
-  await expect(page.getByTestId('ecosystem-platform-map')).toBeVisible();
-  await expect(page.getByTestId('thesis-research-program').locator('.thesis-card')).toHaveCount(6);
+  await expect(page.getByTestId('ecosystem-platform-map').locator('article')).toHaveCount(4);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href',publicOrigin+'/ecosystem/');
+  await expect(page.getByTestId('ecosystem-page')).not.toContainText(/PhenoPass|NetPK|Pillar [ABCD]|Pilier [ABCD]|thesis programme|programme de thèse/i);
+  const menu=page.getByTestId('portal-ecosystem-menu');
+  await menu.locator('summary').click();
+  expect(await menu.locator('a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(destinations.map(p=>p+(p==='/stats/'?'':'?lang='+lang)));
+  await menu.locator('summary').click();
+  await page.locator('[data-lang="'+(lang==='fr'?'en':'fr')+'"]').click();
+  await expect(page.locator('html')).toHaveAttribute('lang',lang==='fr'?'en':'fr');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
-  await expect(page.getByTestId('ecosystem-platform-map')).not.toContainText(lang==='en'?'APPRENDRE ET MODÉLISER':'LEARN AND MODEL');
+});
+test('retired ecosystem route redirects and no longer appears in PMx sitemap',async({page,request})=>{
+  await page.goto(origin+'/pharmacometrie/ecosystem/');
+  await expect(page).toHaveURL(new RegExp('/ecosystem/(?:\\?lang=(fr|en))?$'));
+  await expect(page.getByTestId('ecosystem-page')).toBeVisible();
+  const old=await request.get(origin+'/pharmacometrie/ecosystem/');
+  const raw=await old.text();
+  expect(raw).not.toMatch(/thesis-research-program|pillar-lane|thesisProjects/);
+  expect(raw).toContain('noindex');
+  const xml=await (await request.get(origin+'/pharmacometrie/sitemap.xml')).text();
+  expect(xml).not.toContain('/pharmacometrie/ecosystem/</loc>');
+  const portal=await (await request.get(origin+'/sitemap.xml')).text();
+  expect(portal).toContain(publicOrigin+'/ecosystem/</loc>');
 });

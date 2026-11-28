@@ -54,6 +54,9 @@ for (const absolute of files) {
   if (['.html', '.js', '.json', '.md', '.r', '.rmd', '.txt', '.xml'].includes(extension)) {
     const content = await readFile(absolute, 'utf8');
     for (const pattern of secretPatterns) if (pattern.test(content)) failures.push(`${relative}: high-confidence secret pattern detected`);
+    // Block the retired programme component even when accidentally reintroduced via a stale branch or compiled chunk.
+    if (/thesis-research-program|pillar-lane|thesisProjects|data-project=["']pillar-[abcd]/i.test(content))
+      failures.push(`${relative}: retired private programme component in public artifact`);
   }
 }
 
