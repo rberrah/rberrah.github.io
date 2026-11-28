@@ -11,7 +11,7 @@ await mkdir(output,{recursive:true});
 const routes=[
   '/', '/a-propos/', '/publications/', '/pharmacometrie/',
   '/pharmacometrie/chapitres/clairance-volume-demi-vie/',
-  '/pharmacometrie/game/', '/pharmacometrie/tdm/', '/pharmacometrie/ecosystem/',
+  '/pharmacometrie/game/', '/pharmacometrie/tdm/', '/ecosystem/',
   '/multiomics/tool/', '/stats/', '/Omics2PK/'
 ];
 // The new resources route exists only after deployment; do not make a pre-merge
@@ -21,7 +21,7 @@ const rows=[];
 for(const route of routes){
   const name=route==='/'?'home':route.replace(/^\/|\/$/g,'').replaceAll('/','-');
   const file=output+'/'+name+'.json';
-  const url=origin+route+(route.startsWith('/pharmacometrie/')||route.startsWith('/multiomics/')?'?lang=en':'');
+  const url=origin+route+(route==='/ecosystem/'||route.startsWith('/pharmacometrie/')||route.startsWith('/multiomics/')?'?lang=en':'');
   const args=[url,'--only-categories=performance,accessibility,best-practices,seo','--output=json','--output-path='+file,'--quiet','--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage','--blocked-url-patterns=*goatcounter.com*','--max-wait-for-load=45000'];
   if(mode==='desktop')args.push('--preset=desktop');
   const run=spawnSync(cli,args,{encoding:'utf8',timeout:120000});
