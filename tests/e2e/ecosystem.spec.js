@@ -4,18 +4,21 @@ test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async 
   await page.goto('/pharmacometrie/ecosystem/?lang=en');
 
   await expect(page.getByTestId('ecosystem-page')).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Learn, analyze, then integrate');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Complementary disciplines, distinct evidence');
   await expect(page.getByTestId('ecosystem-platform-map')).toBeVisible();
   await expect(page.getByTestId('ecosystem-platform-map').getByRole('heading',{name:'PMx Explain'})).toBeVisible();
   await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Open MultiOmics/})).toHaveAttribute('href','https://rberrah.github.io/multiomics/?lang=en');
-  await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Open Omics2PK/})).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
+  await expect(page.getByTestId('ecosystem-platform-map').getByRole('link',{name:/Open Omics2PK/})).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/?lang=en');
 
   const ecosystem = page.getByTestId('goal-connections');
   await expect(ecosystem.locator('summary')).toContainText('Ecosystem');
   await ecosystem.locator('summary').click();
   await expect(page.getByTestId('nav-ecosystem')).toBeVisible();
-  await expect(page.getByTestId('nav-multiomics')).toHaveAttribute('href', 'https://rberrah.github.io/multiomics/');
-  await expect(page.getByTestId('nav-omics2pk')).toHaveAttribute('href', 'https://rberrah.github.io/Omics2PK/');
+  const common=['https://rberrah.github.io/pharmacometrie/ecosystem/?lang=en','https://rberrah.github.io/pharmacometrie/?lang=en','https://rberrah.github.io/multiomics/?lang=en','https://rberrah.github.io/stats/','https://rberrah.github.io/Omics2PK/?lang=en'];
+  expect(await ecosystem.locator('.goal-links a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(common);
+  expect(await page.getByTestId('ecosystem-links').locator('a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(common);
+  await expect(page.getByTestId('nav-multiomics')).toHaveAttribute('href', 'https://rberrah.github.io/multiomics/?lang=en');
+  await expect(page.getByTestId('nav-omics2pk')).toHaveAttribute('href', 'https://rberrah.github.io/Omics2PK/?lang=en');
 
   const thesis = page.getByTestId('thesis-research-program');
   await expect(thesis.getByRole('heading', { level: 2 })).toHaveText('Research programme');
@@ -38,7 +41,8 @@ test('PMx ecosystem presents the shared Learn Analyze Integrate journey', async 
 
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
   await expect(ecosystem.locator('summary')).toContainText('Écosystème');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Apprendre, analyser, puis intégrer');
+  expect(await ecosystem.locator('.goal-links a').evaluateAll(nodes=>nodes.map(a=>a.getAttribute('href')))).toEqual(common.map(url=>url.replace('lang=en','lang=fr')));
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Des disciplines complémentaires, des preuves distinctes');
   await expect(page.getByTestId('thesis-research-program').getByRole('heading', { level: 2 })).toHaveText('Programme de recherche');
   await expect(page.getByTestId('thesis-research-program').locator('[data-project="phenopass"]')).toContainText('résultats non publiés');
   await expect(thesis.locator('[data-project="pillar-a"] h3')).toHaveText('Ontologie et graphe de connaissances');

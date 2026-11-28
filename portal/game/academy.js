@@ -38,7 +38,8 @@ function showMode(name){
   const academy=name==='academy';
   const lab=name==='lab';
   const advanced=name==='advanced';
-  const population=name==='population';
+  const interpretation=name==='interpretation';
+  const population=name==='population'||interpretation;
   const mipd=name==='mipd';
   const pmetrics=name==='pmetrics';
   $('academy-mode').hidden=!academy;
@@ -50,7 +51,9 @@ function showMode(name){
   $('mode-campaign').setAttribute('aria-pressed',String(academy));
   $('mode-lab').setAttribute('aria-pressed',String(lab));
   $('mode-advanced').setAttribute('aria-pressed',String(advanced));
-  $('mode-population').setAttribute('aria-pressed',String(population));
+  $('mode-population').setAttribute('aria-pressed',String(population&&!interpretation));
+  $('mode-interpretation').setAttribute('aria-pressed',String(interpretation));
+  if(population)window.dispatchEvent(new CustomEvent('pmx-game-population-path',{detail:{interpretation}}));
   $('mode-mipd').setAttribute('aria-pressed',String(mipd));
   $('mode-pmetrics').setAttribute('aria-pressed',String(pmetrics));
   if(!academy)pause();
@@ -220,6 +223,7 @@ $('mode-campaign').addEventListener('click',()=>showMode('academy'));
 $('mode-lab').addEventListener('click',()=>showMode('lab'));
 $('mode-advanced').addEventListener('click',()=>showMode('advanced'));
 $('mode-population').addEventListener('click',()=>showMode('population'));
+$('mode-interpretation').addEventListener('click',()=>showMode('interpretation'));
 $('mode-pmetrics').addEventListener('click',()=>showMode('pmetrics'));
 $('mode-mipd').addEventListener('click',()=>showMode('mipd'));
 $('tutorial-next').addEventListener('click',nextTutorial);
@@ -246,4 +250,4 @@ window.addEventListener('pmx-game-learning-mode',()=>{
   else {updateMap();$('academy-next').hidden=index===QUESTS.length-1||(!solved&&!isFree());}
 });
 selectQuest(index);
-showMode('academy');
+showMode(new URLSearchParams(location.search).get('path')==='interpretation'?'interpretation':'academy');

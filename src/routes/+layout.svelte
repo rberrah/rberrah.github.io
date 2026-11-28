@@ -13,6 +13,7 @@
   import { afterNavigate } from '$app/navigation';
   import { countPage } from '#lib/analytics.js';
   import LanguageToggle from '#lib/components/LanguageToggle.svelte';
+  import ecosystem from '#lib/content/ecosystem.json';
   import { ui } from '#lib/i18n/translations.js';
   import { language } from '#lib/stores/language.js';
   import { alternateUrl, canonicalUrl, routePath, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '#lib/site.js';
@@ -47,10 +48,8 @@
     { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée' },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
-    { href: '/ecosystem', key: 'ecosystem', label: $language === 'en' ? 'Ecosystem overview' : 'Vue d’ensemble de l’écosystème' },
     { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics to PK/PD lessons' : 'Cours Omics vers PK/PD' },
-    { href: 'https://rberrah.github.io/multiomics/', key: 'multiomics', label: 'MultiOmics ↗', external: true },
-    { href: 'https://rberrah.github.io/Omics2PK/', key: 'omics2pk', label: 'Omics2PK ↗', external: true },
+    ...ecosystem.map(item=>({href:item.url+(item.localized?'?lang='+$language:''),key:item.key==='overview'?'ecosystem':item.key==='omics'?'multiomics':item.key,label:item[$language==='en'?'en':'fr'],external:true})),
     { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
     { href: '/ressources-outils', key: 'useful-tools', label: $language === 'en' ? 'Other useful tools' : 'Autres outils utiles' },
     { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
@@ -62,11 +61,11 @@
     { href: `${SITE_ORIGIN}/`, key: 'main-site', label: 'Racym Berrah ↗', external: true }
   ]);
   let groups = $derived([
-    { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['game', 'course', 'example', 'exercises'] },
+    { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['game', 'course', 'example', 'exercises', 'cross-domains'] },
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'tdm-targets', 'ml', 'tacddi-app', 'misseddose-app', 'other-tools'] },
-    { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'cross-domains', 'multiomics', 'omics2pk'] },
+    { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'pmx', 'multiomics', 'stats', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['news', 'search', 'glossary', 'references', 'useful-tools', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);

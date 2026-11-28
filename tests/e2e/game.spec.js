@@ -975,3 +975,32 @@ test('game back link preserves current language', async ({page}) => {
     await expect(page).toHaveURL(origin+'/pharmacometrie/?lang='+other);
   }
 });
+
+test('direct interpretation journey reuses diagnostics with independent progress',async({page})=>{
+  await page.goto(origin+'/pharmacometrie/game/?lang=en&path=interpretation');
+  await expect(page.locator('#mode-interpretation')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#population-path-title')).toHaveText('Interpret results');
+  await expect(page.locator('#population-progress')).toHaveText('0 / 3');
+  await expect(page.locator('#population-steps button')).toHaveCount(3);
+  await expect(page.locator('#pop-diagnostic-model')).toBeVisible();
+  await page.locator('#population-workspace details').evaluateAll(nodes=>nodes.forEach(d=>d.open=true));
+  for(const [k,value] of Object.entries({gof:'trends',residual:'patterns',iiv:'careful',ruv:'form',vpc:'bands',stability:'uncertainty'}))
+    await page.locator('input[name="pop-diagnostic-'+k+'"][value="'+value+'"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('1 / 3');
+  await page.locator('#population-next').click();
+  await page.locator('input[name="pop-choice"][value="equivocal"]').check();
+  await page.locator('#population-validate').click();
+  await page.locator('#population-next').click();
+  await page.locator('input[name="pop-conclusion"][value="conditional"]').check();
+  await page.locator('#population-validate').click();
+  await expect(page.locator('#population-progress')).toHaveText('3 / 3');
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('pmx-game-interpretation-v1')))).toEqual([3,4,6]);
+  await page.locator('#mode-population').click();
+  await expect(page.locator('#population-progress')).toHaveText('0 / 7');
+  await expect(page.locator('#population-steps button')).toHaveCount(7);
+  await page.locator('#mode-interpretation').click();
+  await expect(page.locator('#population-progress')).toHaveText('3 / 3');
+  await page.locator('#game-lang-fr').click();
+  await expect(page.locator('#population-path-title')).toHaveText('Interpréter les résultats');
+});

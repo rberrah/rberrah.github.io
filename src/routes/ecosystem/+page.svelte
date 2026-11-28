@@ -1,6 +1,7 @@
 <script>
   import { resolve } from '$app/paths';
   import { language } from '#lib/stores/language.js';
+  import ecosystemLinks from '#lib/content/ecosystem.json';
 
   const base = resolve('/').replace(/\/$/, '');
   /** @param {string} fr @param {string} en */
@@ -71,7 +72,7 @@
   <header class="intro">
     <div>
       <p class="eyebrow">{t('PHARMACOLOGIE QUANTITATIVE · ÉCOSYSTÈME','QUANTITATIVE PHARMACOLOGY · ECOSYSTEM')}</p>
-      <h1>{t('Apprendre, analyser, puis intégrer.','Learn, analyze, then integrate.')}</h1>
+      <h1>{t('Des disciplines complémentaires, des preuves distinctes.','Complementary disciplines, distinct evidence.')}</h1>
       <p class="lede">{t('Un écosystème qui relie la pharmacologie mécaniste, les données biologiques et la modélisation quantitative. Découvrez les outils disponibles, leurs relations et le programme de recherche qui les accompagne.','An ecosystem connecting mechanistic pharmacology, biological data and quantitative modelling. Explore the available tools, how they relate, and the research programme behind them.')}</p>
       <nav class="jump" aria-label={t('Sections de l’écosystème','Ecosystem sections')}>
         <a href="#platforms">{t('Plateformes','Platforms')} ↓</a>
@@ -87,7 +88,11 @@
   </header>
 
   <section id="platforms" class="platforms" aria-labelledby="platforms-title">
-    <div class="section-intro"><p class="eyebrow">{t('01 · LES PLATEFORMES','01 · THE PLATFORMS')}</p><h2 id="platforms-title">{t('Trois rôles complémentaires','Three complementary roles')}</h2></div>
+    <div class="section-intro"><p class="eyebrow">{t('01 · LES PLATEFORMES','01 · THE PLATFORMS')}</p><h2 id="platforms-title">{t('Choisir sa plateforme','Choose a platform')}</h2></div>
+    <nav class="shared-links" data-testid="ecosystem-links" aria-label={t('Plateformes publiques','Public platforms')}>
+      {#each ecosystemLinks as item}<a href={item.url+(item.localized?'?lang='+$language:'')} data-sveltekit-reload>{t(item.fr,item.en)}</a>{/each}
+    </nav>
+    <p>{t('Ci-dessous, un exemple de collaboration entre pharmacométrie et omiques ; ce n’est pas un parcours obligatoire.','Below is one example of collaboration between pharmacometrics and omics; it is not a mandatory journey.')}</p>
     <div class="map" data-testid="ecosystem-platform-map">
       <article class="learning">
         <div class="node-heading"><span class="node-symbol" aria-hidden="true">PK</span><div><p class="role">{t('APPRENDRE ET MODÉLISER','LEARN AND MODEL')}</p><h3>PMx Explain</h3></div></div>
@@ -105,7 +110,7 @@
         <article class="integration">
           <div class="node-heading"><span class="node-symbol" aria-hidden="true">PK+</span><div><p class="role">{t('INTÉGRER ET ÉVALUER','INTEGRATE AND EVALUATE')}</p><h3>Omics2PK</h3></div></div>
           <p>{t('Tester l’apport de signatures moléculaires au-delà des informations cliniques et pharmacogénétiques pour des questions PK.','Test the contribution of molecular signatures beyond clinical and pharmacogenetic information for PK research questions.')}</p>
-          <a class="btn btn-outline" href={omics2pk} target="_blank" rel="noopener noreferrer">{t('Ouvrir Omics2PK','Open Omics2PK')} ↗</a>
+          <a class="btn btn-outline" href={omics2pk+'?lang='+$language} target="_blank" rel="noopener noreferrer">{t('Ouvrir Omics2PK','Open Omics2PK')} ↗</a>
         </article>
       </div>
     </div>
@@ -209,4 +214,5 @@
   .project-lane>h3{font-size:1rem;margin:.15rem 0}
   @media(max-width:820px){.intro,.map .learning,.thesis-grid{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:560px){.analytical,.flow{grid-template-columns:1fr}.bridge .arrow{transform:rotate(90deg)}.map article{padding:.9rem}.ecosystem{padding-inline:0}.intro{gap:1rem}}
+.shared-links{display:flex;flex-wrap:wrap;gap:.6rem;margin:1rem 0}.shared-links a{display:inline-flex;align-items:center;min-height:44px;padding:.5rem .85rem;border:1px solid var(--border-strong);border-radius:8px}
 </style>
