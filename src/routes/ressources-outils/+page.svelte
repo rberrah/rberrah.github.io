@@ -1,6 +1,7 @@
 <script>
   import { language } from '#lib/stores/language.js';
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   $: en = $language === 'en';
   $: researchApps = [
     {name:'MIPD Engine',url:`${base}/tdm/?lang=${$language}`,external:false,fr:'Estimation bayésienne et exploration d’exposition à partir de modèles PK.',en:'Bayesian estimation and exposure exploration from PK models.'},
