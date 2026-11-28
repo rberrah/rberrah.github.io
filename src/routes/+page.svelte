@@ -8,7 +8,7 @@
   import { beginnerTrack, tracks, chaptersByTrack } from '#lib/content/tracks.js';
   import { language } from '#lib/stores/language.js';
   import { localizeChapter, localizeTrack, ui } from '#lib/i18n/translations.js';
-  import { AUTHOR, COURSE_NAME, jsonLdScript, LICENSE_URL, SITE_URL } from '#lib/site.js';
+  import { AUTHOR, COURSE_NAME, jsonLdScript, LICENSE_URL, SITE_URL, SITE_ORIGIN } from '#lib/site.js';
 
   const grouped = chaptersByTrack(chapters);
   const coreCount = grouped.core.length;
@@ -114,7 +114,7 @@
 
 <section class="objectives" aria-labelledby="objectives-title">
   <h2 id="objectives-title">{$language === 'en' ? 'What is your objective?' : 'Quel est votre objectif ?'}</h2>
-  <div>{#each goals as goal}<a href={goal.href==='/ecosystem/'?'/ecosystem/?lang='+$language:`${base}${goal.href}`} data-sveltekit-reload={goal.href==='/ecosystem/'?'':undefined}><svelte:component this={goal.icon} size={21}/><span>{$language === 'en' ? goal.en : goal.fr}</span><ArrowRight size={17}/></a>{/each}</div>
+  <div>{#each goals as goal}<a href={goal.href==='/ecosystem/'?SITE_ORIGIN+'/ecosystem/?lang='+$language:`${base}${goal.href}`} data-sveltekit-reload={goal.href==='/ecosystem/'?'':undefined}><svelte:component this={goal.icon} size={21}/><span>{$language === 'en' ? goal.en : goal.fr}</span><ArrowRight size={17}/></a>{/each}</div>
 </section>
 
 <section class="resource-band" data-testid="teaching-resources">

@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { language } from '#lib/stores/language.js';
+  import { SITE_ORIGIN } from '#lib/site.js';
   const destination='/ecosystem/';
   onMount(()=>{
     const lang=new URLSearchParams(location.search).get('lang');
@@ -13,4 +14,4 @@
   <meta http-equiv="refresh" content="2;url=/ecosystem/"/>
 </svelte:head>
 <h1>{$language==='en'?'The ecosystem has moved':'L’écosystème a déménagé'}</h1>
-<p><a href={destination+'?lang='+$language} data-sveltekit-reload>{$language==='en'?'Open the Explain ecosystem':'Ouvrir l’écosystème Explain'}</a></p>
+<p><a href={SITE_ORIGIN+destination+'?lang='+$language} data-sveltekit-reload>{$language==='en'?'Open the Explain ecosystem':'Ouvrir l’écosystème Explain'}</a></p>
