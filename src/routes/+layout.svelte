@@ -32,29 +32,29 @@
 
   let copy = $derived(ui($language));
   let links = $derived([
-    { href: '/', key: 'home', label: copy.nav.home },
-    { href: '/chapitres', key: 'course', label: copy.nav.course },
-    { href: '/game', key: 'game', label: 'PMx Game' },
-    { href: '/exemple', key: 'example', label: copy.nav.example },
-    { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
-    { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
-    { href: '/cibles-tdm', key: 'tdm-targets', label: $language === 'en' ? 'Therapeutic target guide' : 'Guide des cibles thérapeutiques' },
-    { href: '/ml', key: 'ml', label: $language === 'en' ? 'ML for TDM' : 'ML pour le TDM' },
-    { href: '/translator', key: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles' },
-    { href: '/pk', key: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK' },
-    { href: '/pd', key: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD' },
-    { href: '/covariates', key: 'covariates', label: $language === 'en' ? 'Covariates' : 'Covariables' },
-    { href: '/ddi', key: 'ddi', label: $language === 'en' ? 'DDI Builder' : 'Atelier DDI' },
-    { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée' },
-    { href: '/playground', key: 'playground', label: copy.nav.playground },
-    { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
-    { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics to PK/PD lessons' : 'Cours Omics vers PK/PD' },
+    { href: '/', key: 'home', label: copy.nav.home, external: false },
+    { href: '/chapitres', key: 'course', label: copy.nav.course, external: false },
+    { href: '/game', key: 'game', label: 'PMx Game', external: false },
+    { href: '/exemple', key: 'example', label: copy.nav.example, external: false },
+    { href: '/exercices', key: 'exercises', label: copy.nav.exercises, external: false },
+    { href: '/tdm', key: 'tdm', label: copy.nav.tdm, external: false },
+    { href: '/cibles-tdm', key: 'tdm-targets', label: $language === 'en' ? 'Therapeutic target guide' : 'Guide des cibles thérapeutiques', external: false },
+    { href: '/ml', key: 'ml', label: $language === 'en' ? 'ML for TDM' : 'ML pour le TDM', external: false },
+    { href: '/translator', key: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles', external: false },
+    { href: '/pk', key: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK', external: false },
+    { href: '/pd', key: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD', external: false },
+    { href: '/covariates', key: 'covariates', label: $language === 'en' ? 'Covariates' : 'Covariables', external: false },
+    { href: '/ddi', key: 'ddi', label: $language === 'en' ? 'DDI Builder' : 'Atelier DDI', external: false },
+    { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée', external: false },
+    { href: '/playground', key: 'playground', label: copy.nav.playground, external: false },
+    { href: '/glossaire', key: 'glossary', label: copy.nav.glossary, external: false },
+    { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics to PK/PD lessons' : 'Cours Omics vers PK/PD', external: false },
     ...ecosystem.map(item=>({href:item.url+(item.localized?'?lang='+$language:''),key:item.key==='overview'?'ecosystem':item.key==='omics'?'multiomics':item.key,label:item[$language==='en'?'en':'fr'],external:true})),
-    { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
-    { href: '/ressources-outils', key: 'useful-tools', label: $language === 'en' ? 'Other useful tools' : 'Autres outils utiles' },
-    { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
-    { href: '/actualites', key: 'news', label: $language === 'en' ? 'What’s new' : 'Actualités' },
-    { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain' },
+    { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche', external: false },
+    { href: '/ressources-outils', key: 'useful-tools', label: $language === 'en' ? 'Other useful tools' : 'Autres outils utiles', external: false },
+    { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références', external: false },
+    { href: '/actualites', key: 'news', label: $language === 'en' ? 'What’s new' : 'Actualités', external: false },
+    { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain', external: false },
     { href: 'https://tdmhub.shinyapps.io/TacDDI/', key: 'tacddi-app', label: 'TacDDI ↗', external: true },
     { href: 'https://tdmhub.shinyapps.io/MissedDoseApp/', key: 'misseddose-app', label: 'MissedDose ↗', external: true },
     { href: `${SITE_ORIGIN}/tools/`, key: 'other-tools', label: $language === 'en' ? 'Other tools' : 'Autres outils', external: true },
@@ -68,7 +68,7 @@
     { key: 'connections', label: $language === 'en' ? 'Ecosystem' : 'Écosystème', icon: Library, keys: ['ecosystem', 'pmx', 'multiomics', 'stats', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['news', 'search', 'glossary', 'references', 'useful-tools', 'about', 'main-site'] }
   ]);
-  let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
+  let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés', external: false }]);
   /** @type {HTMLElement | undefined} */
   let navigation = $state();
   function closeNavigation() {
