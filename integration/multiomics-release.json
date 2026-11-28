@@ -1,7 +1,7 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "adebb86ffd11bdd89582d18bb07fd56cf22dd1f3",
+  "sha": "430addaa199e42e4e3036ae081a8d15526e54522",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
@@ -17,5 +17,62 @@
     "Research v1 freeze gate",
     "MultiOmics survival native-R qualification",
     "MultiOmics 1.1 release integrity"
-  ]
+  ],
+  "workflowEvidence": {
+    "MultiOmics standalone software qualification": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Public Airway native-R replay and R Markdown": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Multi-omics real public Nutrimouse DIABLO biological validation": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Frozen R reference — calibration and negative-control qualification": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "MultiOmics fixed-URL integration artifact": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Omics2PK consumer contract - native MultiOmics synthetic ZIP": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Independent external GEO GSE22871 source qualification": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "Research v1 freeze gate": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "MultiOmics survival native-R qualification": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    },
+    "MultiOmics 1.1 release integrity": {
+      "sha": "f9dc4bdddba380810ddf281cde92cdee0f2ec34a",
+      "event": "pull_request",
+      "tree": "8ca16005653f0ab38621df5f1afd05226862289e"
+    }
+  }
 }

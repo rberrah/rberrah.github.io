@@ -16,7 +16,7 @@ const communicationPages = [
   '/communications/fr/autonomous-pharmacometrics-page-2026/'
 ];
 const gamePages = ['/pharmacometrie/game/'];
-const multiomicsPages = ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/ecosystem/', '/multiomics/disciplines/', '/multiomics/resources/', '/multiomics/glossary/', '/multiomics/references/'];
+const multiomicsPages = ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/game/', '/multiomics/practice/', '/multiomics/demo/', '/multiomics/ecosystem/', '/multiomics/disciplines/', '/multiomics/resources/', '/multiomics/glossary/', '/multiomics/references/'];
 const publicOrigin = getSiteOrigin();
 
 test.beforeEach(async ({ page }) => {

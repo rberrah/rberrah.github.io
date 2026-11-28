@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ page }) => {
   for (const route of [
     '/', '/pharmacometrie/', '/multiomics/',
-    '/multiomics/tool/', '/multiomics/learn/', '/multiomics/demo/', '/multiomics/ecosystem/',
+    '/multiomics/tool/', '/multiomics/learn/', '/multiomics/game/', '/multiomics/practice/', '/multiomics/demo/', '/multiomics/ecosystem/',
     '/multiomics/disciplines/', '/multiomics/resources/'
   ]) {
     const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
@@ -177,4 +177,31 @@ test('Assembled 320px navbar dropdowns preserve theme/locale and clean navigatio
   await expect(toggle).toHaveAttribute('aria-expanded','false');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(12);
+});
+
+// The mounted artifact must be the same native application, not a PMx placeholder.
+test('Assembled learning pages preserve data and language at 320px', async ({page}) => {
+  await page.setViewportSize({width:320,height:720});
+  const errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  const response=await page.goto('/multiomics/game/?lang=en');
+  expect(response?.status()).toBe(200);
+  await expect(page.getByRole('heading',{name:'Mo Game',exact:true})).toBeVisible();
+  await expect(page.getByTestId('public-study-airway')).toBeVisible();
+  await page.getByTestId('public-q-threshold').selectOption({label:'0.01'});
+  await expect(page.getByTestId('public-discovery-count')).toContainText('2,940');
+  await page.getByRole('button',{name:/Nutrimouse/}).click();
+  await page.getByTestId('public-mouse-subset').selectOption('heldout');
+  await expect(page.getByTestId('public-mouse-count')).toHaveText('10');
+  const toggle=page.getByTestId('nav-toggle');
+  await toggle.click();
+  await page.getByTestId('language-toggle').getByRole('button',{name:'FR',exact:true}).click();
+  await expect(page.locator('html')).toHaveAttribute('lang','fr');
+  await expect(page.getByTestId('public-mouse-count')).toHaveText('10');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
+  await page.goto('/multiomics/practice/?lang=en');
+  await expect(page.getByRole('heading',{name:'Practice',exact:true})).toBeVisible();
+  await page.locator('main details').first().locator('summary').click();
+  await expect(page.locator('main details').first()).toContainText('Four, not eight.');
+  expect(errors).toEqual([]);
 });

@@ -29,6 +29,9 @@ test.beforeAll(async ({}, workerInfo) => {
     'multiomics/resources',
     'multiomics/glossary',
     'multiomics/references',
+    'multiomics/game',
+    'multiomics/practice',
+    'multiomics/demo',
     'pharmacometrie/game'
   ]) {
     const target = path.join(portalRoot, route);
